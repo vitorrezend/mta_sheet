@@ -1,0 +1,559 @@
+:root {
+    --page-width: 210mm;
+    --page-height: 297mm;
+    --paper-bg: #ffffff;
+    --bg-color: #f0f0f0;
+    --text-color: #333333;
+    --primary-color: #2c3e50;
+    --shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    padding: 40px 0;
+}
+
+/* Camada Primária: Fundo Retangular A4 */
+.sheet-container {
+    width: var(--page-width);
+    min-height: var(--page-height);
+    background-color: var(--paper-bg);
+    box-shadow: var(--shadow);
+    padding: 15mm;
+    box-sizing: border-box;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+/* Camada Secundária: Campos de Atributos/Habilidades */
+.attributes-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    align-items: flex-start; /* Alinhado a esquerda dentro do grupo */
+    width: fit-content;
+}
+
+.attribute-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
+    min-width: 0;
+}
+
+.attribute-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    color: #555;
+    cursor: help;
+    flex-shrink: 0;
+    max-width: 130px; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 6px; 
+    text-align: left;
+}
+
+.field-modifier {
+    flex: 1;
+    min-width: 10px;
+    width: 0;
+    height: 18px;
+    border: none;
+    border-bottom: 1px dotted #bdc3c7;
+    text-align: left;
+    font-size: 0.7rem;
+    background: transparent;
+    color: var(--primary-color);
+    font-family: inherit;
+    transition: all 0.2s;
+    margin: 0 4px;
+    padding: 0 4px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.field-modifier:focus {
+    outline: none;
+    border-bottom: 1px solid var(--primary-color);
+    background-color: rgba(0,0,0,0.02);
+}
+
+/* Camada Terciária: Bolinhas (Dots) */
+.dots-container {
+    display: flex;
+    gap: 4px; /* Reduzido de 6px para 4px */
+}
+
+.dot {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    background-color: transparent;
+    box-sizing: border-box;
+}
+
+.dot:hover {
+    transform: scale(1.2);
+    border-color: #34495e;
+}
+
+.dot.filled {
+    background-color: var(--primary-color);
+}
+
+.square {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--primary-color);
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    background-color: transparent;
+    box-sizing: border-box;
+}
+
+.square:hover {
+    transform: scale(1.2);
+    border-color: #34495e;
+}
+
+.square.filled {
+    background-color: var(--primary-color);
+}
+
+/* Custom Tooltip */
+.tooltip-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.modifier-container {
+    flex: 1;
+}
+
+.tooltip-text {
+    visibility: hidden;
+    background-color: #2c3e50;
+    color: #fff;
+    text-align: center;
+    border-radius: 4px;
+    padding: 4px 8px;
+    position: absolute;
+    z-index: 10;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+/* Setinha do balão */
+.tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #2c3e50 transparent transparent transparent;
+}
+
+.tooltip-container:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+.tooltip-text.hidden {
+    display: none;
+}
+.group-box {
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    padding: 0.8rem 0.6rem 0.6rem 0.6rem;
+    position: relative;
+    margin-top: 0.8rem; /* Reduzido para economizar espaço */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.group-title {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--paper-bg);
+    padding: 0 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    color: var(--primary-color);
+    letter-spacing: 0.15em;
+}
+
+.attributes-block {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.attribute-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0; /* Permite que o conteúdo interno encolha */
+}
+
+.column-title {
+    font-size: 0.8rem;
+    color: #95a5a6;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 0.4rem;
+    padding-bottom: 0.1rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Posicionamento do grupo na ficha (Obsoleto após o grid, mas mantido para referência) */
+.align-right {
+    align-self: flex-end; 
+    margin-right: 20mm;
+}
+
+.status-badge {
+    background-color: #f1f3f5;
+    color: #495057;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #dee2e6;
+}
+
+
+/* Info Header & Label Fields */
+.info-header {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem; /* Mesmo gap dos atributos */
+    width: 100%;
+    margin-bottom: 0; /* Removido para aproximar do bloco abaixo */
+    padding: 0 0.8rem; /* Alinhamento com o padding do box de atributos */
+    box-sizing: border-box;
+}
+
+.info-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.label-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.label-text {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #7f8c8d;
+    white-space: nowrap;
+    padding-bottom: 2px;
+    text-align: left;
+    flex-shrink: 0;
+}
+
+.label-input {
+    flex: 1;
+    width: 0;
+    min-width: 0;
+    border: none;
+    border-bottom: 1px solid #bdc3c7;
+    background: transparent;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    padding: 2px 4px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    text-overflow: ellipsis; /* Adiciona "..." se o texto for longo */
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.label-input:focus {
+    outline: none;
+    border-bottom-color: var(--primary-color);
+}
+
+/* Dynamic Fields & Buttons */
+.add-field-btn {
+    align-self: center;
+    background: transparent;
+    border: 1px dashed #bdc3c7;
+    color: #bdc3c7;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin: 8px auto 0 auto;
+    font-size: 1.1rem;
+    transition: all 0.2s;
+    padding: 0;
+    line-height: 1;
+}
+
+.add-field-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(0,0,0,0.02);
+    transform: scale(1.1);
+}
+
+.action-area {
+    width: 0; /* Não ocupa espaço no fluxo principal */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.remove-btn {
+    background: transparent;
+    border: none;
+    color: #e74c3c;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0;
+    margin: 0;
+    opacity: 0;
+    transition: all 0.2s;
+    line-height: 1;
+    flex-shrink: 0;
+    position: absolute;
+    left: 4px; /* Deslocado para a direita (fora do alinhamento) */
+}
+
+.attribute-row:hover .remove-btn {
+    opacity: 0.6;
+}
+
+.remove-btn:hover {
+    opacity: 1 !important;
+    transform: scale(1.2);
+}
+
+.label-edit-input {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    border: none;
+    border-bottom: 1px solid var(--primary-color);
+    background: transparent;
+    width: 105px;
+    color: var(--primary-color);
+    font-family: inherit;
+    outline: none;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+/* ─── Responsive / Mobile Scaling ─────────────────────────────────────── */
+@media (max-width: 800px) {
+    body {
+        /* Remove centering padding; the scaled sheet will start at top-left */
+        padding: 0;
+        justify-content: flex-start;
+        align-items: flex-start;
+        /* Shrink body to the visual height of the scaled sheet so page doesn't over-scroll */
+        min-height: var(--sheet-visual-height, 100vh);
+        overflow-x: hidden;
+    }
+
+    .sheet-container {
+        /* Keep natural A4 dimensions so internal layout is untouched */
+        width: 793px;      /* 210mm @ 96dpi */
+        min-height: 1122px; /* 297mm @ 96dpi */
+        padding: 15mm;
+
+        /* Scale the whole sheet down proportionally to fit the viewport */
+        transform-origin: top left;
+        transform: scale(var(--mobile-scale, 1));
+
+        /* Eliminate the layout space that transform leaves behind.
+           After scaling, the element still occupies its natural size in flow,
+           so we pull it back with a negative margin equal to the shrinkage. */
+        margin-bottom: calc((var(--mobile-scale, 1) - 1) * 1122px);
+        box-shadow: none;
+    }
+}
+
+
+/* Quintessence & Paradox Static Tracker */
+.quintessence-paradox-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.qp-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px;
+    background: rgba(0,0,0,0.02);
+    border-radius: 4px;
+}
+
+.qp-square {
+    transition: all 0.2s ease;
+}
+
+.qp-square:hover {
+    transform: scale(1.15);
+    z-index: 10;
+}
+
+.qp-square.paradox {
+    background-color: #000000 !important;
+    border-color: #000000 !important;
+}
+
+.qp-square.quintessence {
+    background-color: #3498db !important;
+    border-color: #1a5276 !important;
+}
+
+/* ─── Vitalidade (Health Tracker) ─────────────────────────────────────── */
+.vitality-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    width: 100%;
+}
+
+.health-levels {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.health-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    width: 100%;
+}
+
+.health-label-group {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.health-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: #555;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.health-penalty {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #c0392b;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Caixa de dano */
+.health-box {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--primary-color);
+    border-radius: 2px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease-in-out;
+    background-color: transparent;
+    box-sizing: border-box;
+}
+
+.health-box:hover {
+    transform: scale(1.15);
+    border-color: #34495e;
+}
+
+.dmg-mark {
+    font-size: 0;
+    line-height: 1;
+}
+
+/* / → Contusivo (bashing) */
+.dmg-slash {
+    font-size: 0.8rem;
+    font-weight: 900;
+    color: var(--primary-color);
+    line-height: 1;
+}
+
+/* ✕ → Letal */
+.dmg-x {
+    font-size: 0.72rem;
+    font-weight: 900;
+    color: #c0392b;
+    line-height: 1;
+}
+
+/* ✦ → Agravado */
+.dmg-agg {
+    font-size: 0.72rem;
+    font-weight: 900;
+    color: #8e44ad;
+    line-height: 1;
+}
