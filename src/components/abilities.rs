@@ -95,7 +95,7 @@ pub fn Abilities() -> impl IntoView {
                 on_level_change=move |v| update_ability.with_value(|cb| cb(n_update_level.clone(), Some(v), None))
                 on_modifier_change=move |m| update_ability.with_value(|cb| cb(n_update_mod.clone(), None, Some(m)))
                 min_level=0
-                max_chars=if is_custom { 10 } else { 15 }
+                max_chars=if is_custom { 10 } else { 12 }
                 is_editable=is_custom
                 on_label_change=set_list.map(|sl| {
                     let old = n_change_label.clone();

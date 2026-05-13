@@ -393,14 +393,15 @@ body {
 
 /* ─── Responsive / Mobile Scaling ─────────────────────────────────────── */
 @media (max-width: 800px) {
+    html, body {
+        overflow-x: hidden;
+    }
+
     body {
         /* Remove centering padding; the scaled sheet will start at top-left */
         padding: 0;
         justify-content: flex-start;
         align-items: flex-start;
-        /* Shrink body to the visual height of the scaled sheet so page doesn't over-scroll */
-        min-height: var(--sheet-visual-height, 100vh);
-        overflow-x: hidden;
     }
 
     .sheet-container {
@@ -409,14 +410,10 @@ body {
         min-height: 1122px; /* 297mm @ 96dpi */
         padding: 15mm;
 
-        /* Scale the whole sheet down proportionally to fit the viewport */
-        transform-origin: top left;
-        transform: scale(var(--mobile-scale, 1));
-
-        /* Eliminate the layout space that transform leaves behind.
-           After scaling, the element still occupies its natural size in flow,
-           so we pull it back with a negative margin equal to the shrinkage. */
-        margin-bottom: calc((var(--mobile-scale, 1) - 1) * 1122px);
+        /* Usa 'zoom' em vez de 'transform' para diminuir o elemento REALMENTE,
+           evitando que os 793px virtuem no fluxo de layout do celular. */
+        zoom: var(--mobile-scale, 1);
+        
         box-shadow: none;
     }
 }
