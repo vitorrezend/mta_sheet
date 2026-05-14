@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::state::CharacterState;
+use crate::state::CharacterData;
 
 /// Tipo de dano em cada caixa de saúde
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -50,34 +50,30 @@ const HEALTH_LEVELS: [(&str, Option<&str>); 7] = [
     ("Incapacitado",      None),
 ];
 
-fn save_health(index: usize, damage: DamageType) {
-    CharacterState::save_label(
-        &format!("health_{}", index),
-        damage.to_key(),
-    );
-}
-
-fn load_health(index: usize) -> DamageType {
-    let s = CharacterState::load_label(&format!("health_{}", index));
-    DamageType::from_key(&s)
-}
-
 #[component]
 pub fn Vitality() -> impl IntoView {
-    // Um sinal por nível de saúde
-    let health: Vec<RwSignal<DamageType>> = (0..7)
-        .map(|i| create_rw_signal(load_health(i)))
-        .collect();
+    let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
+    let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
+
+    let update_health = move |index: usize, next: DamageType| {
+        set_data.update(|s| {
+            s.labels.insert(format!("health_{}", index), next.to_key().to_string());
+        });
+    };
 
     view! {
         <div class="vitality-container">
             <h3 class="column-title">"Vitalidade"</h3>
             <div class="health-levels">
-                {health.into_iter().enumerate().map(|(i, sig)| {
+                {(0..7).map(|i| {
                     let (label, penalty) = HEALTH_LEVELS[i];
+                    let current = move || {
+                        let s = data.get().labels.get(&format!("health_{}", i)).cloned().unwrap_or_default();
+                        DamageType::from_key(&s)
+                    };
+
                     view! {
                         <div class="health-row">
-                            // Label + penalidade
                             <div class="health-label-group">
                                 <span class="health-label">{label}</span>
                                 {penalty.map(|p| view! {
@@ -85,25 +81,23 @@ pub fn Vitality() -> impl IntoView {
                                 })}
                             </div>
 
-                            // Caixa de dano clicável
                             <div
                                 class="health-box"
-                                class:damage-bashing=move || sig.get() == DamageType::Bashing
-                                class:damage-lethal=move || sig.get() == DamageType::Lethal
-                                class:damage-aggravated=move || sig.get() == DamageType::Aggravated
+                                class:damage-bashing=move || current() == DamageType::Bashing
+                                class:damage-lethal=move || current() == DamageType::Lethal
+                                class:damage-aggravated=move || current() == DamageType::Aggravated
                                 on:click=move |_| {
-                                    let next = sig.get().cycle();
-                                    sig.set(next);
-                                    save_health(i, next);
+                                    let next = current().cycle();
+                                    update_health(i, next);
                                 }
-                                title=move || match sig.get() {
+                                title=move || match current() {
                                     DamageType::None       => "Clique para marcar dano",
                                     DamageType::Bashing    => "Contusivo (/) – clique para Letal",
                                     DamageType::Lethal     => "Letal (X) – clique para Agravado",
                                     DamageType::Aggravated => "Agravado (✦) – clique para limpar",
                                 }
                             >
-                                {move || match sig.get() {
+                                {move || match current() {
                                     DamageType::None       => view! { <span class="dmg-mark"></span> },
                                     DamageType::Bashing    => view! { <span class="dmg-mark dmg-slash">"/"</span> },
                                     DamageType::Lethal     => view! { <span class="dmg-mark dmg-x">"✕"</span> },

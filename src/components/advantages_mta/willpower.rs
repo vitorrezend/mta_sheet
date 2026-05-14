@@ -1,49 +1,46 @@
 use leptos::*;
-use crate::state::{AttributeValue};
+use crate::state::{CharacterData, AttributeValue};
 
 #[component]
 pub fn Willpower() -> impl IntoView {
+    let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
+    let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
+
     let total_name = "willpower_total";
     let current_name = "willpower_current";
 
-    // Carrega o total com padrão 5 se for 0
-    let initial_total = {
-        let val = AttributeValue::load_individual(total_name).level;
+    let total = Signal::derive(move || {
+        let val = data.get().attributes.get(total_name).map(|a| a.level).unwrap_or(0);
         if val == 0 { 5 } else { val }
-    };
+    });
 
-    let (total, set_total) = create_signal(initial_total);
-    let (current, set_current) = create_signal(AttributeValue::load_individual(current_name).level);
+    let current = Signal::derive(move || {
+        data.get().attributes.get(current_name).map(|a| a.level).unwrap_or(0)
+    });
 
     let update_total = move |new_val: i32| {
         let val = new_val.max(1);
-        set_total.set(val);
-        let mut attr = AttributeValue::load_individual(total_name);
-        attr.level = val;
-        attr.save_individual(total_name);
-        
-        // Garante que o atual não ultrapasse o novo total
-        if current.get() > val {
-            set_current.set(val);
-            let mut c_attr = AttributeValue::load_individual(current_name);
-            c_attr.level = val;
-            c_attr.save_individual(current_name);
-        }
+        set_data.update(|s| {
+            s.attributes.entry(total_name.to_string()).or_default().level = val;
+            if let Some(c_attr) = s.attributes.get_mut(current_name) {
+                if c_attr.level > val {
+                    c_attr.level = val;
+                }
+            }
+        });
     };
 
     let update_current = move |new_val: i32| {
         let val = new_val.clamp(0, total.get());
-        set_current.set(val);
-        let mut attr = AttributeValue::load_individual(current_name);
-        attr.level = val;
-        attr.save_individual(current_name);
+        set_data.update(|s| {
+            s.attributes.entry(current_name.to_string()).or_default().level = val;
+        });
     };
 
     view! {
         <div class="willpower-container" style="margin-top: 1.2rem;">
             <h3 class="column-title">"Força de Vontade"</h3>
             
-            // Força de Vontade Total (Dots)
             <div class="dots-container" style="justify-content: center; margin-bottom: 0.6rem; gap: 6px;">
                 {(1..=10).map(|i| {
                     let is_filled = move || total.get() >= i;
@@ -65,7 +62,6 @@ pub fn Willpower() -> impl IntoView {
                 }).collect_view()}
             </div>
 
-            // Força de Vontade Restante (Squares)
             <div class="dots-container" style="justify-content: center; gap: 6px;">
                 {(1..=10).map(|i| {
                     let is_filled = move || current.get() >= i;

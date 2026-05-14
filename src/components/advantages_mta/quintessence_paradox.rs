@@ -1,21 +1,18 @@
 use leptos::*;
-use crate::state::{AttributeValue};
+use crate::state::{CharacterData, AttributeValue};
 
 #[component]
 pub fn QuintessenceParadox() -> impl IntoView {
+    let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
+    let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
+
     let states_key = "quintessence_paradox_states";
-    let q_total_key = "quintessence";
-    let p_total_key = "paradox";
 
-    // Carrega os estados individuais (string de 20 caracteres)
-    let initial_states = {
-        let val = AttributeValue::load_individual(states_key).modifier;
+    let states = Signal::derive(move || {
+        let val = data.get().labels.get(states_key).cloned().unwrap_or_default();
         if val.len() == 20 { val } else { "0".repeat(20) }
-    };
+    });
 
-    let (states, set_states) = create_signal(initial_states);
-
-    // Totais derivados para compatibilidade com outras partes do sistema
     let quintessence_total = Signal::derive(move || {
         states.get().chars().filter(|&c| c == '1').count() as i32
     });
@@ -24,34 +21,19 @@ pub fn QuintessenceParadox() -> impl IntoView {
     });
 
     let update_state = move |index: usize| {
-        set_states.update(|s| {
-            let mut chars: Vec<char> = s.chars().collect();
+        set_data.update(|s| {
+            let current = s.labels.entry(states_key.to_string()).or_insert_with(|| "0".repeat(20));
+            if current.len() != 20 { *current = "0".repeat(20); }
+
+            let mut chars: Vec<char> = current.chars().collect();
             if index < chars.len() {
-                // Ciclo: 0 (vazio) -> 1 (quint) -> 2 (paradox) -> 0
                 let next = match chars[index] {
                     '0' => '1',
                     '1' => '2',
                     _ => '0',
                 };
                 chars[index] = next;
-                *s = chars.into_iter().collect();
-                
-                // Persiste os estados
-                let mut attr = AttributeValue::load_individual(states_key);
-                attr.modifier = s.clone();
-                attr.save_individual(states_key);
-
-                // Persiste os totais para compatibilidade
-                let q_count = s.chars().filter(|&c| c == '1').count() as i32;
-                let p_count = s.chars().filter(|&c| c == '2').count() as i32;
-                
-                let mut attr_q = AttributeValue::load_individual(q_total_key);
-                attr_q.level = q_count;
-                attr_q.save_individual(q_total_key);
-
-                let mut attr_p = AttributeValue::load_individual(p_total_key);
-                attr_p.level = p_count;
-                attr_p.save_individual(p_total_key);
+                *current = chars.into_iter().collect();
             }
         });
     };
@@ -76,11 +58,9 @@ pub fn QuintessenceParadox() -> impl IntoView {
             <h3 class="column-title">"Quintessência / Paradoxo"</h3>
             
             <div class="qp-grid" style="margin: 0.8rem 0;">
-                // Primeira linha (1-10)
                 <div class="dots-container" style="justify-content: center; gap: 4px; margin-bottom: 4px;">
                     {(0..10).map(|i| render_box(i)).collect_view()}
                 </div>
-                // Segunda linha (11-20)
                 <div class="dots-container" style="justify-content: center; gap: 4px;">
                     {(10..20).map(|i| render_box(i)).collect_view()}
                 </div>

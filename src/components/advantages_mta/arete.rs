@@ -1,17 +1,19 @@
 use leptos::*;
-use crate::state::AttributeValue;
+use crate::state::{CharacterData, AttributeValue};
 
 #[component]
 pub fn Arete() -> impl IntoView {
+    let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
+    let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
+
     let name = "Arete";
-    let (level, set_level) = create_signal(AttributeValue::load_individual(name).level.max(1));
+    let level = Signal::derive(move || data.get().attributes.get(name).map(|a| a.level).unwrap_or(1).max(1));
 
     let update_level = move |new_val: i32| {
-        let val = new_val.max(1); // Mínimo 1 conforme solicitado
-        set_level.set(val);
-        let mut attr = AttributeValue::load_individual(name);
-        attr.level = val;
-        attr.save_individual(name);
+        let val = new_val.max(1);
+        set_data.update(|s| {
+            s.attributes.entry(name.to_string()).or_default().level = val;
+        });
     };
 
     view! {

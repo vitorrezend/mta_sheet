@@ -1,22 +1,26 @@
 use leptos::*;
 use crate::components::LabelField;
-use crate::state::CharacterState;
+use crate::state::CharacterData;
 
 #[component]
 pub fn Experience() -> impl IntoView {
+    let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
+    let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
+
     let name = "Experiência";
-    let (value, set_value) = create_signal(CharacterState::load_label(name));
+    let value = Signal::derive(move || data.get().labels.get(name).cloned().unwrap_or_default());
 
     let update_value = move |val: String| {
-        set_value.set(val.clone());
-        CharacterState::save_label(name, &val);
+        set_data.update(|s| {
+            s.labels.insert(name.to_string(), val);
+        });
     };
 
     view! {
         <div class="experience-column">
             <LabelField 
                 label=name
-                value=Signal::derive(move || value.get())
+                value=value
                 on_change=update_value
             />
         </div>

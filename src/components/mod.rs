@@ -1,3 +1,5 @@
+pub mod home;
+pub mod character_sheet;
 pub mod sheet;
 pub mod value_field;
 pub mod attributes;
@@ -9,6 +11,8 @@ pub mod abilities;
 pub mod spheres;
 pub mod advantages_mta;
 
+pub use home::Home;
+pub use character_sheet::CharacterSheet;
 pub use sheet::Sheet;
 pub use value_field::ValueField;
 pub use attributes::Attributes;
