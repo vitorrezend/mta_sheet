@@ -4,16 +4,53 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-leptos = { version = "0.6", features = ["csr"] }
-console_error_panic_hook = "0.1.7"
-wasm-bindgen = "0.2"
+leptos = { version = "0.6" }
+leptos_axum = { version = "0.6", optional = true }
+leptos_router = { version = "0.6" }
+axum = { version = "0.7", optional = true, features = ["macros"] }
+tower = { version = "0.4", optional = true }
+tower-http = { version = "0.5", optional = true, features = ["fs"] }
+tokio = { version = "1", features = ["full"], optional = true }
+sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-rustls", "macros"], optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-web-sys = { version = "0.3", features = ["Storage", "Window"] }
+uuid = { version = "1.0", features = ["v4", "serde"] }
+getrandom = { version = "0.2", features = ["js"] }
+console_error_panic_hook = "0.1.7"
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = ["Storage", "Window", "HtmlInputElement"] }
 js-sys = "0.3"
+http = "1.0"
+log = "0.4"
+dotenvy = { version = "0.15", optional = true }
 
-[dev-dependencies]
-wasm-bindgen-test = "0.3"
+[features]
+csr = ["leptos/csr"]
+hydrate = ["leptos/hydrate"]
+ssr = [
+    "dep:axum",
+    "dep:tokio",
+    "dep:tower",
+    "dep:tower-http",
+    "dep:leptos_axum",
+    "dep:sqlx",
+    "dep:dotenvy",
+    "leptos/ssr",
+    "leptos_router/ssr",
+]
+
+[package.metadata.leptos]
+output-name = "mta_sheet"
+site-root = "target/site"
+site-pkg-dir = "pkg"
+style-file = "style.css"
+site-addr = "127.0.0.1:3000"
+reload-port = 3001
+env = "DEV"
+bin-features = ["ssr"]
+bin-target = "mta_sheet"
+lib-features = ["hydrate"]
+lib-target = "mta_sheet"
 
 [profile.release]
 opt-level = 'z'

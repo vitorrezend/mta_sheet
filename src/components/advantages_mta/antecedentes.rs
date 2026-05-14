@@ -1,41 +1,39 @@
 use leptos::*;
 use crate::components::ValueField;
-use crate::state::{CharacterState, AttributeValue};
+use crate::state::{CharacterData, AttributeValue};
 
 #[component]
 pub fn Antecedentes() -> impl IntoView {
+    let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
+    let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
+
     let category = "Antecedentes";
     
-    // Lista de IDs únicos para persistência
-    let (list, set_list) = create_signal({
-        let mut l = CharacterState::load_custom_list(category);
-        if l.is_empty() {
-            l = (1..=5).map(|i| format!("bg_id_{}", i)).collect();
-            CharacterState::save_custom_list(category, &l);
-        }
-        l
+    let list = Signal::derive(move || {
+        data.get().custom_lists.get(category).cloned().unwrap_or_default()
     });
 
-    let (trigger, set_trigger) = create_signal(0);
-
     let add_item = move |_| {
-        set_list.update(|l| {
-            l.push(format!("bg_id_{}_{}", l.len() + 1, js_sys::Math::random()));
-            CharacterState::save_custom_list(category, l);
+        set_data.update(|s| {
+            let list = s.custom_lists.entry(category.to_string()).or_default();
+            list.push(format!("bg_{}", uuid::Uuid::new_v4()));
         });
     };
 
     let remove_item = move |id: String| {
-        set_list.update(|l| {
-            l.retain(|n| n != &id);
-            CharacterState::save_custom_list(category, l);
+        set_data.update(|s| {
+            if let Some(list) = s.custom_lists.get_mut(category) {
+                list.retain(|n| n != &id);
+            }
+            s.labels.remove(&id);
+            s.attributes.remove(&id);
         });
-        // Opcional: limpar o label e o atributo associado ao ID
     };
 
     let update_label = move |id: String, new_label: String| {
-        CharacterState::save_label(&id, &new_label);
-        set_trigger.update(|t| *t += 1);
+        set_data.update(|s| {
+            s.labels.insert(id, new_label);
+        });
     };
 
     let render_item = move |id: String| {
@@ -47,19 +45,19 @@ pub fn Antecedentes() -> impl IntoView {
         let id_up_level = id.clone();
         let id_up_mod = id.clone();
 
-        let label = Signal::derive(move || {
-            trigger.track();
-            CharacterState::load_label(&id_label)
+        let label = Signal::derive({
+            let id = id_label.clone();
+            move || data.get().labels.get(&id).cloned().unwrap_or_default()
         });
 
-        let level = Signal::derive(move || {
-            trigger.track();
-            AttributeValue::load_individual(&id_level).level
+        let level = Signal::derive({
+            let id = id_level.clone();
+            move || data.get().attributes.get(&id).map(|a| a.level).unwrap_or(0)
         });
         
-        let modifier = Signal::derive(move || {
-            trigger.track();
-            AttributeValue::load_individual(&id_mod).modifier
+        let modifier = Signal::derive({
+            let id = id_mod.clone();
+            move || data.get().attributes.get(&id).map(|a| a.modifier.clone()).unwrap_or_default()
         });
 
         view! {
@@ -67,17 +65,21 @@ pub fn Antecedentes() -> impl IntoView {
                 label=label
                 level=level
                 modifier=modifier
-                on_level_change=move |v| {
-                    let mut attr = AttributeValue::load_individual(&id_up_level);
-                    attr.level = v;
-                    attr.save_individual(&id_up_level);
-                    set_trigger.update(|t| *t += 1);
+                on_level_change={
+                    let id = id_up_level.clone();
+                    move |v| {
+                        set_data.update(|s| {
+                            s.attributes.entry(id.clone()).or_default().level = v;
+                        });
+                    }
                 }
-                on_modifier_change=move |m| {
-                    let mut attr = AttributeValue::load_individual(&id_up_mod);
-                    attr.modifier = m;
-                    attr.save_individual(&id_up_mod);
-                    set_trigger.update(|t| *t += 1);
+                on_modifier_change={
+                    let id = id_up_mod.clone();
+                    move |m| {
+                        set_data.update(|s| {
+                            s.attributes.entry(id.clone()).or_default().modifier = m;
+                        });
+                    }
                 }
                 is_editable=true
                 on_label_change=Some(Callback::new(move |new_l| update_label(id_change.clone(), new_l)))

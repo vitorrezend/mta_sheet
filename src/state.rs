@@ -1,153 +1,104 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use web_sys;
+use leptos::*;
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct AttributeValue {
     pub level: i32,
     pub modifier: String,
 }
 
-impl Default for AttributeValue {
-    fn default() -> Self {
-        Self {
-            level: 0,
-            modifier: String::new(),
-        }
-    }
-}
-
-impl AttributeValue {
-    pub fn save_individual(&self, name: &str) {
-        let window = web_sys::window().expect("no window");
-        let storage = window.local_storage().ok().flatten().expect("no storage");
-        let key = format!("attr_{}", name);
-        
-        if let Ok(json) = serde_json::to_string(self) {
-            let _ = storage.set_item(&key, &json);
-        }
-    }
-
-    pub fn load_individual(name: &str) -> Self {
-        let window = web_sys::window().expect("no window");
-        let storage = window.local_storage().ok().flatten().expect("no storage");
-        let key = format!("attr_{}", name);
-
-        storage.get_item(&key)
-            .ok()
-            .flatten()
-            .and_then(|json| serde_json::from_str(&json).ok())
-            .unwrap_or_default()
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
-pub struct CharacterState {
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct CharacterData {
+    pub id: String,
+    pub name: String,
     pub attributes: HashMap<String, AttributeValue>,
     pub labels: HashMap<String, String>,
+    pub custom_lists: HashMap<String, Vec<String>>,
 }
 
-impl CharacterState {
-    pub fn save_label(name: &str, value: &str) {
-        let window = web_sys::window().expect("no window");
-        let storage = window.local_storage().ok().flatten().expect("no storage");
-        let key = format!("label_{}", name);
-        let _ = storage.set_item(&key, value);
-    }
-
-    pub fn load_label(name: &str) -> String {
-        let window = web_sys::window().expect("no window");
-        let storage = window.local_storage().ok().flatten().expect("no storage");
-        let key = format!("label_{}", name);
-        storage.get_item(&key).ok().flatten().unwrap_or_default()
-    }
-
-    // Carregamos cada campo individualmente
-    pub fn load_all(attr_names: &[&'static str], label_names: &[&'static str]) -> Self {
-        let mut attributes = HashMap::new();
-        for &name in attr_names {
-            attributes.insert(name.to_string(), AttributeValue::load_individual(name));
-        }
-
-        let mut labels = HashMap::new();
-        for &name in label_names {
-            labels.insert(name.to_string(), Self::load_label(name));
-        }
-
-        Self { attributes, labels }
-    }
-
-    pub fn save_custom_list(category: &str, list: &[String]) {
-        let window = web_sys::window().expect("no window");
-        let storage = window.local_storage().ok().flatten().expect("no storage");
-        let key = format!("custom_list_{}", category);
-        if let Ok(json) = serde_json::to_string(list) {
-            let _ = storage.set_item(&key, &json);
-        }
-    }
-
-    pub fn load_custom_list(category: &str) -> Vec<String> {
-        let window = web_sys::window().expect("no window");
-        let storage = window.local_storage().ok().flatten().expect("no storage");
-        let key = format!("custom_list_{}", category);
-        storage.get_item(&key)
-            .ok()
-            .flatten()
-            .and_then(|json| serde_json::from_str(&json).ok())
-            .unwrap_or_default()
-    }
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct CharacterSummary {
+    pub id: String,
+    pub name: String,
+    pub updated_at: String,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use wasm_bindgen_test::*;
+#[server(GetSheets, "/api")]
+pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
+    use sqlx::{SqlitePool, Row, sqlite::SqliteRow};
+    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
 
-    wasm_bindgen_test_configure!(run_in_browser);
+    let rows = sqlx::query("SELECT id, name, updated_at FROM character_sheets ORDER BY updated_at DESC")
+        .fetch_all(&pool)
+        .await
+        .map_err(|e: sqlx::Error| ServerFnError::new(e.to_string()))?;
 
-    #[test]
-    fn test_attribute_value_default() {
-        let attr = AttributeValue::default();
-        assert_eq!(attr.level, 0);
-        assert_eq!(attr.modifier, "");
-    }
+    let summaries = rows.into_iter().map(|row: SqliteRow| CharacterSummary {
+        id: row.get("id"),
+        name: row.get("name"),
+        updated_at: row.get("updated_at"),
+    }).collect();
 
-    #[wasm_bindgen_test]
-    fn test_save_and_load_individual() {
-        let attr = AttributeValue {
-            level: 4,
-            modifier: "Test Mod".to_string(),
-        };
-        let name = "test_attr";
-        
-        // Save
-        attr.save_individual(name);
-        
-        // Load
-        let loaded = AttributeValue::load_individual(name);
-        
-        assert_eq!(loaded.level, 4);
-        assert_eq!(loaded.modifier, "Test Mod");
-    }
+    Ok(summaries)
+}
 
-    #[wasm_bindgen_test]
-    fn test_save_and_load_label() {
-        let name = "test_label";
-        let value = "Test Value";
-        
-        // Save
-        CharacterState::save_label(name, value);
-        
-        // Load
-        let loaded = CharacterState::load_label(name);
-        
-        assert_eq!(loaded, value);
-    }
+#[server(GetSheet, "/api")]
+pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
+    use sqlx::{SqlitePool, Row, sqlite::SqliteRow};
+    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
 
-    #[test]
-    fn test_character_state_default() {
-        let state = CharacterState::default();
-        assert!(state.attributes.is_empty());
-        assert!(state.labels.is_empty());
-    }
+    let row = sqlx::query("SELECT data FROM character_sheets WHERE id = ?")
+        .bind(id)
+        .fetch_one(&pool)
+        .await
+        .map_err(|e: sqlx::Error| ServerFnError::new(e.to_string()))?;
+
+    let data_json: String = row.get("data");
+    let data: CharacterData = serde_json::from_str(&data_json).map_err(|e: serde_json::Error| ServerFnError::new(e.to_string()))?;
+
+    Ok(data)
+}
+
+#[server(CreateSheet, "/api")]
+pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
+    use sqlx::SqlitePool;
+    use uuid::Uuid;
+    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
+
+    let id = Uuid::new_v4().to_string();
+    let initial_data = CharacterData {
+        id: id.clone(),
+        name: name.clone(),
+        ..Default::default()
+    };
+    let data_json = serde_json::to_string(&initial_data).map_err(|e: serde_json::Error| ServerFnError::new(e.to_string()))?;
+
+    sqlx::query("INSERT INTO character_sheets (id, name, data) VALUES (?, ?, ?)")
+        .bind(&id)
+        .bind(&name)
+        .bind(data_json)
+        .execute(&pool)
+        .await
+        .map_err(|e: sqlx::Error| ServerFnError::new(e.to_string()))?;
+
+    Ok(id)
+}
+
+#[server(UpdateSheet, "/api")]
+pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerFnError> {
+    use sqlx::SqlitePool;
+    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
+
+    let data_json = serde_json::to_string(&data).map_err(|e: serde_json::Error| ServerFnError::new(e.to_string()))?;
+
+    sqlx::query("UPDATE character_sheets SET name = ?, data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+        .bind(&data.name)
+        .bind(data_json)
+        .bind(id)
+        .execute(&pool)
+        .await
+        .map_err(|e: sqlx::Error| ServerFnError::new(e.to_string()))?;
+
+    Ok(())
 }

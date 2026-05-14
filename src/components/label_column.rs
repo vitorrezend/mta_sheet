@@ -1,31 +1,34 @@
 use leptos::*;
 use crate::components::label_field::LabelField;
-use crate::state::CharacterState;
+use crate::state::CharacterData;
 
 #[component]
 pub fn LabelColumn(
     fields: Vec<(&'static str, &'static str)>,
 ) -> impl IntoView {
-    // Carrega o estado inicial baseado nas chaves fornecidas
-    let (state, set_state) = create_signal(fields.iter()
-        .map(|&(_, key)| (key.to_string(), CharacterState::load_label(key)))
-        .collect::<std::collections::HashMap<_, _>>());
+    let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
+    let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
 
-    let update_label = move |name: String, value: String| {
-        CharacterState::save_label(&name, &value);
-        set_state.update(|s| {
-            s.insert(name, value);
+    let update_label = move |key: String, value: String| {
+        set_data.update(|s| {
+            s.labels.insert(key, value);
         });
     };
 
     view! {
         <div class="info-column">
             {fields.into_iter().map(|(label, key)| {
+                let key_str = key.to_string();
+                let key_str2 = key.to_string();
+                let value = Signal::derive({
+                    let key = key_str.clone();
+                    move || data.get().labels.get(&key).cloned().unwrap_or_default()
+                });
                 view! {
                     <LabelField 
                         label=label 
-                        value=Signal::derive(move || state.get().get(key).cloned().unwrap_or_default())
-                        on_change=move |v| update_label(key.to_string(), v)
+                        value=value
+                        on_change=move |v| update_label(key_str2.clone(), v)
                     />
                 }
             }).collect_view()}
