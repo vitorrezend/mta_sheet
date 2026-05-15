@@ -37,8 +37,8 @@ pub fn Home() -> impl IntoView {
                     <input
                         type="text"
                         placeholder="Nome do Personagem"
-                        prop:value=name
                         on:input=move |ev| set_name.set(event_target_value(&ev))
+                        prop:value=name
                     />
                     <button type="submit">"Criar"</button>
                 </form>

@@ -7,8 +7,9 @@ edition = "2024"
 leptos = { version = "0.6" }
 leptos_axum = { version = "0.6", optional = true }
 leptos_router = { version = "0.6" }
+leptos_meta = { version = "0.6" }
 axum = { version = "0.7", optional = true, features = ["macros"] }
-tower = { version = "0.4", optional = true }
+tower = { version = "0.4", optional = true, features = ["util"] }
 tower-http = { version = "0.5", optional = true, features = ["fs"] }
 tokio = { version = "1", features = ["full"], optional = true }
 sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-rustls", "macros"], optional = true }
@@ -37,6 +38,7 @@ ssr = [
     "dep:dotenvy",
     "leptos/ssr",
     "leptos_router/ssr",
+    "leptos_meta/ssr",
 ]
 
 [package.metadata.leptos]
