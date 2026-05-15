@@ -22,9 +22,22 @@ if %ERRORLEVEL% EQU 0 (
     cargo leptos watch
 ) else (
     echo [AVISO] cargo-leptos nao encontrado.
-    echo [INFO] Tentando iniciar com cargo run --features ssr...
-    echo [INFO] Nota: Hydration pode falhar se os assets nao forem compilados corretamente.
+    echo [INFO] Para uma melhor experiencia, instale com: cargo install cargo-leptos
+    echo [INFO] Tentando iniciar manualmente...
 
+    :: Certifica que o diretório de destino existe para o frontend (simulando cargo-leptos)
+    if not exist "target\site" mkdir "target\site"
+
+    :: Se o trunk estiver disponivel, builda o frontend
+    trunk --version >nul 2>nul
+    if %ERRORLEVEL% EQU 0 (
+        echo [1/2] Compilando assets do frontend com Trunk...
+        trunk build --release -d target/site
+    ) else (
+        echo [AVISO] Trunk nao encontrado. Assets estaticos podem nao funcionar.
+    )
+
+    echo [2/2] Iniciando servidor backend...
     cargo run --features ssr
 )
 
