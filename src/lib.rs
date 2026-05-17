@@ -1,5 +1,7 @@
 mod components;
 mod state;
+
+#[cfg(feature = "ssr")]
 pub mod database;
 
 use leptos::*;
@@ -8,6 +10,8 @@ use leptos_meta::*;
 
 #[component]
 pub fn App() -> impl IntoView {
+    provide_meta_context();
+
     // Mobile Scaling Script from index.html
     let mobile_scale_script = "
         var A4_PX = 793;

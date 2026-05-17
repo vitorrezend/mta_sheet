@@ -1,10 +1,15 @@
+#[cfg(feature = "ssr")]
 use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
+#[cfg(feature = "ssr")]
 use std::str::FromStr;
 
 #[cfg(feature = "ssr")]
 pub async fn get_db() -> SqlitePool {
     use dotenvy::dotenv;
     let _ = dotenv();
+
+    // To change the database location without recompilation, set DATABASE_URL in a .env file:
+    // DATABASE_URL=sqlite:/path/to/your/database.db
     let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:mta_sheet.db".to_string());
 
     let options = SqliteConnectOptions::from_str(&database_url)
