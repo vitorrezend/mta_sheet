@@ -1,27 +1,34 @@
 use leptos::*;
 use leptos_router::*;
-use crate::state::{get_sheets, create_sheet};
+use crate::state::{get_sheets, CreateSheet, DeleteSheet};
 
 #[component]
 pub fn Home() -> impl IntoView {
-    let sheets = create_resource(|| (), |_| async move { get_sheets().await });
+    let create_action = create_server_action::<CreateSheet>();
+    let delete_action = create_server_action::<DeleteSheet>();
+
+    // Reload the list whenever a create or delete action completes
+    let sheets = create_resource(
+        move || (create_action.version().get(), delete_action.version().get()),
+        |_| async move { get_sheets().await }
+    );
+
     let (name, set_name) = create_signal(String::new());
+
+    // Navigate to new sheet when created
+    create_effect(move |_| {
+        if let Some(Ok(id)) = create_action.value().get() {
+            let navigate = use_navigate();
+            navigate(&format!("/sheet/{}", id), Default::default());
+        }
+    });
 
     let on_create = move |ev: ev::SubmitEvent| {
         ev.prevent_default();
         let name_val = name.get();
         if !name_val.is_empty() {
-            spawn_local(async move {
-                match create_sheet(name_val).await {
-                    Ok(id) => {
-                        let navigate = use_navigate();
-                        navigate(&format!("/sheet/{}", id), Default::default());
-                    }
-                    Err(e) => {
-                        logging::log!("Error creating sheet: {:?}", e);
-                    }
-                }
-            });
+            create_action.dispatch(CreateSheet { name: name_val });
+            set_name.set(String::new());
         }
     };
 
@@ -40,7 +47,9 @@ pub fn Home() -> impl IntoView {
                         on:input=move |ev| set_name.set(event_target_value(&ev))
                         prop:value=name
                     />
-                    <button type="submit">"Criar"</button>
+                    <button type="submit" disabled=move || create_action.pending().get()>
+                        {move || if create_action.pending().get() { "Criando..." } else { "Criar" }}
+                    </button>
                 </form>
             </section>
 
@@ -53,12 +62,21 @@ pub fn Home() -> impl IntoView {
                             <ul class="sheet-list">
                                 {data.into_iter().map(|summary| {
                                     let id = summary.id.clone();
+                                    let id_for_delete = id.clone();
                                     view! {
                                         <li>
                                             <A href=format!("/sheet/{}", id)>
                                                 <span class="sheet-name">{summary.name}</span>
                                                 <span class="sheet-date">{summary.updated_at}</span>
                                             </A>
+                                            <button
+                                                class="delete-btn"
+                                                on:click=move |_| {
+                                                    delete_action.dispatch(DeleteSheet { id: id_for_delete.clone() });
+                                                }
+                                            >
+                                                "Excluir"
+                                            </button>
                                         </li>
                                     }
                                 }).collect_view()}

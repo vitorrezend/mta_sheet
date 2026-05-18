@@ -24,6 +24,7 @@ js-sys = "0.3"
 http = "1.0"
 log = "0.4"
 dotenvy = { version = "0.15", optional = true }
+wasm-bindgen-test = "0.3"
 
 [features]
 csr = ["leptos/csr"]

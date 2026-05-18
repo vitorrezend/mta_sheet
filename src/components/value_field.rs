@@ -144,21 +144,20 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_value_field_rendering() {
+        let (label, _) = create_signal("Força".to_string());
         let (level, _) = create_signal(3);
         let (modifier, _) = create_signal("Test".to_string());
         
         let _view = view! {
             <ValueField 
-                label="Força"
+                label=label.into()
                 level=level.into()
                 modifier=modifier.into()
                 on_level_change=|_| {}
                 on_modifier_change=|_| {}
+                on_remove=None
+                on_label_change=None
             />
         };
-
-        // In a real WASM test, we would mount this to a document 
-        // and inspect the DOM using web_sys.
-        // For now, this ensures the component compiles and can be instantiated.
     }
 }
