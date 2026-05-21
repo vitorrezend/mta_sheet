@@ -5,7 +5,11 @@ use std::str::FromStr;
 pub async fn get_db() -> SqlitePool {
     use dotenvy::dotenv;
     let _ = dotenv();
-    let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:mta_sheet.db".to_string());
+    let mut database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "mta_sheet.db".to_string());
+
+    if !database_url.starts_with("sqlite:") {
+        database_url = format!("sqlite:{}", database_url);
+    }
 
     let options = SqliteConnectOptions::from_str(&database_url)
         .expect("Invalid DATABASE_URL")
