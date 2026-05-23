@@ -1,6 +1,6 @@
 use leptos::*;
 use leptos_router::*;
-use crate::state::{get_sheets, create_sheet};
+use crate::state::{get_sheets, create_sheet, delete_sheet};
 
 #[component]
 pub fn Home() -> impl IntoView {
@@ -53,12 +53,34 @@ pub fn Home() -> impl IntoView {
                             <ul class="sheet-list">
                                 {data.into_iter().map(|summary| {
                                     let id = summary.id.clone();
+                                    let id_for_delete = id.clone();
+
+                                    let on_delete = move |ev: ev::MouseEvent| {
+                                        ev.prevent_default();
+                                        ev.stop_propagation();
+                                        let id_val = id_for_delete.clone();
+                                        spawn_local(async move {
+                                            if let Ok(_) = delete_sheet(id_val).await {
+                                                sheets.refetch();
+                                            }
+                                        });
+                                    };
+
                                     view! {
-                                        <li>
-                                            <A href=format!("/sheet/{}", id)>
-                                                <span class="sheet-name">{summary.name}</span>
-                                                <span class="sheet-date">{summary.updated_at}</span>
+                                        <li class="sheet-item">
+                                            <A href=format!("/sheet/{}", id) class="sheet-link">
+                                                <div class="sheet-item-content">
+                                                    <span class="sheet-name">{summary.name}</span>
+                                                    <span class="sheet-date">{summary.updated_at}</span>
+                                                </div>
                                             </A>
+                                            <button
+                                                class="delete-btn"
+                                                on:click=on_delete
+                                                title="Excluir Ficha"
+                                            >
+                                                "✕"
+                                            </button>
                                         </li>
                                     }
                                 }).collect_view()}
