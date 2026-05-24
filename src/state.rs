@@ -45,7 +45,7 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
 
 #[server(GetSheet, "/api")]
 pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
-    use sqlx::{SqlitePool, Row, sqlite::SqliteRow};
+    use sqlx::{SqlitePool, Row};
     let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
 
     let row = sqlx::query("SELECT data FROM character_sheets WHERE id = ?")
@@ -95,6 +95,20 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
     sqlx::query("UPDATE character_sheets SET name = ?, data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
         .bind(&data.name)
         .bind(data_json)
+        .bind(id)
+        .execute(&pool)
+        .await
+        .map_err(|e: sqlx::Error| ServerFnError::new(e.to_string()))?;
+
+    Ok(())
+}
+
+#[server(DeleteSheet, "/api")]
+pub async fn delete_sheet(id: String) -> Result<(), ServerFnError> {
+    use sqlx::SqlitePool;
+    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
+
+    sqlx::query("DELETE FROM character_sheets WHERE id = ?")
         .bind(id)
         .execute(&pool)
         .await

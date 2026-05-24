@@ -19,6 +19,129 @@ body {
     padding: 40px 0;
 }
 
+/* Home Page Styles */
+.home-container {
+    max-width: 800px;
+    width: 90%;
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.home-header h1 {
+    margin: 0;
+    color: var(--primary-color);
+    text-align: center;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 1rem;
+}
+
+.create-section, .list-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.create-section form {
+    display: flex;
+    gap: 1rem;
+}
+
+.create-section input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.create-section button {
+    padding: 0.5rem 1.5rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.sheet-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sheet-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    transition: background 0.2s;
+}
+
+.sheet-item:hover {
+    background: #f0f0f0;
+}
+
+.sheet-item a {
+    text-decoration: none;
+    color: inherit;
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sheet-name {
+    font-weight: 600;
+}
+
+.sheet-date {
+    font-size: 0.8rem;
+    color: #777;
+}
+
+.delete-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 1rem;
+}
+
+.delete-btn:hover {
+    background: #c0392b;
+}
+
+/* Character Sheet Navigation */
+.sheet-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sheet-nav {
+    width: var(--page-width);
+    margin-bottom: 1rem;
+    display: flex;
+}
+
+.sheet-nav a {
+    text-decoration: none;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
 /* Camada Primária: Fundo Retangular A4 */
 .sheet-container {
     width: var(--page-width);
@@ -415,6 +538,19 @@ body {
         zoom: var(--mobile-scale, 1);
         
         box-shadow: none;
+    }
+
+    .home-container {
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 0;
+        padding: 1rem;
+    }
+
+    .sheet-nav {
+        width: 100%;
+        padding: 0 1rem;
+        box-sizing: border-box;
     }
 }
 

@@ -1,11 +1,19 @@
+#[cfg(feature = "ssr")]
 use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
+#[cfg(feature = "ssr")]
 use std::str::FromStr;
 
 #[cfg(feature = "ssr")]
 pub async fn get_db() -> SqlitePool {
     use dotenvy::dotenv;
     let _ = dotenv();
-    let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:mta_sheet.db".to_string());
+    let mut database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "mta_sheet.db".to_string());
+
+    if !database_url.starts_with("sqlite:") {
+        database_url = format!("sqlite:{}", database_url);
+    }
+
+    println!("Using database at: {}", database_url);
 
     let options = SqliteConnectOptions::from_str(&database_url)
         .expect("Invalid DATABASE_URL")
