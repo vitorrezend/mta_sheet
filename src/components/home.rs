@@ -1,6 +1,6 @@
 use leptos::*;
 use leptos_router::*;
-use crate::state::{get_sheets, create_sheet};
+use crate::state::{get_sheets, create_sheet, delete_sheet};
 
 #[component]
 pub fn Home() -> impl IntoView {
@@ -47,25 +47,43 @@ pub fn Home() -> impl IntoView {
             <section class="list-section">
                 <h2>"Fichas Existentes"</h2>
                 <Suspense fallback=move || view! { <p>"Carregando..."</p> }>
-                    {move || sheets.get().map(|res| match res {
-                        Ok(data) if data.is_empty() => view! { <p>"Nenhuma ficha encontrada."</p> }.into_view(),
-                        Ok(data) => view! {
-                            <ul class="sheet-list">
-                                {data.into_iter().map(|summary| {
-                                    let id = summary.id.clone();
-                                    view! {
-                                        <li>
-                                            <A href=format!("/sheet/{}", id)>
-                                                <span class="sheet-name">{summary.name}</span>
-                                                <span class="sheet-date">{summary.updated_at}</span>
-                                            </A>
-                                        </li>
-                                    }
-                                }).collect_view()}
-                            </ul>
-                        }.into_view(),
-                        Err(e) => view! { <p class="error">"Erro: " {e.to_string()}</p> }.into_view(),
-                    })}
+                    {move || {
+                        sheets.get().map(|res| match res {
+                            Ok(data) if data.is_empty() => view! { <p>"Nenhuma ficha encontrada."</p> }.into_view(),
+                            Ok(data) => {
+                                view! {
+                                    <ul class="sheet-list">
+                                        {data.into_iter().map(|summary| {
+                                            let id = summary.id.clone();
+                                            let id_for_delete = summary.id.clone();
+                                            view! {
+                                                <li class="sheet-item">
+                                                    <A href=format!("/sheet/{}", id)>
+                                                        <span class="sheet-name">{summary.name}</span>
+                                                        <span class="sheet-date">{summary.updated_at}</span>
+                                                    </A>
+                                                    <button
+                                                        class="delete-btn"
+                                                        on:click=move |ev| {
+                                                            ev.prevent_default();
+                                                            let id = id_for_delete.clone();
+                                                            spawn_local(async move {
+                                                                let _ = delete_sheet(id).await;
+                                                                sheets.refetch();
+                                                            });
+                                                        }
+                                                    >
+                                                        "Excluir"
+                                                    </button>
+                                                </li>
+                                            }
+                                        }).collect_view()}
+                                    </ul>
+                                }.into_view()
+                            },
+                            Err(e) => view! { <p class="error">"Erro: " {e.to_string()}</p> }.into_view(),
+                        })
+                    }}
                 </Suspense>
             </section>
         </div>
