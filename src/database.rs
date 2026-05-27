@@ -1,4 +1,6 @@
+#[cfg(feature = "ssr")]
 use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
+#[cfg(feature = "ssr")]
 use std::str::FromStr;
 
 #[cfg(feature = "ssr")]

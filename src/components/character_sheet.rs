@@ -56,6 +56,7 @@ pub fn CharacterSheet() -> impl IntoView {
             {move || sheet_resource.get().map(|res| match res {
                 Ok(_) => view! {
                     <Sheet>
+                        <A href="/" class="back-link">"← Voltar para o Início"</A>
                         <InfoHeader />
                         <Attributes />
                         <Abilities />
