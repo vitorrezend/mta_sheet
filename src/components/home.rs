@@ -1,20 +1,21 @@
 use leptos::*;
 use leptos_router::*;
-use crate::state::{get_sheets, create_sheet};
+use crate::state::{get_sheets, create_sheet, delete_sheet};
 
 #[component]
 pub fn Home() -> impl IntoView {
     let sheets = create_resource(|| (), |_| async move { get_sheets().await });
     let (name, set_name) = create_signal(String::new());
+    let navigate = use_navigate();
 
     let on_create = move |ev: ev::SubmitEvent| {
         ev.prevent_default();
         let name_val = name.get();
+        let navigate = navigate.clone();
         if !name_val.is_empty() {
             spawn_local(async move {
                 match create_sheet(name_val).await {
                     Ok(id) => {
-                        let navigate = use_navigate();
                         navigate(&format!("/sheet/{}", id), Default::default());
                     }
                     Err(e) => {
@@ -23,6 +24,19 @@ pub fn Home() -> impl IntoView {
                 }
             });
         }
+    };
+
+    let on_delete = move |id: String| {
+        spawn_local(async move {
+            match delete_sheet(id).await {
+                Ok(_) => {
+                    sheets.refetch();
+                }
+                Err(e) => {
+                    logging::log!("Error deleting sheet: {:?}", e);
+                }
+            }
+        });
     };
 
     view! {
@@ -53,12 +67,22 @@ pub fn Home() -> impl IntoView {
                             <ul class="sheet-list">
                                 {data.into_iter().map(|summary| {
                                     let id = summary.id.clone();
+                                    let id_for_delete = id.clone();
                                     view! {
-                                        <li>
+                                        <li class="sheet-item">
                                             <A href=format!("/sheet/{}", id)>
                                                 <span class="sheet-name">{summary.name}</span>
                                                 <span class="sheet-date">{summary.updated_at}</span>
                                             </A>
+                                            <button
+                                                class="delete-btn"
+                                                on:click=move |ev| {
+                                                    ev.stop_propagation();
+                                                    on_delete(id_for_delete.clone());
+                                                }
+                                            >
+                                                "Excluir"
+                                            </button>
                                         </li>
                                     }
                                 }).collect_view()}
