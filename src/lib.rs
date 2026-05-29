@@ -24,7 +24,7 @@ pub fn App() -> impl IntoView {
     ";
 
     view! {
-        <Stylesheet id="leptos" href="/pkg/mta_sheet.css"/>
+        <Stylesheet id="leptos" href="/style.css"/>
         <Title text="MTA Sheet - RPG Character Sheet"/>
         <Script>{mobile_scale_script}</Script>
 
