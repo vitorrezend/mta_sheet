@@ -16,6 +16,12 @@ async fn main() {
 
     // build our application with a route
     let app = Router::new()
+        .route("/pkg/mta_sheet.css", axum::routing::get(|| async {
+            (
+                [(axum::http::header::CONTENT_TYPE, "text/css")],
+                tokio::fs::read_to_string("style.css").await.unwrap_or_default(),
+            )
+        }))
         .nest_service("/pkg", ServeDir::new(format!("{}/pkg", site_root)))
         .nest_service("/assets", ServeDir::new(format!("{}/assets", site_root)))
         .leptos_routes_with_context(&conf.leptos_options, routes, move || {
