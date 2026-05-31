@@ -554,3 +554,122 @@ body {
     color: #8e44ad;
     line-height: 1;
 }
+
+/* ─── Home Page / Sheet Manager ─────────────────────────────────────── */
+.home-container {
+    max-width: 800px;
+    width: 90%;
+    background: var(--paper-bg);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+}
+
+.home-header h1 {
+    text-align: center;
+    color: var(--primary-color);
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.create-section, .list-section {
+    margin-bottom: 2rem;
+}
+
+.create-section h2, .list-section h2 {
+    font-size: 1.2rem;
+    border-bottom: 2px solid var(--bg-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.create-section form {
+    display: flex;
+    gap: 1rem;
+}
+
+.create-section input {
+    flex: 1;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.create-section button {
+    padding: 0.8rem 1.5rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.sheet-list {
+    list-style: none;
+    padding: 0;
+}
+
+.sheet-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+    transition: background 0.2s;
+}
+
+.sheet-item:hover {
+    background: #f9f9f9;
+}
+
+.sheet-item a {
+    text-decoration: none;
+    color: inherit;
+    flex: 1;
+}
+
+.sheet-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.sheet-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.sheet-date {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.delete-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-left: 1rem;
+}
+
+.delete-btn:hover {
+    background: #c0392b;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 1rem;
+    text-decoration: none;
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
