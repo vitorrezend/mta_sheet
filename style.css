@@ -554,3 +554,146 @@ body {
     color: #8e44ad;
     line-height: 1;
 }
+
+/* Home Page Styling */
+.home-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+}
+
+.home-header h1 {
+    text-align: center;
+    color: var(--primary-color);
+    margin-bottom: 2rem;
+}
+
+.create-section, .list-section {
+    margin-bottom: 2rem;
+}
+
+.create-section h2, .list-section h2 {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.create-section form {
+    display: flex;
+    gap: 1rem;
+}
+
+.create-section input {
+    flex: 1;
+    padding: 0.8rem;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.create-section button {
+    padding: 0.8rem 1.5rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.create-section button:hover {
+    background-color: #34495e;
+}
+
+.sheet-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sheet-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9f9f9;
+    padding: 1rem;
+    border-radius: 4px;
+    border: 1px solid #ecf0f1;
+    transition: transform 0.1s;
+}
+
+.sheet-item:hover {
+    border-color: var(--primary-color);
+}
+
+.sheet-item a {
+    text-decoration: none;
+    color: inherit;
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sheet-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.sheet-name {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.sheet-date {
+    font-size: 0.8rem;
+    color: #95a5a6;
+}
+
+.delete-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-left: 1rem;
+    transition: background 0.2s;
+}
+
+.delete-btn:hover {
+    background-color: #c0392b;
+}
+
+.sheet-nav {
+    max-width: var(--page-width);
+    margin: 0 auto 1rem auto;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.sheet-nav a {
+    text-decoration: none;
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.sheet-nav a:hover {
+    text-decoration: underline;
+}
+
+.sheet-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}

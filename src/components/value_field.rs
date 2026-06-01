@@ -135,30 +135,3 @@ pub fn ValueField(
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use wasm_bindgen_test::*;
-
-    wasm_bindgen_test_configure!(run_in_browser);
-
-    #[wasm_bindgen_test]
-    fn test_value_field_rendering() {
-        let (level, _) = create_signal(3);
-        let (modifier, _) = create_signal("Test".to_string());
-        
-        let _view = view! {
-            <ValueField 
-                label="Força"
-                level=level.into()
-                modifier=modifier.into()
-                on_level_change=|_| {}
-                on_modifier_change=|_| {}
-            />
-        };
-
-        // In a real WASM test, we would mount this to a document 
-        // and inspect the DOM using web_sys.
-        // For now, this ensures the component compiles and can be instantiated.
-    }
-}

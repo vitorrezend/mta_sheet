@@ -55,13 +55,18 @@ pub fn CharacterSheet() -> impl IntoView {
         <Suspense fallback=move || view! { <p>"Carregando Ficha..."</p> }>
             {move || sheet_resource.get().map(|res| match res {
                 Ok(_) => view! {
-                    <Sheet>
-                        <InfoHeader />
-                        <Attributes />
-                        <Abilities />
-                        <Spheres />
-                        <AdvantagesMta />
-                    </Sheet>
+                    <div class="sheet-page">
+                        <nav class="sheet-nav">
+                            <A href="/">"Voltar para o Início"</A>
+                        </nav>
+                        <Sheet>
+                            <InfoHeader />
+                            <Attributes />
+                            <Abilities />
+                            <Spheres />
+                            <AdvantagesMta />
+                        </Sheet>
+                    </div>
                 }.into_view(),
                 Err(e) => view! { <p class="error">"Erro ao carregar: " {e.to_string()}</p> }.into_view(),
             })}

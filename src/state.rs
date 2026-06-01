@@ -85,6 +85,20 @@ pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
     Ok(id)
 }
 
+#[server(DeleteSheet, "/api")]
+pub async fn delete_sheet(id: String) -> Result<(), ServerFnError> {
+    use sqlx::SqlitePool;
+    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
+
+    sqlx::query("DELETE FROM character_sheets WHERE id = ?")
+        .bind(id)
+        .execute(&pool)
+        .await
+        .map_err(|e: sqlx::Error| ServerFnError::new(e.to_string()))?;
+
+    Ok(())
+}
+
 #[server(UpdateSheet, "/api")]
 pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerFnError> {
     use sqlx::SqlitePool;

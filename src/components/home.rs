@@ -1,20 +1,21 @@
 use leptos::*;
 use leptos_router::*;
-use crate::state::{get_sheets, create_sheet};
+use crate::state::{get_sheets, create_sheet, delete_sheet};
 
 #[component]
 pub fn Home() -> impl IntoView {
     let sheets = create_resource(|| (), |_| async move { get_sheets().await });
     let (name, set_name) = create_signal(String::new());
+    let navigate = use_navigate();
 
     let on_create = move |ev: ev::SubmitEvent| {
         ev.prevent_default();
         let name_val = name.get();
+        let navigate = navigate.clone();
         if !name_val.is_empty() {
             spawn_local(async move {
                 match create_sheet(name_val).await {
                     Ok(id) => {
-                        let navigate = use_navigate();
                         navigate(&format!("/sheet/{}", id), Default::default());
                     }
                     Err(e) => {
@@ -53,12 +54,31 @@ pub fn Home() -> impl IntoView {
                             <ul class="sheet-list">
                                 {data.into_iter().map(|summary| {
                                     let id = summary.id.clone();
+                                    let on_delete = {
+                                        let id = id.clone();
+                                        move |ev: ev::MouseEvent| {
+                                            ev.prevent_default();
+                                            ev.stop_propagation();
+                                            let id = id.clone();
+                                            spawn_local(async move {
+                                                if let Ok(_) = delete_sheet(id).await {
+                                                    sheets.refetch();
+                                                }
+                                            });
+                                        }
+                                    };
+
                                     view! {
-                                        <li>
+                                        <li class="sheet-item">
                                             <A href=format!("/sheet/{}", id)>
-                                                <span class="sheet-name">{summary.name}</span>
-                                                <span class="sheet-date">{summary.updated_at}</span>
+                                                <div class="sheet-info">
+                                                    <span class="sheet-name">{summary.name}</span>
+                                                    <span class="sheet-date">{summary.updated_at}</span>
+                                                </div>
                                             </A>
+                                            <button class="delete-btn" on:click=on_delete>
+                                                "Excluir"
+                                            </button>
                                         </li>
                                     }
                                 }).collect_view()}

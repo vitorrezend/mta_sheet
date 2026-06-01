@@ -16,6 +16,7 @@ async fn main() {
 
     // build our application with a route
     let app = Router::new()
+        .route("/style.css", axum::routing::get_service(ServeDir::new(".")).handle_error(|_| async { (axum::http::StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error") }))
         .nest_service("/pkg", ServeDir::new(format!("{}/pkg", site_root)))
         .nest_service("/assets", ServeDir::new(format!("{}/assets", site_root)))
         .leptos_routes_with_context(&conf.leptos_options, routes, move || {
