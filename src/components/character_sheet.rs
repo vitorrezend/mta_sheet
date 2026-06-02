@@ -52,19 +52,26 @@ pub fn CharacterSheet() -> impl IntoView {
     });
 
     view! {
-        <Suspense fallback=move || view! { <p>"Carregando Ficha..."</p> }>
-            {move || sheet_resource.get().map(|res| match res {
-                Ok(_) => view! {
-                    <Sheet>
-                        <InfoHeader />
-                        <Attributes />
-                        <Abilities />
-                        <Spheres />
-                        <AdvantagesMta />
-                    </Sheet>
-                }.into_view(),
-                Err(e) => view! { <p class="error">"Erro ao carregar: " {e.to_string()}</p> }.into_view(),
-            })}
-        </Suspense>
+        <link rel="stylesheet" href="/style.css"/>
+        <div class="sheet-page-container">
+            <nav class="sheet-nav">
+                <A href="/" class="back-link">"← Voltar para o Início"</A>
+            </nav>
+
+            <Suspense fallback=move || view! { <p>"Carregando Ficha..."</p> }>
+                {move || sheet_resource.get().map(|res| match res {
+                    Ok(_) => view! {
+                        <Sheet>
+                            <InfoHeader />
+                            <Attributes />
+                            <Abilities />
+                            <Spheres />
+                            <AdvantagesMta />
+                        </Sheet>
+                    }.into_view(),
+                    Err(e) => view! { <p class="error">"Erro ao carregar: " {e.to_string()}</p> }.into_view(),
+                })}
+            </Suspense>
+        </div>
     }
 }
