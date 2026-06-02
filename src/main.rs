@@ -18,6 +18,18 @@ async fn main() {
     let app = Router::new()
         .nest_service("/pkg", ServeDir::new(format!("{}/pkg", site_root)))
         .nest_service("/assets", ServeDir::new(format!("{}/assets", site_root)))
+        .route("/style.css", axum::routing::get(|| async {
+            match tokio::fs::read_to_string("style.css").await {
+                Ok(css) => (
+                    [(http::header::CONTENT_TYPE, "text/css")],
+                    css
+                ),
+                Err(_) => (
+                    [(http::header::CONTENT_TYPE, "text/css")],
+                    String::new()
+                )
+            }
+        }))
         .leptos_routes_with_context(&conf.leptos_options, routes, move || {
             provide_context(db.clone());
         }, mta_sheet::App)

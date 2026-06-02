@@ -554,3 +554,196 @@ body {
     color: #8e44ad;
     line-height: 1;
 }
+
+/* ─── Home Page Styles ─────────────────────────────────────────────── */
+.home-container {
+    max-width: 800px;
+    width: 90%;
+    margin: 0 auto;
+    padding: 2rem;
+    background: var(--paper-bg);
+    box-shadow: var(--shadow);
+    border-radius: 8px;
+}
+
+.home-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    border-bottom: 2px solid var(--bg-color);
+    padding-bottom: 1rem;
+}
+
+.home-header h1 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.home-header p {
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.create-section, .list-section {
+    margin-bottom: 3rem;
+}
+
+.create-section h2, .list-section h2 {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--primary-color);
+    padding-left: 1rem;
+}
+
+.create-form {
+    display: flex;
+    gap: 1rem;
+}
+
+.name-input {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.create-btn {
+    padding: 0.8rem 2rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.create-btn:hover {
+    background-color: #34495e;
+}
+
+.sheet-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.sheet-item {
+    display: flex;
+    align-items: center;
+    background: #fdfdfd;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.sheet-item:hover {
+    transform: translateX(5px);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.sheet-link {
+    flex: 1;
+    text-decoration: none;
+    color: inherit;
+    padding: 1rem;
+}
+
+.sheet-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sheet-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+}
+
+.sheet-date {
+    font-size: 0.85rem;
+    color: #95a5a6;
+}
+
+.delete-btn {
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    margin-right: 1rem;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.delete-btn:hover {
+    background: #dc2626;
+    color: white;
+}
+
+.empty-msg {
+    text-align: center;
+    color: #95a5a6;
+    padding: 2rem;
+    background: #f9f9f9;
+    border-radius: 6px;
+    border: 1px dashed #ddd;
+}
+
+.sheet-nav {
+    max-width: var(--page-width);
+    margin: 0 auto 1rem auto;
+    width: 100%;
+    display: flex;
+}
+
+.back-link {
+    text-decoration: none;
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.back-link:hover {
+    background: var(--bg-color);
+}
+
+.sheet-page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* Fallback styles for when the full build doesn't run */
+.home-container, .sheet-container, .sheet-page-container {
+    font-family: sans-serif;
+}
+
+/* Base styles to ensure visibility without full build pkg */
+body {
+    background-color: #f0f0f0 !important;
+    color: #333 !important;
+}
+
+.home-container {
+    background: white !important;
+    padding: 20px !important;
+    border: 1px solid #ccc !important;
+}
