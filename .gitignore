@@ -5,8 +5,12 @@
 .idea/
 *.swp
 *.log
+# SQLite
 *.db
 *.db-journal
 *.db-shm
 *.db-wal
+
+# Environment
 .env
+.env.local

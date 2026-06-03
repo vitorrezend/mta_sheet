@@ -51,9 +51,10 @@ pub fn Home() -> impl IntoView {
 
             <section class="create-section">
                 <h2>"Criar Nova Ficha"</h2>
-                <form on:submit=on_create class="create-form">
+                <form action="/api/CreateSheet" method="POST" on:submit=on_create class="create-form">
                     <input
                         type="text"
+                        name="name"
                         placeholder="Nome do Personagem"
                         on:input=move |ev| set_name.set(event_target_value(&ev))
                         prop:value=name

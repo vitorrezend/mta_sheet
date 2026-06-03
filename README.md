@@ -1,58 +1,60 @@
-# MTA Sheet
+# MTA Sheet - Mage: The Ascension Character Manager
 
-**MTA Sheet** is a character sheet application for *Mage: The Ascension* built with Rust and Trunk. It follows a custom 3‑column grid design system that provides a clean, responsive layout for tracking abilities, advantages, and other character data.
+**MTA Sheet** is a full-stack character sheet application for *Mage: The Ascension* built with Rust and the Leptos framework. It allows you to create, manage, and save character sheets with persistent storage using SQLite.
 
 ---
 
 ## Features
-- Responsive 3‑column grid layout using CSS custom properties.
-- Modular Rust components for abilities, advantages, vitality, etc.
-- Live‑reload development server powered by **Trunk**.
-- Easy theming and styling via `style.css`.
+- **Character Management**: Create multiple character sheets and manage them from a central landing page.
+- **Persistence**: All character data is saved automatically to an SQLite database.
+- **Responsive Design**: Custom 3‑column grid layout that adapts to different screen sizes.
+- **Interactive Sheet**: Track attributes, abilities, spheres, advantages (Arete, Willpower, Quintessence/Paradox), and vitality with an intuitive point-and-click interface.
 
 ---
 
 ## Prerequisites
 - **Rust** (stable) – install via [rustup](https://rustup.rs/).
-- **Trunk** – install with `cargo install trunk`.
-- **Node.js** (optional, only if you need additional tooling).
+- **cargo-leptos** – install with `cargo install cargo-leptos`.
 
 ---
 
 ## Getting Started
+
+### 1. Configuration
+Copy the `.env.example` file to `.env` and adjust the `DATABASE_URL` if necessary:
 ```bash
-# Clone the repository (if not already present)
-git clone <repo‑url>
-cd mta_sheet
-
-# Install Rust dependencies
-cargo build
-
-# Run the development server
-trunk serve
+cp .env.example .env
 ```
-The application will be available at `http://localhost:8080` and will automatically reload on source changes.
+The application will automatically create the SQLite database file if it doesn't exist.
+
+### 2. Running the Development Server
+Use the provided scripts or `cargo-leptos`:
+```bash
+# On Linux/macOS
+./run_project.sh
+
+# On Windows
+run_project.bat
+
+# Or directly with cargo-leptos
+cargo leptos watch
+```
+The application will be available at `http://127.0.0.1:3000`.
 
 ---
 
 ## Project Structure
 ```
-src/                # Rust source files
-  components/       # UI components (abilities, advantages, vitality, …)
-style.css           # Global CSS, includes the 3‑column grid system
-README.md           # This file
+src/
+  components/       # UI components (Home, CharacterSheet, etc.)
+  database.rs       # SQLite database initialization and connection
+  state.rs          # Server functions and data structures
+  lib.rs            # Root App component and routing
+  main.rs           # Server entry point (Axum)
+style.css           # Global CSS and layout system
 ```
-
----
-
-## Running the Project (Windows)
-A convenience batch script is provided:
-```bat
-start.bat
-```
-This script launches the Trunk development server with the appropriate environment.
 
 ---
 
 ## License
-[MIT License](LICENSE) (or your chosen license).
+[MIT License](LICENSE).
