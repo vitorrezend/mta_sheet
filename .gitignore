@@ -1,12 +1,26 @@
+# Build artifacts
 /target
 /dist
+
+# Leptos specific
+public/pkg/
+
+# Rust backups
 **/*.rs.bk
+
+# IDEs
 .vscode/
 .idea/
 *.swp
+
+# Logs
 *.log
+
+# SQLite database and related files
 *.db
 *.db-journal
 *.db-shm
 *.db-wal
+
+# Environment configuration
 .env
