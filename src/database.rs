@@ -17,6 +17,10 @@ pub async fn get_db() -> SqlitePool {
     println!("Connecting to database: {}", database_url);
 
     let options = SqliteConnectOptions::from_str(&database_url)
+        .map_err(|e| {
+            eprintln!("Invalid DATABASE_URL '{}': {}", database_url, e);
+            e
+        })
         .expect("Invalid DATABASE_URL")
         .create_if_missing(true)
         .log_statements(log::LevelFilter::Debug);

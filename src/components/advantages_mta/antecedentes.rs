@@ -1,6 +1,6 @@
 use leptos::*;
 use crate::components::ValueField;
-use crate::state::{CharacterData, AttributeValue};
+use crate::state::{CharacterData};
 
 #[component]
 pub fn Antecedentes() -> impl IntoView {
