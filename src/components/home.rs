@@ -6,6 +6,7 @@ use crate::state::{get_sheets, create_sheet, delete_sheet};
 pub fn Home() -> impl IntoView {
     let sheets = create_resource(|| (), |_| async move { get_sheets().await });
     let (name, set_name) = create_signal(String::new());
+    let (creating, set_creating) = create_signal(false);
 
     // Obter navigate no escopo do componente
     let navigate = use_navigate();
@@ -14,7 +15,8 @@ pub fn Home() -> impl IntoView {
         ev.prevent_default();
         let name_val = name.get();
         let navigate = navigate.clone(); // Clonar para usar dentro do spawn_local
-        if !name_val.is_empty() {
+        if !name_val.is_empty() && !creating.get() {
+            set_creating.set(true);
             spawn_local(async move {
                 match create_sheet(name_val).await {
                     Ok(id) => {
@@ -22,6 +24,7 @@ pub fn Home() -> impl IntoView {
                     }
                     Err(e) => {
                         logging::log!("Error creating sheet: {:?}", e);
+                        set_creating.set(false);
                     }
                 }
             });
@@ -29,6 +32,9 @@ pub fn Home() -> impl IntoView {
     };
 
     let on_delete = move |id: String| {
+        let confirmed = window().confirm_with_message("Tem certeza que deseja excluir esta ficha?").unwrap_or(false);
+        if !confirmed { return; }
+
         spawn_local(async move {
             match delete_sheet(id).await {
                 Ok(_) => {
@@ -58,8 +64,15 @@ pub fn Home() -> impl IntoView {
                         on:input=move |ev| set_name.set(event_target_value(&ev))
                         prop:value=name
                         class="name-input"
+                        disabled=creating
                     />
-                    <button type="submit" class="create-btn">"Criar"</button>
+                    <button
+                        type="submit"
+                        class="create-btn"
+                        disabled=creating
+                    >
+                        {move || if creating.get() { "Criando..." } else { "Criar" }}
+                    </button>
                 </form>
             </section>
 

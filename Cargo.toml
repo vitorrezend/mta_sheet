@@ -25,6 +25,9 @@ http = "1.0"
 log = "0.4"
 dotenvy = { version = "0.15", optional = true }
 
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
 [features]
 csr = ["leptos/csr"]
 hydrate = ["leptos/hydrate"]
