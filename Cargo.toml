@@ -3,6 +3,9 @@ name = "mta_sheet"
 version = "0.1.0"
 edition = "2024"
 
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
 [dependencies]
 leptos = { version = "0.6" }
 leptos_axum = { version = "0.6", optional = true }
