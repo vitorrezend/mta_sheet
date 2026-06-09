@@ -29,8 +29,8 @@ pub fn ValueField(
         }
     };
 
-    let (editing_label, set_editing_label) = create_signal(is_editable && label.get().is_empty());
-    let (local_label, set_local_label) = create_signal(label.get());
+    let (editing_label, set_editing_label) = create_signal(is_editable && label.get_untracked().is_empty());
+    let (local_label, set_local_label) = create_signal(label.get_untracked());
 
     // Sincroniza o valor local quando entra em modo de edição
     create_effect(move |_| {

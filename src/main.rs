@@ -16,6 +16,27 @@ async fn main() {
 
     // build our application with a route
     let app = Router::new()
+        .route("/pkg/mta_sheet_bg.wasm", axum::routing::get(|state: axum::extract::State<leptos::LeptosOptions>| async move {
+            let site_root = state.site_root.clone();
+            let path_bg = format!("{}/pkg/mta_sheet_bg.wasm", &site_root);
+            let path_std = format!("{}/pkg/mta_sheet.wasm", &site_root);
+            if let Ok(bytes) = tokio::fs::read(&path_bg).await {
+                (
+                    [(http::header::CONTENT_TYPE, "application/wasm")],
+                    bytes
+                )
+            } else if let Ok(bytes) = tokio::fs::read(&path_std).await {
+                (
+                    [(http::header::CONTENT_TYPE, "application/wasm")],
+                    bytes
+                )
+            } else {
+                (
+                    [(http::header::CONTENT_TYPE, "text/plain")],
+                    Vec::new()
+                )
+            }
+        }))
         .nest_service("/pkg", ServeDir::new(format!("{}/pkg", site_root)))
         .nest_service("/assets", ServeDir::new(format!("{}/assets", site_root)))
         .route("/style.css", axum::routing::get(|| async {

@@ -8,7 +8,7 @@ pub fn CharacterSheet() -> impl IntoView {
     let params = use_params_map();
     let id = move || params.with(|p| p.get("id").cloned().unwrap_or_default());
 
-    let sheet_resource = create_resource(id, |id| async move {
+    let sheet_resource = create_local_resource(id, |id| async move {
         if id.is_empty() {
             return Err(ServerFnError::new("ID missing"));
         }

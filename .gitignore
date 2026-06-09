@@ -1,12 +1,25 @@
+# Rust compile artifacts
 /target
 /dist
+
+# Backup files
 **/*.rs.bk
+
+# IDEs and editors
 .vscode/
 .idea/
 *.swp
 *.log
+
+# Databases
 *.db
 *.db-journal
 *.db-shm
 *.db-wal
+
+# Environment files
 .env
+.env*.local
+
+# System files
+.DS_Store
