@@ -27,12 +27,12 @@ pub struct CharacterSummary {
 #[server(GetSheets, "/api")]
 pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
     use sqlx::{SqlitePool, Row};
-    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
+    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("Banco de dados não encontrado no contexto"))?;
 
     let rows = sqlx::query("SELECT id, name, updated_at FROM character_sheets ORDER BY updated_at DESC")
         .fetch_all(&pool)
         .await
-        .map_err(|e: sqlx::Error| ServerFnError::new(e.to_string()))?;
+        .map_err(|e: sqlx::Error| ServerFnError::new(format!("Erro ao buscar fichas: {}", e)))?;
 
     let summaries = rows.into_iter().map(|row| CharacterSummary {
         id: row.get("id"),
@@ -46,16 +46,17 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
 #[server(GetSheet, "/api")]
 pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
     use sqlx::{SqlitePool, Row};
-    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
+    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("Banco de dados não encontrado no contexto"))?;
 
     let row = sqlx::query("SELECT data FROM character_sheets WHERE id = ?")
         .bind(id)
         .fetch_one(&pool)
         .await
-        .map_err(|e: sqlx::Error| ServerFnError::new(e.to_string()))?;
+        .map_err(|e: sqlx::Error| ServerFnError::new(format!("Ficha não encontrada: {}", e)))?;
 
     let data_json: String = row.get("data");
-    let data: CharacterData = serde_json::from_str(&data_json).map_err(|e: serde_json::Error| ServerFnError::new(e.to_string()))?;
+    let data: CharacterData = serde_json::from_str(&data_json)
+        .map_err(|e: serde_json::Error| ServerFnError::new(format!("Erro ao processar dados da ficha: {}", e)))?;
 
     Ok(data)
 }
@@ -64,7 +65,7 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
 pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
     use sqlx::SqlitePool;
     use uuid::Uuid;
-    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
+    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("Banco de dados não encontrado no contexto"))?;
 
     let id = Uuid::new_v4().to_string();
     let initial_data = CharacterData {
@@ -72,7 +73,8 @@ pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
         name: name.clone(),
         ..Default::default()
     };
-    let data_json = serde_json::to_string(&initial_data).map_err(|e: serde_json::Error| ServerFnError::new(e.to_string()))?;
+    let data_json = serde_json::to_string(&initial_data)
+        .map_err(|e: serde_json::Error| ServerFnError::new(format!("Erro ao serializar nova ficha: {}", e)))?;
 
     sqlx::query("INSERT INTO character_sheets (id, name, data) VALUES (?, ?, ?)")
         .bind(&id)
@@ -80,7 +82,7 @@ pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
         .bind(data_json)
         .execute(&pool)
         .await
-        .map_err(|e: sqlx::Error| ServerFnError::new(e.to_string()))?;
+        .map_err(|e: sqlx::Error| ServerFnError::new(format!("Erro ao salvar nova ficha no banco: {}", e)))?;
 
     Ok(id)
 }

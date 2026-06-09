@@ -23,3 +23,7 @@
 
 # System files
 .DS_Store
+
+# Leptos specific
+public/pkg/
+style.css.map

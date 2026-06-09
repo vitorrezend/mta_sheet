@@ -83,19 +83,22 @@ pub fn Home() -> impl IntoView {
                                     let delete_id = id.clone();
                                     view! {
                                         <li class="sheet-item">
-                                            <A href=format!("/sheet/{}", id) class="sheet-link">
-                                                <div class="sheet-info">
-                                                    <span class="sheet-name">{summary.name}</span>
-                                                    <span class="sheet-date">{summary.updated_at}</span>
-                                                </div>
-                                            </A>
-                                            <button
-                                                class="delete-btn"
-                                                on:click=move |_| on_delete(delete_id.clone())
-                                                title="Excluir ficha"
-                                            >
-                                                "×"
-                                            </button>
+                                            <div class="sheet-info">
+                                                <span class="sheet-name">{summary.name}</span>
+                                                <span class="sheet-date">{summary.updated_at}</span>
+                                            </div>
+                                            <div class="sheet-actions">
+                                                <A href=format!("/sheet/{}", id) class="open-btn">
+                                                    "Abrir"
+                                                </A>
+                                                <button
+                                                    class="delete-btn"
+                                                    on:click=move |_| on_delete(delete_id.clone())
+                                                    title="Excluir ficha"
+                                                >
+                                                    "×"
+                                                </button>
+                                            </div>
                                         </li>
                                     }
                                 }).collect_view()}

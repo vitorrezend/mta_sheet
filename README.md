@@ -22,14 +22,20 @@
 ## Getting Started
 
 ### Database Configuration
-The application uses SQLite. You can configure the database URL via the `DATABASE_URL` environment variable or a `.env` file. If not specified, it defaults to `mta_sheet.db`.
+The application uses SQLite. You can configure the database URL via the `DATABASE_URL` environment variable or a `.env` file.
+
+- **Variable:** `DATABASE_URL`
+- **Default:** `mta_sheet.db`
+- **Behavior:** If the specified file does not exist, it will be created automatically at startup along with the required tables.
+
+To change the database path without recompiling, simply update the `DATABASE_URL` in your environment or `.env` file:
 
 ```bash
 # Example .env
-DATABASE_URL=sqlite:custom_path.db
+DATABASE_URL=sqlite:my_custom_character_sheets.db
 ```
 
-The application will automatically create the database file and required tables if they don't exist.
+*Note: The application automatically prepends `sqlite:` if it is missing from the URL.*
 
 ### Running the App
 ```bash

@@ -14,17 +14,26 @@ pub async fn get_db() -> SqlitePool {
         database_url = format!("sqlite:{}", database_url);
     }
 
-    println!("Connecting to database: {}", database_url);
+    println!("Iniciando conexão com o banco de dados: {}", database_url);
 
-    let options = SqliteConnectOptions::from_str(&database_url)
-        .expect("Invalid DATABASE_URL")
-        .create_if_missing(true)
-        .log_statements(log::LevelFilter::Debug);
+    let options = match SqliteConnectOptions::from_str(&database_url) {
+        Ok(opt) => opt.create_if_missing(true).log_statements(log::LevelFilter::Debug),
+        Err(e) => {
+            eprintln!("ERRO: DATABASE_URL inválida ({}): {}", database_url, e);
+            panic!("Configuração de banco de dados inválida");
+        }
+    };
 
-    let pool = SqlitePool::connect_with(options).await.expect("Failed to connect to SQLite");
+    let pool = match SqlitePool::connect_with(options).await {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("ERRO: Falha ao conectar ao SQLite ({}): {}", database_url, e);
+            panic!("Falha na conexão com o banco de dados");
+        }
+    };
 
-    // Initialize tables
-    sqlx::query(
+    // Inicialização das tabelas
+    if let Err(e) = sqlx::query(
         "CREATE TABLE IF NOT EXISTS character_sheets (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
@@ -33,8 +42,11 @@ pub async fn get_db() -> SqlitePool {
         )"
     )
     .execute(&pool)
-    .await
-    .expect("Failed to create table");
+    .await {
+        eprintln!("ERRO: Falha ao criar tabela 'character_sheets': {}", e);
+        panic!("Falha na inicialização do esquema do banco de dados");
+    }
 
+    println!("Banco de dados inicializado com sucesso.");
     pool
 }
