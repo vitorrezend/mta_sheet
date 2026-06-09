@@ -7,31 +7,40 @@
 ## Features
 - Responsive 3‑column grid layout using CSS custom properties.
 - Modular Rust components for abilities, advantages, vitality, etc.
-- Live‑reload development server powered by **Trunk**.
+- Server-Side Rendering (SSR) with hydration using **Leptos**.
+- Persistence using **SQLite** with **sqlx**.
 - Easy theming and styling via `style.css`.
 
 ---
 
 ## Prerequisites
 - **Rust** (stable) – install via [rustup](https://rustup.rs/).
-- **Trunk** – install with `cargo install trunk`.
-- **Node.js** (optional, only if you need additional tooling).
+- **cargo-leptos** – install with `cargo install cargo-leptos`.
 
 ---
 
 ## Getting Started
+
+### Database Configuration
+The application uses SQLite. You can configure the database URL via the `DATABASE_URL` environment variable or a `.env` file. If not specified, it defaults to `mta_sheet.db`.
+
+```bash
+# Example .env
+DATABASE_URL=sqlite:custom_path.db
+```
+
+The application will automatically create the database file and required tables if they don't exist.
+
+### Running the App
 ```bash
 # Clone the repository (if not already present)
 git clone <repo‑url>
 cd mta_sheet
 
-# Install Rust dependencies
-cargo build
-
-# Run the development server
-trunk serve
+# Run the development server (automatically watches for changes)
+cargo leptos watch
 ```
-The application will be available at `http://localhost:8080` and will automatically reload on source changes.
+The application will be available at `http://127.0.0.1:3000`.
 
 ---
 
@@ -39,18 +48,18 @@ The application will be available at `http://localhost:8080` and will automatica
 ```
 src/                # Rust source files
   components/       # UI components (abilities, advantages, vitality, …)
+  database.rs       # SQLite connection and initialization
+  state.rs          # Server functions and data structures
 style.css           # Global CSS, includes the 3‑column grid system
 README.md           # This file
 ```
 
 ---
 
-## Running the Project (Windows)
-A convenience batch script is provided:
-```bat
-start.bat
-```
-This script launches the Trunk development server with the appropriate environment.
+## Scripts
+Convenience scripts are provided to start the project:
+- `run_project.sh` (Linux/macOS)
+- `run_project.bat` (Windows)
 
 ---
 

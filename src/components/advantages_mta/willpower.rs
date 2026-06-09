@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::state::{CharacterData, AttributeValue};
+use crate::state::CharacterData;
 
 #[component]
 pub fn Willpower() -> impl IntoView {
