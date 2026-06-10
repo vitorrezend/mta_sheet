@@ -19,7 +19,8 @@
 
 # Environment files
 .env
-.env*.local
+.env*
+!.env.example
 
 # System files
 .DS_Store

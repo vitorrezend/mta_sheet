@@ -6,6 +6,9 @@ async fn main() {
     use leptos_axum::{generate_route_list, LeptosRoutes};
     use mta_sheet::database;
     use tower_http::services::ServeDir;
+    use dotenvy::dotenv;
+
+    let _ = dotenv();
 
     let conf = get_configuration(Some("Cargo.toml")).await.unwrap();
     let addr = conf.leptos_options.site_addr;
