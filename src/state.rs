@@ -62,6 +62,10 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
 
 #[server(CreateSheet, "/api")]
 pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
+    if name.trim().is_empty() {
+        return Err(ServerFnError::new("O nome do personagem não pode estar vazio"));
+    }
+
     use sqlx::SqlitePool;
     use uuid::Uuid;
     let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
