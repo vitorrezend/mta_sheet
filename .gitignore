@@ -17,6 +17,9 @@
 *.db-shm
 *.db-wal
 
+# Leptos
+/public/pkg/
+
 # Environment files
 .env
 .env*

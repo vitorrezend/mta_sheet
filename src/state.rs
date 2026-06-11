@@ -62,13 +62,17 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
 
 #[server(CreateSheet, "/api")]
 pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
-    if name.trim().is_empty() {
+    let name = name.trim().to_string();
+    if name.is_empty() {
         return Err(ServerFnError::new("O nome do personagem não pode estar vazio"));
     }
 
     use sqlx::SqlitePool;
     use uuid::Uuid;
-    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        logging::log!("DB Pool not found in context");
+        ServerFnError::new("Database connection not available")
+    })?;
 
     let id = Uuid::new_v4().to_string();
     let initial_data = CharacterData {
@@ -76,7 +80,13 @@ pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
         name: name.clone(),
         ..Default::default()
     };
-    let data_json = serde_json::to_string(&initial_data).map_err(|e: serde_json::Error| ServerFnError::new(e.to_string()))?;
+
+    let data_json = serde_json::to_string(&initial_data).map_err(|e: serde_json::Error| {
+        logging::log!("Serialization error: {}", e);
+        ServerFnError::new("Failed to initialize character data")
+    })?;
+
+    logging::log!("Creating new sheet: {} ({})", name, id);
 
     sqlx::query("INSERT INTO character_sheets (id, name, data) VALUES (?, ?, ?)")
         .bind(&id)
@@ -84,7 +94,10 @@ pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
         .bind(data_json)
         .execute(&pool)
         .await
-        .map_err(|e: sqlx::Error| ServerFnError::new(e.to_string()))?;
+        .map_err(|e: sqlx::Error| {
+            logging::log!("Database error creating sheet: {}", e);
+            ServerFnError::new("Failed to save character sheet to database")
+        })?;
 
     Ok(id)
 }
