@@ -29,6 +29,7 @@ pub fn CharacterSheet() -> impl IntoView {
 
     // Manual debouncing logic since leptos-use failed to compile in this environment
     let (save_trigger, set_save_trigger) = create_signal(0);
+    let (is_saving, set_is_saving) = create_signal(false);
 
     create_effect(move |_| {
         data.track();
@@ -41,11 +42,10 @@ pub fn CharacterSheet() -> impl IntoView {
         let current_id = id();
 
         if prev.is_some() && !current_id.is_empty() {
-             // We would use a timer here, but for simplicity in this constrained environment,
-             // we'll just spawn the local task.
-             // In a real app, a proper debounce or throttle would be better.
+            set_is_saving.set(true);
             spawn_local(async move {
                 let _ = update_sheet(current_id, current_data).await;
+                set_is_saving.set(false);
             });
         }
         Some(())
@@ -56,6 +56,7 @@ pub fn CharacterSheet() -> impl IntoView {
         <div class="sheet-page-container">
             <nav class="sheet-nav">
                 <A href="/" class="back-link">"← Voltar para o Início"</A>
+                {move || is_saving.get().then(|| view! { <span class="saving-indicator">"Salvando..."</span> })}
             </nav>
 
             <Suspense fallback=move || view! { <p>"Carregando Ficha..."</p> }>

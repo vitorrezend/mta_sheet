@@ -7,16 +7,24 @@ pub fn Home() -> impl IntoView {
     let sheets = create_resource(|| (), |_| async move { get_sheets().await });
     let (name, set_name) = create_signal(String::new());
     let (creating, set_creating) = create_signal(false);
+    let (error_msg, set_error_msg) = create_signal(Option::<String>::None);
 
     // Obter navigate no escopo do componente
     let navigate = use_navigate();
 
     let on_create = move |ev: ev::SubmitEvent| {
         ev.prevent_default();
-        let name_val = name.get();
+        let name_val = name.get().trim().to_string();
         let navigate = navigate.clone();
-        if !name_val.is_empty() && !creating.get() {
+
+        if name_val.is_empty() {
+            set_error_msg.set(Some("O nome do personagem não pode estar vazio".to_string()));
+            return;
+        }
+
+        if !creating.get() {
             set_creating.set(true);
+            set_error_msg.set(None);
             spawn_local(async move {
                 match create_sheet(name_val).await {
                     Ok(id) => {
@@ -24,6 +32,7 @@ pub fn Home() -> impl IntoView {
                     }
                     Err(e) => {
                         set_creating.set(false);
+                        set_error_msg.set(Some(format!("Erro ao criar ficha: {}", e)));
                         logging::log!("Error creating sheet: {:?}", e);
                     }
                 }
@@ -61,7 +70,10 @@ pub fn Home() -> impl IntoView {
                     <input
                         type="text"
                         placeholder="Nome do Personagem"
-                        on:input=move |ev| set_name.set(event_target_value(&ev))
+                        on:input=move |ev| {
+                            set_name.set(event_target_value(&ev));
+                            set_error_msg.set(None);
+                        }
                         prop:value=name
                         class="name-input"
                     />
@@ -69,10 +81,16 @@ pub fn Home() -> impl IntoView {
                         {move || if creating.get() { "Criando..." } else { "Criar" }}
                     </button>
                 </form>
+                {move || error_msg.get().map(|msg| view! { <p class="error-msg">{msg}</p> })}
             </section>
 
             <section class="list-section">
-                <h2>"Fichas Salvas"</h2>
+                <div class="section-header">
+                    <h2>"Fichas Salvas"</h2>
+                    <button class="refresh-btn" on:click=move |_| sheets.refetch() title="Atualizar lista">
+                        "↻"
+                    </button>
+                </div>
                 <Suspense fallback=move || view! { <p>"Carregando..."</p> }>
                     {move || sheets.get().map(|res| match res {
                         Ok(data) if data.is_empty() => view! { <p class="empty-msg">"Nenhuma ficha encontrada. Comece criando uma nova!"</p> }.into_view(),

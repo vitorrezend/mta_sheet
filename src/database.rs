@@ -46,5 +46,88 @@ pub async fn get_db() -> SqlitePool {
     .await
     .expect("Failed to create table");
 
+    // Add index for performance on large lists
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_character_sheets_updated_at ON character_sheets (updated_at DESC)"
+    )
+    .execute(&pool)
+    .await
+    .ok();
+
     pool
+}
+
+#[cfg(all(feature = "ssr", test))]
+mod tests {
+    use super::*;
+    use sqlx::Row;
+
+    #[tokio::test]
+    async fn test_full_crud_flow() {
+        let test_db = "test_mta.db";
+        unsafe { std::env::set_var("DATABASE_URL", test_db); }
+
+        // Clean up any previous test db
+        let _ = std::fs::remove_file(test_db);
+
+        let pool = get_db().await;
+
+        // CREATE
+        let id = "test-uuid-123";
+        let name = "Test Character";
+        let data = r#"{"id":"test-uuid-123","name":"Test Character","attributes":{},"labels":{},"custom_lists":{}}"#;
+
+        sqlx::query("INSERT INTO character_sheets (id, name, data) VALUES (?, ?, ?)")
+            .bind(id)
+            .bind(name)
+            .bind(data)
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        // READ
+        let row = sqlx::query("SELECT name, data FROM character_sheets WHERE id = ?")
+            .bind(id)
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+
+        assert_eq!(row.get::<String, _>("name"), name);
+        assert_eq!(row.get::<String, _>("data"), data);
+
+        // UPDATE
+        let new_name = "Updated Character";
+        sqlx::query("UPDATE character_sheets SET name = ? WHERE id = ?")
+            .bind(new_name)
+            .bind(id)
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        let row_updated = sqlx::query("SELECT name FROM character_sheets WHERE id = ?")
+            .bind(id)
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(row_updated.get::<String, _>("name"), new_name);
+
+        // DELETE
+        sqlx::query("DELETE FROM character_sheets WHERE id = ?")
+            .bind(id)
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        let row_count = sqlx::query("SELECT COUNT(*) FROM character_sheets")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(row_count.get::<i64, _>(0), 0);
+
+        // Cleanup
+        drop(pool);
+        if std::env::var("KEEP_TEST_DB").is_err() {
+            let _ = std::fs::remove_file(test_db);
+        }
+    }
 }

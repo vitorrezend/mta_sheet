@@ -24,8 +24,6 @@ pub fn App() -> impl IntoView {
         window.addEventListener('resize', applyMobileScale);
     ";
 
-    provide_meta_context();
-
     view! {
         <Stylesheet id="leptos" href="/pkg/mta_sheet.css"/>
         <Title text="MTA Sheet - RPG Character Sheet"/>
