@@ -4,8 +4,10 @@ use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
 use std::str::FromStr;
 
 #[cfg(feature = "ssr")]
-pub async fn get_db() -> SqlitePool {
-    let mut database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "mta_sheet.db".to_string());
+pub async fn get_db(url: Option<String>) -> SqlitePool {
+    let mut database_url = url.unwrap_or_else(|| {
+        std::env::var("DATABASE_URL").unwrap_or_else(|_| "mta_sheet.db".to_string())
+    });
 
     let db_path = if database_url.starts_with("sqlite:") {
         &database_url[7..]
@@ -46,5 +48,88 @@ pub async fn get_db() -> SqlitePool {
     .await
     .expect("Failed to create table");
 
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_character_sheets_updated_at ON character_sheets (updated_at DESC)"
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to create index");
+
     pool
+}
+
+#[cfg(all(test, feature = "ssr"))]
+mod tests {
+    use super::*;
+    use sqlx::Row;
+    use std::fs;
+
+    #[tokio::test]
+    async fn test_full_crud_flow() {
+        let test_db = "test_mta_sheet.db";
+        // Clean up before test
+        let _ = fs::remove_file(test_db);
+
+        let pool = get_db(Some(test_db.to_string())).await;
+
+        // CREATE
+        let id = "test-uuid-123";
+        let name = "Mago de Teste";
+        let data = "{\"name\": \"Mago de Teste\", \"id\": \"test-uuid-123\"}";
+
+        sqlx::query("INSERT INTO character_sheets (id, name, data) VALUES (?, ?, ?)")
+            .bind(id)
+            .bind(name)
+            .bind(data)
+            .execute(&pool)
+            .await
+            .expect("Failed to insert character");
+
+        // READ
+        let row = sqlx::query("SELECT name, data FROM character_sheets WHERE id = ?")
+            .bind(id)
+            .fetch_one(&pool)
+            .await
+            .expect("Failed to fetch character");
+
+        let fetched_name: String = row.get("name");
+        assert_eq!(fetched_name, name);
+
+        // UPDATE
+        let new_name = "Mago de Teste Atualizado";
+        sqlx::query("UPDATE character_sheets SET name = ? WHERE id = ?")
+            .bind(new_name)
+            .bind(id)
+            .execute(&pool)
+            .await
+            .expect("Failed to update character");
+
+        let row_updated = sqlx::query("SELECT name FROM character_sheets WHERE id = ?")
+            .bind(id)
+            .fetch_one(&pool)
+            .await
+            .expect("Failed to fetch updated character");
+
+        let fetched_new_name: String = row_updated.get("name");
+        assert_eq!(fetched_new_name, new_name);
+
+        // DELETE
+        sqlx::query("DELETE FROM character_sheets WHERE id = ?")
+            .bind(id)
+            .execute(&pool)
+            .await
+            .expect("Failed to delete character");
+
+        let row_count: (i32,) = sqlx::query_as("SELECT COUNT(*) FROM character_sheets WHERE id = ?")
+            .bind(id)
+            .fetch_one(&pool)
+            .await
+            .expect("Failed to count characters");
+
+        assert_eq!(row_count.0, 0);
+
+        // Clean up after test
+        drop(pool);
+        let _ = fs::remove_file(test_db);
+    }
 }

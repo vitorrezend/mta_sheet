@@ -578,6 +578,11 @@ body {
     margin-bottom: 0.5rem;
 }
 
+.logo {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
 .home-header p {
     color: #7f8c8d;
     font-style: italic;

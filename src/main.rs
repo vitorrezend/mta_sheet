@@ -15,7 +15,7 @@ async fn main() {
     let routes = generate_route_list(mta_sheet::App);
     let site_root = conf.leptos_options.site_root.clone();
 
-    let db = database::get_db().await;
+    let db = database::get_db(None).await;
 
     // build our application with a route
     let app = Router::new()
