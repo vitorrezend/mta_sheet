@@ -1,5 +1,6 @@
 use leptos::*;
 use leptos_router::*;
+use wasm_bindgen::JsCast;
 use crate::state::{get_sheet, update_sheet, CharacterData};
 use crate::components::{Attributes, InfoHeader, Abilities, Spheres, AdvantagesMta, Sheet};
 
@@ -27,28 +28,51 @@ pub fn CharacterSheet() -> impl IntoView {
     provide_context(set_data);
     provide_context(data);
 
-    // Manual debouncing logic since leptos-use failed to compile in this environment
-    let (save_trigger, set_save_trigger) = create_signal(0);
+    // Debouncing auto-save
+    let (is_saving, set_is_saving) = create_signal(false);
+    let active_closure = store_value(None::<wasm_bindgen::closure::Closure<dyn FnMut()>>);
 
-    create_effect(move |_| {
+    create_effect(move |prev_timer: Option<i32>| {
         data.track();
-        set_save_trigger.update(|t| *t += 1);
-    });
-
-    create_effect(move |prev| {
-        save_trigger.track();
         let current_data = data.get();
         let current_id = id();
 
-        if prev.is_some() && !current_id.is_empty() {
-             // We would use a timer here, but for simplicity in this constrained environment,
-             // we'll just spawn the local task.
-             // In a real app, a proper debounce or throttle would be better.
-            spawn_local(async move {
-                let _ = update_sheet(current_id, current_data).await;
-            });
+        // Clear previous timer
+        if let Some(timer_id) = prev_timer {
+            if timer_id != -1 {
+                let _ = web_sys::window().unwrap().clear_timeout_with_handle(timer_id);
+            }
         }
-        Some(())
+
+        if !current_id.is_empty() && !current_data.name.is_empty() {
+            let window = web_sys::window().unwrap();
+
+            // Create new closure
+            let cb = wasm_bindgen::closure::Closure::wrap(Box::new(move || {
+                set_is_saving.set(true);
+                let id = current_id.clone();
+                let data = current_data.clone();
+                spawn_local(async move {
+                    let _ = update_sheet(id, data).await;
+                    set_is_saving.set(false);
+                });
+            }) as Box<dyn FnMut()>);
+
+            let handle = window.set_timeout_with_callback_and_timeout_and_arguments_0(
+                cb.as_ref().unchecked_ref(),
+                500 // 500ms debounce
+            ).ok();
+
+            // Store closure to keep it alive and drop the old one
+            active_closure.set_value(Some(cb));
+
+            return handle.unwrap_or(-1);
+        }
+        -1
+    });
+
+    on_cleanup(move || {
+        active_closure.set_value(None);
     });
 
     view! {
@@ -56,6 +80,9 @@ pub fn CharacterSheet() -> impl IntoView {
         <div class="sheet-page-container">
             <nav class="sheet-nav">
                 <A href="/" class="back-link">"← Voltar para o Início"</A>
+                <div class="saving-indicator" class:visible=is_saving>
+                    "Salvando..."
+                </div>
             </nav>
 
             <Suspense fallback=move || view! { <p>"Carregando Ficha..."</p> }>
