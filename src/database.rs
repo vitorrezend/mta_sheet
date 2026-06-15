@@ -46,5 +46,13 @@ pub async fn get_db() -> SqlitePool {
     .await
     .expect("Failed to create table");
 
+    // Initialize index
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_character_sheets_updated_at ON character_sheets (updated_at DESC)"
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to create index");
+
     pool
 }
