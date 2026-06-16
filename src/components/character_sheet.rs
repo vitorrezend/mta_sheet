@@ -2,6 +2,7 @@ use leptos::*;
 use leptos_router::*;
 use crate::state::{get_sheet, update_sheet, CharacterData};
 use crate::components::{Attributes, InfoHeader, Abilities, Spheres, AdvantagesMta, Sheet};
+use wasm_bindgen::prelude::*;
 
 #[component]
 pub fn CharacterSheet() -> impl IntoView {
@@ -16,6 +17,7 @@ pub fn CharacterSheet() -> impl IntoView {
     });
 
     let (data, set_data) = create_signal(CharacterData::default());
+    let (is_saving, set_is_saving) = create_signal(false);
 
     create_effect(move |_| {
         if let Some(Ok(fetched_data)) = sheet_resource.get() {
@@ -27,28 +29,60 @@ pub fn CharacterSheet() -> impl IntoView {
     provide_context(set_data);
     provide_context(data);
 
-    // Manual debouncing logic since leptos-use failed to compile in this environment
-    let (save_trigger, set_save_trigger) = create_signal(0);
+    // Debounced auto-save logic
+    let timeout_handle = store_value(None::<i32>);
+    let closure_handle = store_value(None::<Closure<dyn FnMut()>>);
 
-    create_effect(move |_| {
+    create_effect(move |prev_run| {
         data.track();
-        set_save_trigger.update(|t| *t += 1);
-    });
-
-    create_effect(move |prev| {
-        save_trigger.track();
         let current_data = data.get();
         let current_id = id();
 
-        if prev.is_some() && !current_id.is_empty() {
-             // We would use a timer here, but for simplicity in this constrained environment,
-             // we'll just spawn the local task.
-             // In a real app, a proper debounce or throttle would be better.
-            spawn_local(async move {
-                let _ = update_sheet(current_id, current_data).await;
-            });
+        // Skip the very first run which happens on component mount
+        if prev_run.is_some() && !current_id.is_empty() {
+            set_is_saving.set(true);
+
+            // Clear existing timeout if any
+            if let Some(handle) = timeout_handle.get_value() {
+                if let Some(window) = web_sys::window() {
+                    window.clear_timeout_with_handle(handle);
+                }
+            }
+
+            // Set new timeout
+            let closure = Closure::wrap(Box::new(move || {
+                let id = current_id.clone();
+                let data = current_data.clone();
+                spawn_local(async move {
+                    let _ = update_sheet(id, data).await;
+                    set_is_saving.set(false);
+                });
+            }) as Box<dyn FnMut()>);
+
+            if let Some(window) = web_sys::window() {
+                let handle = window
+                    .set_timeout_with_callback_and_timeout_and_arguments_0(
+                        closure.as_ref().unchecked_ref(),
+                        500,
+                    )
+                    .unwrap_or(0);
+                timeout_handle.set_value(Some(handle));
+            }
+
+            // Keep closure alive and drop the previous one
+            closure_handle.set_value(Some(closure));
         }
         Some(())
+    });
+
+    on_cleanup(move || {
+        if let Some(handle) = timeout_handle.get_value() {
+            if let Some(window) = web_sys::window() {
+                window.clear_timeout_with_handle(handle);
+            }
+        }
+        // Closure will be dropped when closure_handle is dropped or cleared
+        closure_handle.set_value(None);
     });
 
     view! {
@@ -56,6 +90,7 @@ pub fn CharacterSheet() -> impl IntoView {
         <div class="sheet-page-container">
             <nav class="sheet-nav">
                 <A href="/" class="back-link">"← Voltar para o Início"</A>
+                {move || is_saving.get().then(|| view! { <span class="saving-indicator">"Salvando..."</span> })}
             </nav>
 
             <Suspense fallback=move || view! { <p>"Carregando Ficha..."</p> }>

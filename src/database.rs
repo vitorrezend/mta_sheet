@@ -46,5 +46,61 @@ pub async fn get_db() -> SqlitePool {
     .await
     .expect("Failed to create table");
 
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_character_sheets_updated_at ON character_sheets (updated_at DESC)"
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to create index");
+
     pool
+}
+
+#[cfg(all(test, feature = "ssr"))]
+mod tests {
+    use super::*;
+    use crate::state::*;
+    use leptos::*;
+
+    #[tokio::test]
+    async fn test_full_crud_flow() {
+        // Use a unique database for the test
+        let test_db_file = "test_mta_sheet.db";
+        let _ = std::fs::remove_file(test_db_file);
+
+        // Safety: in tests we often need to set env vars, though it is technically unsafe in 2024 edition
+        unsafe { std::env::set_var("DATABASE_URL", test_db_file) };
+
+        let pool = get_db().await;
+        let runtime = create_runtime();
+        provide_context(pool.clone());
+
+        // Create
+        let name = "Test Hero".to_string();
+        let id = create_sheet(name.clone()).await.expect("Failed to create sheet");
+        assert!(!id.is_empty());
+
+        // Read List
+        let sheets = get_sheets().await.expect("Failed to get sheets");
+        assert!(sheets.iter().any(|s| s.id == id && s.name == name));
+
+        // Read One
+        let mut data = get_sheet(id.clone()).await.expect("Failed to get sheet");
+        assert_eq!(data.name, name);
+
+        // Update
+        data.name = "Updated Hero".to_string();
+        update_sheet(id.clone(), data.clone()).await.expect("Failed to update sheet");
+
+        let updated_data = get_sheet(id.clone()).await.expect("Failed to get updated sheet");
+        assert_eq!(updated_data.name, "Updated Hero");
+
+        // Delete
+        delete_sheet(id.clone()).await.expect("Failed to delete sheet");
+        let sheets_after_delete = get_sheets().await.expect("Failed to get sheets after delete");
+        assert!(!sheets_after_delete.iter().any(|s| s.id == id));
+
+        runtime.dispose();
+        let _ = std::fs::remove_file(test_db_file);
+    }
 }
