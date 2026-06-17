@@ -581,6 +581,24 @@ body {
 .home-header p {
     color: #7f8c8d;
     font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.project-description {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    margin: 1rem auto;
+    max-width: 600px;
+}
+
+.project-description p {
+    color: #495057;
+    font-size: 0.95rem;
+    font-style: normal;
+    margin-bottom: 0;
+    line-height: 1.5;
 }
 
 .create-section, .list-section {
