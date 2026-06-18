@@ -46,5 +46,55 @@ pub async fn get_db() -> SqlitePool {
     .await
     .expect("Failed to create table");
 
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_character_sheets_updated_at ON character_sheets (updated_at DESC)"
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to create index");
+
     pool
+}
+#[cfg(test)]
+mod database_tests {
+    use crate::database::get_db;
+    use std::fs;
+    use std::path::Path;
+
+    #[tokio::test]
+    async fn test_db_initialization() {
+        let test_db = "test_data/test_mta.db";
+        // Clean up before test
+        if Path::new("test_data").exists() {
+            fs::remove_dir_all("test_data").ok();
+        }
+
+        // Note: set_var is unsafe in Rust Edition 2024 because it is not thread-safe.
+        // We use it here in a controlled test environment.
+        unsafe { std::env::set_var("DATABASE_URL", test_db); }
+
+        let pool = get_db().await;
+
+        // Check if file exists
+        assert!(Path::new(test_db).exists());
+
+        // Check if table exists
+        let table_exists: bool = sqlx::query("SELECT name FROM sqlite_master WHERE type='table' AND name='character_sheets'")
+            .fetch_optional(&pool)
+            .await
+            .unwrap()
+            .is_some();
+        assert!(table_exists);
+
+        // Check if index exists
+        let index_exists: bool = sqlx::query("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_character_sheets_updated_at'")
+            .fetch_optional(&pool)
+            .await
+            .unwrap()
+            .is_some();
+        assert!(index_exists);
+
+        pool.close().await;
+        fs::remove_dir_all("test_data").ok();
+    }
 }

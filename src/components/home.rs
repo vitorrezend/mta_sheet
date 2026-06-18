@@ -51,8 +51,13 @@ pub fn Home() -> impl IntoView {
         <link rel="stylesheet" href="/style.css"/>
         <div class="home-container">
             <header class="home-header">
+                <div class="logo-placeholder">"MTA"</div>
                 <h1>"MTA Character Manager"</h1>
                 <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
+                <div class="project-description">
+                    <p>"Bem-vindo ao MTA Character Manager. Esta ferramenta permite que você crie, armazene e gerencie suas fichas de personagem para Mago: A Ascensão de forma simples e eficiente."</p>
+                    <p>"Seus dados são salvos localmente em um banco de dados SQLite, garantindo persistência entre sessões."</p>
+                </div>
             </header>
 
             <section class="create-section">
@@ -65,7 +70,11 @@ pub fn Home() -> impl IntoView {
                         prop:value=name
                         class="name-input"
                     />
-                    <button type="submit" class="create-btn" disabled=creating>
+                    <button
+                        type="submit"
+                        class="create-btn"
+                        disabled=move || creating.get() || name.get().trim().is_empty()
+                    >
                         {move || if creating.get() { "Criando..." } else { "Criar" }}
                     </button>
                 </form>
