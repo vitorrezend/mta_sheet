@@ -581,6 +581,31 @@ body {
 .home-header p {
     color: #7f8c8d;
     font-style: italic;
+    margin-bottom: 0.5rem;
+}
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.mta-logo {
+    width: 60px;
+    height: 60px;
+    color: var(--primary-color);
+}
+
+.project-desc {
+    max-width: 600px;
+    margin: 1.5rem auto 0 auto;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #555;
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
 }
 
 .create-section, .list-section {

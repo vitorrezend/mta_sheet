@@ -29,7 +29,7 @@ The application uses SQLite. You can configure the database URL via the `DATABAS
 DATABASE_URL=sqlite:custom_path.db
 ```
 
-The application will automatically create the database file and required tables if they don't exist.
+A aplicação irá criar automaticamente o arquivo do banco de dados e as tabelas necessárias caso eles não existam. O caminho do banco de dados pode ser configurado sem a necessidade de recompilação do projeto, bastando alterar a variável de ambiente `DATABASE_URL`.
 
 ### Running the App
 ```bash

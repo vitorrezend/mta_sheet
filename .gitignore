@@ -13,6 +13,8 @@
 
 # Databases
 *.db
+*.sqlite
+*.sqlite3
 *.db-journal
 *.db-shm
 *.db-wal
@@ -24,3 +26,6 @@
 
 # System files
 .DS_Store
+
+# Leptos artifacts
+/public/pkg/

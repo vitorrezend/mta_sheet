@@ -11,9 +11,12 @@ pub fn Home() -> impl IntoView {
     // Obter navigate no escopo do componente
     let navigate = use_navigate();
 
+    let is_name_empty = move || name.get().trim().is_empty();
+    let is_disabled = move || creating.get() || is_name_empty();
+
     let on_create = move |ev: ev::SubmitEvent| {
         ev.prevent_default();
-        let name_val = name.get();
+        let name_val = name.get().trim().to_string();
         let navigate = navigate.clone();
         if !name_val.is_empty() && !creating.get() {
             set_creating.set(true);
@@ -51,8 +54,17 @@ pub fn Home() -> impl IntoView {
         <link rel="stylesheet" href="/style.css"/>
         <div class="home-container">
             <header class="home-header">
+                <div class="logo-container">
+                    <svg viewBox="0 0 100 100" class="mta-logo">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="2" />
+                        <path d="M30 70 L50 30 L70 70 M40 55 L60 55" fill="none" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                </div>
                 <h1>"MTA Character Manager"</h1>
-                <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
+                <p>"Gerencie suas fichas de Mago: A Ascensão com persistência SQLite"</p>
+                <div class="project-desc">
+                    <p>"Crie novas fichas ou abra fichas salvas anteriormente. Todos os dados são armazenados localmente em um banco de dados SQLite, permitindo que você retome seu progresso a qualquer momento."</p>
+                </div>
             </header>
 
             <section class="create-section">
@@ -65,7 +77,7 @@ pub fn Home() -> impl IntoView {
                         prop:value=name
                         class="name-input"
                     />
-                    <button type="submit" class="create-btn" disabled=creating>
+                    <button type="submit" class="create-btn" disabled=is_disabled>
                         {move || if creating.get() { "Criando..." } else { "Criar" }}
                     </button>
                 </form>
