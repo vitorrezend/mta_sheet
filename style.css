@@ -578,6 +578,15 @@ body {
     margin-bottom: 0.5rem;
 }
 
+.logo-container {
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.mta-logo {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
 .home-header p {
     color: #7f8c8d;
     font-style: italic;

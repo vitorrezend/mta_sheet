@@ -51,8 +51,15 @@ pub fn Home() -> impl IntoView {
         <link rel="stylesheet" href="/style.css"/>
         <div class="home-container">
             <header class="home-header">
+                <div class="logo-container">
+                    <svg width="60" height="60" viewBox="0 0 100 100" class="mta-logo">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <path d="M50 15 L85 85 L15 85 Z" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="50" cy="50" r="10" fill="currentColor"/>
+                    </svg>
+                </div>
                 <h1>"MTA Character Manager"</h1>
-                <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
+                <p>"Gerencie suas fichas de Mago: A Ascensão com persistência em SQLite"</p>
             </header>
 
             <section class="create-section">
