@@ -107,6 +107,35 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
     Ok(())
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_character_data_serialization() {
+        let mut attributes = HashMap::new();
+        attributes.insert("Strength".to_string(), AttributeValue { level: 3, modifier: "Strong".to_string() });
+
+        let mut labels = HashMap::new();
+        labels.insert("Concept".to_string(), "Wanderer".to_string());
+
+        let data = CharacterData {
+            id: "test-123".to_string(),
+            name: "Test Mage".to_string(),
+            attributes,
+            labels,
+            custom_lists: HashMap::new(),
+        };
+
+        let json = serde_json::to_string(&data).unwrap();
+        let deserialized: CharacterData = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(data, deserialized);
+        assert_eq!(deserialized.attributes.get("Strength").unwrap().level, 3);
+        assert_eq!(deserialized.labels.get("Concept").unwrap(), "Wanderer");
+    }
+}
+
 #[server(DeleteSheet, "/api")]
 pub async fn delete_sheet(id: String) -> Result<(), ServerFnError> {
     use sqlx::SqlitePool;

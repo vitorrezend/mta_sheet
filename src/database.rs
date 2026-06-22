@@ -46,5 +46,101 @@ pub async fn get_db() -> SqlitePool {
     .await
     .expect("Failed to create table");
 
+    // Adicionar índice para performance se não existir
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_character_sheets_updated_at ON character_sheets (updated_at DESC)")
+        .execute(&pool)
+        .await
+        .ok();
+
     pool
+}
+
+#[cfg(all(test, feature = "ssr"))]
+mod tests {
+    use super::*;
+    use std::env;
+
+    #[tokio::test]
+    async fn test_db_initialization() {
+        let test_db = "test_mta_sheet.db";
+        // Use unsafe for set_var in Rust 2024 if needed, but here we just want to ensure it works.
+        // Actually, in 2024 edition, set_var is unsafe.
+        unsafe { env::set_var("DATABASE_URL", test_db); }
+
+        let pool = get_db().await;
+
+        // Check if table exists
+        let row: (i64,) = sqlx::query_as("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='character_sheets'")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+
+        assert_eq!(row.0, 1);
+
+        // Clean up
+        pool.close().await;
+        let _ = std::fs::remove_file(test_db);
+    }
+
+    #[tokio::test]
+    async fn test_full_crud_flow() {
+        let test_db = "test_crud.db";
+        unsafe { env::set_var("DATABASE_URL", test_db); }
+
+        let pool = get_db().await;
+        let id = "test-id-123";
+        let name = "Test Character";
+        let data = "{\"id\":\"test-id-123\",\"name\":\"Test Character\",\"attributes\":{},\"labels\":{},\"custom_lists\":{}}";
+
+        // Create
+        sqlx::query("INSERT INTO character_sheets (id, name, data) VALUES (?, ?, ?)")
+            .bind(id)
+            .bind(name)
+            .bind(data)
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        // Read
+        let row: (String, String) = sqlx::query_as("SELECT name, data FROM character_sheets WHERE id = ?")
+            .bind(id)
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(row.0, name);
+        assert_eq!(row.1, data);
+
+        // Update
+        let new_name = "Updated Character";
+        sqlx::query("UPDATE character_sheets SET name = ? WHERE id = ?")
+            .bind(new_name)
+            .bind(id)
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        let updated_name: (String,) = sqlx::query_as("SELECT name FROM character_sheets WHERE id = ?")
+            .bind(id)
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(updated_name.0, new_name);
+
+        // Delete
+        sqlx::query("DELETE FROM character_sheets WHERE id = ?")
+            .bind(id)
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        let count: (i64,) = sqlx::query_as("SELECT count(*) FROM character_sheets WHERE id = ?")
+            .bind(id)
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(count.0, 0);
+
+        pool.close().await;
+        let _ = std::fs::remove_file(test_db);
+    }
 }
