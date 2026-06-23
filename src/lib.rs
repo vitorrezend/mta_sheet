@@ -24,15 +24,15 @@ pub fn App() -> impl IntoView {
         window.addEventListener('resize', applyMobileScale);
     ";
 
-    provide_meta_context();
-
     view! {
         <Stylesheet id="leptos" href="/pkg/mta_sheet.css"/>
+        <link rel="stylesheet" href="/style.css"/>
         <Title text="MTA Sheet - RPG Character Sheet"/>
         <Meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <Script>{mobile_scale_script}</Script>
 
         <Router>
+            <HydrationScripts />
             <main>
                 <Routes>
                     <Route path="/" view=crate::components::Home />
