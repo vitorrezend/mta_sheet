@@ -107,6 +107,28 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
     Ok(())
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_character_data_serialization() {
+        let mut data = CharacterData::default();
+        data.id = "test-id".to_string();
+        data.name = "Test Character".to_string();
+        data.attributes.insert("Força".to_string(), AttributeValue { level: 3, modifier: "Strong".to_string() });
+        data.labels.insert("Natureza".to_string(), "Arquiteto".to_string());
+        data.custom_lists.insert("Equipamento".to_string(), vec!["Espada".to_string(), "Escudo".to_string()]);
+
+        let json = serde_json::to_string(&data).unwrap();
+        let deserialized: CharacterData = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(data, deserialized);
+        assert_eq!(deserialized.name, "Test Character");
+        assert_eq!(deserialized.attributes.get("Força").unwrap().level, 3);
+    }
+}
+
 #[server(DeleteSheet, "/api")]
 pub async fn delete_sheet(id: String) -> Result<(), ServerFnError> {
     use sqlx::SqlitePool;
