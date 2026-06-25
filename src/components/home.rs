@@ -1,6 +1,6 @@
 use leptos::*;
 use leptos_router::*;
-use crate::state::{get_sheets, create_sheet, delete_sheet};
+use crate::state::{get_sheets, delete_sheet, CreateSheet};
 
 #[component]
 pub fn Home() -> impl IntoView {
@@ -11,25 +11,25 @@ pub fn Home() -> impl IntoView {
     // Obter navigate no escopo do componente
     let navigate = use_navigate();
 
+    let create_action = create_server_action::<CreateSheet>();
+
     let on_create = move |ev: ev::SubmitEvent| {
         ev.prevent_default();
         let name_val = name.get();
-        let navigate = navigate.clone();
         if !name_val.is_empty() && !creating.get() {
             set_creating.set(true);
-            spawn_local(async move {
-                match create_sheet(name_val).await {
-                    Ok(id) => {
-                        navigate(&format!("/sheet/{}", id), Default::default());
-                    }
-                    Err(e) => {
-                        set_creating.set(false);
-                        logging::log!("Error creating sheet: {:?}", e);
-                    }
-                }
-            });
+            create_action.dispatch(CreateSheet { name: name_val });
         }
     };
+
+    create_effect(move |_| {
+        if let Some(Ok(id)) = create_action.value().get() {
+            let navigate = navigate.clone();
+            navigate(&format!("/sheet/{}", id), Default::default());
+        } else if let Some(Err(_)) = create_action.value().get() {
+            set_creating.set(false);
+        }
+    });
 
     let on_delete = move |id: String| {
         let confirm = window().confirm_with_message("Tem certeza que deseja excluir esta ficha?");
@@ -51,24 +51,36 @@ pub fn Home() -> impl IntoView {
         <link rel="stylesheet" href="/style.css"/>
         <div class="home-container">
             <header class="home-header">
-                <h1>"MTA Character Manager"</h1>
-                <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
+                <div class="header-logo">
+                    <h1>"MTA Character Manager"</h1>
+                    <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
+                </div>
+                <div class="header-description">
+                    <p>
+                        "Esta aplicação permite que você crie e gerencie suas fichas de personagem para Mago: A Ascensão. "
+                        "Todas as informações são salvas automaticamente em um banco de dados SQLite local ("<code>"mta_sheet.db"</code>" por padrão)."
+                    </p>
+                    <p>
+                        "Você pode configurar o caminho do banco de dados através da variável de ambiente "<code>"DATABASE_URL"</code>"."
+                    </p>
+                </div>
             </header>
 
             <section class="create-section">
                 <h2>"Criar Nova Ficha"</h2>
-                <form on:submit=on_create class="create-form">
+                <ActionForm action=create_action on:submit=on_create class="create-form">
                     <input
                         type="text"
+                        name="name"
                         placeholder="Nome do Personagem"
                         on:input=move |ev| set_name.set(event_target_value(&ev))
                         prop:value=name
                         class="name-input"
                     />
-                    <button type="submit" class="create-btn" disabled=creating>
+                    <button type="submit" class="create-btn" disabled=move || creating.get() || name.get().is_empty()>
                         {move || if creating.get() { "Criando..." } else { "Criar" }}
                     </button>
-                </form>
+                </ActionForm>
             </section>
 
             <section class="list-section">
