@@ -22,14 +22,18 @@
 ## Getting Started
 
 ### Database Configuration
-The application uses SQLite. You can configure the database URL via the `DATABASE_URL` environment variable or a `.env` file. If not specified, it defaults to `mta_sheet.db`.
+O aplicativo utiliza **SQLite** para persistência local. Você pode configurar o caminho do banco de dados sem precisar recompilar o projeto através da variável de ambiente `DATABASE_URL` ou de um arquivo `.env`.
 
 ```bash
-# Example .env
-DATABASE_URL=sqlite:custom_path.db
+# Exemplo de .env
+DATABASE_URL=sqlite:mta_sheet.db
 ```
 
-The application will automatically create the database file and required tables if they don't exist.
+**Observações:**
+- Se `DATABASE_URL` não for fornecida, o padrão será `mta_sheet.db` na raiz do projeto.
+- O prefixo `sqlite:` é opcional; se você fornecer apenas o caminho (ex: `meus_dados/ficha.db`), o aplicativo adicionará o protocolo automaticamente.
+- O aplicativo criará automaticamente o arquivo do banco de dados e as pastas pai se eles não existirem.
+- As alterações no arquivo `.env` são lidas na inicialização do servidor.
 
 ### Running the App
 ```bash

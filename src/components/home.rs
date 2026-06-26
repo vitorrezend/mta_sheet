@@ -51,21 +51,35 @@ pub fn Home() -> impl IntoView {
         <link rel="stylesheet" href="/style.css"/>
         <div class="home-container">
             <header class="home-header">
-                <h1>"MTA Character Manager"</h1>
-                <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
+                <div class="header-content">
+                    <div class="logo-placeholder">"MTA"</div>
+                    <div class="title-group">
+                        <h1>"MTA Character Manager"</h1>
+                        <p>"Gerenciador de Fichas para Mago: A Ascensão"</p>
+                    </div>
+                </div>
+                <div class="header-description">
+                    <p>"Bem-vindo ao MTA Character Manager. Aqui você pode criar novas fichas de personagem ou abrir fichas existentes salvas localmente."</p>
+                    <p class="persistence-info">"As fichas são armazenadas em um banco de dados SQLite local, garantindo que seus dados persistam entre sessões sem a necessidade de uma conta online."</p>
+                </div>
             </header>
 
             <section class="create-section">
                 <h2>"Criar Nova Ficha"</h2>
-                <form on:submit=on_create class="create-form">
+                <form on:submit=on_create class="create-form" action="/" method="POST">
                     <input
                         type="text"
-                        placeholder="Nome do Personagem"
+                        name="character_name"
+                        placeholder="Nome do Personagem (ex: Dante de Alighieri)"
                         on:input=move |ev| set_name.set(event_target_value(&ev))
                         prop:value=name
                         class="name-input"
                     />
-                    <button type="submit" class="create-btn" disabled=creating>
+                    <button
+                        type="submit"
+                        class="create-btn"
+                        disabled=move || creating.get() || name.get().trim().is_empty()
+                    >
                         {move || if creating.get() { "Criando..." } else { "Criar" }}
                     </button>
                 </form>
@@ -73,9 +87,9 @@ pub fn Home() -> impl IntoView {
 
             <section class="list-section">
                 <h2>"Fichas Salvas"</h2>
-                <Suspense fallback=move || view! { <p>"Carregando..."</p> }>
+                <Suspense fallback=move || view! { <p>"Carregando fichas do banco de dados..."</p> }>
                     {move || sheets.get().map(|res| match res {
-                        Ok(data) if data.is_empty() => view! { <p class="empty-msg">"Nenhuma ficha encontrada. Comece criando uma nova!"</p> }.into_view(),
+                        Ok(data) if data.is_empty() => view! { <p class="empty-msg">"Nenhuma ficha encontrada no SQLite. Comece criando sua primeira jornada!"</p> }.into_view(),
                         Ok(data) => view! {
                             <ul class="sheet-list">
                                 {data.into_iter().map(|summary| {

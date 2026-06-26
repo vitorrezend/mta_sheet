@@ -37,6 +37,7 @@ pub fn App() -> impl IntoView {
                 <Routes>
                     <Route path="/" view=crate::components::Home />
                     <Route path="/sheet/:id" view=crate::components::CharacterSheet />
+                    <Route path="/*any" view=|| view! { <h1>"Not Found"</h1> }/>
                 </Routes>
             </main>
         </Router>
