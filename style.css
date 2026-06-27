@@ -583,6 +583,30 @@ body {
     font-style: italic;
 }
 
+.header-description {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-left: 4px solid var(--primary-color);
+    text-align: left;
+    display: inline-block;
+    max-width: 600px;
+}
+
+.header-description p {
+    margin: 0.5rem 0;
+    font-style: normal;
+    color: #495057;
+    font-size: 0.95rem;
+}
+
+.header-description code {
+    background-color: #e9ecef;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
 .create-section, .list-section {
     margin-bottom: 3rem;
 }
