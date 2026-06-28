@@ -1,67 +1,68 @@
 # MTA Sheet
 
-**MTA Sheet** is a character sheet application for *Mage: The Ascension* built with Rust and Trunk. It follows a custom 3‑column grid design system that provides a clean, responsive layout for tracking abilities, advantages, and other character data.
+**MTA Sheet** é um gerenciador de fichas de personagem para *Mago: A Ascensão* construído com Rust e Leptos. Ele utiliza um design de grade de 3 colunas para fornecer um layout limpo e responsivo para rastrear habilidades, vantagens e outros dados do personagem.
 
 ---
 
-## Features
-- Responsive 3‑column grid layout using CSS custom properties.
-- Modular Rust components for abilities, advantages, vitality, etc.
-- Server-Side Rendering (SSR) with hydration using **Leptos**.
-- Persistence using **SQLite** with **sqlx**.
-- Easy theming and styling via `style.css`.
+## Recursos
+- Layout de grade de 3 colunas responsivo usando propriedades CSS customizadas.
+- Componentes modulares em Rust para atributos, habilidades, vantagens, vitalidade, etc.
+- Renderização do lado do servidor (SSR) com hidratação usando **Leptos**.
+- Persistência automática usando **SQLite** com **sqlx**.
+- Gerenciamento de múltiplas fichas (criar, abrir, excluir).
+- Configuração fácil via `style.css`.
 
 ---
 
-## Prerequisites
-- **Rust** (stable) – install via [rustup](https://rustup.rs/).
-- **cargo-leptos** – install with `cargo install cargo-leptos`.
+## Pré-requisitos
+- **Rust** (stable) – instale via [rustup](https://rustup.rs/).
+- **cargo-leptos** – instale com `cargo install cargo-leptos`.
 
 ---
 
-## Getting Started
+## Configuração
 
-### Database Configuration
-The application uses SQLite. You can configure the database URL via the `DATABASE_URL` environment variable or a `.env` file. If not specified, it defaults to `mta_sheet.db`.
+### Banco de Dados
+A aplicação utiliza SQLite para persistência. Você pode configurar o caminho do banco de dados através da variável de ambiente `DATABASE_URL` ou um arquivo `.env`. Se não for especificado, o padrão será `mta_sheet.db`.
 
 ```bash
-# Example .env
-DATABASE_URL=sqlite:custom_path.db
+# Exemplo de .env
+DATABASE_URL=sqlite:caminho_customizado.db
 ```
 
-The application will automatically create the database file and required tables if they don't exist.
+O aplicativo criará automaticamente o arquivo do banco de dados e as tabelas necessárias se eles não existirem. Não é necessário recompilar o projeto ao alterar o `DATABASE_URL` no `.env`.
 
-### Running the App
+### Executando o Projeto
 ```bash
-# Clone the repository (if not already present)
+# Clone o repositório
 git clone <repo‑url>
 cd mta_sheet
 
-# Run the development server (automatically watches for changes)
+# Execute o servidor de desenvolvimento (monitora alterações automaticamente)
 cargo leptos watch
 ```
-The application will be available at `http://127.0.0.1:3000`.
+A aplicação estará disponível em `http://127.0.0.1:3000`.
 
 ---
 
-## Project Structure
+## Estrutura do Projeto
 ```
-src/                # Rust source files
-  components/       # UI components (abilities, advantages, vitality, …)
-  database.rs       # SQLite connection and initialization
-  state.rs          # Server functions and data structures
-style.css           # Global CSS, includes the 3‑column grid system
-README.md           # This file
+src/                # Arquivos fonte Rust
+  components/       # Componentes UI (atributos, habilidades, home, etc.)
+  database.rs       # Conexão e inicialização do SQLite
+  state.rs          # Funções de servidor e estruturas de dados
+style.css           # CSS global e sistema de design
+README.md           # Este arquivo
 ```
 
 ---
 
 ## Scripts
-Convenience scripts are provided to start the project:
+Scripts de conveniência são fornecidos para iniciar o projeto:
 - `run_project.sh` (Linux/macOS)
 - `run_project.bat` (Windows)
 
 ---
 
-## License
-[MIT License](LICENSE) (or your chosen license).
+## Licença
+[MIT License](LICENSE).

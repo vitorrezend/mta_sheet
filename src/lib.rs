@@ -1,5 +1,7 @@
 mod components;
 mod state;
+
+#[cfg(feature = "ssr")]
 pub mod database;
 
 use leptos::*;

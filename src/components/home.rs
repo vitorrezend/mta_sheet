@@ -47,25 +47,35 @@ pub fn Home() -> impl IntoView {
         }
     };
 
+    let is_name_empty = move || name.get().trim().is_empty();
+
     view! {
         <link rel="stylesheet" href="/style.css"/>
         <div class="home-container">
             <header class="home-header">
+                <div class="logo">"MTA"</div>
                 <h1>"MTA Character Manager"</h1>
                 <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
+
+                <div class="header-description">
+                    <p>"Esta aplicação permite criar e gerenciar fichas de personagem de forma persistente."</p>
+                    <p>"Todos os dados são salvos automaticamente em um banco de dados SQLite local."</p>
+                </div>
             </header>
 
             <section class="create-section">
                 <h2>"Criar Nova Ficha"</h2>
-                <form on:submit=on_create class="create-form">
+                <form on:submit=on_create class="create-form" action="/" method="POST">
                     <input
                         type="text"
+                        name="character_name"
                         placeholder="Nome do Personagem"
                         on:input=move |ev| set_name.set(event_target_value(&ev))
                         prop:value=name
                         class="name-input"
+                        required
                     />
-                    <button type="submit" class="create-btn" disabled=creating>
+                    <button type="submit" class="create-btn" disabled=move || creating.get() || is_name_empty()>
                         {move || if creating.get() { "Criando..." } else { "Criar" }}
                     </button>
                 </form>
