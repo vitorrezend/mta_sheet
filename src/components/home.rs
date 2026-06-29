@@ -53,19 +53,29 @@ pub fn Home() -> impl IntoView {
             <header class="home-header">
                 <h1>"MTA Character Manager"</h1>
                 <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
+                <div class="header-description">
+                    <p>"Suas fichas são armazenadas localmente em um banco de dados SQLite."</p>
+                    <p>"Você pode criar novas fichas ou abrir as já existentes na lista abaixo."</p>
+                </div>
             </header>
 
             <section class="create-section">
                 <h2>"Criar Nova Ficha"</h2>
-                <form on:submit=on_create class="create-form">
+                <form on:submit=on_create class="create-form" action="/" method="POST">
                     <input
                         type="text"
+                        name="character_name"
                         placeholder="Nome do Personagem"
                         on:input=move |ev| set_name.set(event_target_value(&ev))
                         prop:value=name
                         class="name-input"
+                        required
                     />
-                    <button type="submit" class="create-btn" disabled=creating>
+                    <button
+                        type="submit"
+                        class="create-btn"
+                        disabled=move || creating.get() || name.get().trim().is_empty()
+                    >
                         {move || if creating.get() { "Criando..." } else { "Criar" }}
                     </button>
                 </form>
