@@ -32,7 +32,7 @@ pub fn Home() -> impl IntoView {
     };
 
     let on_delete = move |id: String| {
-        let confirm = window().confirm_with_message("Tem certeza que deseja excluir esta ficha?");
+        let confirm = window().confirm_with_message("Tem certeza que deseja excluir esta ficha? Esta ação não pode ser desfeita.");
         if confirm.unwrap_or(false) {
             spawn_local(async move {
                 match delete_sheet(id).await {
@@ -51,8 +51,20 @@ pub fn Home() -> impl IntoView {
         <link rel="stylesheet" href="/style.css"/>
         <div class="home-container">
             <header class="home-header">
-                <h1>"MTA Character Manager"</h1>
-                <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
+                <div class="header-logo">
+                    <h1>"MTA Character Manager"</h1>
+                    <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
+                </div>
+                <div class="header-description">
+                    <p>
+                        "Este é um gerenciador de fichas persistente. Suas fichas são salvas automaticamente em um banco de dados SQLite ("
+                        <code>"mta_sheet.db"</code>
+                        " por padrão) no servidor. Você pode criar novas fichas ou abrir fichas existentes para edição."
+                    </p>
+                    <p>
+                        "A configuração do banco de dados pode ser alterada através da variável de ambiente " <code>"DATABASE_URL"</code> "."
+                    </p>
+                </div>
             </header>
 
             <section class="create-section">
@@ -65,7 +77,7 @@ pub fn Home() -> impl IntoView {
                         prop:value=name
                         class="name-input"
                     />
-                    <button type="submit" class="create-btn" disabled=creating>
+                    <button type="submit" class="create-btn" disabled=move || creating.get() || name.get().trim().is_empty()>
                         {move || if creating.get() { "Criando..." } else { "Criar" }}
                     </button>
                 </form>

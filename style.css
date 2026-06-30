@@ -573,9 +573,39 @@ body {
     padding-bottom: 1rem;
 }
 
+.home-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    text-align: left;
+    gap: 2rem;
+}
+
 .home-header h1 {
     color: var(--primary-color);
     margin-bottom: 0.5rem;
+}
+
+.header-description {
+    max-width: 400px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #666;
+    background: #f9f9f9;
+    padding: 1rem;
+    border-radius: 4px;
+    border-left: 3px solid var(--primary-color);
+}
+
+.header-description p {
+    margin: 0 0 0.5rem 0;
+}
+
+.header-description code {
+    background: #eee;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
 }
 
 .home-header p {
