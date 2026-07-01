@@ -24,14 +24,14 @@ pub async fn get_db() -> SqlitePool {
         database_url = format!("sqlite:{}", database_url);
     }
 
-    println!("Connecting to database: {}", database_url);
+    println!("Conectando ao banco de dados: {}", database_url);
 
     let options = SqliteConnectOptions::from_str(&database_url)
-        .expect("Invalid DATABASE_URL")
+        .expect("DATABASE_URL inválida")
         .create_if_missing(true)
         .log_statements(log::LevelFilter::Debug);
 
-    let pool = SqlitePool::connect_with(options).await.expect("Failed to connect to SQLite");
+    let pool = SqlitePool::connect_with(options).await.expect("Falha ao conectar ao SQLite");
 
     // Initialize tables
     sqlx::query(
@@ -44,7 +44,17 @@ pub async fn get_db() -> SqlitePool {
     )
     .execute(&pool)
     .await
-    .expect("Failed to create table");
+    .expect("Falha ao criar tabela");
+
+    // Create index for faster sorting
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_character_sheets_updated_at ON character_sheets (updated_at DESC)"
+    )
+    .execute(&pool)
+    .await
+    .expect("Falha ao criar índice");
+
+    println!("Conexão com o banco de dados estabelecida e esquema inicializado com sucesso!");
 
     pool
 }
