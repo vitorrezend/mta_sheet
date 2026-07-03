@@ -8,12 +8,14 @@ pub fn Home() -> impl IntoView {
     let (name, set_name) = create_signal(String::new());
     let (creating, set_creating) = create_signal(false);
 
+    let is_name_empty = move || name.get().trim().is_empty();
+
     // Obter navigate no escopo do componente
     let navigate = use_navigate();
 
     let on_create = move |ev: ev::SubmitEvent| {
         ev.prevent_default();
-        let name_val = name.get();
+        let name_val = name.get().trim().to_string();
         let navigate = navigate.clone();
         if !name_val.is_empty() && !creating.get() {
             set_creating.set(true);
@@ -32,7 +34,7 @@ pub fn Home() -> impl IntoView {
     };
 
     let on_delete = move |id: String| {
-        let confirm = window().confirm_with_message("Tem certeza que deseja excluir esta ficha?");
+        let confirm = window().confirm_with_message("Tem certeza que deseja excluir esta ficha? Esta ação não pode ser desfeita.");
         if confirm.unwrap_or(false) {
             spawn_local(async move {
                 match delete_sheet(id).await {
@@ -53,19 +55,25 @@ pub fn Home() -> impl IntoView {
             <header class="home-header">
                 <h1>"MTA Character Manager"</h1>
                 <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
+                <div class="header-description">
+                    <p>"Suas fichas são salvas automaticamente em um banco de dados SQLite local."</p>
+                    <p>"Você pode configurar o caminho do banco de dados definindo a variável de ambiente " <code>"DATABASE_URL"</code> "."</p>
+                </div>
             </header>
 
             <section class="create-section">
                 <h2>"Criar Nova Ficha"</h2>
-                <form on:submit=on_create class="create-form">
+                <form on:submit=on_create class="create-form" action="/" method="POST">
                     <input
                         type="text"
+                        name="character_name"
                         placeholder="Nome do Personagem"
                         on:input=move |ev| set_name.set(event_target_value(&ev))
                         prop:value=name
                         class="name-input"
+                        required
                     />
-                    <button type="submit" class="create-btn" disabled=creating>
+                    <button type="submit" class="create-btn" disabled=move || creating.get() || is_name_empty()>
                         {move || if creating.get() { "Criando..." } else { "Criar" }}
                     </button>
                 </form>

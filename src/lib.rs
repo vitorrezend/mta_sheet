@@ -24,8 +24,6 @@ pub fn App() -> impl IntoView {
         window.addEventListener('resize', applyMobileScale);
     ";
 
-    provide_meta_context();
-
     view! {
         <Stylesheet id="leptos" href="/pkg/mta_sheet.css"/>
         <Title text="MTA Sheet - RPG Character Sheet"/>
@@ -37,6 +35,7 @@ pub fn App() -> impl IntoView {
                 <Routes>
                     <Route path="/" view=crate::components::Home />
                     <Route path="/sheet/:id" view=crate::components::CharacterSheet />
+                    <Route path="/*any" view=|| view! { <p>"Página não encontrada"</p> } />
                 </Routes>
             </main>
         </Router>
