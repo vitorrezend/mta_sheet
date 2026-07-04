@@ -8,13 +8,13 @@ pub async fn get_db() -> SqlitePool {
     let mut database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "mta_sheet.db".to_string());
 
     let db_path = if database_url.starts_with("sqlite:") {
-        &database_url[7..]
+        database_url[7..].to_string()
     } else {
-        &database_url
+        database_url.clone()
     };
 
     // Ensure parent directory exists
-    if let Some(parent) = std::path::Path::new(db_path).parent() {
+    if let Some(parent) = std::path::Path::new(&db_path).parent() {
         if !parent.as_os_str().is_empty() {
             std::fs::create_dir_all(parent).ok();
         }
@@ -25,6 +25,9 @@ pub async fn get_db() -> SqlitePool {
     }
 
     println!("Connecting to database: {}", database_url);
+    if let Ok(path) = std::fs::canonicalize(&db_path) {
+        println!("Database absolute path: {:?}", path);
+    }
 
     let options = SqliteConnectOptions::from_str(&database_url)
         .expect("Invalid DATABASE_URL")

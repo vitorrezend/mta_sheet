@@ -53,6 +53,16 @@ pub fn Home() -> impl IntoView {
             <header class="home-header">
                 <h1>"MTA Character Manager"</h1>
                 <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
+                <div class="header-description">
+                    <p>
+                        "Bem-vindo ao gerenciador de fichas para Mago: A Ascensão. "
+                        "Aqui você pode criar novas fichas ou continuar editando seus personagens existentes."
+                    </p>
+                    <p>
+                        "Seus dados são salvos automaticamente no banco de dados SQLite local, "
+                        "garantindo que nada seja perdido entre as sessões."
+                    </p>
+                </div>
             </header>
 
             <section class="create-section">

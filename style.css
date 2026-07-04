@@ -583,6 +583,25 @@ body {
     font-style: italic;
 }
 
+.header-description {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-left: 4px solid var(--primary-color);
+    text-align: left;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.header-description p {
+    font-style: normal;
+    color: #555;
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
 .create-section, .list-section {
     margin-bottom: 3rem;
 }
