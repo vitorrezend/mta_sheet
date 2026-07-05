@@ -13,7 +13,7 @@ pub fn Home() -> impl IntoView {
 
     let on_create = move |ev: ev::SubmitEvent| {
         ev.prevent_default();
-        let name_val = name.get();
+        let name_val = name.get().trim().to_string();
         let navigate = navigate.clone();
         if !name_val.is_empty() && !creating.get() {
             set_creating.set(true);
@@ -24,10 +24,14 @@ pub fn Home() -> impl IntoView {
                     }
                     Err(e) => {
                         set_creating.set(false);
+                        // Provide visual feedback for error
+                        window().alert_with_message(&format!("Erro ao criar ficha: {}", e)).ok();
                         logging::log!("Error creating sheet: {:?}", e);
                     }
                 }
             });
+        } else if name_val.is_empty() {
+            window().alert_with_message("Por favor, insira o nome do personagem.").ok();
         }
     };
 
@@ -53,6 +57,10 @@ pub fn Home() -> impl IntoView {
             <header class="home-header">
                 <h1>"MTA Character Manager"</h1>
                 <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
+                <div class="header-description">
+                    <p>"Esta aplicação permite que você crie, edite e gerencie suas fichas de personagem para o RPG Mago: A Ascensão."</p>
+                    <p>"Seus dados são salvos automaticamente em um banco de dados SQLite local, garantindo persistência sem a necessidade de uma conta online."</p>
+                </div>
             </header>
 
             <section class="create-section">

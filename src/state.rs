@@ -62,7 +62,8 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
 
 #[server(CreateSheet, "/api")]
 pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
-    if name.trim().is_empty() {
+    let name = name.trim().to_string();
+    if name.is_empty() {
         return Err(ServerFnError::new("O nome do personagem não pode estar vazio"));
     }
 
@@ -91,8 +92,15 @@ pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
 
 #[server(UpdateSheet, "/api")]
 pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerFnError> {
+    let mut data = data;
     use sqlx::SqlitePool;
     let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
+
+    // Ensure name is consistent and not empty
+    data.name = data.name.trim().to_string();
+    if data.name.is_empty() {
+        return Err(ServerFnError::new("O nome do personagem não pode estar vazio"));
+    }
 
     let data_json = serde_json::to_string(&data).map_err(|e: serde_json::Error| ServerFnError::new(e.to_string()))?;
 
