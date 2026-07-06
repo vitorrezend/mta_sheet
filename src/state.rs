@@ -27,7 +27,7 @@ pub struct CharacterSummary {
 #[server(GetSheets, "/api")]
 pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
     use sqlx::{SqlitePool, Row};
-    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
+    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("Pool de banco de dados não encontrado"))?;
 
     let rows = sqlx::query("SELECT id, name, updated_at FROM character_sheets ORDER BY updated_at DESC")
         .fetch_all(&pool)
@@ -46,7 +46,7 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
 #[server(GetSheet, "/api")]
 pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
     use sqlx::{SqlitePool, Row};
-    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
+    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("Pool de banco de dados não encontrado"))?;
 
     let row = sqlx::query("SELECT data FROM character_sheets WHERE id = ?")
         .bind(id)
@@ -62,13 +62,14 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
 
 #[server(CreateSheet, "/api")]
 pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
-    if name.trim().is_empty() {
+    let name = name.trim().to_string();
+    if name.is_empty() {
         return Err(ServerFnError::new("O nome do personagem não pode estar vazio"));
     }
 
     use sqlx::SqlitePool;
     use uuid::Uuid;
-    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
+    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("Pool de banco de dados não encontrado"))?;
 
     let id = Uuid::new_v4().to_string();
     let initial_data = CharacterData {
@@ -92,7 +93,7 @@ pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
 #[server(UpdateSheet, "/api")]
 pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerFnError> {
     use sqlx::SqlitePool;
-    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
+    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("Pool de banco de dados não encontrado"))?;
 
     let data_json = serde_json::to_string(&data).map_err(|e: serde_json::Error| ServerFnError::new(e.to_string()))?;
 
@@ -110,7 +111,7 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
 #[server(DeleteSheet, "/api")]
 pub async fn delete_sheet(id: String) -> Result<(), ServerFnError> {
     use sqlx::SqlitePool;
-    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
+    let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("Pool de banco de dados não encontrado"))?;
 
     sqlx::query("DELETE FROM character_sheets WHERE id = ?")
         .bind(id)

@@ -13,9 +13,14 @@ pub fn Home() -> impl IntoView {
 
     let on_create = move |ev: ev::SubmitEvent| {
         ev.prevent_default();
-        let name_val = name.get();
+        let name_val = name.get().trim().to_string();
         let navigate = navigate.clone();
-        if !name_val.is_empty() && !creating.get() {
+        if name_val.is_empty() {
+            let _ = window().alert_with_message("O nome do personagem não pode estar vazio.");
+            return;
+        }
+
+        if !creating.get() {
             set_creating.set(true);
             spawn_local(async move {
                 match create_sheet(name_val).await {
@@ -53,6 +58,13 @@ pub fn Home() -> impl IntoView {
             <header class="home-header">
                 <h1>"MTA Character Manager"</h1>
                 <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
+                <div class="header-description">
+                    <p>
+                        "As fichas são salvas automaticamente em um banco de dados SQLite local (" <code>"mta_sheet.db"</code> " por padrão)."
+                        <br/>
+                        "Você pode configurar o caminho do banco definindo a variável de ambiente " <code>"DATABASE_URL"</code> "."
+                    </p>
+                </div>
             </header>
 
             <section class="create-section">
