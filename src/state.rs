@@ -71,9 +71,13 @@ pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
     let pool = use_context::<SqlitePool>().ok_or_else(|| ServerFnError::new("DB Pool not found"))?;
 
     let id = Uuid::new_v4().to_string();
+    let mut labels = HashMap::new();
+    labels.insert("Nome".to_string(), name.clone());
+
     let initial_data = CharacterData {
         id: id.clone(),
         name: name.clone(),
+        labels,
         ..Default::default()
     };
     let data_json = serde_json::to_string(&initial_data).map_err(|e: serde_json::Error| ServerFnError::new(e.to_string()))?;
