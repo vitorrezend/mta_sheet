@@ -11,6 +11,9 @@ pub fn LabelColumn(
 
     let update_label = move |key: String, value: String| {
         set_data.update(|s| {
+            if key == "Nome" {
+                s.name = value.clone();
+            }
             s.labels.insert(key, value);
         });
     };

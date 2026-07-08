@@ -26,6 +26,11 @@ pub async fn get_db() -> SqlitePool {
 
     println!("Connecting to database: {}", database_url);
 
+    // Provide explicit feedback about the database path being used
+    if let Ok(canonical) = std::fs::canonicalize(db_path) {
+        println!("Database absolute path: {:?}", canonical);
+    }
+
     let options = SqliteConnectOptions::from_str(&database_url)
         .expect("Invalid DATABASE_URL")
         .create_if_missing(true)
@@ -45,6 +50,8 @@ pub async fn get_db() -> SqlitePool {
     .execute(&pool)
     .await
     .expect("Failed to create table");
+
+    println!("Database initialized successfully.");
 
     pool
 }

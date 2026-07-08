@@ -15,7 +15,13 @@ pub fn Home() -> impl IntoView {
         ev.prevent_default();
         let name_val = name.get();
         let navigate = navigate.clone();
-        if !name_val.is_empty() && !creating.get() {
+
+        if name_val.trim().is_empty() {
+            let _ = window().alert_with_message("Por favor, insira um nome para o personagem.");
+            return;
+        }
+
+        if !creating.get() {
             set_creating.set(true);
             spawn_local(async move {
                 match create_sheet(name_val).await {
@@ -53,6 +59,10 @@ pub fn Home() -> impl IntoView {
             <header class="home-header">
                 <h1>"MTA Character Manager"</h1>
                 <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
+                <div class="header-description">
+                    <p>"Bem-vindo ao gerenciador de fichas para Mago: A Ascensão. Aqui você pode criar novas fichas para seus personagens ou continuar editando fichas salvas anteriormente."</p>
+                    <p>"Seus dados são persistidos automaticamente em um banco de dados SQLite local, garantindo que suas alterações sejam preservadas."</p>
+                </div>
             </header>
 
             <section class="create-section">
