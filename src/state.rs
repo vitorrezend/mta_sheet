@@ -92,7 +92,7 @@ impl CharacterData {
     pub fn new(id: String, name: String) -> Self {
         let mut sheet = Self {
             id,
-            name: if name.trim().is_empty() { "Novo Personagem".to_string() } else { name },
+            name: if name.trim().is_empty() { "Novo Mago".to_string() } else { name },
             attributes: HashMap::new(),
             labels: HashMap::new(),
             custom_lists: HashMap::new(),
@@ -347,7 +347,7 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
 #[server(CreateSheet, "/api")]
 pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
     let clean_name = name.trim().to_string();
-    let final_name = if clean_name.is_empty() { "Novo Personagem".to_string() } else { clean_name };
+    let final_name = if clean_name.is_empty() { "Novo Mago".to_string() } else { clean_name };
 
     use sqlx::SqlitePool;
     use uuid::Uuid;

@@ -14,24 +14,27 @@ pub fn Home() -> impl IntoView {
 
     let on_create = move |ev: ev::SubmitEvent| {
         ev.prevent_default();
-        let name_val = name.get().trim().to_string();
+        let raw_name = name.get().trim().to_string();
+        let final_name = if raw_name.is_empty() {
+            "Novo Mago".to_string()
+        } else {
+            raw_name
+        };
         let navigate = navigate.clone();
-        if !name_val.is_empty() {
-            set_is_creating.set(true);
-            set_error_msg.set(None);
-            spawn_local(async move {
-                match create_sheet(name_val).await {
-                    Ok(id) => {
-                        navigate(&format!("/sheet/{}", id), Default::default());
-                    }
-                    Err(e) => {
-                        log::error!("Error creating sheet: {:?}", e);
-                        set_error_msg.set(Some(format!("Erro ao criar ficha: {}", e)));
-                        set_is_creating.set(false);
-                    }
+        set_is_creating.set(true);
+        set_error_msg.set(None);
+        spawn_local(async move {
+            match create_sheet(final_name).await {
+                Ok(id) => {
+                    navigate(&format!("/sheet/{}", id), Default::default());
                 }
-            });
-        }
+                Err(e) => {
+                    log::error!("Error creating sheet: {:?}", e);
+                    set_error_msg.set(Some(format!("Erro ao criar ficha: {}", e)));
+                    set_is_creating.set(false);
+                }
+            }
+        });
     };
 
     let confirm_delete = move || {
@@ -77,13 +80,13 @@ pub fn Home() -> impl IntoView {
                 <form on:submit=on_create class="create-form">
                     <input
                         type="text"
-                        placeholder="Nome do Personagem (ex: Hermes, Morfeu...)"
+                        placeholder="Nome do Personagem (opcional, padrão: 'Novo Mago')"
                         on:input=move |ev| set_name.set(event_target_value(&ev))
                         prop:value=name
                         class="name-input"
                         disabled=is_creating
                     />
-                    <button type="submit" class="create-btn" disabled=move || is_creating.get() || name.get().trim().is_empty()>
+                    <button type="submit" class="create-btn" disabled=is_creating>
                         {move || if is_creating.get() { "Criando..." } else { "Criar Ficha" }}
                     </button>
                 </form>
