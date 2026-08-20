@@ -428,7 +428,7 @@ pub struct CharacterSummary {
 // Server Functions with Robust Error Handling
 // ==========================================
 
-#[server(GetSheets, "/api")]
+#[server(endpoint = "get_sheets")]
 pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
     use sqlx::{SqlitePool, Row};
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
@@ -453,7 +453,7 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
     Ok(summaries)
 }
 
-#[server(GetSheet, "/api")]
+#[server(endpoint = "get_sheet")]
 pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
     if id.trim().is_empty() {
         return Err(ServerFnError::new("ID da ficha não fornecido"));
@@ -488,7 +488,7 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
     Ok(data)
 }
 
-#[server(CreateSheet, "/api")]
+#[server(endpoint = "create_sheet")]
 pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
     let clean_name = name.trim().to_string();
     let final_name = if clean_name.is_empty() { "Novo Mago".to_string() } else { clean_name };
@@ -523,7 +523,7 @@ pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
     Ok(id)
 }
 
-#[server(UpdateSheet, "/api")]
+#[server(endpoint = "update_sheet")]
 pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerFnError> {
     if id.trim().is_empty() {
         return Err(ServerFnError::new("ID da ficha não pode ser vazio"));
@@ -562,7 +562,7 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
     Ok(())
 }
 
-#[server(DeleteSheet, "/api")]
+#[server(endpoint = "delete_sheet")]
 pub async fn delete_sheet(id: String) -> Result<(), ServerFnError> {
     if id.trim().is_empty() {
         return Err(ServerFnError::new("ID da ficha não fornecido"));

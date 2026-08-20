@@ -73,7 +73,7 @@ pub async fn get_auth_user_id() -> Result<Option<String>, ServerFnError> {
     Ok(row.map(|r| r.get("user_id")))
 }
 
-#[server(GetCurrentUser, "/api")]
+#[server(endpoint = "get_current_user")]
 pub async fn get_current_user() -> Result<Option<UserInfo>, ServerFnError> {
     use sqlx::{SqlitePool, Row};
     let token = match extract_session_token().await {
@@ -101,7 +101,7 @@ pub async fn get_current_user() -> Result<Option<UserInfo>, ServerFnError> {
     }))
 }
 
-#[server(Register, "/api")]
+#[server(endpoint = "register")]
 pub async fn register(username: String, password: String) -> Result<UserInfo, ServerFnError> {
     let clean_user = username.trim().to_string();
     if clean_user.len() < 3 {
@@ -157,7 +157,7 @@ pub async fn register(username: String, password: String) -> Result<UserInfo, Se
     })
 }
 
-#[server(Login, "/api")]
+#[server(endpoint = "login")]
 pub async fn login(username: String, password: String) -> Result<UserInfo, ServerFnError> {
     let clean_user = username.trim().to_string();
     if clean_user.is_empty() || password.is_empty() {
@@ -209,7 +209,7 @@ pub async fn login(username: String, password: String) -> Result<UserInfo, Serve
     })
 }
 
-#[server(Logout, "/api")]
+#[server(endpoint = "logout")]
 pub async fn logout() -> Result<(), ServerFnError> {
     use sqlx::SqlitePool;
     if let Some(token) = extract_session_token().await {

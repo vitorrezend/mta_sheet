@@ -61,7 +61,7 @@ fn generate_room_code() -> String {
     format!("MTA-{}{}{}{}", &chars[c1..c1+1], &chars[c2..c2+1], &chars[c3..c3+1], &chars[c4..c4+1])
 }
 
-#[server(GetUserRooms, "/api")]
+#[server(endpoint = "get_user_rooms")]
 pub async fn get_user_rooms() -> Result<Vec<RoomSummary>, ServerFnError> {
     use sqlx::{SqlitePool, Row};
     use crate::auth::get_auth_user_id;
@@ -112,7 +112,7 @@ pub async fn get_user_rooms() -> Result<Vec<RoomSummary>, ServerFnError> {
     Ok(summaries)
 }
 
-#[server(CreateRoom, "/api")]
+#[server(endpoint = "create_room")]
 pub async fn create_room(name: String, description: String) -> Result<String, ServerFnError> {
     let clean_name = name.trim().to_string();
     if clean_name.is_empty() {
@@ -160,7 +160,7 @@ pub async fn create_room(name: String, description: String) -> Result<String, Se
     Ok(room_id)
 }
 
-#[server(JoinRoomByCode, "/api")]
+#[server(endpoint = "join_room_by_code")]
 pub async fn join_room_by_code(code: String) -> Result<String, ServerFnError> {
     let clean_code = code.trim().to_uppercase();
     if clean_code.is_empty() {
@@ -178,17 +178,17 @@ pub async fn join_room_by_code(code: String) -> Result<String, ServerFnError> {
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
 
-    let room_row = sqlx::query("SELECT id, name FROM rooms WHERE UPPER(code) = ?")
+    let room_row = sqlx::query("SELECT id, name FROM rooms WHERE code = ?")
         .bind(&clean_code)
         .fetch_optional(&pool)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
-        .ok_or_else(|| ServerFnError::new("Nenhuma sala encontrada com este código"))?;
+        .ok_or_else(|| ServerFnError::new("Código de sala inválido ou sala não encontrada"))?;
 
     let room_id: String = room_row.get("id");
     let room_name: String = room_row.get("name");
 
-    // Insert into room members (ignore if already in)
+    // Add member if not exists
     sqlx::query(
         "INSERT OR IGNORE INTO room_members (room_id, user_id, role) VALUES (?, ?, 'player')"
     )
@@ -196,13 +196,13 @@ pub async fn join_room_by_code(code: String) -> Result<String, ServerFnError> {
     .bind(&user_id)
     .execute(&pool)
     .await
-    .map_err(|e| ServerFnError::new(format!("Erro ao ingressar na sala: {}", e)))?;
+    .map_err(|e| ServerFnError::new(format!("Erro ao entrar na sala: {}", e)))?;
 
     log::info!("User joined room '{}' ({})", room_name, room_id);
     Ok(room_id)
 }
 
-#[server(GetRoomDetails, "/api")]
+#[server(endpoint = "get_room_details")]
 pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnError> {
     if room_id.trim().is_empty() {
         return Err(ServerFnError::new("ID da sala não fornecido"));
@@ -301,7 +301,7 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
     })
 }
 
-#[server(AssignSheetToRoom, "/api")]
+#[server(endpoint = "assign_sheet_to_room")]
 pub async fn assign_sheet_to_room(sheet_id: String, room_id: String) -> Result<(), ServerFnError> {
     use sqlx::SqlitePool;
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
@@ -318,7 +318,7 @@ pub async fn assign_sheet_to_room(sheet_id: String, room_id: String) -> Result<(
     Ok(())
 }
 
-#[server(RemoveSheetFromRoom, "/api")]
+#[server(endpoint = "remove_sheet_from_room")]
 pub async fn remove_sheet_from_room(sheet_id: String) -> Result<(), ServerFnError> {
     use sqlx::SqlitePool;
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
