@@ -1,6 +1,7 @@
 use leptos::*;
 use crate::components::ValueField;
-use crate::state::{CharacterData, AttributeValue};
+use crate::state::{CharacterData, DotOrigin};
+use crate::components::character_sheet::ActiveDotOriginContext;
 
 const TALENTOS: &[&'static str] = &[
     "Prontidão", "Esportes", "Briga", "Esquiva", "Empatia", 
@@ -21,13 +22,19 @@ const CONHECIMENTOS: &[&'static str] = &[
 pub fn Abilities() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
     let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
+    let active_origin_ctx = use_context::<ActiveDotOriginContext>();
 
     // Função para atualizar uma habilidade
     let update_ability = move |name: String, level: Option<i32>, modifier: Option<String>| {
+        let current_origin = active_origin_ctx.map(|a| a.origin.get()).unwrap_or(DotOrigin::Base);
         set_data.update(|s| {
-            let attr = s.attributes.entry(name).or_insert(AttributeValue { level: 0, modifier: String::new() });
-            if let Some(l) = level { attr.level = l; }
-            if let Some(m) = modifier { attr.modifier = m; }
+            s.set_attribute_with_origin(&name, level, modifier, current_origin);
+        });
+    };
+
+    let update_ability_dot = move |name: String, dot_idx: usize, origin: DotOrigin| {
+        set_data.update(|s| {
+            s.set_attribute_dot_origin(&name, dot_idx, origin);
         });
     };
 
@@ -67,20 +74,31 @@ pub fn Abilities() -> impl IntoView {
     let render_field = move |name: String, is_custom: bool, category: &'static str| {
         let n_level = name.clone();
         let n_mod = name.clone();
+        let n_origins = name.clone();
         let n_label = name.clone();
         let n_change_label = name.clone();
         let n_update_level = name.clone();
         let n_update_mod = name.clone();
+        let n_update_dot = name.clone();
         let n_remove = name.clone();
         
         let level = Signal::derive({
             let name = n_level.clone();
-            move || data.get().attributes.get(&name).map(|a| a.level).unwrap_or(0)
+            move || data.get().get_attribute_level(&name, 0)
         });
         let modifier = Signal::derive({
             let name = n_mod.clone();
-            move || data.get().attributes.get(&name).map(|a| a.modifier.clone()).unwrap_or_default()
+            move || data.get().get_attribute_modifier(&name)
         });
+        let origins = Signal::derive({
+            let name = n_origins.clone();
+            move || data.get().attributes.get(&name).map(|a| a.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5])
+        });
+
+        let on_dot_origin_change = {
+            let name = n_update_dot.clone();
+            Callback::new(move |(idx, orig)| update_ability_dot(name.clone(), idx, orig))
+        };
 
         if is_custom {
             let old = n_change_label.clone();
@@ -90,8 +108,10 @@ pub fn Abilities() -> impl IntoView {
                     label=Signal::derive(move || n_label.clone())
                     level=level
                     modifier=modifier
+                    origins=origins
                     on_level_change=move |v| update_ability(n_update_level.clone(), Some(v), None)
                     on_modifier_change=move |m| update_ability(n_update_mod.clone(), None, Some(m))
+                    on_dot_origin_change=on_dot_origin_change
                     min_level=0
                     max_chars=18
                     is_editable=true
@@ -105,8 +125,10 @@ pub fn Abilities() -> impl IntoView {
                     label=Signal::derive(move || n_label.clone())
                     level=level
                     modifier=modifier
+                    origins=origins
                     on_level_change=move |v| update_ability(n_update_level.clone(), Some(v), None)
                     on_modifier_change=move |m| update_ability(n_update_mod.clone(), None, Some(m))
+                    on_dot_origin_change=on_dot_origin_change
                     min_level=0
                     max_chars=18
                     is_editable=false

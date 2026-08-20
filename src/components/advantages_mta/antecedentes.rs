@@ -1,11 +1,13 @@
 use leptos::*;
 use crate::components::ValueField;
-use crate::state::CharacterData;
+use crate::state::{CharacterData, DotOrigin};
+use crate::components::character_sheet::ActiveDotOriginContext;
 
 #[component]
 pub fn Antecedentes() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
     let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
+    let active_origin_ctx = use_context::<ActiveDotOriginContext>();
 
     let category = "Antecedentes";
     
@@ -39,11 +41,13 @@ pub fn Antecedentes() -> impl IntoView {
     let render_item = move |id: String| {
         let id_level = id.clone();
         let id_mod = id.clone();
+        let id_origins = id.clone();
         let id_label = id.clone();
         let id_change = id.clone();
         let id_remove = id.clone();
         let id_up_level = id.clone();
         let id_up_mod = id.clone();
+        let id_up_dot = id.clone();
 
         let label = Signal::derive({
             let id = id_label.clone();
@@ -52,24 +56,41 @@ pub fn Antecedentes() -> impl IntoView {
 
         let level = Signal::derive({
             let id = id_level.clone();
-            move || data.get().attributes.get(&id).map(|a| a.level).unwrap_or(0)
+            move || data.get().get_attribute_level(&id, 0)
         });
         
         let modifier = Signal::derive({
             let id = id_mod.clone();
-            move || data.get().attributes.get(&id).map(|a| a.modifier.clone()).unwrap_or_default()
+            move || data.get().get_attribute_modifier(&id)
         });
+
+        let origins = Signal::derive({
+            let id = id_origins.clone();
+            move || data.get().attributes.get(&id).map(|a| a.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5])
+        });
+
+        let on_dot_origin_change = {
+            let id = id_up_dot.clone();
+            Callback::new(move |(idx, orig)| {
+                let id = id.clone();
+                set_data.update(|s| {
+                    s.set_attribute_dot_origin(&id, idx, orig);
+                });
+            })
+        };
 
         view! {
             <ValueField 
                 label=label
                 level=level
                 modifier=modifier
+                origins=origins
                 on_level_change={
                     let id = id_up_level.clone();
                     move |v| {
+                        let current_origin = active_origin_ctx.map(|a| a.origin.get()).unwrap_or(DotOrigin::Base);
                         set_data.update(|s| {
-                            s.attributes.entry(id.clone()).or_default().level = v;
+                            s.set_attribute_with_origin(&id, Some(v), None, current_origin);
                         });
                     }
                 }
@@ -77,10 +98,11 @@ pub fn Antecedentes() -> impl IntoView {
                     let id = id_up_mod.clone();
                     move |m| {
                         set_data.update(|s| {
-                            s.attributes.entry(id.clone()).or_default().modifier = m;
+                            s.set_attribute_with_origin(&id, None, Some(m), DotOrigin::Base);
                         });
                     }
                 }
+                on_dot_origin_change=on_dot_origin_change
                 is_editable=true
                 on_label_change=Callback::new(move |new_l| update_label(id_change.clone(), new_l))
                 on_remove=Callback::new(move |_| remove_item(id_remove.clone()))

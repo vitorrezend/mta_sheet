@@ -1,17 +1,24 @@
 use leptos::*;
 use crate::components::ValueField;
-use crate::state::{CharacterData, AttributeValue};
+use crate::state::{CharacterData, DotOrigin};
+use crate::components::character_sheet::ActiveDotOriginContext;
 
 #[component]
 pub fn Spheres() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
     let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
+    let active_origin_ctx = use_context::<ActiveDotOriginContext>();
 
     let update_sphere = move |name: String, level: Option<i32>, modifier: Option<String>| {
+        let current_origin = active_origin_ctx.map(|a| a.origin.get()).unwrap_or(DotOrigin::Base);
         set_data.update(|s| {
-            let attr = s.attributes.entry(name).or_insert(AttributeValue::default());
-            if let Some(l) = level { attr.level = l; }
-            if let Some(m) = modifier { attr.modifier = m; }
+            s.set_attribute_with_origin(&name, level, modifier, current_origin);
+        });
+    };
+
+    let update_sphere_dot = move |name: String, dot_idx: usize, origin: DotOrigin| {
+        set_data.update(|s| {
+            s.set_attribute_dot_origin(&name, dot_idx, origin);
         });
     };
 
@@ -19,22 +26,34 @@ pub fn Spheres() -> impl IntoView {
         let name_str = name.to_string();
         let name_str2 = name.to_string();
         let name_str3 = name.to_string();
+        let name_str4 = name.to_string();
+        let name_str5 = name.to_string();
+        let name_str6 = name.to_string();
+
         let level = Signal::derive({
             let name = name_str.clone();
-            move || data.get().attributes.get(&name).map(|a| a.level).unwrap_or(0)
+            move || data.get().get_attribute_level(&name, 0)
         });
         let modifier = Signal::derive({
             let name = name_str2.clone();
-            move || data.get().attributes.get(&name).map(|a| a.modifier.clone()).unwrap_or_default()
+            move || data.get().get_attribute_modifier(&name)
+        });
+        let origins = Signal::derive({
+            let name = name_str3.clone();
+            move || data.get().attributes.get(&name).map(|a| a.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5])
         });
         
         let on_level_change = {
-            let name = name_str3.clone();
+            let name = name_str4.clone();
             move |v| update_sphere(name.clone(), Some(v), None)
         };
         let on_modifier_change = {
-            let name = name_str3.clone();
+            let name = name_str5.clone();
             move |m| update_sphere(name.clone(), None, Some(m))
+        };
+        let on_dot_origin_change = {
+            let name = name_str6.clone();
+            Callback::new(move |(idx, orig)| update_sphere_dot(name.clone(), idx, orig))
         };
 
         view! {
@@ -42,8 +61,10 @@ pub fn Spheres() -> impl IntoView {
                 label=Signal::derive(move || name.to_string()) 
                 level=level
                 modifier=modifier
+                origins=origins
                 on_level_change=on_level_change
                 on_modifier_change=on_modifier_change
+                on_dot_origin_change=on_dot_origin_change
                 min_level=0
                 max_chars=18
             />

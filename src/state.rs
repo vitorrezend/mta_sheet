@@ -73,10 +73,125 @@ impl DamageType {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum DotOrigin {
+    #[default]
+    Base,        // Criação de Ficha (Preto clássico)
+    Bonus,       // Pontos de Bônus / Freebies (Roxo Ametista)
+    Experience,  // Experiência / XP (Verde Esmeralda)
+    Temporary,   // Feitiço / Wonder / Buff (Dourado Solar)
+}
+
+impl DotOrigin {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            DotOrigin::Base => "base",
+            DotOrigin::Bonus => "bonus",
+            DotOrigin::Experience => "xp",
+            DotOrigin::Temporary => "temp",
+        }
+    }
+
+    pub fn label(&self) -> &'static str {
+        match self {
+            DotOrigin::Base => "Criação Base",
+            DotOrigin::Bonus => "Pontos de Bônus",
+            DotOrigin::Experience => "Experiência (XP)",
+            DotOrigin::Temporary => "Magia / Buff",
+        }
+    }
+
+    pub fn color_class(&self) -> &'static str {
+        match self {
+            DotOrigin::Base => "dot-base",
+            DotOrigin::Bonus => "dot-bonus",
+            DotOrigin::Experience => "dot-xp",
+            DotOrigin::Temporary => "dot-temp",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Self {
+        match s {
+            "bonus" => DotOrigin::Bonus,
+            "xp" => DotOrigin::Experience,
+            "temp" => DotOrigin::Temporary,
+            _ => DotOrigin::Base,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct AttributeValue {
     pub level: i32,
     pub modifier: String,
+    #[serde(default)]
+    pub dot_origins: Vec<DotOrigin>,
+}
+
+impl AttributeValue {
+    pub fn new(level: i32, modifier: String) -> Self {
+        Self {
+            level,
+            modifier,
+            dot_origins: vec![DotOrigin::Base; level.max(0) as usize],
+        }
+    }
+
+    pub fn get_origins(&self, total_dots: usize) -> Vec<DotOrigin> {
+        let mut origins = Vec::with_capacity(total_dots);
+        for i in 0..total_dots {
+            if i < self.dot_origins.len() {
+                origins.push(self.dot_origins[i]);
+            } else {
+                origins.push(DotOrigin::Base);
+            }
+        }
+        origins
+    }
+
+    pub fn set_level_with_origin(&mut self, new_level: i32, default_origin: DotOrigin) {
+        self.level = new_level;
+        let new_len = new_level.max(0) as usize;
+        
+        if new_len > self.dot_origins.len() {
+            while self.dot_origins.len() < new_len {
+                self.dot_origins.push(default_origin);
+            }
+        } else {
+            self.dot_origins.truncate(new_len);
+        }
+    }
+
+    pub fn set_dot_origin(&mut self, dot_index: usize, origin: DotOrigin) {
+        if dot_index < self.level.max(0) as usize {
+            while self.dot_origins.len() <= dot_index {
+                self.dot_origins.push(DotOrigin::Base);
+            }
+            self.dot_origins[dot_index] = origin;
+        }
+    }
+
+    pub fn count_origins(&self) -> (usize, usize, usize, usize) {
+        let mut base = 0;
+        let mut bonus = 0;
+        let mut xp = 0;
+        let mut temp = 0;
+        let len = self.level.max(0) as usize;
+        for i in 0..len {
+            let orig = if i < self.dot_origins.len() {
+                self.dot_origins[i]
+            } else {
+                DotOrigin::Base
+            };
+            match orig {
+                DotOrigin::Base => base += 1,
+                DotOrigin::Bonus => bonus += 1,
+                DotOrigin::Experience => xp += 1,
+                DotOrigin::Temporary => temp += 1,
+            }
+        }
+        (base, bonus, xp, temp)
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
@@ -118,15 +233,44 @@ impl CharacterData {
             .unwrap_or_default()
     }
 
-    /// Set attribute/ability/sphere level and modifier
+    /// Set attribute/ability/sphere level and modifier with dot origin tracking
     pub fn set_attribute(&mut self, name: &str, level: Option<i32>, modifier: Option<String>) {
         let entry = self.attributes.entry(name.to_string()).or_default();
         if let Some(l) = level {
-            entry.level = l;
+            entry.set_level_with_origin(l, DotOrigin::Base);
         }
         if let Some(m) = modifier {
             entry.modifier = m;
         }
+    }
+
+    /// Set attribute with a specific default origin for newly added dots
+    pub fn set_attribute_with_origin(&mut self, name: &str, level: Option<i32>, modifier: Option<String>, origin: DotOrigin) {
+        let entry = self.attributes.entry(name.to_string()).or_default();
+        if let Some(l) = level {
+            entry.set_level_with_origin(l, origin);
+        }
+        if let Some(m) = modifier {
+            entry.modifier = m;
+        }
+    }
+
+    /// Set origin of a specific dot index
+    pub fn set_attribute_dot_origin(&mut self, name: &str, dot_index: usize, origin: DotOrigin) {
+        let entry = self.attributes.entry(name.to_string()).or_default();
+        entry.set_dot_origin(dot_index, origin);
+    }
+
+    /// Total count of bonus and xp dots across all attributes/abilities/spheres
+    pub fn get_total_bonus_and_xp_dots(&self) -> (usize, usize) {
+        let mut total_bonus = 0;
+        let mut total_xp = 0;
+        for attr in self.attributes.values() {
+            let (_, bonus, xp, _) = attr.count_origins();
+            total_bonus += bonus;
+            total_xp += xp;
+        }
+        (total_bonus, total_xp)
     }
 
     /// Get label value
@@ -519,5 +663,31 @@ mod tests {
         assert_eq!(char_data.name, "Sem Nome");
         assert_eq!(char_data.get_arete(), 1);
         assert_eq!(char_data.get_willpower(), (5, 5));
+    }
+
+    #[test]
+    fn test_dot_origins_tracking_and_counting() {
+        let mut attr = AttributeValue::new(3, "Espadas".to_string());
+        assert_eq!(attr.dot_origins.len(), 3);
+        assert_eq!(attr.count_origins(), (3, 0, 0, 0));
+
+        // Add 1 dot with Bonus origin
+        attr.set_level_with_origin(4, DotOrigin::Bonus);
+        assert_eq!(attr.level, 4);
+        assert_eq!(attr.count_origins(), (3, 1, 0, 0));
+
+        // Add 1 dot with XP origin
+        attr.set_level_with_origin(5, DotOrigin::Experience);
+        assert_eq!(attr.level, 5);
+        assert_eq!(attr.count_origins(), (3, 1, 1, 0));
+
+        // Manually toggle dot 0 to Temporary
+        attr.set_dot_origin(0, DotOrigin::Temporary);
+        assert_eq!(attr.count_origins(), (2, 1, 1, 1));
+
+        // Lower level to 3 truncates the last dots (leaving Temporary at 0 and Base at 1, 2)
+        attr.set_level_with_origin(3, DotOrigin::Base);
+        assert_eq!(attr.level, 3);
+        assert_eq!(attr.count_origins(), (2, 0, 0, 1));
     }
 }

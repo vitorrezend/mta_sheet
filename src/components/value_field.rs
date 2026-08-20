@@ -1,4 +1,5 @@
 use leptos::*;
+use crate::state::DotOrigin;
 
 #[component]
 pub fn ValueField(
@@ -12,9 +13,12 @@ pub fn ValueField(
     #[prop(optional)] on_remove: Option<Callback<()>>,
     #[prop(default = false)] is_editable: bool,
     #[prop(optional)] on_label_change: Option<Callback<String>>,
+    #[prop(optional)] origins: Option<Signal<Vec<DotOrigin>>>,
+    #[prop(optional)] on_dot_origin_change: Option<Callback<(usize, DotOrigin)>>,
 ) -> impl IntoView {
     let on_level_change = store_value(on_level_change);
     let on_modifier_change = store_value(on_modifier_change);
+    let (open_popover_idx, set_open_popover_idx) = create_signal(Option::<usize>::None);
 
     let display_label = move || {
         let l = label.get();
@@ -23,6 +27,40 @@ pub fn ValueField(
                 format!("{}...", l.chars().take(max).collect::<String>())
             } else {
                 l
+            }
+        } else {
+            l
+        }
+    };
+
+    let tooltip_label = move || {
+        let l = label.get();
+        let cur_lvl = level.get();
+        if cur_lvl > 0 && origins.is_some() {
+            let orig_list = origins.unwrap().get();
+            let mut base = 0;
+            let mut bonus = 0;
+            let mut xp = 0;
+            let mut temp = 0;
+            for i in 0..(cur_lvl as usize) {
+                let orig = if i < orig_list.len() { orig_list[i] } else { DotOrigin::Base };
+                match orig {
+                    DotOrigin::Base => base += 1,
+                    DotOrigin::Bonus => bonus += 1,
+                    DotOrigin::Experience => xp += 1,
+                    DotOrigin::Temporary => temp += 1,
+                }
+            }
+            let mut parts = Vec::new();
+            if base > 0 { parts.push(format!("{} Base", base)); }
+            if bonus > 0 { parts.push(format!("{} Bônus", bonus)); }
+            if xp > 0 { parts.push(format!("{} XP", xp)); }
+            if temp > 0 { parts.push(format!("{} Buff", temp)); }
+
+            if !parts.is_empty() {
+                format!("{} (Nível {}: {})", l, cur_lvl, parts.join(" • "))
+            } else {
+                format!("{} (Nível {})", l, cur_lvl)
             }
         } else {
             l
@@ -86,7 +124,7 @@ pub fn ValueField(
                         </span>
                     }.into_view()
                 }}
-                <span class="tooltip-text">{label}</span>
+                <span class="tooltip-text">{tooltip_label}</span>
             </div>
 
             <div class="modifier-container tooltip-container">
@@ -107,21 +145,106 @@ pub fn ValueField(
 
             <div class="dots-container">
                 {move || (1..=5).map(|i| {
+                    let dot_idx = (i - 1) as usize;
                     let is_filled = move || level.get() >= i;
-                    view! {
-                        <span 
-                            class="dot"
-                            class:filled=is_filled
-                            on:click=move |_| {
-                                let current = level.get();
-                                let new_val = if i == current {
-                                    (i - 1).max(min_level)
+                    let dot_color = move || {
+                        if level.get() >= i {
+                            if let Some(sig) = origins {
+                                let list = sig.get();
+                                if dot_idx < list.len() {
+                                    list[dot_idx].color_class()
                                 } else {
-                                    i
-                                };
-                                on_level_change.with_value(|cb| cb(new_val))
+                                    "dot-base"
+                                }
+                            } else {
+                                "dot-base"
                             }
-                        ></span>
+                        } else {
+                            ""
+                        }
+                    };
+
+                    let is_popover_open = move || open_popover_idx.get() == Some(dot_idx);
+
+                    let on_right_click = move |ev: ev::MouseEvent| {
+                        ev.prevent_default();
+                        if level.get() >= i && on_dot_origin_change.is_some() {
+                            set_open_popover_idx.update(|cur| {
+                                *cur = if *cur == Some(dot_idx) { None } else { Some(dot_idx) };
+                            });
+                        }
+                    };
+
+                    let set_origin_to = move |origin: DotOrigin| {
+                        if let Some(cb) = on_dot_origin_change {
+                            cb.call((dot_idx, origin));
+                        }
+                        set_open_popover_idx.set(None);
+                    };
+
+                    view! {
+                        <div class="dot-wrapper">
+                            <span 
+                                class="dot"
+                                class:filled=is_filled
+                                class=("dot-base", move || is_filled() && dot_color() == "dot-base")
+                                class=("dot-bonus", move || is_filled() && dot_color() == "dot-bonus")
+                                class=("dot-xp", move || is_filled() && dot_color() == "dot-xp")
+                                class=("dot-temp", move || is_filled() && dot_color() == "dot-temp")
+                                on:click=move |_| {
+                                    set_open_popover_idx.set(None);
+                                    let current = level.get();
+                                    let new_val = if i == current {
+                                        (i - 1).max(min_level)
+                                    } else {
+                                        i
+                                    };
+                                    on_level_change.with_value(|cb| cb(new_val))
+                                }
+                                on:contextmenu=on_right_click
+                                title="Botão esquerdo: alterar nível | Botão direito: mudar origem (Base/Bônus/XP/Buff)"
+                            ></span>
+
+                            {move || if is_popover_open() {
+                                view! {
+                                    <div class="dot-origin-popover" on:click=move |ev| ev.stop_propagation()>
+                                        <div class="popover-title">"Origem do Ponto:"</div>
+                                        <div class="popover-options">
+                                            <button 
+                                                class="popover-btn btn-base" 
+                                                on:click=move |_| set_origin_to(DotOrigin::Base)
+                                                title="Criação Base"
+                                            >
+                                                <span class="popover-dot dot-base"></span> "Base"
+                                            </button>
+                                            <button 
+                                                class="popover-btn btn-bonus" 
+                                                on:click=move |_| set_origin_to(DotOrigin::Bonus)
+                                                title="Pontos de Bônus (Freebies)"
+                                            >
+                                                <span class="popover-dot dot-bonus"></span> "Bônus"
+                                            </button>
+                                            <button 
+                                                class="popover-btn btn-xp" 
+                                                on:click=move |_| set_origin_to(DotOrigin::Experience)
+                                                title="Experiência (XP)"
+                                            >
+                                                <span class="popover-dot dot-xp"></span> "XP"
+                                            </button>
+                                            <button 
+                                                class="popover-btn btn-temp" 
+                                                on:click=move |_| set_origin_to(DotOrigin::Temporary)
+                                                title="Buff / Magia / Wonder"
+                                            >
+                                                <span class="popover-dot dot-temp"></span> "Buff"
+                                            </button>
+                                        </div>
+                                    </div>
+                                }.into_view()
+                            } else {
+                                view! {}.into_view()
+                            }}
+                        </div>
                     }
                 }).collect_view()}
             </div>

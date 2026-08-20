@@ -1,7 +1,14 @@
 use leptos::*;
 use leptos_router::*;
-use crate::state::{get_sheet, update_sheet, CharacterData};
+use crate::state::{get_sheet, update_sheet, CharacterData, DotOrigin};
 use crate::components::{Attributes, InfoHeader, Abilities, Spheres, AdvantagesMta, Sheet};
+
+#[derive(Clone, Copy)]
+pub struct ActiveDotOriginContext {
+    pub origin: ReadSignal<DotOrigin>,
+    #[allow(dead_code)]
+    pub set_origin: WriteSignal<DotOrigin>,
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum SaveStatus {
@@ -42,10 +49,15 @@ pub fn CharacterSheet() -> impl IntoView {
     let (save_status, set_save_status) = create_signal(SaveStatus::Idle);
     let (save_seq, set_save_seq) = create_signal(0u64);
     let (is_loaded, set_is_loaded) = create_signal(false);
+    let (active_origin, set_active_origin) = create_signal(DotOrigin::Base);
 
-    // Provide the sheet data as context for all child components
+    // Provide the sheet data and active dot origin as context for all child components
     provide_context(set_data);
     provide_context(data);
+    provide_context(ActiveDotOriginContext {
+        origin: active_origin,
+        set_origin: set_active_origin,
+    });
 
     create_effect(move |_| {
         if let Some(Ok(fetched_data)) = sheet_resource.get() {
@@ -107,6 +119,8 @@ pub fn CharacterSheet() -> impl IntoView {
         }
     };
 
+    let total_counts = move || data.get().get_total_bonus_and_xp_dots();
+
     view! {
         <link rel="stylesheet" href="/style.css"/>
         <div class="sheet-page-container">
@@ -116,7 +130,47 @@ pub fn CharacterSheet() -> impl IntoView {
                 </div>
 
                 <div class="top-bar-center">
-                    <span class="sheet-title-text">{move || data.get().name}</span>
+                    <div class="mode-selector-container">
+                        <span class="mode-label">"Modo:"</span>
+                        <div class="mode-btn-group">
+                            <button 
+                                class="mode-btn mode-base"
+                                class:active=move || active_origin.get() == DotOrigin::Base
+                                on:click=move |_| set_active_origin.set(DotOrigin::Base)
+                                title="Criação Base de Personagem (Preto)"
+                            >
+                                <span class="mode-dot-icon dot-base"></span>
+                                "Criação"
+                            </button>
+                            <button 
+                                class="mode-btn mode-bonus"
+                                class:active=move || active_origin.get() == DotOrigin::Bonus
+                                on:click=move |_| set_active_origin.set(DotOrigin::Bonus)
+                                title="Pontos de Bônus Iniciais (Roxo)"
+                            >
+                                <span class="mode-dot-icon dot-bonus"></span>
+                                "Bônus (" {move || total_counts().0} "/15)"
+                            </button>
+                            <button 
+                                class="mode-btn mode-xp"
+                                class:active=move || active_origin.get() == DotOrigin::Experience
+                                on:click=move |_| set_active_origin.set(DotOrigin::Experience)
+                                title="Experiência / XP Acumulado (Verde)"
+                            >
+                                <span class="mode-dot-icon dot-xp"></span>
+                                "XP (" {move || total_counts().1} ")"
+                            </button>
+                            <button 
+                                class="mode-btn mode-temp"
+                                class:active=move || active_origin.get() == DotOrigin::Temporary
+                                on:click=move |_| set_active_origin.set(DotOrigin::Temporary)
+                                title="Bônus Temporário / Feitiço / Wonder (Dourado)"
+                            >
+                                <span class="mode-dot-icon dot-temp"></span>
+                                "Buff / Magia"
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="top-bar-right">
@@ -148,7 +202,7 @@ pub fn CharacterSheet() -> impl IntoView {
                                         <span class="status-dot dot-error"></span>
                                         "Erro ao salvar"
                                     </span>
-                                }.into_view()
+                                 }.into_view()
                             },
                         }}
                         <button class="manual-save-btn" on:click=do_manual_save title="Salvar imediatamente">
