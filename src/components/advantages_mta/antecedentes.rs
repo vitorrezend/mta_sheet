@@ -84,7 +84,7 @@ pub fn Antecedentes() -> impl IntoView {
                 is_editable=true
                 on_label_change=Callback::new(move |new_l| update_label(id_change.clone(), new_l))
                 on_remove=Callback::new(move |_| remove_item(id_remove.clone()))
-                max_chars=12
+                max_chars=18
             />
         }
     };

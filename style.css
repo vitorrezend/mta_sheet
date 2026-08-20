@@ -25,12 +25,12 @@ body {
     min-height: var(--page-height);
     background-color: var(--paper-bg);
     box-shadow: var(--shadow);
-    padding: 15mm;
+    padding: 10mm 11mm;
     box-sizing: border-box;
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
+    gap: 0.75rem;
 }
 
 /* Camada Secundária: Campos de Atributos/Habilidades */
@@ -46,45 +46,53 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 2px;
+    gap: 3px;
     width: 100%;
     min-width: 0;
+    box-sizing: border-box;
+}
+
+.attribute-row > .tooltip-container:first-child {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 60%;
+    overflow: hidden;
 }
 
 .attribute-label {
-    font-size: 0.68rem;
+    font-size: 0.67rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.015em;
     white-space: nowrap;
-    color: #555;
+    color: #4b5563;
     cursor: help;
-    flex-shrink: 0;
-    max-width: 130px; 
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-right: 6px; 
+    margin-right: 2px; 
     text-align: left;
+    display: block;
 }
 
 .field-modifier {
-    flex: 1;
-    min-width: 10px;
-    width: 0;
-    height: 18px;
+    flex: 1 1 0%;
+    min-width: 6px;
+    width: 100%;
+    height: 16px;
     border: none;
-    border-bottom: 1px dotted #bdc3c7;
+    border-bottom: 1px dotted #cbd5e1;
     text-align: left;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     background: transparent;
     color: var(--primary-color);
     font-family: inherit;
     transition: all 0.2s;
-    margin: 0 4px;
-    padding: 0 4px;
+    margin: 0 2px;
+    padding: 0 2px;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+    box-sizing: border-box;
 }
 
 .field-modifier:focus {
@@ -96,24 +104,28 @@ body {
 /* Camada Terciária: Bolinhas (Dots) */
 .dots-container {
     display: flex;
-    gap: 4px; /* Reduzido de 6px para 4px */
+    gap: 3.5px;
+    flex-shrink: 0;
+    margin-left: auto;
+    align-items: center;
 }
 
 .dot {
     display: inline-block;
-    width: 14px;
-    height: 14px;
-    border: 2px solid var(--primary-color);
+    width: 12.5px;
+    height: 12.5px;
+    border: 1.8px solid var(--primary-color);
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.15s ease-in-out;
     background-color: transparent;
     box-sizing: border-box;
+    flex-shrink: 0;
 }
 
 .dot:hover {
     transform: scale(1.2);
-    border-color: #34495e;
+    border-color: #1e293b;
 }
 
 .dot.filled {
@@ -122,9 +134,9 @@ body {
 
 .square {
     display: inline-block;
-    width: 14px;
-    height: 14px;
-    border: 2px solid var(--primary-color);
+    width: 13px;
+    height: 13px;
+    border: 1.8px solid var(--primary-color);
     cursor: pointer;
     transition: all 0.15s ease-in-out;
     background-color: transparent;
@@ -218,15 +230,18 @@ body {
 .attributes-block {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.5rem;
+    gap: 0.75rem;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .attribute-column {
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
-    min-width: 0; /* Permite que o conteúdo interno encolha */
+    gap: 0.25rem;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .column-title {

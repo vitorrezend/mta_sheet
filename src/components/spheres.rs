@@ -45,7 +45,7 @@ pub fn Spheres() -> impl IntoView {
                 on_level_change=on_level_change
                 on_modifier_change=on_modifier_change
                 min_level=0
-                max_chars=15
+                max_chars=18
             />
         }
     };

@@ -93,7 +93,7 @@ pub fn Abilities() -> impl IntoView {
                     on_level_change=move |v| update_ability(n_update_level.clone(), Some(v), None)
                     on_modifier_change=move |m| update_ability(n_update_mod.clone(), None, Some(m))
                     min_level=0
-                    max_chars=10
+                    max_chars=18
                     is_editable=true
                     on_label_change=Callback::new(move |new_n| update_custom_name(category, old.clone(), new_n))
                     on_remove=Callback::new(move |_| remove_custom(category, n.clone()))
@@ -108,7 +108,7 @@ pub fn Abilities() -> impl IntoView {
                     on_level_change=move |v| update_ability(n_update_level.clone(), Some(v), None)
                     on_modifier_change=move |m| update_ability(n_update_mod.clone(), None, Some(m))
                     min_level=0
-                    max_chars=12
+                    max_chars=18
                     is_editable=false
                 />
             }.into_view()
