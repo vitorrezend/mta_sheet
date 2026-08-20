@@ -150,16 +150,25 @@ impl AttributeValue {
     }
 
     pub fn set_level_with_origin(&mut self, new_level: i32, default_origin: DotOrigin) {
-        self.level = new_level;
+        let old_level = self.level.max(0) as usize;
         let new_len = new_level.max(0) as usize;
-        
-        if new_len > self.dot_origins.len() {
+
+        // 1. Garante que todos os pontos que já existiam preservem sua origem (ou Base se não definidos)
+        while self.dot_origins.len() < old_level {
+            self.dot_origins.push(DotOrigin::Base);
+        }
+
+        // 2. Se aumentou de nível, adiciona APENAS os NOVOS pontos com a nova origem
+        if new_len > old_level {
             while self.dot_origins.len() < new_len {
                 self.dot_origins.push(default_origin);
             }
         } else {
+            // Se diminuiu de nível, remove os últimos pontos mantendo as origens dos anteriores
             self.dot_origins.truncate(new_len);
         }
+
+        self.level = new_level;
     }
 
     pub fn set_dot_origin(&mut self, dot_index: usize, origin: DotOrigin) {
@@ -413,6 +422,17 @@ impl CharacterData {
         let qp = self.labels.entry(keys::KEY_QUINTESSENCE_PARADOX.to_string()).or_insert_with(|| "0".repeat(20));
         if qp.len() != 20 || !qp.chars().all(|c| c == '0' || c == '1' || c == '2') {
             *qp = "0".repeat(20);
+        }
+
+        // Normalize dot origins for all attributes
+        for attr in self.attributes.values_mut() {
+            let lvl = attr.level.max(0) as usize;
+            while attr.dot_origins.len() < lvl {
+                attr.dot_origins.push(DotOrigin::Base);
+            }
+            if attr.dot_origins.len() > lvl {
+                attr.dot_origins.truncate(lvl);
+            }
         }
     }
 }
@@ -689,5 +709,27 @@ mod tests {
         attr.set_level_with_origin(3, DotOrigin::Base);
         assert_eq!(attr.level, 3);
         assert_eq!(attr.count_origins(), (2, 0, 0, 1));
+    }
+
+    #[test]
+    fn test_legacy_empty_origins_upgrade_preserves_base_dots() {
+        // Simulates an existing attribute from DB with level 3 and empty dot_origins
+        let mut attr = AttributeValue {
+            level: 3,
+            modifier: String::new(),
+            dot_origins: Vec::new(),
+        };
+
+        // Adding 4th dot with Bonus mode must keep first 3 as Base and only 4th as Bonus
+        attr.set_level_with_origin(4, DotOrigin::Bonus);
+        assert_eq!(attr.level, 4);
+        assert_eq!(attr.dot_origins, vec![DotOrigin::Base, DotOrigin::Base, DotOrigin::Base, DotOrigin::Bonus]);
+        assert_eq!(attr.count_origins(), (3, 1, 0, 0));
+
+        // Adding 5th dot with XP mode must add 5th as XP
+        attr.set_level_with_origin(5, DotOrigin::Experience);
+        assert_eq!(attr.level, 5);
+        assert_eq!(attr.dot_origins, vec![DotOrigin::Base, DotOrigin::Base, DotOrigin::Base, DotOrigin::Bonus, DotOrigin::Experience]);
+        assert_eq!(attr.count_origins(), (3, 1, 1, 0));
     }
 }
