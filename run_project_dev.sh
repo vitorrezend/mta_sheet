@@ -13,8 +13,10 @@ fi
 
 # Define padrão se não estiver definido
 export DATABASE_URL=${DATABASE_URL:-sqlite:mta_sheet.db}
+export LEPTOS_SITE_ADDR=${LEPTOS_SITE_ADDR:-0.0.0.0:3000}
 
 echo "Banco de dados: $DATABASE_URL"
+echo "Endereço de escuta: $LEPTOS_SITE_ADDR (Acessível na rede local)"
 
 # Verifica se o cargo-leptos está instalado
 if command -v cargo-leptos &> /dev/null; then

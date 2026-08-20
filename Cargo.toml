@@ -53,13 +53,11 @@ output-name = "mta_sheet"
 site-root = "target/site"
 site-pkg-dir = "pkg"
 style-file = "style.css"
-site-addr = "127.0.0.1:3000"
+site-addr = "0.0.0.0:3000"
 reload-port = 3001
-env = "DEV"
 bin-features = ["ssr"]
 bin-target = "mta_sheet"
 lib-features = ["hydrate"]
-lib-target = "mta_sheet"
 
 [profile.release]
 opt-level = 'z'
