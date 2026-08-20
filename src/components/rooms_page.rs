@@ -1,15 +1,24 @@
 use leptos::*;
 use leptos_router::*;
 use crate::rooms::{get_user_rooms, create_room, join_room_by_code, RoomSummary};
-use crate::auth::{get_current_user, UserInfo};
 use crate::components::Navbar;
 
 #[component]
 pub fn RoomsPage() -> impl IntoView {
-    let user_resource = create_resource(|| (), |_| async move { get_current_user().await });
-    let rooms_resource = create_resource(|| (), |_| async move { get_user_rooms().await });
+    let auth = use_context::<crate::AuthContext>();
+    let user = auth.map(|a| a.user).unwrap_or_else(|| create_signal(None).0);
 
-    let (user, set_user) = create_signal(Option::<UserInfo>::None);
+    let rooms_resource = create_resource(
+        move || user.get(),
+        |u| async move {
+            if u.is_some() {
+                get_user_rooms().await
+            } else {
+                Ok(Vec::new())
+            }
+        }
+    );
+
     let (new_room_name, set_new_room_name) = create_signal(String::new());
     let (new_room_desc, set_new_room_desc) = create_signal(String::new());
     let (join_code, set_join_code) = create_signal(String::new());
@@ -19,12 +28,6 @@ pub fn RoomsPage() -> impl IntoView {
 
     let navigate_create = use_navigate();
     let navigate_join = use_navigate();
-
-    create_effect(move |_| {
-        if let Some(Ok(u)) = user_resource.get() {
-            set_user.set(u);
-        }
-    });
 
     let on_create_room = move |ev: ev::SubmitEvent| {
         ev.prevent_default();

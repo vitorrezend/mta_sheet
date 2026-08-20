@@ -8,9 +8,26 @@ use leptos::*;
 use leptos_router::*;
 use leptos_meta::*;
 
+#[derive(Clone, Copy)]
+pub struct AuthContext {
+    pub user: ReadSignal<Option<crate::auth::UserInfo>>,
+    pub set_user: WriteSignal<Option<crate::auth::UserInfo>>,
+}
+
 #[component]
 pub fn App() -> impl IntoView {
     provide_meta_context();
+
+    let user_resource = create_resource(|| (), |_| async move { crate::auth::get_current_user().await });
+    let (user, set_user) = create_signal(Option::<crate::auth::UserInfo>::None);
+    provide_context(AuthContext { user, set_user });
+
+    create_effect(move |_| {
+        if let Some(Ok(u)) = user_resource.get() {
+            set_user.set(u);
+        }
+    });
+
     // Mobile Scaling Script from index.html
     let mobile_scale_script = "
         var A4_PX = 793;

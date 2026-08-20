@@ -8,15 +8,26 @@ pub struct UserInfo {
 }
 
 #[cfg(feature = "ssr")]
-pub fn extract_session_token() -> Option<String> {
+pub async fn extract_session_token() -> Option<String> {
     use http::HeaderMap;
-    let headers = use_context::<HeaderMap>()?;
+    let headers: HeaderMap = if let Ok(h) = leptos_axum::extract().await {
+        h
+    } else if let Some(h) = use_context::<HeaderMap>() {
+        h
+    } else {
+        log::debug!("Could not extract HeaderMap from request");
+        return None;
+    };
+
     let cookie_header = headers.get(http::header::COOKIE)?.to_str().ok()?;
+    log::info!("Received Cookie header: {}", cookie_header);
     for pair in cookie_header.split(';') {
         let mut parts = pair.trim().splitn(2, '=');
         if let (Some(key), Some(value)) = (parts.next(), parts.next()) {
             if key.trim() == "session_token" {
-                return Some(value.trim().to_string());
+                let token = value.trim().to_string();
+                log::info!("Extracted session_token: {}", token);
+                return Some(token);
             }
         }
     }
@@ -27,19 +38,22 @@ pub fn extract_session_token() -> Option<String> {
 pub fn set_session_cookie(token: &str, max_age_secs: i64) {
     if let Some(res_options) = use_context::<leptos_axum::ResponseOptions>() {
         let cookie_str = format!(
-            "session_token={}; Path=/; HttpOnly; SameSite=Lax; Max-Age={}",
+            "session_token={}; Path=/; SameSite=Lax; Max-Age={}",
             token, max_age_secs
         );
         if let Ok(header_val) = http::HeaderValue::from_str(&cookie_str) {
             res_options.insert_header(http::header::SET_COOKIE, header_val);
+            log::info!("Set-Cookie registered: {}", cookie_str);
         }
+    } else {
+        log::warn!("ResponseOptions not found in context when setting cookie");
     }
 }
 
 #[cfg(feature = "ssr")]
 pub async fn get_auth_user_id() -> Result<Option<String>, ServerFnError> {
     use sqlx::{SqlitePool, Row};
-    let token = match extract_session_token() {
+    let token = match extract_session_token().await {
         Some(t) if !t.is_empty() => t,
         _ => return Ok(None),
     };
@@ -62,7 +76,7 @@ pub async fn get_auth_user_id() -> Result<Option<String>, ServerFnError> {
 #[server(GetCurrentUser, "/api")]
 pub async fn get_current_user() -> Result<Option<UserInfo>, ServerFnError> {
     use sqlx::{SqlitePool, Row};
-    let token = match extract_session_token() {
+    let token = match extract_session_token().await {
         Some(t) if !t.is_empty() => t,
         _ => return Ok(None),
     };
@@ -198,7 +212,7 @@ pub async fn login(username: String, password: String) -> Result<UserInfo, Serve
 #[server(Logout, "/api")]
 pub async fn logout() -> Result<(), ServerFnError> {
     use sqlx::SqlitePool;
-    if let Some(token) = extract_session_token() {
+    if let Some(token) = extract_session_token().await {
         if let Some(pool) = use_context::<SqlitePool>() {
             let _ = sqlx::query("DELETE FROM sessions WHERE id = ?")
                 .bind(token)

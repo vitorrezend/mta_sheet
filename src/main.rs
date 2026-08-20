@@ -14,8 +14,44 @@ async fn main() {
 
     let db = database::get_db().await;
 
+    let db_for_server_fn = db.clone();
+    let db_for_routes = db.clone();
+
     // build our application with a route
     let app = Router::new()
+        .route(
+            "/api/*fn_name",
+            axum::routing::post({
+                let db = db_for_server_fn.clone();
+                move |req: axum::extract::Request| async move {
+                    leptos_axum::handle_server_fns_with_context(
+                        {
+                            let db = db.clone();
+                            move || {
+                                provide_context(db.clone());
+                            }
+                        },
+                        req,
+                    )
+                    .await
+                }
+            })
+            .get({
+                let db = db_for_server_fn.clone();
+                move |req: axum::extract::Request| async move {
+                    leptos_axum::handle_server_fns_with_context(
+                        {
+                            let db = db.clone();
+                            move || {
+                                provide_context(db.clone());
+                            }
+                        },
+                        req,
+                    )
+                    .await
+                }
+            }),
+        )
         .route("/pkg/mta_sheet_bg.wasm", axum::routing::get(|state: axum::extract::State<leptos::LeptosOptions>| async move {
             let site_root = state.site_root.clone();
             let path_bg = format!("{}/pkg/mta_sheet_bg.wasm", &site_root);
@@ -52,7 +88,7 @@ async fn main() {
             }
         }))
         .leptos_routes_with_context(&conf.leptos_options, routes, move || {
-            provide_context(db.clone());
+            provide_context(db_for_routes.clone());
         }, mta_sheet::App)
         .with_state(conf.leptos_options);
 

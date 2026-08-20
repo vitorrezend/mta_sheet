@@ -1,23 +1,24 @@
 use leptos::*;
 use leptos_router::*;
-use crate::auth::{get_current_user, logout, UserInfo};
+use crate::auth::logout;
+use crate::AuthContext;
 
 #[component]
 pub fn Navbar() -> impl IntoView {
-    let user_resource = create_resource(|| (), |_| async move { get_current_user().await });
-    let (user, set_user) = create_signal(Option::<UserInfo>::None);
-
-    create_effect(move |_| {
-        if let Some(Ok(u)) = user_resource.get() {
-            set_user.set(u);
-        }
-    });
+    let auth = use_context::<AuthContext>();
+    let user = auth.map(|a| a.user).unwrap_or_else(|| create_signal(None).0);
+    let set_user = auth.map(|a| a.set_user).unwrap_or_else(|| create_signal(None).1);
 
     let on_logout = move |_| {
         spawn_local(async move {
             let _ = logout().await;
             set_user.set(None);
-            user_resource.refetch();
+            #[cfg(target_arch = "wasm32")]
+            {
+                if let Some(window) = web_sys::window() {
+                    let _ = window.location().set_href("/");
+                }
+            }
         });
     };
 

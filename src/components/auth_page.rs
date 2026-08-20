@@ -1,6 +1,7 @@
 use leptos::*;
 use leptos_router::*;
 use crate::auth::{login, register};
+use crate::AuthContext;
 
 #[component]
 pub fn AuthPage() -> impl IntoView {
@@ -11,6 +12,7 @@ pub fn AuthPage() -> impl IntoView {
     let (error_msg, set_error_msg) = create_signal(Option::<String>::None);
     let (is_submitting, set_is_submitting) = create_signal(false);
 
+    let auth = use_context::<AuthContext>();
     let navigate = use_navigate();
 
     let on_submit = move |ev: ev::SubmitEvent| {
@@ -41,8 +43,11 @@ pub fn AuthPage() -> impl IntoView {
             };
 
             match res {
-                Ok(_) => {
-                    navigate("/", Default::default());
+                Ok(user_info) => {
+                    if let Some(auth_ctx) = auth {
+                        auth_ctx.set_user.set(Some(user_info));
+                    }
+                    navigate("/rooms", Default::default());
                 }
                 Err(e) => {
                     set_error_msg.set(Some(e.to_string()));
