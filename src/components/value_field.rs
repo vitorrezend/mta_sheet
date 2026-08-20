@@ -9,9 +9,9 @@ pub fn ValueField(
     on_modifier_change: impl Fn(String) + 'static,
     #[prop(default = 0)] min_level: i32,
     #[prop(optional)] max_chars: Option<usize>,
-    on_remove: Option<Callback<()>>,
+    #[prop(optional)] on_remove: Option<Callback<()>>,
     #[prop(default = false)] is_editable: bool,
-    on_label_change: Option<Callback<String>>,
+    #[prop(optional)] on_label_change: Option<Callback<String>>,
 ) -> impl IntoView {
     let on_level_change = store_value(on_level_change);
     let on_modifier_change = store_value(on_modifier_change);
@@ -138,27 +138,22 @@ pub fn ValueField(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use wasm_bindgen_test::*;
 
-    wasm_bindgen_test_configure!(run_in_browser);
-
-    #[wasm_bindgen_test]
-    fn test_value_field_rendering() {
+    #[test]
+    fn test_value_field_instantiation() {
+        let runtime = create_runtime();
         let (level, _) = create_signal(3);
         let (modifier, _) = create_signal("Test".to_string());
         
         let _view = view! {
             <ValueField 
-                label="Força"
+                label=Signal::derive(|| "Força".to_string())
                 level=level.into()
                 modifier=modifier.into()
                 on_level_change=|_| {}
                 on_modifier_change=|_| {}
             />
         };
-
-        // In a real WASM test, we would mount this to a document 
-        // and inspect the DOM using web_sys.
-        // For now, this ensures the component compiles and can be instantiated.
+        runtime.dispose();
     }
 }

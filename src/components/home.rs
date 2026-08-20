@@ -1,44 +1,60 @@
 use leptos::*;
 use leptos_router::*;
-use crate::state::{get_sheets, create_sheet, delete_sheet};
+use crate::state::{get_sheets, create_sheet, delete_sheet, CharacterSummary};
 
 #[component]
 pub fn Home() -> impl IntoView {
     let sheets = create_resource(|| (), |_| async move { get_sheets().await });
     let (name, set_name) = create_signal(String::new());
+    let (error_msg, set_error_msg) = create_signal(Option::<String>::None);
+    let (sheet_to_delete, set_sheet_to_delete) = create_signal(Option::<CharacterSummary>::None);
+    let (is_creating, set_is_creating) = create_signal(false);
 
-    // Obter navigate no escopo do componente
     let navigate = use_navigate();
 
     let on_create = move |ev: ev::SubmitEvent| {
         ev.prevent_default();
-        let name_val = name.get();
-        let navigate = navigate.clone(); // Clonar para usar dentro do spawn_local
+        let name_val = name.get().trim().to_string();
+        let navigate = navigate.clone();
         if !name_val.is_empty() {
+            set_is_creating.set(true);
+            set_error_msg.set(None);
             spawn_local(async move {
                 match create_sheet(name_val).await {
                     Ok(id) => {
                         navigate(&format!("/sheet/{}", id), Default::default());
                     }
                     Err(e) => {
-                        logging::log!("Error creating sheet: {:?}", e);
+                        log::error!("Error creating sheet: {:?}", e);
+                        set_error_msg.set(Some(format!("Erro ao criar ficha: {}", e)));
+                        set_is_creating.set(false);
                     }
                 }
             });
         }
     };
 
-    let on_delete = move |id: String| {
-        spawn_local(async move {
-            match delete_sheet(id).await {
-                Ok(_) => {
-                    sheets.refetch();
+    let confirm_delete = move || {
+        if let Some(target) = sheet_to_delete.get() {
+            let id = target.id;
+            set_sheet_to_delete.set(None);
+            set_error_msg.set(None);
+            spawn_local(async move {
+                match delete_sheet(id).await {
+                    Ok(_) => {
+                        sheets.refetch();
+                    }
+                    Err(e) => {
+                        log::error!("Error deleting sheet: {:?}", e);
+                        set_error_msg.set(Some(format!("Erro ao excluir ficha: {}", e)));
+                    }
                 }
-                Err(e) => {
-                    logging::log!("Error deleting sheet: {:?}", e);
-                }
-            }
-        });
+            });
+        }
+    };
+
+    let cancel_delete = move |_| {
+        set_sheet_to_delete.set(None);
     };
 
     view! {
@@ -49,30 +65,42 @@ pub fn Home() -> impl IntoView {
                 <p>"Gerencie suas fichas de Mago: A Ascensão"</p>
             </header>
 
+            {move || error_msg.get().map(|msg| view! {
+                <div class="alert-box alert-error">
+                    <span>{msg}</span>
+                    <button class="alert-close" on:click=move |_| set_error_msg.set(None)>"×"</button>
+                </div>
+            })}
+
             <section class="create-section">
                 <h2>"Criar Nova Ficha"</h2>
                 <form on:submit=on_create class="create-form">
                     <input
                         type="text"
-                        placeholder="Nome do Personagem"
+                        placeholder="Nome do Personagem (ex: Hermes, Morfeu...)"
                         on:input=move |ev| set_name.set(event_target_value(&ev))
                         prop:value=name
                         class="name-input"
+                        disabled=is_creating
                     />
-                    <button type="submit" class="create-btn">"Criar"</button>
+                    <button type="submit" class="create-btn" disabled=move || is_creating.get() || name.get().trim().is_empty()>
+                        {move || if is_creating.get() { "Criando..." } else { "Criar Ficha" }}
+                    </button>
                 </form>
             </section>
 
             <section class="list-section">
                 <h2>"Fichas Salvas"</h2>
-                <Suspense fallback=move || view! { <p>"Carregando..."</p> }>
+                <Suspense fallback=move || view! { <p class="loading-msg">"Carregando fichas..."</p> }>
                     {move || sheets.get().map(|res| match res {
-                        Ok(data) if data.is_empty() => view! { <p class="empty-msg">"Nenhuma ficha encontrada. Comece criando uma nova!"</p> }.into_view(),
+                        Ok(data) if data.is_empty() => view! { 
+                            <p class="empty-msg">"Nenhuma ficha encontrada. Comece criando uma nova acima!"</p> 
+                        }.into_view(),
                         Ok(data) => view! {
                             <ul class="sheet-list">
                                 {data.into_iter().map(|summary| {
+                                    let summary_clone = summary.clone();
                                     let id = summary.id.clone();
-                                    let delete_id = id.clone();
                                     view! {
                                         <li class="sheet-item">
                                             <A href=format!("/sheet/{}", id) class="sheet-link">
@@ -83,7 +111,7 @@ pub fn Home() -> impl IntoView {
                                             </A>
                                             <button
                                                 class="delete-btn"
-                                                on:click=move |_| on_delete(delete_id.clone())
+                                                on:click=move |_| set_sheet_to_delete.set(Some(summary_clone.clone()))
                                                 title="Excluir ficha"
                                             >
                                                 "×"
@@ -93,10 +121,32 @@ pub fn Home() -> impl IntoView {
                                 }).collect_view()}
                             </ul>
                         }.into_view(),
-                        Err(e) => view! { <p class="error">"Erro ao carregar fichas: " {e.to_string()}</p> }.into_view(),
+                        Err(e) => view! { 
+                            <div class="alert-box alert-error">
+                                <p>"Erro ao carregar fichas: " {e.to_string()}</p>
+                            </div> 
+                        }.into_view(),
                     })}
                 </Suspense>
             </section>
+
+            // Delete Confirmation Modal
+            {move || sheet_to_delete.get().map(|target| view! {
+                <div class="modal-overlay" on:click=cancel_delete>
+                    <div class="modal-card" on:click=move |ev| ev.stop_propagation()>
+                        <h3 class="modal-title">"Confirmar Exclusão"</h3>
+                        <p class="modal-text">
+                            "Tem certeza que deseja excluir permanentemente a ficha de "
+                            <strong>{target.name}</strong>"?"
+                        </p>
+                        <p class="modal-subtext">"Esta ação não pode ser desfeita."</p>
+                        <div class="modal-actions">
+                            <button class="modal-btn btn-cancel" on:click=cancel_delete>"Cancelar"</button>
+                            <button class="modal-btn btn-danger" on:click=move |_| confirm_delete()>"Sim, Excluir"</button>
+                        </div>
+                    </div>
+                </div>
+            })}
         </div>
     }
 }

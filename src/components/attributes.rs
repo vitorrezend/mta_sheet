@@ -46,8 +46,6 @@ pub fn Attributes() -> impl IntoView {
                 on_modifier_change=on_modifier_change
                 min_level=1
                 max_chars=15
-                on_remove=None
-                on_label_change=None
             />
         }
     };

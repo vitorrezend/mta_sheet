@@ -1,5 +1,5 @@
 #[cfg(feature = "ssr")]
-use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions, SqlitePool};
+use sqlx::{sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous}, ConnectOptions, SqlitePool};
 #[cfg(feature = "ssr")]
 use std::str::FromStr;
 
@@ -14,14 +14,23 @@ pub async fn get_db() -> SqlitePool {
         database_url = format!("sqlite:{}", database_url);
     }
 
-    println!("Connecting to database: {}", database_url);
+    log::info!("Connecting to SQLite database at {}", database_url);
 
     let options = SqliteConnectOptions::from_str(&database_url)
         .expect("Invalid DATABASE_URL")
         .create_if_missing(true)
+        .journal_mode(SqliteJournalMode::Wal)
+        .synchronous(SqliteSynchronous::Normal)
+        .busy_timeout(std::time::Duration::from_secs(5))
+        .foreign_keys(true)
         .log_statements(log::LevelFilter::Debug);
 
-    let pool = SqlitePool::connect_with(options).await.expect("Failed to connect to SQLite");
+    let pool = SqlitePoolOptions::new()
+        .max_connections(10)
+        .acquire_timeout(std::time::Duration::from_secs(5))
+        .connect_with(options)
+        .await
+        .expect("Failed to connect to SQLite");
 
     // Initialize tables
     sqlx::query(

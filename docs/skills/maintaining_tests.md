@@ -1,30 +1,25 @@
-# Skill: Manutenção de Testes em Rust/WASM (Leptos)
+# Skill: Manutenção de Testes em Rust/WASM (Leptos Full-Stack)
 
 Esta skill define as diretrizes para garantir que o projeto `mta_sheet` permaneça robusto e livre de regressões através de testes automatizados.
 
 ## Contexto do Projeto
-O projeto utiliza **Leptos (WASM)** com renderização client-side (CSR). A persistência é feita via `localStorage` e o estado é gerenciado de forma reativa.
+O projeto utiliza **Leptos 0.6 Full-Stack** com renderização SSR (Axum + SQLite) e hidratação no cliente (WASM). A persistência é feita via `SQLx` e Server Functions (`#[server]`), e o estado é gerenciado de forma reativa.
 
 ## Diretrizes de Ouro
 
-### 1. Testes de Lógica (State)
-Sempre que uma estrutura de dados no `src/state.rs` for alterada (ex: novos campos em `AttributeValue`), os testes correspondentes **devem** ser atualizados.
-- Use `#[test]` para lógica pura.
-- Use `#[wasm_bindgen_test]` para lógica que interage com o navegador (Storage, Window).
+### 1. Testes de Lógica de Domínio (State)
+Sempre que uma estrutura de dados ou regra no `src/state.rs` for alterada (ex: limites de Arete, Força de Vontade, Paradoxo/Quintessência), os testes correspondentes **devem** ser atualizados ou criados.
+- Use `#[test]` para lógica pura e testes de regras de negócio.
+- Valide sanitização e integridade de dados.
 
 ### 2. Testes de Componentes
-Cada componente novo ou modificado em `src/components/` deve ter um módulo `mod tests` no final do arquivo.
-- **Flexibilidade:** Prefira usar `Signal<T>` em vez de `ReadSignal<T>` nos props dos componentes. Isso facilita a passagem de sinais derivados e mocks durante os testes.
-- **Verificação:** No ambiente WASM, verifique se o componente instancia corretamente sem pânico.
+Componentes que possuem testes devem criar e descartar o runtime do Leptos adequadamente (`let runtime = create_runtime(); ... runtime.dispose();`).
+- **Flexibilidade:** Prefira usar `Signal<T>` em vez de `ReadSignal<T>` nos props dos componentes para facilitar passagem de sinais derivados.
 
 ### 3. Ferramental
-- **Local:** Use `cargo test` para feedback rápido sobre lógica de Rust.
-- **WASM:** Use `wasm-pack test --headless --chrome` para validar interações reais com a API do navegador.
+- **Local:** Use `cargo test` para feedback rápido sobre lógica de Rust e estado.
+- **Checagem Full-Stack:** Use `cargo check --features ssr` e `cargo check --features hydrate`.
 
 ### 4. Fluxo de Trabalho
 > [!IMPORTANT]
-> Nunca considere uma tarefa "concluída" sem verificar se os testes existentes ainda passam e se novos testes foram adicionados para a funcionalidade recém-criada.
-
-## Exemplos de Referência
-- **Estado:** [src/state.rs](file:///c:/Users/MT8-02/Documents/pessoal/programa%C3%A7%C3%A3o/mta_sheet/src/state.rs)
-- **Componente:** [src/components/value_field.rs](file:///c:/Users/MT8-02/Documents/pessoal/programa%C3%A7%C3%A3o/mta_sheet/src/components/value_field.rs)
+> Nunca considere uma tarefa "concluída" sem verificar se os testes existentes ainda passam e se a compilação de ambas as features (`ssr` e `hydrate`) é bem-sucedida.

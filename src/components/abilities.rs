@@ -82,25 +82,36 @@ pub fn Abilities() -> impl IntoView {
             move || data.get().attributes.get(&name).map(|a| a.modifier.clone()).unwrap_or_default()
         });
 
-        view! {
-            <ValueField 
-                label=Signal::derive(move || n_label.clone())
-                level=level
-                modifier=modifier
-                on_level_change=move |v| update_ability(n_update_level.clone(), Some(v), None)
-                on_modifier_change=move |m| update_ability(n_update_mod.clone(), None, Some(m))
-                min_level=0
-                max_chars=if is_custom { 10 } else { 12 }
-                is_editable=is_custom
-                on_label_change=if is_custom {
-                    let old = n_change_label.clone();
-                    Some(Callback::new(move |new_n| update_custom_name(category, old.clone(), new_n)))
-                } else { None }
-                on_remove=if is_custom {
-                    let n = n_remove.clone();
-                    Some(Callback::new(move |_| remove_custom(category, n.clone())))
-                } else { None }
-            />
+        if is_custom {
+            let old = n_change_label.clone();
+            let n = n_remove.clone();
+            view! {
+                <ValueField 
+                    label=Signal::derive(move || n_label.clone())
+                    level=level
+                    modifier=modifier
+                    on_level_change=move |v| update_ability(n_update_level.clone(), Some(v), None)
+                    on_modifier_change=move |m| update_ability(n_update_mod.clone(), None, Some(m))
+                    min_level=0
+                    max_chars=10
+                    is_editable=true
+                    on_label_change=Callback::new(move |new_n| update_custom_name(category, old.clone(), new_n))
+                    on_remove=Callback::new(move |_| remove_custom(category, n.clone()))
+                />
+            }.into_view()
+        } else {
+            view! {
+                <ValueField 
+                    label=Signal::derive(move || n_label.clone())
+                    level=level
+                    modifier=modifier
+                    on_level_change=move |v| update_ability(n_update_level.clone(), Some(v), None)
+                    on_modifier_change=move |m| update_ability(n_update_mod.clone(), None, Some(m))
+                    min_level=0
+                    max_chars=12
+                    is_editable=false
+                />
+            }.into_view()
         }
     };
 
