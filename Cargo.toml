@@ -28,6 +28,7 @@ js-sys = "0.3"
 http = "1.0"
 log = "0.4"
 dotenvy = { version = "0.15", optional = true }
+bcrypt = { version = "0.15", optional = true }
 gloo-timers = { version = "0.3", features = ["futures"] }
 
 [features]
@@ -41,6 +42,7 @@ ssr = [
     "dep:leptos_axum",
     "dep:sqlx",
     "dep:dotenvy",
+    "dep:bcrypt",
     "leptos/ssr",
     "leptos_router/ssr",
     "leptos_meta/ssr",

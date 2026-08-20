@@ -1,6 +1,8 @@
 mod components;
-mod state;
+pub mod state;
 pub mod database;
+pub mod auth;
+pub mod rooms;
 
 use leptos::*;
 use leptos_router::*;
@@ -34,6 +36,9 @@ pub fn App() -> impl IntoView {
                 <Routes>
                     <Route path="/" view=crate::components::Home />
                     <Route path="/sheet/:id" view=crate::components::CharacterSheet />
+                    <Route path="/login" view=crate::components::AuthPage />
+                    <Route path="/rooms" view=crate::components::RoomsPage />
+                    <Route path="/room/:id" view=crate::components::RoomView />
                 </Routes>
             </main>
         </Router>

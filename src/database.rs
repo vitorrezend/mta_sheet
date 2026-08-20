@@ -34,8 +34,61 @@ pub async fn get_db() -> SqlitePool {
 
     // Initialize tables
     sqlx::query(
+        "CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to create users table");
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS sessions (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            expires_at DATETIME NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to create sessions table");
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS rooms (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            code TEXT UNIQUE NOT NULL,
+            description TEXT DEFAULT '',
+            gm_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to create rooms table");
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS room_members (
+            room_id TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            role TEXT NOT NULL DEFAULT 'player',
+            joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (room_id, user_id)
+        )"
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to create room_members table");
+
+    sqlx::query(
         "CREATE TABLE IF NOT EXISTS character_sheets (
             id TEXT PRIMARY KEY,
+            user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+            room_id TEXT REFERENCES rooms(id) ON DELETE SET NULL,
             name TEXT NOT NULL,
             data TEXT NOT NULL,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -43,7 +96,11 @@ pub async fn get_db() -> SqlitePool {
     )
     .execute(&pool)
     .await
-    .expect("Failed to create table");
+    .expect("Failed to create character_sheets table");
+
+    // Graceful migrations for existing databases
+    let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN user_id TEXT REFERENCES users(id) ON DELETE SET NULL").execute(&pool).await;
+    let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN room_id TEXT REFERENCES rooms(id) ON DELETE SET NULL").execute(&pool).await;
 
     pool
 }

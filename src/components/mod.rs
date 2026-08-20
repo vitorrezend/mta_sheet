@@ -10,6 +10,10 @@ pub mod info_header_fields;
 pub mod abilities;
 pub mod spheres;
 pub mod advantages_mta;
+pub mod navbar;
+pub mod auth_page;
+pub mod rooms_page;
+pub mod room_view;
 
 pub use home::Home;
 pub use character_sheet::CharacterSheet;
@@ -21,3 +25,7 @@ pub use abilities::Abilities;
 pub use spheres::Spheres;
 pub use advantages_mta::AdvantagesMta;
 pub use label_field::LabelField;
+pub use navbar::Navbar;
+pub use auth_page::AuthPage;
+pub use rooms_page::RoomsPage;
+pub use room_view::RoomView;

@@ -1,6 +1,7 @@
 use leptos::*;
 use leptos_router::*;
 use crate::state::{get_sheets, create_sheet, delete_sheet, CharacterSummary};
+use crate::components::Navbar;
 
 #[component]
 pub fn Home() -> impl IntoView {
@@ -62,6 +63,7 @@ pub fn Home() -> impl IntoView {
 
     view! {
         <link rel="stylesheet" href="/style.css"/>
+        <Navbar />
         <div class="home-container">
             <header class="home-header">
                 <h1>"MTA Character Manager"</h1>
