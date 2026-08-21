@@ -84,6 +84,7 @@ async fn main() {
         .nest_service("/pkg", ServeDir::new(format!("{}/pkg", site_root)))
         .nest_service("/assets", ServeDir::new(format!("{}/assets", site_root)))
         .nest_service("/uploads", ServeDir::new("uploads"))
+        .nest_service("/styles", ServeDir::new("styles"))
         .route("/style.css", axum::routing::get(|| async {
             match tokio::fs::read_to_string("style.css").await {
                 Ok(css) => (

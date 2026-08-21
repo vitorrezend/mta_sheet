@@ -2,11 +2,11 @@
    MAGO: A ASCENSÃO — SUÍTE DE ESTILOS MODULAR
    ========================================================================== */
 
-@import url('styles/01-variables.css');
-@import url('styles/02-common.css');
-@import url('styles/03-sheet-layout.css');
-@import url('styles/04-page1-main.css');
-@import url('styles/05-page2-magic-combat.css');
-@import url('styles/06-page3-expanded.css');
-@import url('styles/07-page4-history-visuals.css');
-@import url('styles/08-print-pdf.css');
+@import url('/styles/01-variables.css');
+@import url('/styles/02-common.css');
+@import url('/styles/03-sheet-layout.css');
+@import url('/styles/04-page1-main.css');
+@import url('/styles/05-page2-magic-combat.css');
+@import url('/styles/06-page3-expanded.css');
+@import url('/styles/07-page4-history-visuals.css');
+@import url('/styles/08-print-pdf.css');
