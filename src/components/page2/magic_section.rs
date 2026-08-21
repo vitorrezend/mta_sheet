@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::components::ValueField;
+use crate::components::{ValueField, StableTextArea, StableTextInput};
 use crate::state::{CharacterData, DotOrigin, WonderItem};
 #[allow(unused_imports)]
 use crate::state::save_uploaded_media;
@@ -214,13 +214,11 @@ pub fn MagicSection() -> impl IntoView {
                 // 1. Linha do Topo: Nome, Botão de Imagem e Botão de Remover
                 <div class="wonder-card-top-row">
                     <div class="wonder-field name-field">
-                        <input 
-                            type="text" 
+                        <StableTextInput 
                             class="wonder-input font-bold"
                             placeholder="Nome da Maravilha / Artefato..."
-                            prop:value=move || data.with(|d| d.wonders.get(idx).map(|w| w.name.clone()).unwrap_or_default())
-                            on:change=move |ev| update_wonder_name(idx, event_target_value(&ev))
-                            on:blur=move |ev| update_wonder_name(idx, event_target_value(&ev))
+                            value=Signal::derive(move || data.with(|d| d.wonders.get(idx).map(|w| w.name.clone()).unwrap_or_default()))
+                            on_change=Callback::new(move |val| update_wonder_name(idx, val))
                         />
                     </div>
                     <button 
@@ -259,13 +257,11 @@ pub fn MagicSection() -> impl IntoView {
                                             on:change=move |ev| on_image_file_change(idx, ev)
                                         />
                                     </label>
-                                    <input 
-                                        type="text" 
+                                    <StableTextInput 
                                         class="wonder-image-url-input"
                                         placeholder="Ou cole a URL da imagem (https://...)"
-                                        prop:value=move || current_image_url.get()
-                                        on:change=move |ev| update_wonder_image(idx, event_target_value(&ev))
-                                        on:blur=move |ev| update_wonder_image(idx, event_target_value(&ev))
+                                        value=current_image_url
+                                        on_change=Callback::new(move |val| update_wonder_image(idx, val))
                                     />
                                 </div>
                                 {if !url.trim().is_empty() {
@@ -389,25 +385,17 @@ pub fn MagicSection() -> impl IntoView {
                 // 5. Bloco de Descrição e Poderes da Maravilha
                 <div class="wonder-desc-row">
                     <label class="wonder-label">"Descrição / Poderes & Esferas:"</label>
-                    <textarea 
+                    <StableTextArea 
                         class="wonder-desc-textarea"
                         placeholder="Poderes místicos, esferas exigidas, gatilhos, histórico e efeitos..."
-                        prop:value=move || data.with(|d| d.wonders.get(idx).map(|w| w.description.clone()).unwrap_or_default())
-                        on:change=move |ev| {
-                            let val = event_target_value(&ev);
+                        value=Signal::derive(move || data.with(|d| d.wonders.get(idx).map(|w| w.description.clone()).unwrap_or_default()))
+                        on_change=Callback::new(move |val| {
                             set_data.update(|s| {
                                 while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
                                 s.wonders[idx].description = val;
                             });
-                        }
-                        on:blur=move |ev| {
-                            let val = event_target_value(&ev);
-                            set_data.update(|s| {
-                                while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
-                                s.wonders[idx].description = val;
-                            });
-                        }
-                    ></textarea>
+                        })
+                    />
                 </div>
             </div>
         }

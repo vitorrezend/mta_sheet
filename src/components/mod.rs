@@ -17,6 +17,7 @@ pub mod room_view;
 pub mod character_profile;
 pub mod page2;
 pub mod logs_page;
+pub mod stable_textarea;
 
 pub use home::Home;
 pub use character_sheet::CharacterSheet;
@@ -35,3 +36,4 @@ pub use room_view::RoomView;
 pub use character_profile::CharacterProfile;
 pub use page2::PageMagicCombat;
 pub use logs_page::LogsPage;
+pub use stable_textarea::{StableTextArea, StableTextInput};
