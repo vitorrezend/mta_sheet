@@ -15,9 +15,9 @@ pub fn CharacterProfile() -> impl IntoView {
     let (upload_error, set_upload_error) = create_signal::<Option<String>>(None);
     let (is_dragging, set_is_dragging) = create_signal(false);
 
-    let profile_photo = Signal::derive(move || data.get().get_profile_photo());
-    let history_text = Signal::derive(move || data.get().get_history());
-    let notes_text = Signal::derive(move || data.get().get_notes());
+    let profile_photo = Signal::derive(move || data.with(|d| d.get_profile_photo()));
+    let history_text = Signal::derive(move || data.with(|d| d.get_history()));
+    let notes_text = Signal::derive(move || data.with(|d| d.get_notes()));
 
     let handle_file = move |file: web_sys::File| {
         if file.size() > MAX_FILE_SIZE_BYTES {

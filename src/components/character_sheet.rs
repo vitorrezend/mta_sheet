@@ -407,22 +407,23 @@ pub fn CharacterSheet() -> impl IntoView {
                 {move || sheet_resource.get().map(|res| match res {
                     Ok(_) => view! {
                         <Sheet>
-                            {move || match active_tab.get() {
-                                SheetPageTab::Main => view! {
-                                    <div class="sheet-page-tab-pane">
-                                        <InfoHeader />
-                                        <Attributes />
-                                        <Abilities />
-                                        <Spheres />
-                                        <AdvantagesMta />
-                                    </div>
-                                }.into_view(),
-                                SheetPageTab::Profile => view! {
-                                    <div class="sheet-page-tab-pane">
-                                        <CharacterProfile />
-                                    </div>
-                                }.into_view(),
-                            }}
+                            <div 
+                                class="sheet-page-tab-pane page-main"
+                                class:tab-hidden=move || active_tab.get() != SheetPageTab::Main
+                            >
+                                <InfoHeader />
+                                <Attributes />
+                                <Abilities />
+                                <Spheres />
+                                <AdvantagesMta />
+                            </div>
+
+                            <div 
+                                class="sheet-page-tab-pane page-profile"
+                                class:tab-hidden=move || active_tab.get() != SheetPageTab::Profile
+                            >
+                                <CharacterProfile />
+                            </div>
                         </Sheet>
                     }.into_view(),
                     Err(e) => view! { 
