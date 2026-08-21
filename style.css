@@ -2963,19 +2963,17 @@ body {
     background: #fee2e2;
 }
 
-.wonder-stats-row-dots {
-    display: flex;
-    justify-content: space-between;
+.wonder-fields-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
     align-items: center;
-    gap: 10px;
-    padding: 2px 0;
-    flex-wrap: wrap;
 }
 
-.wonder-stat-block {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+@media (max-width: 600px) {
+    .wonder-fields-block {
+        grid-template-columns: 1fr;
+    }
 }
 
 .wonder-stat-label {

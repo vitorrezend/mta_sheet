@@ -1,4 +1,5 @@
 use leptos::*;
+use crate::components::ValueField;
 use crate::state::{CharacterData, DotOrigin, WonderItem};
 use crate::components::character_sheet::ActiveDotOriginContext;
 
@@ -35,6 +36,13 @@ pub fn MagicSection() -> impl IntoView {
         });
     };
 
+    let update_wonder_points_mod = move |idx: usize, m: String| {
+        set_data.update(|s| {
+            while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+            s.wonders[idx].points.modifier = m;
+        });
+    };
+
     let update_wonder_points_dot_origin = move |idx: usize, dot_idx: usize, origin: DotOrigin| {
         set_data.update(|s| {
             while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
@@ -48,6 +56,13 @@ pub fn MagicSection() -> impl IntoView {
             let cur = s.wonders[idx].arete.level;
             let final_lvl = if new_lvl == cur { (new_lvl - 1).max(0) } else { new_lvl };
             s.wonders[idx].arete.set_level_with_origin(final_lvl, origin);
+        });
+    };
+
+    let update_wonder_arete_mod = move |idx: usize, m: String| {
+        set_data.update(|s| {
+            while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+            s.wonders[idx].arete.modifier = m;
         });
     };
 
@@ -76,8 +91,25 @@ pub fn MagicSection() -> impl IntoView {
     };
 
     let render_wonder_card = move |idx: usize| {
-        let (open_points_popover, set_open_points_popover) = create_signal(Option::<usize>::None);
-        let (open_arete_popover, set_open_arete_popover) = create_signal(Option::<usize>::None);
+        let points_level = Signal::derive(move || {
+            data.with(|d| d.wonders.get(idx).map(|w| w.points.level).unwrap_or(0))
+        });
+        let points_mod = Signal::derive(move || {
+            data.with(|d| d.wonders.get(idx).map(|w| w.points.modifier.clone()).unwrap_or_default())
+        });
+        let points_origins = Signal::derive(move || {
+            data.with(|d| d.wonders.get(idx).map(|w| w.points.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5]))
+        });
+
+        let arete_level = Signal::derive(move || {
+            data.with(|d| d.wonders.get(idx).map(|w| w.arete.level).unwrap_or(0))
+        });
+        let arete_mod = Signal::derive(move || {
+            data.with(|d| d.wonders.get(idx).map(|w| w.arete.modifier.clone()).unwrap_or_default())
+        });
+        let arete_origins = Signal::derive(move || {
+            data.with(|d| d.wonders.get(idx).map(|w| w.arete.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5]))
+        });
 
         view! {
             <div class="wonder-card">
@@ -114,165 +146,39 @@ pub fn MagicSection() -> impl IntoView {
                     </button>
                 </div>
 
-                // Linha de Pontos e Arete com Bolinhas e Origens
-                <div class="wonder-stats-row-dots">
-                    // Pontos da Maravilha
-                    <div class="wonder-stat-block">
-                        <span class="wonder-stat-label">"Pontos:"</span>
-                        <div class="dots-container wonder-dots">
-                            {(1..=5).map(|i| {
-                                let dot_idx = (i - 1) as usize;
-                                let is_filled = move || data.with(|d| d.wonders.get(idx).map(|w| w.points.level >= i).unwrap_or(false));
-                                let dot_color = move || {
-                                    data.with(|d| {
-                                        if let Some(w) = d.wonders.get(idx) {
-                                            if w.points.level >= i {
-                                                let origs = w.points.get_origins(5);
-                                                if dot_idx < origs.len() {
-                                                    origs[dot_idx].color_class()
-                                                } else {
-                                                    "dot-base"
-                                                }
-                                            } else {
-                                                ""
-                                            }
-                                        } else {
-                                            ""
-                                        }
-                                    })
-                                };
-                                let is_popover_open = move || open_points_popover.get() == Some(dot_idx);
+                // Linha de Pontos e Arete utilizando ValueField padronizado
+                <div class="wonder-fields-block">
+                    <ValueField 
+                        label=Signal::derive(move || "Pontos".to_string())
+                        level=points_level
+                        modifier=points_mod
+                        origins=points_origins
+                        max_level=5
+                        min_level=0
+                        on_level_change=move |v| {
+                            let current_origin = active_origin_ctx.map(|a| a.origin.get()).unwrap_or(DotOrigin::Base);
+                            update_wonder_points(idx, v, current_origin);
+                        }
+                        on_modifier_change=move |m| update_wonder_points_mod(idx, m)
+                        on_dot_origin_change=Callback::new(move |(dot_i, orig)| update_wonder_points_dot_origin(idx, dot_i, orig))
+                        is_editable=false
+                    />
 
-                                view! {
-                                    <div class="dot-wrapper" style="position: relative; display: inline-block;">
-                                        <span 
-                                            class="dot"
-                                            class:filled=is_filled
-                                            class=dot_color
-                                            on:click=move |_| {
-                                                let current_origin = active_origin_ctx.map(|a| a.origin.get()).unwrap_or(DotOrigin::Base);
-                                                update_wonder_points(idx, i, current_origin);
-                                            }
-                                            on:contextmenu=move |ev| {
-                                                ev.prevent_default();
-                                                let cur_lvl = data.with(|d| d.wonders.get(idx).map(|w| w.points.level).unwrap_or(0));
-                                                if cur_lvl >= i {
-                                                    set_open_points_popover.update(|cur| {
-                                                        *cur = if *cur == Some(dot_idx) { None } else { Some(dot_idx) };
-                                                    });
-                                                }
-                                            }
-                                        ></span>
-
-                                        {move || if is_popover_open() {
-                                            view! {
-                                                <div class="origin-popover" on:mouseleave=move |_| set_open_points_popover.set(None)>
-                                                    <div class="popover-header">"Origem do Ponto"</div>
-                                                    <button type="button" class="popover-btn opt-base" on:click=move |_| {
-                                                        update_wonder_points_dot_origin(idx, dot_idx, DotOrigin::Base);
-                                                        set_open_points_popover.set(None);
-                                                    }>"⚪ Criação Base"</button>
-                                                    <button type="button" class="popover-btn opt-bonus" on:click=move |_| {
-                                                        update_wonder_points_dot_origin(idx, dot_idx, DotOrigin::Bonus);
-                                                        set_open_points_popover.set(None);
-                                                    }>"🟣 Ponto de Bônus"</button>
-                                                    <button type="button" class="popover-btn opt-xp" on:click=move |_| {
-                                                        update_wonder_points_dot_origin(idx, dot_idx, DotOrigin::Experience);
-                                                        set_open_points_popover.set(None);
-                                                    }>"🟢 Experiência (XP)"</button>
-                                                    <button type="button" class="popover-btn opt-temp" on:click=move |_| {
-                                                        update_wonder_points_dot_origin(idx, dot_idx, DotOrigin::Temporary);
-                                                        set_open_points_popover.set(None);
-                                                    }>"🟡 Buff / Magia"</button>
-                                                </div>
-                                            }.into_view()
-                                        } else {
-                                            view! {}.into_view()
-                                        }}
-                                    </div>
-                                }
-                            }).collect_view()}
-                        </div>
-                    </div>
-
-                    // Arete da Maravilha
-                    <div class="wonder-stat-block">
-                        <span class="wonder-stat-label">"Arete:"</span>
-                        <div class="dots-container wonder-dots">
-                            {(1..=5).map(|i| {
-                                let dot_idx = (i - 1) as usize;
-                                let is_filled = move || data.with(|d| d.wonders.get(idx).map(|w| w.arete.level >= i).unwrap_or(false));
-                                let dot_color = move || {
-                                    data.with(|d| {
-                                        if let Some(w) = d.wonders.get(idx) {
-                                            if w.arete.level >= i {
-                                                let origs = w.arete.get_origins(5);
-                                                if dot_idx < origs.len() {
-                                                    origs[dot_idx].color_class()
-                                                } else {
-                                                    "dot-base"
-                                                }
-                                            } else {
-                                                ""
-                                            }
-                                        } else {
-                                            ""
-                                        }
-                                    })
-                                };
-                                let is_popover_open = move || open_arete_popover.get() == Some(dot_idx);
-
-                                view! {
-                                    <div class="dot-wrapper" style="position: relative; display: inline-block;">
-                                        <span 
-                                            class="dot"
-                                            class:filled=is_filled
-                                            class=dot_color
-                                            on:click=move |_| {
-                                                let current_origin = active_origin_ctx.map(|a| a.origin.get()).unwrap_or(DotOrigin::Base);
-                                                update_wonder_arete(idx, i, current_origin);
-                                            }
-                                            on:contextmenu=move |ev| {
-                                                ev.prevent_default();
-                                                let cur_lvl = data.with(|d| d.wonders.get(idx).map(|w| w.arete.level).unwrap_or(0));
-                                                if cur_lvl >= i {
-                                                    set_open_arete_popover.update(|cur| {
-                                                        *cur = if *cur == Some(dot_idx) { None } else { Some(dot_idx) };
-                                                    });
-                                                }
-                                            }
-                                        ></span>
-
-                                        {move || if is_popover_open() {
-                                            view! {
-                                                <div class="origin-popover" on:mouseleave=move |_| set_open_arete_popover.set(None)>
-                                                    <div class="popover-header">"Origem do Arete"</div>
-                                                    <button type="button" class="popover-btn opt-base" on:click=move |_| {
-                                                        update_wonder_arete_dot_origin(idx, dot_idx, DotOrigin::Base);
-                                                        set_open_arete_popover.set(None);
-                                                    }>"⚪ Criação Base"</button>
-                                                    <button type="button" class="popover-btn opt-bonus" on:click=move |_| {
-                                                        update_wonder_arete_dot_origin(idx, dot_idx, DotOrigin::Bonus);
-                                                        set_open_arete_popover.set(None);
-                                                    }>"🟣 Ponto de Bônus"</button>
-                                                    <button type="button" class="popover-btn opt-xp" on:click=move |_| {
-                                                        update_wonder_arete_dot_origin(idx, dot_idx, DotOrigin::Experience);
-                                                        set_open_arete_popover.set(None);
-                                                    }>"🟢 Experiência (XP)"</button>
-                                                    <button type="button" class="popover-btn opt-temp" on:click=move |_| {
-                                                        update_wonder_arete_dot_origin(idx, dot_idx, DotOrigin::Temporary);
-                                                        set_open_arete_popover.set(None);
-                                                    }>"🟡 Buff / Magia"</button>
-                                                </div>
-                                            }.into_view()
-                                        } else {
-                                            view! {}.into_view()
-                                        }}
-                                    </div>
-                                }
-                            }).collect_view()}
-                        </div>
-                    </div>
+                    <ValueField 
+                        label=Signal::derive(move || "Arete".to_string())
+                        level=arete_level
+                        modifier=arete_mod
+                        origins=arete_origins
+                        max_level=5
+                        min_level=0
+                        on_level_change=move |v| {
+                            let current_origin = active_origin_ctx.map(|a| a.origin.get()).unwrap_or(DotOrigin::Base);
+                            update_wonder_arete(idx, v, current_origin);
+                        }
+                        on_modifier_change=move |m| update_wonder_arete_mod(idx, m)
+                        on_dot_origin_change=Callback::new(move |(dot_i, orig)| update_wonder_arete_dot_origin(idx, dot_i, orig))
+                        is_editable=false
+                    />
                 </div>
 
                 // Trilha de Quintessência com Quadradinhos (Flexível de 5 a 20)
