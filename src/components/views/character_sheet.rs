@@ -41,12 +41,18 @@ pub fn CharacterSheet() -> impl IntoView {
         set_origin: set_active_origin,
     });
 
+    let is_mounted = std::rc::Rc::new(std::cell::Cell::new(true));
+    let is_mounted_cleanup = is_mounted.clone();
+    on_cleanup(move || {
+        is_mounted_cleanup.set(false);
+    });
+
     create_effect(move |_| {
         if let Some(Ok(fetched_data)) = sheet_resource.get() {
-            set_data.set(fetched_data);
-            set_is_loaded.set(true);
-            set_is_dirty.set(false);
-            set_save_status.set(SaveStatus::Saved(get_current_time_str()));
+            let _ = set_data.try_set(fetched_data);
+            let _ = set_is_loaded.try_set(true);
+            let _ = set_is_dirty.try_set(false);
+            let _ = set_save_status.try_set(SaveStatus::Saved(get_current_time_str()));
             crate::logging::log_client(
                 "user_actions",
                 "INFO",
@@ -60,17 +66,23 @@ pub fn CharacterSheet() -> impl IntoView {
     create_effect(move |_| {
         data.track();
         if is_loaded.try_get_untracked().unwrap_or(false) {
-            set_is_dirty.set(true);
+            let _ = set_is_dirty.try_set(true);
             let _ = set_save_status.try_set(SaveStatus::Pending);
         }
     });
 
     // Salvamento Automático em Background a cada 30 segundos
+    let is_mounted_loop = is_mounted.clone();
     create_effect(move |_| {
         if is_loaded.get() {
+            let is_mounted_task = is_mounted_loop.clone();
             spawn_local(async move {
                 loop {
                     gloo_timers::future::TimeoutFuture::new(30_000).await;
+                    if !is_mounted_task.get() {
+                        break;
+                    }
+
                     // Se o componente foi desmontado/descartado, interrompe o loop suavemente
                     let current_data = match data.try_get_untracked() {
                         Some(d) => d,
@@ -79,10 +91,11 @@ pub fn CharacterSheet() -> impl IntoView {
 
                     if is_dirty.try_get_untracked().unwrap_or(false) {
                         let current_id = get_id_untracked();
-                        if !current_id.is_empty() {
+                        if !current_id.is_empty() && is_mounted_task.get() {
                             let _ = set_save_status.try_set(SaveStatus::Saving);
                             match update_sheet(current_id.clone(), current_data).await {
                                 Ok(_) => {
+                                    if !is_mounted_task.get() { break; }
                                     let _ = set_is_dirty.try_set(false);
                                     crate::logging::log_client(
                                         "database",
@@ -93,6 +106,7 @@ pub fn CharacterSheet() -> impl IntoView {
                                     let _ = set_save_status.try_set(SaveStatus::Saved(get_current_time_str()));
                                 }
                                 Err(e) => {
+                                    if !is_mounted_task.get() { break; }
                                     crate::logging::log_client(
                                         "errors",
                                         "ERROR",
