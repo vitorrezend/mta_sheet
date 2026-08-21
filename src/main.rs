@@ -7,7 +7,13 @@ async fn main() {
     use mta_sheet::database;
     use tower_http::services::ServeDir;
 
-    let conf = get_configuration(Some("Cargo.toml")).await.unwrap();
+    let conf = match get_configuration(Some("Cargo.toml")).await {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("Falha crítica ao ler configuração do Leptos: {}", e);
+            return;
+        }
+    };
     let addr = conf.leptos_options.site_addr;
     let routes = generate_route_list(mta_sheet::App);
     let site_root = conf.leptos_options.site_root.clone();
@@ -95,9 +101,17 @@ async fn main() {
         }, mta_sheet::App)
         .with_state(conf.leptos_options);
 
-    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+    let listener = match tokio::net::TcpListener::bind(&addr).await {
+        Ok(l) => l,
+        Err(e) => {
+            eprintln!("Falha crítica ao vincular servidor ao endereço {}: {}", addr, e);
+            return;
+        }
+    };
     println!("listening on http://{}", addr);
-    axum::serve(listener, app).await.unwrap();
+    if let Err(e) = axum::serve(listener, app).await {
+        eprintln!("Erro na execução do servidor HTTP: {}", e);
+    }
 }
 
 #[cfg(not(feature = "ssr"))]

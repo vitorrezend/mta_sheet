@@ -37,32 +37,33 @@ pub fn ValueField(
     let tooltip_label = move || {
         let l = label.get();
         let cur_lvl = level.get();
-        if cur_lvl > 0 && origins.is_some() {
-            let orig_list = origins.unwrap().get();
-            let mut base = 0;
-            let mut bonus = 0;
-            let mut xp = 0;
-            let mut temp = 0;
-            for i in 0..(cur_lvl as usize) {
-                let orig = if i < orig_list.len() { orig_list[i] } else { DotOrigin::Base };
-                match orig {
-                    DotOrigin::Base => base += 1,
-                    DotOrigin::Bonus => bonus += 1,
-                    DotOrigin::Experience => xp += 1,
-                    DotOrigin::Temporary => temp += 1,
+        if cur_lvl > 0 {
+            if let Some(origins_sig) = origins {
+                let orig_list = origins_sig.get();
+                let mut base = 0;
+                let mut bonus = 0;
+                let mut xp = 0;
+                let mut temp = 0;
+                for i in 0..(cur_lvl as usize) {
+                    let orig = if i < orig_list.len() { orig_list[i] } else { DotOrigin::Base };
+                    match orig {
+                        DotOrigin::Base => base += 1,
+                        DotOrigin::Bonus => bonus += 1,
+                        DotOrigin::Experience => xp += 1,
+                        DotOrigin::Temporary => temp += 1,
+                    }
+                }
+                let mut parts = Vec::new();
+                if base > 0 { parts.push(format!("{} Base", base)); }
+                if bonus > 0 { parts.push(format!("{} Bônus", bonus)); }
+                if xp > 0 { parts.push(format!("{} XP", xp)); }
+                if temp > 0 { parts.push(format!("{} Buff", temp)); }
+
+                if !parts.is_empty() {
+                    return format!("{} (Nível {}: {})", l, cur_lvl, parts.join(" • "));
                 }
             }
-            let mut parts = Vec::new();
-            if base > 0 { parts.push(format!("{} Base", base)); }
-            if bonus > 0 { parts.push(format!("{} Bônus", bonus)); }
-            if xp > 0 { parts.push(format!("{} XP", xp)); }
-            if temp > 0 { parts.push(format!("{} Buff", temp)); }
-
-            if !parts.is_empty() {
-                format!("{} (Nível {}: {})", l, cur_lvl, parts.join(" • "))
-            } else {
-                format!("{} (Nível {})", l, cur_lvl)
-            }
+            format!("{} (Nível {})", l, cur_lvl)
         } else {
             l
         }

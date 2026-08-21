@@ -70,42 +70,43 @@ pub fn WonderCard(
 
                     let file_name = file.name();
                     let sheet_id = data.with_untracked(|d| d.id.clone());
-                    let reader = FileReader::new().unwrap();
-                    let reader_clone = reader.clone();
-                    let set_data_clone = set_data.clone();
+                    if let Ok(reader) = FileReader::new() {
+                        let reader_clone = reader.clone();
+                        let set_data_clone = set_data.clone();
 
-                    let onload = Closure::wrap(Box::new(move |_: web_sys::Event| {
-                        if let Ok(result) = reader_clone.result() {
-                            if let Some(data_url) = result.as_string() {
-                                let s_id = sheet_id.clone();
-                                let f_name = file_name.clone();
-                                let set_d = set_data_clone.clone();
+                        let onload = Closure::wrap(Box::new(move |_: web_sys::Event| {
+                            if let Ok(result) = reader_clone.result() {
+                                if let Some(data_url) = result.as_string() {
+                                    let s_id = sheet_id.clone();
+                                    let f_name = file_name.clone();
+                                    let set_d = set_data_clone.clone();
 
-                                spawn_local(async move {
-                                    match save_uploaded_media(s_id, "wonders".to_string(), f_name, data_url).await {
-                                        Ok(uploaded_url) => {
-                                            set_d.update(|s| {
-                                                while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
-                                                s.wonders[idx].image_url = uploaded_url;
-                                            });
+                                    spawn_local(async move {
+                                        match save_uploaded_media(s_id, "wonders".to_string(), f_name, data_url).await {
+                                            Ok(uploaded_url) => {
+                                                set_d.update(|s| {
+                                                    while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+                                                    s.wonders[idx].image_url = uploaded_url;
+                                                });
+                                            }
+                                            Err(e) => {
+                                                crate::logging::log_client(
+                                                    "errors",
+                                                    "ERROR",
+                                                    "Falha ao enviar imagem para o servidor",
+                                                    Some(&e.to_string()),
+                                                );
+                                            }
                                         }
-                                        Err(e) => {
-                                            crate::logging::log_client(
-                                                "errors",
-                                                "ERROR",
-                                                "Falha ao enviar imagem para o servidor",
-                                                Some(&e.to_string()),
-                                            );
-                                        }
-                                    }
-                                });
+                                    });
+                                }
                             }
-                        }
-                    }) as Box<dyn FnMut(_)>);
+                        }) as Box<dyn FnMut(_)>);
 
-                    reader.set_onload(Some(onload.as_ref().unchecked_ref()));
-                    onload.forget();
-                    let _ = reader.read_as_data_url(&file);
+                        reader.set_onload(Some(onload.as_ref().unchecked_ref()));
+                        onload.forget();
+                        let _ = reader.read_as_data_url(&file);
+                    }
                 }
             }
         }

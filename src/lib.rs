@@ -5,6 +5,9 @@ pub mod auth;
 pub mod rooms;
 pub mod logging;
 
+#[cfg(test)]
+mod compliance_tests;
+
 use leptos::*;
 use leptos_router::*;
 use leptos_meta::*;

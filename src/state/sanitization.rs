@@ -9,13 +9,9 @@ impl CharacterData {
             self.name = "Sem Nome".to_string();
         }
 
-        // Ensure Arete is at least 1
+        // Ensure Arete is at least 1 and at most 10
         let arete = self.attributes.entry(keys::KEY_ARETE.to_string()).or_default();
-        if arete.level < 1 {
-            arete.level = 1;
-        } else if arete.level > 10 {
-            arete.level = 10;
-        }
+        arete.level = arete.level.clamp(1, 10);
 
         // Ensure Willpower values are within valid ranges
         let (total, current) = self.get_willpower();

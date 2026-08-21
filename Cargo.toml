@@ -1,7 +1,12 @@
 [package]
 name = "mta_sheet"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "warn"
+panic = "deny"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
