@@ -10,24 +10,6 @@ pub fn Resonance() -> impl IntoView {
     let active_origin_ctx = use_context::<ActiveDotOriginContext>();
 
     let category = "Resonance";
-    
-    // Inicialização de itens padrão se a lista estiver vazia
-    create_effect(move |_| {
-        set_data.update(|s| {
-            let list = s.custom_lists.entry(category.to_string()).or_default();
-            if list.is_empty() {
-                let defaults = [
-                    ("res_entropic", "Entrópico"),
-                    ("res_static", "Estático"),
-                    ("res_dynamic", "Dinâmico"),
-                ];
-                for (id, label) in defaults {
-                    list.push(id.to_string());
-                    s.labels.insert(id.to_string(), label.to_string());
-                }
-            }
-        });
-    });
 
     let list = Signal::derive(move || {
         data.with(|d| d.custom_lists.get(category).cloned().unwrap_or_default())

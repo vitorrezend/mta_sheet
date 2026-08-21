@@ -214,45 +214,46 @@ pub fn CharacterSheet() -> impl IntoView {
                 set_active_tab=set_active_tab
             />
 
-            <Suspense fallback=move || view! { <div class="loading-state"><p>"Carregando Ficha..."</p></div> }>
-                {move || sheet_resource.get().map(|res| match res {
-                    Ok(_) => view! {
-                        <Sheet>
-                            <div 
-                                class="sheet-page-tab-pane page-main"
-                                class:tab-hidden=move || active_tab.get() != SheetPageTab::Main
-                            >
-                                <InfoHeader />
-                                <Attributes />
-                                <Abilities />
-                                <Spheres />
-                                <AdvantagesMta />
-                            </div>
-
-                            <div 
-                                class="sheet-page-tab-pane page-magic-combat"
-                                class:tab-hidden=move || active_tab.get() != SheetPageTab::MagicCombat
-                            >
-                                <PageMagicCombat />
-                            </div>
-
-                            <div 
-                                class="sheet-page-tab-pane page-profile"
-                                class:tab-hidden=move || active_tab.get() != SheetPageTab::Profile
-                            >
-                                <CharacterProfile />
-                            </div>
-                        </Sheet>
-                    }.into_view(),
-                    Err(e) => view! { 
-                        <div class="error-container">
-                            <p class="error-title">"Erro ao carregar a ficha"</p>
-                            <p class="error-detail">{e.to_string()}</p>
-                            <A href="/" class="back-home-btn">"Voltar para a lista de fichas"</A>
+            {move || match sheet_resource.get() {
+                Some(Ok(_)) => view! {
+                    <Sheet>
+                        <div 
+                            class="sheet-page-tab-pane page-main"
+                            class:tab-hidden=move || active_tab.get() != SheetPageTab::Main
+                        >
+                            <InfoHeader />
+                            <Attributes />
+                            <Abilities />
+                            <Spheres />
+                            <AdvantagesMta />
                         </div>
-                    }.into_view(),
-                })}
-            </Suspense>
+
+                        <div 
+                            class="sheet-page-tab-pane page-magic-combat"
+                            class:tab-hidden=move || active_tab.get() != SheetPageTab::MagicCombat
+                        >
+                            <PageMagicCombat />
+                        </div>
+
+                        <div 
+                            class="sheet-page-tab-pane page-profile"
+                            class:tab-hidden=move || active_tab.get() != SheetPageTab::Profile
+                        >
+                            <CharacterProfile />
+                        </div>
+                    </Sheet>
+                }.into_view(),
+                Some(Err(e)) => view! { 
+                    <div class="error-container">
+                        <p class="error-title">"Erro ao carregar a ficha"</p>
+                        <p class="error-detail">{e.to_string()}</p>
+                        <A href="/" class="back-home-btn">"Voltar para a lista de fichas"</A>
+                    </div>
+                }.into_view(),
+                None => view! {
+                    <div class="loading-state"><p>"Carregando Ficha..."</p></div>
+                }.into_view(),
+            }}
         </div>
     }
 }

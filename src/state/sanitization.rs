@@ -39,6 +39,20 @@ impl CharacterData {
             }
         }
 
+        // Initialize default Resonance items if empty
+        let res_list = self.custom_lists.entry(keys::CAT_RESONANCE.to_string()).or_default();
+        if res_list.is_empty() {
+            let defaults = [
+                ("res_entropic", "Entrópico"),
+                ("res_static", "Estático"),
+                ("res_dynamic", "Dinâmico"),
+            ];
+            for (id, label) in defaults {
+                res_list.push(id.to_string());
+                self.labels.entry(id.to_string()).or_insert_with(|| label.to_string());
+            }
+        }
+
         // Ensure minimum slots for Merits (7), Flaws (7), Wonders (4) and Weapons (4)
         while self.merits.len() < 7 {
             self.merits.push(MeritItem::default());
