@@ -43,7 +43,6 @@ pub mod server {
     use super::*;
     use std::fs::{self, OpenOptions};
     use std::io::Write;
-    use std::path::Path;
     use chrono::Local;
 
     pub fn get_log_dir(category: &LogCategory) -> String {
