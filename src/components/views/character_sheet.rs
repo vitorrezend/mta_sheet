@@ -237,6 +237,19 @@ pub fn CharacterSheet() -> impl IntoView {
     });
 
     let costs = create_memo(move |_| data.with(|d| d.calculate_costs()));
+    let is_public = Signal::derive(move || data.with(|d| d.is_public));
+
+    let on_toggle_privacy = Callback::new(move |_| {
+        let current_id = get_id_untracked();
+        let current_pub = data.with_untracked(|d| d.is_public);
+        let new_pub = !current_pub;
+        set_data.update(|d| d.is_public = new_pub);
+        if !current_id.is_empty() {
+            spawn_local(async move {
+                let _ = crate::state::set_sheet_visibility(current_id, new_pub).await;
+            });
+        }
+    });
 
     view! {
         <link rel="stylesheet" href="/style.css"/>
@@ -248,6 +261,8 @@ pub fn CharacterSheet() -> impl IntoView {
                 costs=costs
                 set_show_breakdown=set_show_breakdown
                 save_status=save_status
+                is_public=is_public
+                on_toggle_privacy=on_toggle_privacy
                 on_back_click=on_back_click
                 do_manual_save=do_manual_save
             />

@@ -18,6 +18,8 @@ pub fn SheetTopBar(
     costs: Memo<CostSummary>,
     set_show_breakdown: WriteSignal<bool>,
     save_status: ReadSignal<SaveStatus>,
+    is_public: Signal<bool>,
+    on_toggle_privacy: Callback<()>,
     on_back_click: Callback<ev::MouseEvent>,
     do_manual_save: Callback<ev::MouseEvent>,
 ) -> impl IntoView {
@@ -115,6 +117,14 @@ pub fn SheetTopBar(
                     }}
                     <button class="manual-save-btn" on:click=move |ev| do_manual_save.call(ev) title="Salvar imediatamente">
                         "Salvar"
+                    </button>
+                    <button 
+                        type="button" 
+                        class=move || if is_public.get() { "privacy-toggle-top-btn btn-public" } else { "privacy-toggle-top-btn btn-private" }
+                        on:click=move |_| on_toggle_privacy.call(())
+                        title=move || if is_public.get() { "Ficha Pública na comunidade. Clique para tornar Privada." } else { "Ficha Privada. Clique para tornar Pública na comunidade." }
+                    >
+                        {move || if is_public.get() { "🌐 Pública" } else { "🔒 Privada" }}
                     </button>
                     <button 
                         type="button" 

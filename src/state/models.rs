@@ -380,6 +380,10 @@ pub struct CharacterSummary {
     pub photo_url: String,
     #[serde(default, alias = "active_spheres")]
     pub spheres: Vec<(String, i32)>,
+    #[serde(default)]
+    pub is_public: bool,
+    #[serde(default)]
+    pub is_owner: bool,
     pub updated_at: String,
 }
 
@@ -490,6 +494,8 @@ pub struct CharacterData {
     #[serde(default)]
     pub name: String,
     #[serde(default)]
+    pub is_public: bool,
+    #[serde(default)]
     pub attributes: HashMap<String, AttributeValue>,
     #[serde(default)]
     pub labels: HashMap<String, String>,
@@ -532,6 +538,7 @@ impl CharacterData {
         let mut sheet = Self {
             id,
             name: if name.trim().is_empty() { "Novo Mago".to_string() } else { name },
+            is_public: false,
             attributes: HashMap::new(),
             labels: HashMap::new(),
             custom_lists: HashMap::new(),

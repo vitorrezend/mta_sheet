@@ -13,8 +13,16 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
     })?;
 
+    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
+    if auth_user_id.is_none() {
+        // Deslogado não possui fichas privadas
+        return Ok(Vec::new());
+    }
+    let user_id = auth_user_id.unwrap_or_default();
+
     let start = std::time::Instant::now();
-    let rows = sqlx::query("SELECT id, name, data, updated_at FROM character_sheets ORDER BY updated_at DESC")
+    let rows = sqlx::query("SELECT id, name, data, is_public, updated_at FROM character_sheets WHERE user_id = ? ORDER BY updated_at DESC")
+        .bind(&user_id)
         .fetch_all(&pool)
         .await
         .map_err(|e: sqlx::Error| {
@@ -27,6 +35,7 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
         let id: String = row.get("id");
         let name: String = row.get("name");
         let data_json: String = row.get("data");
+        let is_public: bool = row.get::<i32, _>("is_public") == 1;
         let updated_at: String = row.get("updated_at");
 
         let mut tradition = String::new();
@@ -79,6 +88,8 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
             willpower,
             photo_url,
             spheres,
+            is_public,
+            is_owner: true,
             updated_at,
         }
     }).collect();
@@ -86,7 +97,102 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
     crate::logging::server::write_log(
         crate::logging::LogCategory::Database,
         "INFO",
-        &format!("SELECT character_sheets: retornou {} fichas em {}ms", count, start.elapsed().as_millis()),
+        &format!("SELECT character_sheets: retornou {} fichas do usuário '{}' em {}ms", count, user_id, start.elapsed().as_millis()),
+        None,
+    );
+
+    Ok(summaries)
+}
+
+#[server(endpoint = "get_public_sheets")]
+pub async fn get_public_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
+    use sqlx::{SqlitePool, Row};
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in get_public_sheets", None);
+        ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
+    })?;
+
+    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
+
+    let start = std::time::Instant::now();
+    let rows = sqlx::query("SELECT id, user_id, name, data, is_public, updated_at FROM character_sheets WHERE is_public = 1 ORDER BY updated_at DESC")
+        .fetch_all(&pool)
+        .await
+        .map_err(|e: sqlx::Error| {
+            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to fetch public sheets from DB", Some(&e.to_string()));
+            ServerFnError::new(format!("Falha ao consultar fichas públicas: {}", e))
+        })?;
+
+    let count = rows.len();
+    let summaries = rows.into_iter().map(|row| {
+        let id: String = row.get("id");
+        let sheet_user_id: Option<String> = row.get("user_id");
+        let name: String = row.get("name");
+        let data_json: String = row.get("data");
+        let is_public: bool = row.get::<i32, _>("is_public") == 1;
+        let is_owner = auth_user_id.is_some() && auth_user_id == sheet_user_id;
+        let updated_at: String = row.get("updated_at");
+
+        let mut tradition = String::new();
+        let mut essence = String::new();
+        let mut arete = 1;
+        let mut willpower = 5;
+        let mut photo_url = String::new();
+        let mut spheres = Vec::new();
+
+        if let Ok(data) = serde_json::from_str::<CharacterData>(&data_json) {
+            tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
+            essence = data.labels.get("Essência").cloned().unwrap_or_default();
+            arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
+            willpower = data.get_attribute_level(crate::state::models::keys::KEY_WILLPOWER_TOTAL, 5);
+            photo_url = if !data.visuals.character_sketch_url.is_empty() {
+                data.visuals.character_sketch_url.clone()
+            } else {
+                data.get_profile_photo()
+            };
+            for sphere in crate::state::models::STANDARD_SPHERES {
+                let lvl = data.get_attribute_level(sphere, 0);
+                spheres.push((sphere.to_string(), lvl));
+            }
+        } else if let Some(data) = CharacterData::from_raw_json_resilient(&id, &data_json) {
+            tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
+            essence = data.labels.get("Essência").cloned().unwrap_or_default();
+            arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
+            willpower = data.get_attribute_level(crate::state::models::keys::KEY_WILLPOWER_TOTAL, 5);
+            photo_url = if !data.visuals.character_sketch_url.is_empty() {
+                data.visuals.character_sketch_url.clone()
+            } else {
+                data.get_profile_photo()
+            };
+            for sphere in crate::state::models::STANDARD_SPHERES {
+                let lvl = data.get_attribute_level(sphere, 0);
+                spheres.push((sphere.to_string(), lvl));
+            }
+        } else {
+            for sphere in crate::state::models::STANDARD_SPHERES {
+                spheres.push((sphere.to_string(), 0));
+            }
+        }
+
+        CharacterSummary {
+            id,
+            name,
+            tradition,
+            essence,
+            arete,
+            willpower,
+            photo_url,
+            spheres,
+            is_public,
+            is_owner,
+            updated_at,
+        }
+    }).collect();
+
+    crate::logging::server::write_log(
+        crate::logging::LogCategory::Database,
+        "INFO",
+        &format!("SELECT public character_sheets: retornou {} fichas em {}ms", count, start.elapsed().as_millis()),
         None,
     );
 
@@ -105,8 +211,10 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
     })?;
 
+    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
+
     let start = std::time::Instant::now();
-    let row = sqlx::query("SELECT data FROM character_sheets WHERE id = ?")
+    let row = sqlx::query("SELECT user_id, room_id, data, is_public FROM character_sheets WHERE id = ?")
         .bind(&id)
         .fetch_optional(&pool)
         .await
@@ -118,6 +226,23 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
             crate::logging::server::write_log(crate::logging::LogCategory::Requests, "WARN", &format!("Sheet with id {} not found", id), None);
             ServerFnError::new(format!("Ficha com ID '{}' não encontrada", id))
         })?;
+
+    let sheet_user_id: Option<String> = row.get("user_id");
+    let room_id: Option<String> = row.get("room_id");
+    let is_public: bool = row.get::<i32, _>("is_public") == 1;
+
+    let is_owner = auth_user_id.is_some() && auth_user_id == sheet_user_id;
+    let mut is_gm = false;
+    if let (Some(u_id), Some(r_id)) = (&auth_user_id, &room_id) {
+        if let Ok(Some(room)) = sqlx::query("SELECT gm_id FROM rooms WHERE id = ?").bind(r_id).fetch_optional(&pool).await {
+            is_gm = room.get::<String, _>("gm_id") == *u_id;
+        }
+    }
+
+    // Validação de Permissão de Leitura
+    if !is_owner && !is_gm && !is_public && sheet_user_id.is_some() {
+        return Err(ServerFnError::new("Permissão negada: Esta ficha é privada e pertence a outro usuário."));
+    }
 
     let data_json: String = row.get("data");
     let mut data: CharacterData = match serde_json::from_str(&data_json) {
@@ -141,11 +266,12 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
         }
     };
 
+    data.is_public = is_public;
     data.sanitize();
     crate::logging::server::write_log(
         crate::logging::LogCategory::Database,
         "INFO",
-        &format!("SELECT character_sheets id='{}' (nome='{}') carregada com sucesso em {}ms", id, data.name, start.elapsed().as_millis()),
+        &format!("SELECT character_sheets id='{}' (nome='{}', public={}) carregada com sucesso em {}ms", id, data.name, is_public, start.elapsed().as_millis()),
         None,
     );
 
@@ -303,9 +429,11 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
     })?;
 
     let payload_kb = (data_json.len() as f64) / 1024.0;
-    let result = sqlx::query("UPDATE character_sheets SET name = ?, data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+    let is_public_int = if data.is_public { 1 } else { 0 };
+    let result = sqlx::query("UPDATE character_sheets SET name = ?, data = ?, is_public = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
         .bind(&data.name)
         .bind(data_json)
+        .bind(is_public_int)
         .bind(&id)
         .execute(&pool)
         .await
@@ -322,7 +450,46 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
     crate::logging::server::write_log(
         crate::logging::LogCategory::Database,
         "INFO",
-        &format!("UPDATE character_sheets id='{}' (nome='{}') salva com sucesso em {}ms ({:.1} KB)", id, data.name, start.elapsed().as_millis(), payload_kb),
+        &format!("UPDATE character_sheets id='{}' (nome='{}', public={}) salva com sucesso em {}ms ({:.1} KB)", id, data.name, data.is_public, start.elapsed().as_millis(), payload_kb),
+        None,
+    );
+
+    Ok(())
+}
+
+#[server(endpoint = "set_sheet_visibility")]
+pub async fn set_sheet_visibility(id: String, is_public: bool) -> Result<(), ServerFnError> {
+    if id.trim().is_empty() {
+        return Err(ServerFnError::new("ID da ficha não fornecido"));
+    }
+
+    use sqlx::SqlitePool;
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in set_sheet_visibility", None);
+        ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
+    })?;
+
+    verify_sheet_write_permission(&pool, &id).await?;
+
+    let is_public_int = if is_public { 1 } else { 0 };
+    let result = sqlx::query("UPDATE character_sheets SET is_public = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+        .bind(is_public_int)
+        .bind(&id)
+        .execute(&pool)
+        .await
+        .map_err(|e: sqlx::Error| {
+            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to update sheet visibility {}", id), Some(&e.to_string()));
+            ServerFnError::new(format!("Falha ao atualizar visibilidade no banco: {}", e))
+        })?;
+
+    if result.rows_affected() == 0 {
+        return Err(ServerFnError::new(format!("Ficha com ID '{}' não encontrada", id)));
+    }
+
+    crate::logging::server::write_log(
+        crate::logging::LogCategory::UserActions,
+        "INFO",
+        &format!("SET VISIBILITY: Ficha id='{}' visibilidade alterada para is_public={}", id, is_public),
         None,
     );
 

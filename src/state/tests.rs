@@ -455,6 +455,8 @@ mod tests {
             willpower: 8,
             photo_url: "/uploads/john.webp".to_string(),
             spheres: vec![("Tempo".to_string(), 3), ("Mente".to_string(), 2)],
+            is_public: true,
+            is_owner: true,
             updated_at: "2026-08-21 17:00:00".to_string(),
         };
 
@@ -469,6 +471,8 @@ mod tests {
         assert_eq!(recovered.willpower, 8);
         assert_eq!(recovered.photo_url, "/uploads/john.webp");
         assert_eq!(recovered.spheres, vec![("Tempo".to_string(), 3), ("Mente".to_string(), 2)]);
+        assert!(recovered.is_public);
+        assert!(recovered.is_owner);
 
         // Backward compatibility: old JSON without the new fields
         let legacy_json = r#"{"id":"legacy_1","name":"Mago Antigo","updated_at":"2026-08-20"}"#;
@@ -476,6 +480,8 @@ mod tests {
         assert_eq!(legacy_recovered.name, "Mago Antigo");
         assert_eq!(legacy_recovered.arete, 1);
         assert_eq!(legacy_recovered.willpower, 5);
+        assert!(!legacy_recovered.is_public);
+        assert!(!legacy_recovered.is_owner);
         assert!(legacy_recovered.photo_url.is_empty());
     }
 }

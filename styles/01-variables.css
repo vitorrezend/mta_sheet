@@ -274,6 +274,163 @@ body {
     border: 1px solid #fbcfe8;
 }
 
+.vis-tag {
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.vis-public {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.vis-public:hover {
+    background: #d1fae5;
+    border-color: #6ee7b7;
+}
+
+.vis-private {
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+}
+
+.vis-private:hover {
+    background: #ffedd5;
+    border-color: #fdba74;
+}
+
+/* Visitor Banner */
+.visitor-banner {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+    border: 1px solid #4338ca;
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    color: #ffffff;
+    box-shadow: 0 10px 15px -3px rgba(30, 27, 75, 0.2);
+}
+
+.visitor-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.visitor-banner-icon {
+    font-size: 2.4rem;
+    filter: drop-shadow(0 2px 8px rgba(129, 140, 248, 0.5));
+}
+
+.visitor-banner-text h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #e0e7ff;
+}
+
+.visitor-banner-text p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #c7d2fe;
+    line-height: 1.4;
+}
+
+.visitor-login-btn {
+    padding: 0.75rem 1.5rem;
+    background: #6366f1;
+    color: #ffffff;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+.visitor-login-btn:hover {
+    background: #4f46e5;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.3);
+}
+
+/* Home Tabs Container */
+.home-tabs-container {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.75rem;
+}
+
+.home-tab-btn {
+    padding: 0.6rem 1.25rem;
+    border: none;
+    background: #f1f5f9;
+    color: #64748b;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.home-tab-btn:hover {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.home-tab-btn.active {
+    background: #4f46e5;
+    color: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.25);
+}
+
+/* Sheet Top Bar Privacy Toggle Button */
+.privacy-toggle-top-btn {
+    padding: 0.4rem 0.85rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: all 0.2s ease;
+}
+
+.privacy-toggle-top-btn.btn-public {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1.5px solid #6ee7b7;
+}
+
+.privacy-toggle-top-btn.btn-public:hover {
+    background: #d1fae5;
+    transform: scale(1.03);
+}
+
+.privacy-toggle-top-btn.btn-private {
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1.5px solid #fdba74;
+}
+
+.privacy-toggle-top-btn.btn-private:hover {
+    background: #ffedd5;
+    transform: scale(1.03);
+}
+
 .card-stats-preview {
     background: #f8fafc;
     border: 1px solid #edf2f7;
