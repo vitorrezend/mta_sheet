@@ -1,6 +1,8 @@
 use leptos::*;
 use crate::components::ValueField;
 use crate::state::{CharacterData, DotOrigin, WonderItem};
+#[allow(unused_imports)]
+use crate::state::save_uploaded_media;
 use crate::components::character_sheet::ActiveDotOriginContext;
 
 #[component]
@@ -10,6 +12,9 @@ pub fn MagicSection() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>()
         .expect("WriteSignal<CharacterData> context not found");
     let active_origin_ctx = use_context::<ActiveDotOriginContext>();
+
+    // Signal para abrir modal de visualização/zoom de imagem (Lightbox)
+    let (modal_image_url, set_modal_image_url) = create_signal(Option::<String>::None);
 
     let add_wonder = move |_| {
         set_data.update(|s| {
@@ -59,24 +64,44 @@ pub fn MagicSection() -> impl IntoView {
                         return;
                     }
 
-                    if let Ok(reader) = FileReader::new() {
-                        let reader_clone = reader.clone();
-                        let set_data_clone = set_data.clone();
-                        let onload = Closure::wrap(Box::new(move |_: web_sys::Event| {
-                            if let Ok(result) = reader_clone.result() {
-                                if let Some(data_url) = result.as_string() {
-                                    set_data_clone.update(|s| {
-                                        while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
-                                        s.wonders[idx].image_url = data_url;
-                                    });
-                                }
-                            }
-                        }) as Box<dyn FnMut(_)>);
+                    let file_name = file.name();
+                    let sheet_id = data.with_untracked(|d| d.id.clone());
+                    let reader = FileReader::new().unwrap();
+                    let reader_clone = reader.clone();
+                    let set_data_clone = set_data.clone();
 
-                        reader.set_onload(Some(onload.as_ref().unchecked_ref()));
-                        onload.forget();
-                        let _ = reader.read_as_data_url(&file);
-                    }
+                    let onload = Closure::wrap(Box::new(move |_: web_sys::Event| {
+                        if let Ok(result) = reader_clone.result() {
+                            if let Some(data_url) = result.as_string() {
+                                let s_id = sheet_id.clone();
+                                let f_name = file_name.clone();
+                                let set_d = set_data_clone.clone();
+
+                                spawn_local(async move {
+                                    match save_uploaded_media(s_id, "wonders".to_string(), f_name, data_url).await {
+                                        Ok(uploaded_url) => {
+                                            set_d.update(|s| {
+                                                while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+                                                s.wonders[idx].image_url = uploaded_url;
+                                            });
+                                        }
+                                        Err(e) => {
+                                            crate::logging::log_client(
+                                                "errors",
+                                                "ERROR",
+                                                "Falha ao enviar imagem para o servidor",
+                                                Some(&e.to_string()),
+                                            );
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }) as Box<dyn FnMut(_)>);
+
+                    reader.set_onload(Some(onload.as_ref().unchecked_ref()));
+                    onload.forget();
+                    let _ = reader.read_as_data_url(&file);
                 }
             }
         }
@@ -244,13 +269,17 @@ pub fn MagicSection() -> impl IntoView {
                                     />
                                 </div>
                                 {if !url.trim().is_empty() {
+                                    let img_url = url.clone();
+                                    let img_modal_url = url.clone();
                                     view! {
                                         <div class="wonder-image-preview-wrapper">
                                             <img 
-                                                src=url.clone() 
-                                                alt="Imagem da Maravilha"
+                                                src=img_url 
+                                                alt="Imagem da Maravilha (Clique para ampliar)"
                                                 class="wonder-image-preview"
                                                 loading="lazy"
+                                                title="Clique para abrir e dar zoom na imagem"
+                                                on:click=move |_| set_modal_image_url.set(Some(img_modal_url.clone()))
                                             />
                                             <button 
                                                 type="button" 
@@ -310,7 +339,7 @@ pub fn MagicSection() -> impl IntoView {
                     />
                 </div>
 
-                // 4. Bloco de Quintessência (5 a 20 pontos, todos na mesma linha reta)
+                // 4. Bloco de Quintessência (5 a 20 pontos em linha única contínua)
                 <div class="wonder-quintessence-row">
                     <div class="wonder-quint-header">
                         <span class="wonder-stat-label">"Quintessência:"</span>
@@ -386,46 +415,73 @@ pub fn MagicSection() -> impl IntoView {
 
     view! {
         <div class="group-box magic-section-box">
-            <span class="group-title">"MAGIA (MAGIC)"</span>
+            <span class="group-title">"MARAVILHAS & ARTEFATOS (WONDERS)"</span>
 
-            <div class="magic-columns-grid">
-                // Coluna: Wonders (Maravilhas)
-                <div class="wonders-column">
-                    <div class="section-sub-title-row">
-                        <span class="section-sub-title">"MARAVILHAS (WONDERS)"</span>
-                    </div>
+            // Grade 2x2 preenchendo toda a largura da folha
+            <div class="wonders-grid-2x2">
+                {move || {
+                    let count = data.with(|d| d.wonders.len());
+                    (0..count).map(render_wonder_card).collect_view()
+                }}
+            </div>
 
-                    <div class="wonders-list">
-                        {move || {
-                            let count = data.with(|d| d.wonders.len());
-                            (0..count).map(render_wonder_card).collect_view()
-                        }}
-                        <button class="add-field-btn" on:click=add_wonder title="Adicionar Maravilha">"+"</button>
-                    </div>
-                </div>
+            <div class="wonders-footer-actions">
+                <button class="add-field-btn" on:click=add_wonder title="Adicionar Nova Maravilha">"+"</button>
+            </div>
 
-                // Coluna: Rotes (Fórmulas & Feitiços Catalogados)
-                <div class="rotes-column">
-                    <div class="section-sub-title-row">
-                        <span class="section-sub-title">"FÓRMULAS & FEITIÇOS (ROTES)"</span>
+            // Modal Lightbox para visualização e zoom da imagem
+            {move || modal_image_url.get().map(|url| {
+                view! {
+                    <div class="image-modal-backdrop" on:click=move |_| set_modal_image_url.set(None)>
+                        <div class="image-modal-container" on:click=move |ev| ev.stop_propagation()>
+                            <button 
+                                type="button" 
+                                class="image-modal-close-btn"
+                                on:click=move |_| set_modal_image_url.set(None)
+                                title="Fechar"
+                            >
+                                "✕"
+                            </button>
+                            <img 
+                                src=url 
+                                alt="Imagem da Maravilha em Alta Resolução"
+                                class="image-modal-img"
+                            />
+                        </div>
                     </div>
+                }
+            })}
+        </div>
+    }
+}
 
-                    <div class="rotes-textarea-wrapper">
-                        <textarea 
-                            class="rotes-textarea"
-                            placeholder="Liste aqui suas Fórmulas (Rotes) consagradas: Nome da Fórmula, Esferas necessárias, Instrumentos/Focos, Dificuldade e Efeitos..."
-                            prop:value=move || data.with(|d| d.rotes.clone())
-                            on:change=move |ev| {
-                                let val = event_target_value(&ev);
-                                set_data.update(|s| s.rotes = val);
-                            }
-                            on:blur=move |ev| {
-                                let val = event_target_value(&ev);
-                                set_data.update(|s| s.rotes = val);
-                            }
-                        ></textarea>
-                    </div>
-                </div>
+// =========================================================================
+// O código da seção de Rotinas (Rotes) está preservado para a próxima etapa:
+// =========================================================================
+#[allow(dead_code)]
+fn _render_rotes_preserved_section(
+    data: ReadSignal<CharacterData>,
+    set_data: WriteSignal<CharacterData>,
+) -> impl IntoView {
+    view! {
+        <div class="rotes-column">
+            <div class="section-sub-title-row">
+                <span class="section-sub-title">"FÓRMULAS & FEITIÇOS (ROTES)"</span>
+            </div>
+            <div class="rotes-textarea-wrapper">
+                <textarea 
+                    class="rotes-textarea"
+                    placeholder="Liste aqui suas Fórmulas (Rotes) consagradas: Nome da Fórmula, Esferas necessárias, Instrumentos/Focos, Dificuldade e Efeitos..."
+                    prop:value=move || data.with(|d| d.rotes.clone())
+                    on:change=move |ev| {
+                        let val = event_target_value(&ev);
+                        set_data.update(|s| s.rotes = val);
+                    }
+                    on:blur=move |ev| {
+                        let val = event_target_value(&ev);
+                        set_data.update(|s| s.rotes = val);
+                    }
+                ></textarea>
             </div>
         </div>
     }

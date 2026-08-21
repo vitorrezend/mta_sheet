@@ -98,9 +98,47 @@ pub async fn get_db() -> SqlitePool {
     .await
     .expect("Failed to create character_sheets table");
 
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS media_assets (
+            id TEXT PRIMARY KEY,
+            sheet_id TEXT,
+            block TEXT,
+            file_path TEXT NOT NULL,
+            mime_type TEXT NOT NULL,
+            size_bytes INTEGER NOT NULL,
+            data_blob BLOB NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to create media_assets table");
+
     // Graceful migrations for existing databases
     let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN user_id TEXT REFERENCES users(id) ON DELETE SET NULL").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN room_id TEXT REFERENCES rooms(id) ON DELETE SET NULL").execute(&pool).await;
 
+    // Automatic re-hydration of uploads from database backup if missing on disk
+    rehydrate_media_assets_if_needed(&pool).await;
+
     pool
+}
+
+#[cfg(feature = "ssr")]
+async fn rehydrate_media_assets_if_needed(pool: &SqlitePool) {
+    use sqlx::Row;
+    if let Ok(rows) = sqlx::query("SELECT file_path, data_blob FROM media_assets").fetch_all(pool).await {
+        for row in rows {
+            let file_path: String = row.get("file_path");
+            let data_blob: Vec<u8> = row.get("data_blob");
+            let path = std::path::Path::new(&file_path);
+            if !path.exists() {
+                if let Some(parent) = path.parent() {
+                    let _ = tokio::fs::create_dir_all(parent).await;
+                }
+                let _ = tokio::fs::write(path, data_blob).await;
+                log::info!("Re-hydrated media asset from database: {}", file_path);
+            }
+        }
+    }
 }

@@ -1715,6 +1715,7 @@ name = "mta_sheet"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "base64 0.22.1",
  "bcrypt",
  "chrono",
  "console_error_panic_hook",

@@ -2924,20 +2924,37 @@ body {
     background: #e2e8f0;
 }
 
-.wonders-list {
+.wonders-grid-2x2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    align-items: start;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+    .wonders-grid-2x2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+.wonders-footer-actions {
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    justify-content: center;
+    width: 100%;
+    margin-top: 0.5rem;
 }
 
 .wonder-card {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 6px;
-    padding: 0.5rem;
+    padding: 0.6rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    box-sizing: border-box;
 }
 
 .wonder-card-top-row {
@@ -3684,6 +3701,73 @@ body {
 
 .logs-nav-link:hover {
     background: #e2e8f0 !important;
+}
+
+/* ==========================================================================
+   MODAL LIGHTBOX DE IMAGENS EM TELA CHEIA (ZOOM)
+   ========================================================================== */
+.image-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.15s ease-out;
+}
+
+.image-modal-container {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #0f172a;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    padding: 10px;
+}
+
+.image-modal-close-btn {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    width: 28px;
+    height: 28px;
+    background: #ef4444;
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.image-modal-close-btn:hover {
+    transform: scale(1.1);
+    background: #dc2626;
+}
+
+.image-modal-img {
+    max-width: 85vw;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 6px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+.wonder-image-preview {
+    cursor: zoom-in;
 }
 
 

@@ -17,6 +17,8 @@ async fn main() {
     let db_for_server_fn = db.clone();
     let db_for_routes = db.clone();
 
+    let _ = tokio::fs::create_dir_all("uploads").await;
+
     // build our application with a route
     let app = Router::new()
         .route(
@@ -75,6 +77,7 @@ async fn main() {
         }))
         .nest_service("/pkg", ServeDir::new(format!("{}/pkg", site_root)))
         .nest_service("/assets", ServeDir::new(format!("{}/assets", site_root)))
+        .nest_service("/uploads", ServeDir::new("uploads"))
         .route("/style.css", axum::routing::get(|| async {
             match tokio::fs::read_to_string("style.css").await {
                 Ok(css) => (

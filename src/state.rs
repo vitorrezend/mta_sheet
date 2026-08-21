@@ -997,7 +997,7 @@ impl CharacterData {
         while self.flaws.len() < 7 {
             self.flaws.push(FlawItem::default());
         }
-        if self.wonders.is_empty() {
+        while self.wonders.len() < 4 {
             self.wonders.push(WonderItem::default());
         }
         for wonder in &mut self.wonders {
@@ -1337,6 +1337,97 @@ pub async fn delete_sheet(id: String) -> Result<(), ServerFnError> {
     Ok(())
 }
 
+#[server(endpoint = "save_uploaded_media")]
+pub async fn save_uploaded_media(
+    sheet_id: String,
+    block: String,
+    file_name: String,
+    data_base64: String,
+) -> Result<String, ServerFnError> {
+    use sqlx::SqlitePool;
+
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        ServerFnError::new("Erro interno: Banco de dados indisponível")
+    })?;
+
+    let clean_sheet_id = if sheet_id.trim().is_empty() { "temp".to_string() } else { sheet_id.trim().to_string() };
+    let clean_block = if block.trim().is_empty() { "wonders".to_string() } else { block.trim().to_string() };
+
+    let (mime_type, base64_payload) = if let Some(idx) = data_base64.find(";base64,") {
+        let mime = if data_base64.starts_with("data:") {
+            &data_base64[5..idx]
+        } else {
+            "image/webp"
+        };
+        let payload = &data_base64[idx + 8..];
+        (mime.to_string(), payload)
+    } else {
+        ("image/webp".to_string(), data_base64.as_str())
+    };
+
+    use base64::Engine;
+    let bytes = base64::engine::general_purpose::STANDARD.decode(base64_payload.trim())
+        .map_err(|e| ServerFnError::new(format!("Base64 inválido: {}", e)))?;
+
+    if bytes.len() > 10 * 1024 * 1024 {
+        return Err(ServerFnError::new("A imagem excede o limite máximo de 10MB"));
+    }
+
+    let ext = match mime_type.as_str() {
+        "image/png" => "png",
+        "image/jpeg" | "image/jpg" => "jpg",
+        "image/gif" => "gif",
+        "image/svg+xml" => "svg",
+        _ => "webp",
+    };
+
+    let asset_id = format!("img_{}", uuid::Uuid::new_v4());
+    let safe_filename = if file_name.trim().is_empty() {
+        format!("{}.{}", asset_id, ext)
+    } else {
+        let sanitized_name: String = file_name.chars().filter(|c| c.is_alphanumeric() || *c == '-' || *c == '_').collect();
+        if sanitized_name.is_empty() {
+            format!("{}.{}", asset_id, ext)
+        } else {
+            format!("{}_{}.{}", sanitized_name, asset_id, ext)
+        }
+    };
+
+    let dir_path = format!("uploads/sheets/{}/{}", clean_sheet_id, clean_block);
+    let file_path = format!("{}/{}", dir_path, safe_filename);
+    let relative_url = format!("/uploads/sheets/{}/{}/{}", clean_sheet_id, clean_block, safe_filename);
+
+    // 1. Criar diretórios e salvar no disco
+    tokio::fs::create_dir_all(&dir_path).await
+        .map_err(|e| ServerFnError::new(format!("Falha ao criar diretório de upload: {}", e)))?;
+    tokio::fs::write(&file_path, &bytes).await
+        .map_err(|e| ServerFnError::new(format!("Falha ao gravar arquivo em disco: {}", e)))?;
+
+    // 2. Gravar backup relacional no SQLite
+    sqlx::query(
+        "INSERT OR REPLACE INTO media_assets (id, sheet_id, block, file_path, mime_type, size_bytes, data_blob) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    )
+    .bind(&asset_id)
+    .bind(&clean_sheet_id)
+    .bind(&clean_block)
+    .bind(&file_path)
+    .bind(&mime_type)
+    .bind(bytes.len() as i64)
+    .bind(&bytes)
+    .execute(&pool)
+    .await
+    .map_err(|e| ServerFnError::new(format!("Falha ao registrar backup no banco: {}", e)))?;
+
+    crate::logging::server::write_log(
+        crate::logging::LogCategory::Database,
+        "INFO",
+        &format!("Upload de imagem salvo com sucesso: {} ({} bytes)", relative_url, bytes.len()),
+        None,
+    );
+
+    Ok(relative_url)
+}
+
 // ==========================================
 // Unit Tests
 // ==========================================
@@ -1615,7 +1706,7 @@ mod tests {
         let mut char_data = res.unwrap();
         char_data.sanitize();
 
-        assert_eq!(char_data.wonders.len(), 1);
+        assert_eq!(char_data.wonders.len(), 4);
         let wonder = &char_data.wonders[0];
         assert_eq!(wonder.name, "Grimório Antigo");
         assert_eq!(wonder.points.level, 5);
@@ -1644,6 +1735,7 @@ mod tests {
             let mut char_data = res.unwrap();
             char_data.sanitize();
             assert!(!char_data.name.is_empty(), "Sanitize should ensure non-empty name");
+            assert_eq!(char_data.wonders.len(), 4, "Sanitize should ensure 4 wonder slots");
         }
     }
 
@@ -1680,7 +1772,7 @@ mod tests {
         assert_eq!(data.get_attribute_level("Destreza", 0), 3);
         assert_eq!(data.get_attribute_level("Vigor", 0), 5);
         assert_eq!(data.get_label("Conceito"), "Sobrevivente");
-        assert_eq!(data.wonders.len(), 1);
+        assert_eq!(data.wonders.len(), 4);
         assert_eq!(data.wonders[0].name, "Amuleto");
         assert_eq!(data.wonders[0].points.level, 2);
     }
