@@ -41,6 +41,59 @@ pub fn MagicSection() -> impl IntoView {
         });
     };
 
+    let on_image_file_change = move |idx: usize, ev: ev::Event| {
+        #[cfg(target_arch = "wasm32")]
+        {
+            use web_sys::{FileReader, HtmlInputElement};
+            use wasm_bindgen::JsCast;
+            use wasm_bindgen::closure::Closure;
+
+            let input: HtmlInputElement = event_target(&ev);
+            if let Some(files) = input.files() {
+                if let Some(file) = files.get(0) {
+                    let max_size = 10 * 1024 * 1024; // 10MB
+                    if file.size() as usize > max_size {
+                        if let Some(w) = web_sys::window() {
+                            let _ = w.alert_with_message("A imagem deve ter no máximo 10MB.");
+                        }
+                        return;
+                    }
+
+                    if let Ok(reader) = FileReader::new() {
+                        let reader_clone = reader.clone();
+                        let set_data_clone = set_data.clone();
+                        let onload = Closure::wrap(Box::new(move |_: web_sys::Event| {
+                            if let Ok(result) = reader_clone.result() {
+                                if let Some(data_url) = result.as_string() {
+                                    set_data_clone.update(|s| {
+                                        while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+                                        s.wonders[idx].image_url = data_url;
+                                    });
+                                }
+                            }
+                        }) as Box<dyn FnMut(_)>);
+
+                        reader.set_onload(Some(onload.as_ref().unchecked_ref()));
+                        onload.forget();
+                        let _ = reader.read_as_data_url(&file);
+                    }
+                }
+            }
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let _ = (idx, ev);
+        }
+    };
+
+    let clear_wonder_image = move |idx: usize| {
+        set_data.update(|s| {
+            if let Some(w) = s.wonders.get_mut(idx) {
+                w.image_url = String::new();
+            }
+        });
+    };
+
     let update_wonder_points = move |idx: usize, new_lvl: i32, origin: DotOrigin| {
         set_data.update(|s| {
             while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
@@ -164,18 +217,27 @@ pub fn MagicSection() -> impl IntoView {
                     </button>
                 </div>
 
-                // Bloco de Imagem do Item (opcional / expansível)
+                // Bloco de Imagem do Item (Upload de até 10MB ou Link URL)
                 {move || {
                     let url = current_image_url.get();
                     let is_visible = show_image_field.get() || !url.is_empty();
                     if is_visible {
                         view! {
                             <div class="wonder-image-section">
-                                <div class="wonder-image-input-row">
+                                <div class="wonder-image-controls-grid">
+                                    <label class="wonder-file-upload-label" title="Upload de imagem local (até 10MB)">
+                                        "📁 Escolher Imagem (até 10MB)"
+                                        <input 
+                                            type="file" 
+                                            accept="image/*" 
+                                            class="wonder-hidden-file-input"
+                                            on:change=move |ev| on_image_file_change(idx, ev)
+                                        />
+                                    </label>
                                     <input 
                                         type="text" 
                                         class="wonder-image-url-input"
-                                        placeholder="https://... Link da Imagem do Item/Artefato"
+                                        placeholder="Ou cole a URL da imagem (https://...)"
                                         prop:value=move || current_image_url.get()
                                         on:change=move |ev| update_wonder_image(idx, event_target_value(&ev))
                                         on:blur=move |ev| update_wonder_image(idx, event_target_value(&ev))
@@ -190,6 +252,14 @@ pub fn MagicSection() -> impl IntoView {
                                                 class="wonder-image-preview"
                                                 loading="lazy"
                                             />
+                                            <button 
+                                                type="button" 
+                                                class="wonder-remove-image-btn" 
+                                                on:click=move |_| clear_wonder_image(idx)
+                                                title="Remover Imagem"
+                                            >
+                                                "✕ Remover Imagem"
+                                            </button>
                                         </div>
                                     }.into_view()
                                 } else {
@@ -240,7 +310,7 @@ pub fn MagicSection() -> impl IntoView {
                     />
                 </div>
 
-                // 4. Bloco de Quintessência (5 a 20 pontos, com quebra elegante)
+                // 4. Bloco de Quintessência (5 a 20 pontos, todos na mesma linha reta)
                 <div class="wonder-quintessence-row">
                     <div class="wonder-quint-header">
                         <span class="wonder-stat-label">"Quintessência:"</span>

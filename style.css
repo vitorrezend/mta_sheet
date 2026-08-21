@@ -2988,6 +2988,37 @@ body {
     padding: 6px;
 }
 
+.wonder-image-controls-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.wonder-file-upload-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #334155;
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.wonder-file-upload-label:hover {
+    background: #cbd5e1;
+    color: #0f172a;
+}
+
+.wonder-hidden-file-input {
+    display: none;
+}
+
 .wonder-image-url-input {
     width: 100%;
     font-size: 0.72rem;
@@ -2999,12 +3030,17 @@ body {
     outline: none;
 }
 
+.wonder-image-url-input:focus {
+    border-color: #6366f1;
+}
+
 .wonder-image-preview-wrapper {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    max-height: 120px;
-    overflow: hidden;
+    gap: 4px;
+    padding: 4px;
     border-radius: 4px;
     background: #0f172a;
 }
@@ -3013,7 +3049,25 @@ body {
     max-width: 100%;
     max-height: 120px;
     object-fit: contain;
-    border-radius: 4px;
+    border-radius: 3px;
+}
+
+.wonder-remove-image-btn {
+    background: transparent;
+    border: 1px solid #f87171;
+    color: #fca5a5;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.wonder-remove-image-btn:hover {
+    background: #fee2e2;
+    color: #b91c1c;
+    border-color: #ef4444;
 }
 
 .wonder-stat-row-block {
@@ -3024,24 +3078,42 @@ body {
 }
 
 .wonder-stat-row-block .value-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     width: 100%;
+    gap: 6px;
 }
 
-.wonder-stat-row-block .dots-container {
-    flex-wrap: wrap;
-    gap: 3px;
+.wonder-stat-row-block .trait-label {
+    display: flex;
+    align-items: baseline;
+    min-width: 78px;
+    flex-shrink: 0;
 }
 
-.wonder-stat-label {
-    font-size: 0.68rem;
+.wonder-stat-row-block .trait-name {
+    font-size: 0.7rem;
     font-weight: 700;
-    color: #475569;
+    color: #334155;
+    white-space: nowrap;
     text-transform: uppercase;
 }
 
-.wonder-dots .dot {
-    width: 11px;
-    height: 11px;
+.wonder-stat-row-block .dots-container {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 2.2px;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.wonder-stat-row-block .dot {
+    width: 9.5px;
+    height: 9.5px;
+    min-width: 9.5px;
+    min-height: 9.5px;
+    flex-shrink: 0;
 }
 
 .wonder-quintessence-row {
@@ -3098,15 +3170,23 @@ body {
 
 .wonder-squares-container {
     display: flex;
-    flex-wrap: wrap;
-    gap: 4.5px;
+    flex-wrap: nowrap;
+    gap: 3.5px;
     align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+    padding-bottom: 1px;
 }
 
 .wonder-square {
-    width: 12px;
-    height: 12px;
-    border: 1.8px solid var(--primary-color);
+    width: 9.5px;
+    height: 9.5px;
+    min-width: 9.5px;
+    min-height: 9.5px;
+    flex-shrink: 0;
+    border: 1.5px solid var(--primary-color);
     cursor: pointer;
     display: inline-block;
     box-sizing: border-box;
