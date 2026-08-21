@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::components::label_field::LabelField;
+use super::LabelField;
 use crate::state::CharacterData;
 
 #[component]

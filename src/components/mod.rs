@@ -1,39 +1,36 @@
-pub mod home;
-pub mod character_sheet;
-pub mod sheet;
-pub mod value_field;
-pub mod attributes;
-pub mod label_field;
-pub mod label_column;
-pub mod info_header;
-pub mod info_header_fields;
-pub mod abilities;
-pub mod spheres;
-pub mod advantages_mta;
-pub mod navbar;
-pub mod auth_page;
-pub mod rooms_page;
-pub mod room_view;
-pub mod character_profile;
-pub mod page2;
-pub mod logs_page;
-pub mod stable_textarea;
+#![allow(unused_imports)]
 
-pub use home::Home;
-pub use character_sheet::CharacterSheet;
-pub use sheet::Sheet;
-pub use value_field::ValueField;
-pub use attributes::Attributes;
-pub use info_header::InfoHeader;
-pub use abilities::Abilities;
-pub use spheres::Spheres;
-pub use advantages_mta::AdvantagesMta;
-pub use label_field::LabelField;
-pub use navbar::Navbar;
-pub use auth_page::AuthPage;
-pub use rooms_page::RoomsPage;
-pub use room_view::RoomView;
-pub use character_profile::CharacterProfile;
-pub use page2::PageMagicCombat;
-pub use logs_page::LogsPage;
-pub use stable_textarea::{StableTextArea, StableTextInput};
+pub mod common;
+pub mod page1;
+pub mod page2;
+pub mod profile;
+pub mod rooms;
+pub mod sheet;
+pub mod views;
+
+// Re-export common UI components
+pub use common::{LabelColumn, LabelField, Navbar, Sheet, StableTextArea, StableTextInput, ValueField};
+
+// Re-export Page 1 components
+pub use page1::{Abilities, AdvantagesMta, Attributes, InfoHeader, Spheres};
+
+// Re-export Page 2 components
+pub use page2::{CombatSection, MagicSection, MeritsFlaws, OtherTraits, PageMagicCombat};
+
+// Re-export Profile components
+pub use profile::CharacterProfile;
+
+// Re-export Rooms components
+pub use rooms::{RoomView, RoomsPage};
+
+// Re-export Sheet orchestration components
+pub use sheet::{ActiveDotOriginContext, CostBreakdownModal, SaveStatus, SheetPageTab, SheetTabs, SheetTopBar};
+
+// Re-export Views / Top-level Pages
+pub use views::{AuthPage, CharacterSheet, Home, LogsPage};
+
+// Compatibility module for legacy imports
+pub mod character_sheet {
+    pub use crate::components::sheet::ActiveDotOriginContext;
+    pub use crate::components::views::character_sheet::*;
+}

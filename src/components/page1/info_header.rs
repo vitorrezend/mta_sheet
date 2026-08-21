@@ -1,6 +1,6 @@
 use leptos::*;
-use crate::components::label_column::LabelColumn;
-use crate::components::info_header_fields::*;
+use crate::components::common::LabelColumn;
+use super::info_header_fields::*;
 
 #[component]
 pub fn InfoHeader() -> impl IntoView {
