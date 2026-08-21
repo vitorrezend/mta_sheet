@@ -368,8 +368,21 @@ pub struct ArmorItem {
 pub struct CharacterSummary {
     pub id: String,
     pub name: String,
+    #[serde(default)]
+    pub tradition: String,
+    #[serde(default)]
+    pub essence: String,
+    #[serde(default = "default_arete")]
+    pub arete: i32,
+    #[serde(default = "default_willpower")]
+    pub willpower: i32,
+    #[serde(default)]
+    pub photo_url: String,
     pub updated_at: String,
 }
+
+fn default_arete() -> i32 { 1 }
+fn default_willpower() -> i32 { 5 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct ExpandedBackgroundsData {

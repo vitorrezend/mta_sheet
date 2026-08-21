@@ -102,29 +102,107 @@ pub fn Home() -> impl IntoView {
                             <p class="empty-msg">"Nenhuma ficha encontrada. Comece criando uma nova acima!"</p> 
                         }.into_view(),
                         Ok(data) => view! {
-                            <ul class="sheet-list">
+                            <div class="character-cards-grid">
                                 {data.into_iter().map(|summary| {
                                     let summary_clone = summary.clone();
                                     let id = summary.id.clone();
+                                    let photo = summary.photo_url.clone();
+                                    let has_photo = !photo.is_empty();
+                                    let tradition_display = if !summary.tradition.is_empty() {
+                                        summary.tradition.clone()
+                                    } else {
+                                        "Tradição não definida".to_string()
+                                    };
+                                    let essence_display = if !summary.essence.is_empty() {
+                                        summary.essence.clone()
+                                    } else {
+                                        "Mago Desperto".to_string()
+                                    };
+                                    let arete_val = summary.arete;
+                                    let wp_val = summary.willpower;
+                                    let date_display = summary.updated_at.split(' ').next().unwrap_or(&summary.updated_at).to_string();
+                                    let updated_at_full = summary.updated_at.clone();
+
                                     view! {
-                                        <li class="sheet-item">
-                                            <A href=format!("/sheet/{}", id) class="sheet-link">
-                                                <div class="sheet-info">
-                                                    <span class="sheet-name">{summary.name}</span>
-                                                    <span class="sheet-date">{summary.updated_at}</span>
+                                        <div class="character-card">
+                                            <div class="card-portrait-box">
+                                                {if has_photo {
+                                                    view! {
+                                                        <img
+                                                            src=photo
+                                                            alt=summary.name.clone()
+                                                            class="card-portrait-img"
+                                                        />
+                                                    }.into_view()
+                                                } else {
+                                                    view! {
+                                                        <div class="card-portrait-placeholder">
+                                                            <span class="placeholder-icon">"🔮"</span>
+                                                            <span class="placeholder-tag">"Sem Imagem"</span>
+                                                        </div>
+                                                    }.into_view()
+                                                }}
+                                            </div>
+
+                                            <div class="card-content">
+                                                <div class="card-header-info">
+                                                    <h3 class="card-name" title=summary.name.clone()>{summary.name.clone()}</h3>
+                                                    <div class="card-meta-tags">
+                                                        <span class="meta-tag tradition-tag">{tradition_display}</span>
+                                                        <span class="meta-tag essence-tag">{essence_display}</span>
+                                                    </div>
                                                 </div>
-                                            </A>
-                                            <button
-                                                class="delete-btn"
-                                                on:click=move |_| set_sheet_to_delete.set(Some(summary_clone.clone()))
-                                                title="Excluir ficha"
-                                            >
-                                                "×"
-                                            </button>
-                                        </li>
+
+                                                <div class="card-stats-preview">
+                                                    <div class="card-stat-item">
+                                                        <span class="stat-label">"Arete"</span>
+                                                        <div class="stat-dots arete-dots">
+                                                            {(1..=5).map(|idx| {
+                                                                let filled = idx <= arete_val;
+                                                                view! {
+                                                                    <span class=if filled { "stat-dot filled-arete" } else { "stat-dot empty-dot" }></span>
+                                                                }
+                                                            }).collect_view()}
+                                                        </div>
+                                                        <span class="stat-number">{arete_val}</span>
+                                                    </div>
+
+                                                    <div class="card-stat-item">
+                                                        <span class="stat-label">"Vontade"</span>
+                                                        <div class="stat-dots wp-dots">
+                                                            {(1..=10).map(|idx| {
+                                                                let filled = idx <= wp_val;
+                                                                view! {
+                                                                    <span class=if filled { "stat-dot filled-wp" } else { "stat-dot empty-dot" }></span>
+                                                                }
+                                                            }).collect_view()}
+                                                        </div>
+                                                        <span class="stat-number">{wp_val}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="card-footer">
+                                                    <span class="card-date" title=format!("Atualizado em {}", updated_at_full)>
+                                                        "🕒 " {date_display}
+                                                    </span>
+                                                    <div class="card-actions">
+                                                        <A href=format!("/sheet/{}", id) class="card-open-btn">
+                                                            "Abrir 📜"
+                                                        </A>
+                                                        <button
+                                                            class="card-delete-btn"
+                                                            on:click=move |_| set_sheet_to_delete.set(Some(summary_clone.clone()))
+                                                            title="Excluir ficha"
+                                                        >
+                                                            "🗑️"
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     }
                                 }).collect_view()}
-                            </ul>
+                            </div>
                         }.into_view(),
                         Err(e) => view! { 
                             <div class="alert-box alert-error">

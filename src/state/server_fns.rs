@@ -14,7 +14,7 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
     })?;
 
     let start = std::time::Instant::now();
-    let rows = sqlx::query("SELECT id, name, updated_at FROM character_sheets ORDER BY updated_at DESC")
+    let rows = sqlx::query("SELECT id, name, data, updated_at FROM character_sheets ORDER BY updated_at DESC")
         .fetch_all(&pool)
         .await
         .map_err(|e: sqlx::Error| {
@@ -23,10 +23,50 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
         })?;
 
     let count = rows.len();
-    let summaries = rows.into_iter().map(|row| CharacterSummary {
-        id: row.get("id"),
-        name: row.get("name"),
-        updated_at: row.get("updated_at"),
+    let summaries = rows.into_iter().map(|row| {
+        let id: String = row.get("id");
+        let name: String = row.get("name");
+        let data_json: String = row.get("data");
+        let updated_at: String = row.get("updated_at");
+
+        let mut tradition = String::new();
+        let mut essence = String::new();
+        let mut arete = 1;
+        let mut willpower = 5;
+        let mut photo_url = String::new();
+
+        if let Ok(data) = serde_json::from_str::<CharacterData>(&data_json) {
+            tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
+            essence = data.labels.get("Essência").cloned().unwrap_or_default();
+            arete = data.arete;
+            willpower = data.advantages.willpower;
+            photo_url = if !data.visuals.character_sketch_url.is_empty() {
+                data.visuals.character_sketch_url.clone()
+            } else {
+                data.get_profile_photo()
+            };
+        } else if let Some(data) = CharacterData::from_raw_json_resilient(&id, &data_json) {
+            tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
+            essence = data.labels.get("Essência").cloned().unwrap_or_default();
+            arete = data.arete;
+            willpower = data.advantages.willpower;
+            photo_url = if !data.visuals.character_sketch_url.is_empty() {
+                data.visuals.character_sketch_url.clone()
+            } else {
+                data.get_profile_photo()
+            };
+        }
+
+        CharacterSummary {
+            id,
+            name,
+            tradition,
+            essence,
+            arete,
+            willpower,
+            photo_url,
+            updated_at,
+        }
     }).collect();
 
     crate::logging::server::write_log(

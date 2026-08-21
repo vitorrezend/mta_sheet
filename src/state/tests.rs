@@ -441,4 +441,39 @@ mod tests {
         let garbage = b"random string without image signature";
         assert!(validate_image_magic_bytes(garbage).is_err());
     }
+
+    #[test]
+    fn test_character_summary_enriched_serialization() {
+        use crate::state::models::CharacterSummary;
+
+        let summary = CharacterSummary {
+            id: "mago_777".to_string(),
+            name: "John Constantine".to_string(),
+            tradition: "Culto do Êxtase".to_string(),
+            essence: "Dinâmica".to_string(),
+            arete: 4,
+            willpower: 8,
+            photo_url: "/uploads/john.webp".to_string(),
+            updated_at: "2026-08-21 17:00:00".to_string(),
+        };
+
+        let json = serde_json::to_string(&summary).unwrap();
+        let recovered: CharacterSummary = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(recovered.id, "mago_777");
+        assert_eq!(recovered.name, "John Constantine");
+        assert_eq!(recovered.tradition, "Culto do Êxtase");
+        assert_eq!(recovered.essence, "Dinâmica");
+        assert_eq!(recovered.arete, 4);
+        assert_eq!(recovered.willpower, 8);
+        assert_eq!(recovered.photo_url, "/uploads/john.webp");
+
+        // Backward compatibility: old JSON without the new fields
+        let legacy_json = r#"{"id":"legacy_1","name":"Mago Antigo","updated_at":"2026-08-20"}"#;
+        let legacy_recovered: CharacterSummary = serde_json::from_str(legacy_json).unwrap();
+        assert_eq!(legacy_recovered.name, "Mago Antigo");
+        assert_eq!(legacy_recovered.arete, 1);
+        assert_eq!(legacy_recovered.willpower, 5);
+        assert!(legacy_recovered.photo_url.is_empty());
+    }
 }
