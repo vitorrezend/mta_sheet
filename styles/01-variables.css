@@ -264,6 +264,12 @@ body {
     box-shadow: 0 0 4px rgba(245, 158, 11, 0.4);
 }
 
+.filled-sphere {
+    background-color: #a855f7;
+    border-color: #7e22ce;
+    box-shadow: 0 0 3px rgba(168, 85, 247, 0.5);
+}
+
 .empty-dot {
     background: transparent;
 }
@@ -274,6 +280,60 @@ body {
     font-size: 0.82rem;
     min-width: 14px;
     text-align: right;
+}
+
+/* Spheres Preview on Card */
+.card-spheres-preview {
+    background: #faf5ff;
+    border: 1px solid #f3e8ff;
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.spheres-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #7e22ce;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.no-spheres-tag {
+    font-size: 0.78rem;
+    color: #9333ea;
+    font-style: italic;
+}
+
+.spheres-chips-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.sphere-chip {
+    background: #ffffff;
+    border: 1px solid #e9d5ff;
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.sphere-chip-title {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #581c87;
+}
+
+.sphere-chip-dots {
+    display: inline-flex;
+    gap: 2.5px;
+    align-items: center;
 }
 
 .card-footer {

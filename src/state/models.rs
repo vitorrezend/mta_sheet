@@ -378,6 +378,8 @@ pub struct CharacterSummary {
     pub willpower: i32,
     #[serde(default)]
     pub photo_url: String,
+    #[serde(default)]
+    pub active_spheres: Vec<(String, i32)>,
     pub updated_at: String,
 }
 

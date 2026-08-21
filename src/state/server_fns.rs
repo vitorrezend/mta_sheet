@@ -34,6 +34,7 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
         let mut arete = 1;
         let mut willpower = 5;
         let mut photo_url = String::new();
+        let mut active_spheres = Vec::new();
 
         if let Ok(data) = serde_json::from_str::<CharacterData>(&data_json) {
             tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
@@ -45,6 +46,12 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
             } else {
                 data.get_profile_photo()
             };
+            for sphere in crate::state::models::STANDARD_SPHERES {
+                let lvl = data.get_attribute_level(sphere, 0);
+                if lvl > 0 {
+                    active_spheres.push((sphere.to_string(), lvl));
+                }
+            }
         } else if let Some(data) = CharacterData::from_raw_json_resilient(&id, &data_json) {
             tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
             essence = data.labels.get("Essência").cloned().unwrap_or_default();
@@ -55,6 +62,12 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
             } else {
                 data.get_profile_photo()
             };
+            for sphere in crate::state::models::STANDARD_SPHERES {
+                let lvl = data.get_attribute_level(sphere, 0);
+                if lvl > 0 {
+                    active_spheres.push((sphere.to_string(), lvl));
+                }
+            }
         }
 
         CharacterSummary {
@@ -65,6 +78,7 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
             arete,
             willpower,
             photo_url,
+            active_spheres,
             updated_at,
         }
     }).collect();

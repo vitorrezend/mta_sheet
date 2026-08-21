@@ -181,6 +181,37 @@ pub fn Home() -> impl IntoView {
                                                     </div>
                                                 </div>
 
+                                                <div class="card-spheres-preview">
+                                                    <span class="spheres-label">"Esferas"</span>
+                                                    {if summary.active_spheres.is_empty() {
+                                                        view! {
+                                                            <span class="no-spheres-tag">"Nenhuma esfera pontuada"</span>
+                                                        }.into_view()
+                                                    } else {
+                                                        view! {
+                                                            <div class="spheres-chips-grid">
+                                                                {summary.active_spheres.iter().map(|(sphere_name, lvl)| {
+                                                                    let s_name = sphere_name.clone();
+                                                                    let s_lvl = *lvl;
+                                                                    view! {
+                                                                        <div class="sphere-chip" title=format!("{}: nível {}", s_name, s_lvl)>
+                                                                            <span class="sphere-chip-title">{s_name}</span>
+                                                                            <div class="sphere-chip-dots">
+                                                                                {(1..=5).map(|dot_i| {
+                                                                                    let filled = dot_i <= s_lvl;
+                                                                                    view! {
+                                                                                        <span class=if filled { "stat-dot filled-sphere" } else { "stat-dot empty-dot" }></span>
+                                                                                    }
+                                                                                }).collect_view()}
+                                                                            </div>
+                                                                        </div>
+                                                                    }
+                                                                }).collect_view()}
+                                                            </div>
+                                                        }.into_view()
+                                                    }}
+                                                </div>
+
                                                 <div class="card-footer">
                                                     <span class="card-date" title=format!("Atualizado em {}", updated_at_full)>
                                                         "🕒 " {date_display}
