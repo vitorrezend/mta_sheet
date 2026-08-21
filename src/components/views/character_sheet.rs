@@ -46,8 +46,27 @@ pub fn CharacterSheet() -> impl IntoView {
 
     let is_mounted = std::rc::Rc::new(std::cell::Cell::new(true));
     let is_mounted_cleanup = is_mounted.clone();
+    let change_seq = std::rc::Rc::new(std::cell::Cell::new(0u64));
+
+    // Salva automaticamente no unmount (ao navegar para qualquer outro lugar da aplicação)
     on_cleanup(move || {
         is_mounted_cleanup.set(false);
+        if is_dirty.try_get_untracked().unwrap_or(false) {
+            let current_id = get_id_untracked();
+            if let Some(current_data) = data.try_get_untracked() {
+                if !current_id.is_empty() {
+                    spawn_local(async move {
+                        let _ = update_sheet(current_id.clone(), current_data).await;
+                        crate::logging::log_client(
+                            "user_actions",
+                            "INFO",
+                            "Ficha salva automaticamente ao sair da página (on_cleanup)",
+                            Some(&format!("id={}", current_id)),
+                        );
+                    });
+                }
+            }
+        }
     });
 
     create_effect(move |_| {
@@ -65,16 +84,59 @@ pub fn CharacterSheet() -> impl IntoView {
         }
     });
 
-    // Marca o formulário como alterado (dirty) quando qualquer dado muda
+    // Marca o formulário como alterado (dirty) e dispara auto-save inteligente (Debounce de 1.2s)
+    let change_seq_dirty = change_seq.clone();
+    let is_mounted_dirty = is_mounted.clone();
     create_effect(move |_| {
         data.track();
         if is_loaded.try_get_untracked().unwrap_or(false) {
             let _ = set_is_dirty.try_set(true);
             let _ = set_save_status.try_set(SaveStatus::Pending);
+
+            let next_seq = change_seq_dirty.get() + 1;
+            change_seq_dirty.set(next_seq);
+
+            let seq_check = change_seq_dirty.clone();
+            let is_mounted_task = is_mounted_dirty.clone();
+
+            spawn_local(async move {
+                gloo_timers::future::TimeoutFuture::new(1_200).await;
+                if seq_check.get() == next_seq && is_dirty.try_get_untracked().unwrap_or(false) {
+                    let current_id = get_id_untracked();
+                    if let Some(current_data) = data.try_get_untracked() {
+                        if !current_id.is_empty() {
+                            if is_mounted_task.get() {
+                                let _ = set_save_status.try_set(SaveStatus::Saving);
+                            }
+                            match update_sheet(current_id.clone(), current_data).await {
+                                Ok(_) => {
+                                    if seq_check.get() == next_seq {
+                                        let _ = set_is_dirty.try_set(false);
+                                        if is_mounted_task.get() {
+                                            let _ = set_save_status.try_set(SaveStatus::Saved(get_current_time_str()));
+                                        }
+                                        crate::logging::log_client(
+                                            "database",
+                                            "INFO",
+                                            "Auto-save inteligente (debounce 1.2s) executado com sucesso",
+                                            Some(&format!("id={}", current_id)),
+                                        );
+                                    }
+                                }
+                                Err(e) => {
+                                    if is_mounted_task.get() {
+                                        let _ = set_save_status.try_set(SaveStatus::Error(e.to_string()));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
     });
 
-    // Salvamento Automático em Background a cada 30 segundos
+    // Salvamento Periódico como redundância de segurança a cada 30 segundos
     let is_mounted_loop = is_mounted.clone();
     create_effect(move |_| {
         if is_loaded.get() {
@@ -86,7 +148,6 @@ pub fn CharacterSheet() -> impl IntoView {
                         break;
                     }
 
-                    // Se o componente foi desmontado/descartado, interrompe o loop suavemente
                     let current_data = match data.try_get_untracked() {
                         Some(d) => d,
                         None => break,
@@ -100,22 +161,10 @@ pub fn CharacterSheet() -> impl IntoView {
                                 Ok(_) => {
                                     if !is_mounted_task.get() { break; }
                                     let _ = set_is_dirty.try_set(false);
-                                    crate::logging::log_client(
-                                        "database",
-                                        "INFO",
-                                        "Auto-save periódico (30s) executado com sucesso",
-                                        Some(&format!("id={}", current_id)),
-                                    );
                                     let _ = set_save_status.try_set(SaveStatus::Saved(get_current_time_str()));
                                 }
                                 Err(e) => {
                                     if !is_mounted_task.get() { break; }
-                                    crate::logging::log_client(
-                                        "errors",
-                                        "ERROR",
-                                        "Falha no auto-save periódico (30s)",
-                                        Some(&e.to_string()),
-                                    );
                                     let _ = set_save_status.try_set(SaveStatus::Error(e.to_string()));
                                 }
                             }
