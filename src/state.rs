@@ -96,10 +96,14 @@ impl DamageType {
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum DotOrigin {
     #[default]
-    Base,        // Criação de Ficha (Preto clássico)
-    Bonus,       // Pontos de Bônus / Freebies (Roxo Ametista)
-    Experience,  // Experiência / XP (Verde Esmeralda)
-    Temporary,   // Feitiço / Wonder / Buff (Dourado Solar)
+    #[serde(alias = "base", alias = "Base")]
+    Base,
+    #[serde(alias = "bonus", alias = "Bonus")]
+    Bonus,
+    #[serde(alias = "experience", alias = "Experience", alias = "xp", alias = "XP")]
+    Experience,
+    #[serde(alias = "temporary", alias = "Temporary", alias = "temp", alias = "Temp")]
+    Temporary,
 }
 
 impl DotOrigin {
@@ -363,9 +367,13 @@ pub struct ArmorItem {
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct CharacterData {
     pub id: String,
+    #[serde(default)]
     pub name: String,
+    #[serde(default)]
     pub attributes: HashMap<String, AttributeValue>,
+    #[serde(default)]
     pub labels: HashMap<String, String>,
+    #[serde(default)]
     pub custom_lists: HashMap<String, Vec<String>>,
     
     // Page 2: Magic & Combat
@@ -1023,6 +1031,77 @@ impl CharacterData {
             self.weapons.push(WeaponItem::default());
         }
     }
+
+    /// Resilient JSON recovery for backwards compatibility and damaged data
+    pub fn from_raw_json_resilient(id: &str, raw_json: &str) -> Option<Self> {
+        let val: serde_json::Value = serde_json::from_str(raw_json).ok()?;
+        let mut char_data = CharacterData::new(id.to_string(), "Personagem Recuperado".to_string());
+
+        if let Some(name) = val.get("name").and_then(|v| v.as_str()) {
+            char_data.name = name.to_string();
+        }
+
+        if let Some(attrs) = val.get("attributes").and_then(|v| v.as_object()) {
+            for (k, v) in attrs {
+                if let Ok(attr) = serde_json::from_value::<AttributeValue>(v.clone()) {
+                    char_data.attributes.insert(k.clone(), attr);
+                } else if let Some(n) = v.as_i64() {
+                    char_data.attributes.insert(k.clone(), AttributeValue::new(n as i32, String::new()));
+                } else if let Some(s) = v.as_str() {
+                    let n = s.trim().parse::<i32>().unwrap_or(0);
+                    char_data.attributes.insert(k.clone(), AttributeValue::new(n, String::new()));
+                }
+            }
+        }
+
+        if let Some(labels) = val.get("labels").and_then(|v| v.as_object()) {
+            for (k, v) in labels {
+                if let Some(s) = v.as_str() {
+                    char_data.labels.insert(k.clone(), s.to_string());
+                }
+            }
+        }
+
+        if let Some(lists) = val.get("custom_lists").and_then(|v| v.as_object()) {
+            for (k, v) in lists {
+                if let Some(arr) = v.as_array() {
+                    let list: Vec<String> = arr.iter().filter_map(|x| x.as_str().map(|s| s.to_string())).collect();
+                    char_data.custom_lists.insert(k.clone(), list);
+                }
+            }
+        }
+
+        if let Some(wonders) = val.get("wonders").and_then(|v| v.as_array()) {
+            char_data.wonders.clear();
+            for w in wonders {
+                if let Ok(wonder) = serde_json::from_value::<WonderItem>(w.clone()) {
+                    char_data.wonders.push(wonder);
+                }
+            }
+        }
+
+        if let Some(weapons) = val.get("weapons").and_then(|v| v.as_array()) {
+            char_data.weapons.clear();
+            for w in weapons {
+                if let Ok(weapon) = serde_json::from_value::<WeaponItem>(w.clone()) {
+                    char_data.weapons.push(weapon);
+                }
+            }
+        }
+
+        if let Some(armor) = val.get("armor") {
+            if let Ok(a) = serde_json::from_value::<ArmorItem>(armor.clone()) {
+                char_data.armor = a;
+            }
+        }
+
+        if let Some(rotes) = val.get("rotes").and_then(|v| v.as_str()) {
+            char_data.rotes = rotes.to_string();
+        }
+
+        char_data.sanitize();
+        Some(char_data)
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
@@ -1097,10 +1176,26 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
         })?;
 
     let data_json: String = row.get("data");
-    let mut data: CharacterData = serde_json::from_str(&data_json).map_err(|e: serde_json::Error| {
-        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Corrupted JSON for sheet {}", id), Some(&e.to_string()));
-        ServerFnError::new(format!("Dados da ficha corrompidos: {}", e))
-    })?;
+    let mut data: CharacterData = match serde_json::from_str(&data_json) {
+        Ok(d) => d,
+        Err(e) => {
+            crate::logging::server::write_log(
+                crate::logging::LogCategory::Errors,
+                "WARN",
+                &format!("JSON parsing falhou para ficha {}. Tentando recuperação resiliente...", id),
+                Some(&e.to_string()),
+            );
+            CharacterData::from_raw_json_resilient(&id, &data_json).ok_or_else(|| {
+                crate::logging::server::write_log(
+                    crate::logging::LogCategory::Errors,
+                    "ERROR",
+                    &format!("Corrupted JSON for sheet {}", id),
+                    Some(&e.to_string()),
+                );
+                ServerFnError::new(format!("Dados da ficha corrompidos: {}", e))
+            })?
+        }
+    };
 
     data.sanitize();
     crate::logging::server::write_log(
@@ -1523,5 +1618,66 @@ mod tests {
         assert_eq!(wonder.arete.level, 3);
         assert_eq!(wonder.quintessence_max, 5);
         assert_eq!(wonder.quintessence_current, 4);
+    }
+
+    #[test]
+    fn test_schema_evolution_fuzzing_all_field_type_permutations() {
+        // Test combinations: numbers, numeric strings, empty strings, missing fields
+        let permutations = vec![
+            // 1. All strings format
+            r#"{"id":"fuzz_1","name":"Fuzz 1","attributes":{"Força":{"level":"4","modifier":"","dot_origins":[]}},"labels":{},"custom_lists":{},"wonders":[{"name":"W1","points":"3","arete":"2","quintessence":"5","description":""}]}"#,
+            // 2. All numbers format
+            r#"{"id":"fuzz_2","name":"Fuzz 2","attributes":{"Força":{"level":4,"modifier":"","dot_origins":[]}},"labels":{},"custom_lists":{},"wonders":[{"name":"W2","points":{"level":3,"modifier":"","dot_origins":[]},"arete":{"level":2,"modifier":"","dot_origins":[]},"quintessence_max":10,"quintessence_current":5,"description":""}]}"#,
+            // 3. Mixed empty strings and defaults
+            r#"{"id":"fuzz_3","name":"","attributes":{},"labels":{},"custom_lists":{},"wonders":[{"name":"W3","points":"","arete":"","quintessence":"","description":""}]}"#,
+            // 4. Missing fields entirely
+            r#"{"id":"fuzz_4","name":"Fuzz 4","attributes":{}}"#,
+        ];
+
+        for (idx, json_str) in permutations.into_iter().enumerate() {
+            let res: Result<CharacterData, _> = serde_json::from_str(json_str);
+            assert!(res.is_ok(), "Permutation {} failed to deserialize: {:?}", idx + 1, res.err());
+            let mut char_data = res.unwrap();
+            char_data.sanitize();
+            assert!(!char_data.name.is_empty(), "Sanitize should ensure non-empty name");
+        }
+    }
+
+    #[test]
+    fn test_resilient_recovery_from_heavily_corrupted_json() {
+        // Severely mangled JSON with unexpected arrays and mixed structures
+        let broken_json = r#"{
+            "id": "broken_123",
+            "name": "Mago Sobrevivente",
+            "attributes": {
+                "Força": "4",
+                "Destreza": 3,
+                "Vigor": { "level": "5", "modifier": "Resistente", "dot_origins": ["bonus"] }
+            },
+            "labels": {
+                "Conceito": "Sobrevivente",
+                "profile_history": "Histórico longo..."
+            },
+            "custom_lists": {
+                "Talentos": ["tal_1", "tal_2"]
+            },
+            "wonders": [
+                { "name": "Amuleto", "points": "2", "arete": 1, "quintessence": "5" }
+            ],
+            "rotes": "Fórmulas de sobrevivência"
+        }"#;
+
+        let recovered = CharacterData::from_raw_json_resilient("broken_123", broken_json);
+        assert!(recovered.is_some(), "Resilient recovery must succeed on salvageable JSON");
+        let data = recovered.unwrap();
+
+        assert_eq!(data.name, "Mago Sobrevivente");
+        assert_eq!(data.get_attribute_level("Força", 0), 4);
+        assert_eq!(data.get_attribute_level("Destreza", 0), 3);
+        assert_eq!(data.get_attribute_level("Vigor", 0), 5);
+        assert_eq!(data.get_label("Conceito"), "Sobrevivente");
+        assert_eq!(data.wonders.len(), 1);
+        assert_eq!(data.wonders[0].name, "Amuleto");
+        assert_eq!(data.wonders[0].points.level, 2);
     }
 }
