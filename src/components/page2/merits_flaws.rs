@@ -16,7 +16,14 @@ pub fn MeritsFlaws() -> impl IntoView {
                     class="merit-input name-input"
                     placeholder="Nome da qualidade..."
                     prop:value=move || data.with(|d| d.merits.get(idx).map(|m| m.name.clone()).unwrap_or_default())
-                    on:input=move |ev| {
+                    on:change=move |ev| {
+                        let val = event_target_value(&ev);
+                        set_data.update(|s| {
+                            while s.merits.len() <= idx { s.merits.push(MeritItem::default()); }
+                            s.merits[idx].name = val;
+                        });
+                    }
+                    on:blur=move |ev| {
                         let val = event_target_value(&ev);
                         set_data.update(|s| {
                             while s.merits.len() <= idx { s.merits.push(MeritItem::default()); }
@@ -29,7 +36,14 @@ pub fn MeritsFlaws() -> impl IntoView {
                     class="merit-input type-input text-center"
                     placeholder="Tipo"
                     prop:value=move || data.with(|d| d.merits.get(idx).map(|m| m.merit_type.clone()).unwrap_or_default())
-                    on:input=move |ev| {
+                    on:change=move |ev| {
+                        let val = event_target_value(&ev);
+                        set_data.update(|s| {
+                            while s.merits.len() <= idx { s.merits.push(MeritItem::default()); }
+                            s.merits[idx].merit_type = val;
+                        });
+                    }
+                    on:blur=move |ev| {
                         let val = event_target_value(&ev);
                         set_data.update(|s| {
                             while s.merits.len() <= idx { s.merits.push(MeritItem::default()); }
@@ -43,7 +57,14 @@ pub fn MeritsFlaws() -> impl IntoView {
                     max="10"
                     class="merit-input cost-input text-center"
                     prop:value=move || data.with(|d| d.merits.get(idx).map(|m| if m.cost > 0 { m.cost.to_string() } else { String::new() }).unwrap_or_default())
-                    on:input=move |ev| {
+                    on:change=move |ev| {
+                        let val = event_target_value(&ev).parse::<i32>().unwrap_or(0);
+                        set_data.update(|s| {
+                            while s.merits.len() <= idx { s.merits.push(MeritItem::default()); }
+                            s.merits[idx].cost = val;
+                        });
+                    }
+                    on:blur=move |ev| {
                         let val = event_target_value(&ev).parse::<i32>().unwrap_or(0);
                         set_data.update(|s| {
                             while s.merits.len() <= idx { s.merits.push(MeritItem::default()); }
@@ -63,7 +84,14 @@ pub fn MeritsFlaws() -> impl IntoView {
                     class="merit-input name-input"
                     placeholder="Nome do defeito..."
                     prop:value=move || data.with(|d| d.flaws.get(idx).map(|f| f.name.clone()).unwrap_or_default())
-                    on:input=move |ev| {
+                    on:change=move |ev| {
+                        let val = event_target_value(&ev);
+                        set_data.update(|s| {
+                            while s.flaws.len() <= idx { s.flaws.push(FlawItem::default()); }
+                            s.flaws[idx].name = val;
+                        });
+                    }
+                    on:blur=move |ev| {
                         let val = event_target_value(&ev);
                         set_data.update(|s| {
                             while s.flaws.len() <= idx { s.flaws.push(FlawItem::default()); }
@@ -76,7 +104,14 @@ pub fn MeritsFlaws() -> impl IntoView {
                     class="merit-input type-input text-center"
                     placeholder="Tipo"
                     prop:value=move || data.with(|d| d.flaws.get(idx).map(|f| f.flaw_type.clone()).unwrap_or_default())
-                    on:input=move |ev| {
+                    on:change=move |ev| {
+                        let val = event_target_value(&ev);
+                        set_data.update(|s| {
+                            while s.flaws.len() <= idx { s.flaws.push(FlawItem::default()); }
+                            s.flaws[idx].flaw_type = val;
+                        });
+                    }
+                    on:blur=move |ev| {
                         let val = event_target_value(&ev);
                         set_data.update(|s| {
                             while s.flaws.len() <= idx { s.flaws.push(FlawItem::default()); }
@@ -90,7 +125,14 @@ pub fn MeritsFlaws() -> impl IntoView {
                     max="10"
                     class="merit-input cost-input text-center"
                     prop:value=move || data.with(|d| d.flaws.get(idx).map(|f| if f.bonus > 0 { f.bonus.to_string() } else { String::new() }).unwrap_or_default())
-                    on:input=move |ev| {
+                    on:change=move |ev| {
+                        let val = event_target_value(&ev).parse::<i32>().unwrap_or(0);
+                        set_data.update(|s| {
+                            while s.flaws.len() <= idx { s.flaws.push(FlawItem::default()); }
+                            s.flaws[idx].bonus = val;
+                        });
+                    }
+                    on:blur=move |ev| {
                         let val = event_target_value(&ev).parse::<i32>().unwrap_or(0);
                         set_data.update(|s| {
                             while s.flaws.len() <= idx { s.flaws.push(FlawItem::default()); }

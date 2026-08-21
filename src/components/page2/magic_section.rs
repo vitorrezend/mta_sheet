@@ -17,9 +17,16 @@ pub fn MagicSection() -> impl IntoView {
                         <input 
                             type="text" 
                             class="wonder-input"
-                            placeholder="Nome do artefato / maravilha..."
+                            placeholder="Nome da maravilha / artefato..."
                             prop:value=move || data.with(|d| d.wonders.get(idx).map(|w| w.name.clone()).unwrap_or_default())
-                            on:input=move |ev| {
+                            on:change=move |ev| {
+                                let val = event_target_value(&ev);
+                                set_data.update(|s| {
+                                    while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+                                    s.wonders[idx].name = val;
+                                });
+                            }
+                            on:blur=move |ev| {
                                 let val = event_target_value(&ev);
                                 set_data.update(|s| {
                                     while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
@@ -38,7 +45,14 @@ pub fn MagicSection() -> impl IntoView {
                             class="wonder-input text-center"
                             placeholder="Pts"
                             prop:value=move || data.with(|d| d.wonders.get(idx).map(|w| w.points.clone()).unwrap_or_default())
-                            on:input=move |ev| {
+                            on:change=move |ev| {
+                                let val = event_target_value(&ev);
+                                set_data.update(|s| {
+                                    while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+                                    s.wonders[idx].points = val;
+                                });
+                            }
+                            on:blur=move |ev| {
                                 let val = event_target_value(&ev);
                                 set_data.update(|s| {
                                     while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
@@ -55,7 +69,14 @@ pub fn MagicSection() -> impl IntoView {
                             class="wonder-input text-center"
                             placeholder="Arete"
                             prop:value=move || data.with(|d| d.wonders.get(idx).map(|w| w.arete.clone()).unwrap_or_default())
-                            on:input=move |ev| {
+                            on:change=move |ev| {
+                                let val = event_target_value(&ev);
+                                set_data.update(|s| {
+                                    while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+                                    s.wonders[idx].arete = val;
+                                });
+                            }
+                            on:blur=move |ev| {
                                 let val = event_target_value(&ev);
                                 set_data.update(|s| {
                                     while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
@@ -66,13 +87,20 @@ pub fn MagicSection() -> impl IntoView {
                     </div>
 
                     <div class="wonder-field stat-field">
-                        <label class="wonder-label">"Quintessência:"</label>
+                        <label class="wonder-label">"Quint.:"</label>
                         <input 
                             type="text" 
                             class="wonder-input text-center"
                             placeholder="Quint."
                             prop:value=move || data.with(|d| d.wonders.get(idx).map(|w| w.quintessence.clone()).unwrap_or_default())
-                            on:input=move |ev| {
+                            on:change=move |ev| {
+                                let val = event_target_value(&ev);
+                                set_data.update(|s| {
+                                    while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+                                    s.wonders[idx].quintessence = val;
+                                });
+                            }
+                            on:blur=move |ev| {
                                 let val = event_target_value(&ev);
                                 set_data.update(|s| {
                                     while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }

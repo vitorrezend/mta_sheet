@@ -17,7 +17,14 @@ pub fn CombatSection() -> impl IntoView {
                         class="table-cell-input text-left font-bold"
                         placeholder="Arma / Golpe..."
                         prop:value=move || data.with(|d| d.weapons.get(idx).map(|w| w.name.clone()).unwrap_or_default())
-                        on:input=move |ev| {
+                        on:change=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
+                                s.weapons[idx].name = val;
+                            });
+                        }
+                        on:blur=move |ev| {
                             let val = event_target_value(&ev);
                             set_data.update(|s| {
                                 while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
@@ -32,7 +39,14 @@ pub fn CombatSection() -> impl IntoView {
                         class="table-cell-input text-center"
                         placeholder="Dif"
                         prop:value=move || data.with(|d| d.weapons.get(idx).map(|w| w.diff.clone()).unwrap_or_default())
-                        on:input=move |ev| {
+                        on:change=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
+                                s.weapons[idx].diff = val;
+                            });
+                        }
+                        on:blur=move |ev| {
                             let val = event_target_value(&ev);
                             set_data.update(|s| {
                                 while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
@@ -47,7 +61,14 @@ pub fn CombatSection() -> impl IntoView {
                         class="table-cell-input text-center"
                         placeholder="Dano"
                         prop:value=move || data.with(|d| d.weapons.get(idx).map(|w| w.damage.clone()).unwrap_or_default())
-                        on:input=move |ev| {
+                        on:change=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
+                                s.weapons[idx].damage = val;
+                            });
+                        }
+                        on:blur=move |ev| {
                             let val = event_target_value(&ev);
                             set_data.update(|s| {
                                 while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
@@ -62,7 +83,14 @@ pub fn CombatSection() -> impl IntoView {
                         class="table-cell-input text-center"
                         placeholder="Alc."
                         prop:value=move || data.with(|d| d.weapons.get(idx).map(|w| w.range.clone()).unwrap_or_default())
-                        on:input=move |ev| {
+                        on:change=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
+                                s.weapons[idx].range = val;
+                            });
+                        }
+                        on:blur=move |ev| {
                             let val = event_target_value(&ev);
                             set_data.update(|s| {
                                 while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
@@ -77,7 +105,14 @@ pub fn CombatSection() -> impl IntoView {
                         class="table-cell-input text-center"
                         placeholder="Cad."
                         prop:value=move || data.with(|d| d.weapons.get(idx).map(|w| w.rate.clone()).unwrap_or_default())
-                        on:input=move |ev| {
+                        on:change=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
+                                s.weapons[idx].rate = val;
+                            });
+                        }
+                        on:blur=move |ev| {
                             let val = event_target_value(&ev);
                             set_data.update(|s| {
                                 while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
@@ -92,7 +127,14 @@ pub fn CombatSection() -> impl IntoView {
                         class="table-cell-input text-center"
                         placeholder="Pente"
                         prop:value=move || data.with(|d| d.weapons.get(idx).map(|w| w.clip.clone()).unwrap_or_default())
-                        on:input=move |ev| {
+                        on:change=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
+                                s.weapons[idx].clip = val;
+                            });
+                        }
+                        on:blur=move |ev| {
                             let val = event_target_value(&ev);
                             set_data.update(|s| {
                                 while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
@@ -107,7 +149,14 @@ pub fn CombatSection() -> impl IntoView {
                         class="table-cell-input text-center"
                         placeholder="Ocult."
                         prop:value=move || data.with(|d| d.weapons.get(idx).map(|w| w.conceal.clone()).unwrap_or_default())
-                        on:input=move |ev| {
+                        on:change=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
+                                s.weapons[idx].conceal = val;
+                            });
+                        }
+                        on:blur=move |ev| {
                             let val = event_target_value(&ev);
                             set_data.update(|s| {
                                 while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
@@ -167,7 +216,11 @@ pub fn CombatSection() -> impl IntoView {
                                 class="armor-input"
                                 placeholder="Ex: Jaqueta de Couro"
                                 prop:value=move || data.with(|d| d.armor.class_name.clone())
-                                on:input=move |ev| {
+                                on:change=move |ev| {
+                                    let val = event_target_value(&ev);
+                                    set_data.update(|s| s.armor.class_name = val);
+                                }
+                                on:blur=move |ev| {
                                     let val = event_target_value(&ev);
                                     set_data.update(|s| s.armor.class_name = val);
                                 }
@@ -181,7 +234,11 @@ pub fn CombatSection() -> impl IntoView {
                                 class="armor-input text-center"
                                 placeholder="1"
                                 prop:value=move || data.with(|d| d.armor.rating.clone())
-                                on:input=move |ev| {
+                                on:change=move |ev| {
+                                    let val = event_target_value(&ev);
+                                    set_data.update(|s| s.armor.rating = val);
+                                }
+                                on:blur=move |ev| {
                                     let val = event_target_value(&ev);
                                     set_data.update(|s| s.armor.rating = val);
                                 }
@@ -195,7 +252,11 @@ pub fn CombatSection() -> impl IntoView {
                                 class="armor-input text-center"
                                 placeholder="0"
                                 prop:value=move || data.with(|d| d.armor.penalty.clone())
-                                on:input=move |ev| {
+                                on:change=move |ev| {
+                                    let val = event_target_value(&ev);
+                                    set_data.update(|s| s.armor.penalty = val);
+                                }
+                                on:blur=move |ev| {
                                     let val = event_target_value(&ev);
                                     set_data.update(|s| s.armor.penalty = val);
                                 }
