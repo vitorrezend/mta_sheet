@@ -2777,73 +2777,18 @@ body {
     font-style: italic;
 }
 
-/* 1. Qualidades & Defeitos (Merits & Flaws - 10 Bolinhas com Origens) */
-.merits-flaws-box {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    padding: 0.6rem 0.75rem;
-    box-sizing: border-box;
-}
-
-.merits-flaws-flex-grid {
+/* 1. Qualidades & Defeitos (Merits & Flaws - Padronizado com Página 1) */
+.merits-flaws-block {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 1.25rem;
+    width: 100%;
 }
 
 @media (max-width: 768px) {
-    .merits-flaws-flex-grid {
-        grid-template-columns: 1fr;
+    .merits-flaws-block {
+        grid-template-columns: 1fr !important;
     }
-}
-
-.merits-flaws-column {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-}
-
-.column-header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 4px;
-    border-bottom: 1.5px solid #e2e8f0;
-}
-
-.column-header-title {
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: #1e293b;
-    letter-spacing: 0.5px;
-}
-
-.add-section-item-btn {
-    font-size: 0.68rem;
-    font-weight: 600;
-    padding: 2px 8px;
-    background: #e0e7ff;
-    color: #4338ca;
-    border: 1px solid #c7d2fe;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.add-section-item-btn:hover {
-    background: #c7d2fe;
-    color: #312e81;
-}
-
-.merits-flaws-items-list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-height: 40px;
 }
 
 .merit-flaw-item-wrapper {

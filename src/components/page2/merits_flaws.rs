@@ -93,92 +93,55 @@ pub fn MeritsFlaws() -> impl IntoView {
         };
 
         view! {
-            <div class="merit-flaw-item-wrapper">
-                <ValueField 
-                    label=label
-                    level=level
-                    modifier=modifier
-                    origins=origins
-                    max_level=10
-                    min_level=0
-                    on_level_change={
-                        let id = id_up_level.clone();
-                        move |v| {
-                            let current_origin = active_origin_ctx.map(|a| a.origin.get()).unwrap_or(DotOrigin::Base);
-                            set_data.update(|s| {
-                                s.set_attribute_with_origin(&id, Some(v), None, current_origin);
-                            });
-                        }
+            <ValueField 
+                label=label
+                level=level
+                modifier=modifier
+                origins=origins
+                max_level=10
+                min_level=0
+                on_level_change={
+                    let id = id_up_level.clone();
+                    move |v| {
+                        let current_origin = active_origin_ctx.map(|a| a.origin.get()).unwrap_or(DotOrigin::Base);
+                        set_data.update(|s| {
+                            s.set_attribute_with_origin(&id, Some(v), None, current_origin);
+                        });
                     }
-                    on_modifier_change={
-                        let id = id_up_mod.clone();
-                        move |m| {
-                            set_data.update(|s| {
-                                s.set_attribute_with_origin(&id, None, Some(m), DotOrigin::Base);
-                            });
-                        }
+                }
+                on_modifier_change={
+                    let id = id_up_mod.clone();
+                    move |m| {
+                        set_data.update(|s| {
+                            s.set_attribute_with_origin(&id, None, Some(m), DotOrigin::Base);
+                        });
                     }
-                    on_dot_origin_change=on_dot_origin_change
-                    is_editable=true
-                    on_label_change=Callback::new(move |new_l| update_label(id_change.clone(), new_l))
-                    on_remove=Callback::new(move |_| remove_item(category, id_remove.clone()))
-                    max_chars=20
-                />
-            </div>
+                }
+                on_dot_origin_change=on_dot_origin_change
+                is_editable=true
+                on_label_change=Callback::new(move |new_l| update_label(id_change.clone(), new_l))
+                on_remove=Callback::new(move |_| remove_item(category, id_remove.clone()))
+                max_chars=20
+            />
         }
     };
 
     view! {
-        <div class="group-box merits-flaws-box">
-            <div class="merits-flaws-flex-grid">
-                // Coluna: Qualidades (Merits)
-                <div class="merits-flaws-column">
-                    <div class="column-header-row">
-                        <span class="column-header-title">"QUALIDADES (MERITS)"</span>
-                        <button type="button" class="add-section-item-btn" on:click=add_merit title="Adicionar Qualidade">
-                            "+ Qualidade"
-                        </button>
-                    </div>
-
-                    <div class="merits-flaws-items-list">
-                        {move || {
-                            let items = merits_list.get();
-                            if items.is_empty() {
-                                view! {
-                                    <div class="empty-column-hint">
-                                        "Nenhuma qualidade adicionada. Clique em '+ Qualidade' para incluir."
-                                    </div>
-                                }.into_view()
-                            } else {
-                                items.into_iter().map(|id| render_item(keys::CAT_MERITS, id)).collect_view().into_view()
-                            }
-                        }}
-                    </div>
+        <div class="group-box">
+            <span class="group-title">"Qualidades & Defeitos"</span>
+            <div class="attributes-block merits-flaws-block">
+                // Coluna 1: Qualidades (Merits)
+                <div class="attribute-column">
+                    <h3 class="column-title">"Qualidades"</h3>
+                    {move || merits_list.get().into_iter().map(|id| render_item(keys::CAT_MERITS, id)).collect_view()}
+                    <button class="add-field-btn" on:click=add_merit title="Adicionar Qualidade">"+"</button>
                 </div>
 
-                // Coluna: Defeitos (Flaws)
-                <div class="merits-flaws-column">
-                    <div class="column-header-row">
-                        <span class="column-header-title">"DEFEITOS (FLAWS)"</span>
-                        <button type="button" class="add-section-item-btn" on:click=add_flaw title="Adicionar Defeito">
-                            "+ Defeito"
-                        </button>
-                    </div>
-
-                    <div class="merits-flaws-items-list">
-                        {move || {
-                            let items = flaws_list.get();
-                            if items.is_empty() {
-                                view! {
-                                    <div class="empty-column-hint">
-                                        "Nenhum defeito adicionado. Clique em '+ Defeito' para incluir."
-                                    </div>
-                                }.into_view()
-                            } else {
-                                items.into_iter().map(|id| render_item(keys::CAT_FLAWS, id)).collect_view().into_view()
-                            }
-                        }}
-                    </div>
+                // Coluna 2: Defeitos (Flaws)
+                <div class="attribute-column">
+                    <h3 class="column-title">"Defeitos"</h3>
+                    {move || flaws_list.get().into_iter().map(|id| render_item(keys::CAT_FLAWS, id)).collect_view()}
+                    <button class="add-field-btn" on:click=add_flaw title="Adicionar Defeito">"+"</button>
                 </div>
             </div>
         </div>
