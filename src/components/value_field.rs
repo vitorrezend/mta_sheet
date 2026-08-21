@@ -9,6 +9,7 @@ pub fn ValueField(
     on_level_change: impl Fn(i32) + 'static,
     on_modifier_change: impl Fn(String) + 'static,
     #[prop(default = 0)] min_level: i32,
+    #[prop(default = 5)] max_level: i32,
     #[prop(optional)] max_chars: Option<usize>,
     #[prop(optional)] on_remove: Option<Callback<()>>,
     #[prop(default = false)] is_editable: bool,
@@ -150,7 +151,7 @@ pub fn ValueField(
             </div>
 
             <div class="dots-container">
-                {move || (1..=5).map(|i| {
+                {move || (1..=max_level).map(|i| {
                     let dot_idx = (i - 1) as usize;
                     let is_filled = move || level.get() >= i;
                     let dot_color = move || {

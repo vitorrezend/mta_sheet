@@ -34,6 +34,8 @@ pub mod keys {
     pub const CAT_CONHECIMENTOS: &str = "Conhecimentos";
     pub const CAT_ANTECEDENTES: &str = "Antecedentes";
     pub const CAT_RESONANCE: &str = "Resonance";
+    pub const CAT_MERITS: &str = "Qualidades";
+    pub const CAT_FLAWS: &str = "Defeitos";
 
     // Character Profile Keys
     pub const KEY_PROFILE_PHOTO: &str = "profile_photo";
@@ -453,12 +455,12 @@ impl CharacterData {
         let mut total_xp_spent = 0;
         let mut items = Vec::new();
         let mut visited_keys = std::collections::HashSet::new();
-        let mut traits_to_process: Vec<(String, String, String, bool, bool, bool, bool)> = Vec::new();
+        let mut traits_to_process: Vec<(String, String, String, bool, bool, bool, bool, bool, bool)> = Vec::new();
 
         // 1. Atributos
         for &attr_name in &STANDARD_ATTRIBUTES {
             visited_keys.insert(attr_name.to_string());
-            traits_to_process.push((attr_name.to_string(), attr_name.to_string(), "Atributo".to_string(), false, false, false, false));
+            traits_to_process.push((attr_name.to_string(), attr_name.to_string(), "Atributo".to_string(), false, false, false, false, false, false));
         }
 
         // 2. Habilidades (Talentos, Perícias, Conhecimentos)
@@ -471,7 +473,7 @@ impl CharacterData {
                 for id in list {
                     visited_keys.insert(id.clone());
                     let label = self.labels.get(id).cloned().unwrap_or_else(|| id.clone());
-                    traits_to_process.push((id.clone(), label, cat_label.to_string(), false, false, false, false));
+                    traits_to_process.push((id.clone(), label, cat_label.to_string(), false, false, false, false, false, false));
                 }
             }
         }
@@ -479,24 +481,24 @@ impl CharacterData {
         // 3. Esferas
         for &sphere_name in &STANDARD_SPHERES {
             visited_keys.insert(sphere_name.to_string());
-            traits_to_process.push((sphere_name.to_string(), sphere_name.to_string(), "Esfera".to_string(), true, false, false, false));
+            traits_to_process.push((sphere_name.to_string(), sphere_name.to_string(), "Esfera".to_string(), true, false, false, false, false, false));
         }
 
         // 4. Arete
         let arete_val = self.get_attribute_level(keys::KEY_ARETE, 1);
         visited_keys.insert(keys::KEY_ARETE.to_string());
-        traits_to_process.push((keys::KEY_ARETE.to_string(), "Arete".to_string(), "Vantagem".to_string(), false, true, false, false));
+        traits_to_process.push((keys::KEY_ARETE.to_string(), "Arete".to_string(), "Vantagem".to_string(), false, true, false, false, false, false));
 
         // 5. Força de Vontade
         visited_keys.insert(keys::KEY_WILLPOWER_TOTAL.to_string());
-        traits_to_process.push((keys::KEY_WILLPOWER_TOTAL.to_string(), "Força de Vontade".to_string(), "Vantagem".to_string(), false, false, true, false));
+        traits_to_process.push((keys::KEY_WILLPOWER_TOTAL.to_string(), "Força de Vontade".to_string(), "Vantagem".to_string(), false, false, true, false, false, false));
 
         // 6. Antecedentes
         if let Some(list) = self.custom_lists.get(keys::CAT_ANTECEDENTES) {
             for id in list {
                 visited_keys.insert(id.clone());
                 let label = self.labels.get(id).cloned().unwrap_or_else(|| id.clone());
-                traits_to_process.push((id.clone(), label, "Antecedente".to_string(), false, false, false, true));
+                traits_to_process.push((id.clone(), label, "Antecedente".to_string(), false, false, false, true, false, false));
             }
         }
 
@@ -505,19 +507,37 @@ impl CharacterData {
             for id in list {
                 visited_keys.insert(id.clone());
                 let label = self.labels.get(id).cloned().unwrap_or_else(|| id.clone());
-                traits_to_process.push((id.clone(), label, "Ressonância".to_string(), false, false, false, true));
+                traits_to_process.push((id.clone(), label, "Ressonância".to_string(), false, false, false, true, false, false));
             }
         }
 
-        // 8. Quaisquer outros atributos personalizados
+        // 8. Qualidades (Merits)
+        if let Some(list) = self.custom_lists.get(keys::CAT_MERITS) {
+            for id in list {
+                visited_keys.insert(id.clone());
+                let label = self.labels.get(id).cloned().unwrap_or_else(|| id.clone());
+                traits_to_process.push((id.clone(), label, "Qualidade".to_string(), false, false, false, false, true, false));
+            }
+        }
+
+        // 9. Defeitos (Flaws)
+        if let Some(list) = self.custom_lists.get(keys::CAT_FLAWS) {
+            for id in list {
+                visited_keys.insert(id.clone());
+                let label = self.labels.get(id).cloned().unwrap_or_else(|| id.clone());
+                traits_to_process.push((id.clone(), label, "Defeito".to_string(), false, false, false, false, false, true));
+            }
+        }
+
+        // 10. Quaisquer outros atributos personalizados
         for (id, attr) in &self.attributes {
             if !visited_keys.contains(id) && attr.level > 0 {
                 let label = self.labels.get(id).cloned().unwrap_or_else(|| id.clone());
-                traits_to_process.push((id.clone(), label, "Outro".to_string(), false, false, false, false));
+                traits_to_process.push((id.clone(), label, "Outro".to_string(), false, false, false, false, false, false));
             }
         }
 
-        for (id, display_name, category, is_sphere, is_arete, is_willpower, is_background) in traits_to_process {
+        for (id, display_name, category, is_sphere, is_arete, is_willpower, is_background, is_merit, is_flaw) in traits_to_process {
             if let Some(attr) = self.attributes.get(&id) {
                 let lvl = attr.level.max(0) as usize;
                 if lvl == 0 {
@@ -531,59 +551,70 @@ impl CharacterData {
 
                 let is_affinity = is_sphere && affinity_sphere.as_ref().map(|s| s.eq_ignore_ascii_case(&id)).unwrap_or(false);
 
-                for (idx, &origin) in origins.iter().take(lvl).enumerate() {
-                    match origin {
-                        DotOrigin::Bonus => {
-                            bonus_dots += 1;
-                            let cost = if is_arete {
-                                4
-                            } else if is_sphere {
-                                7
-                            } else if is_willpower {
-                                1
-                            } else if is_background {
-                                1
-                            } else if STANDARD_ATTRIBUTES.contains(&id.as_str()) {
-                                5
-                            } else {
-                                // Abilities / Ressonância / Outros
-                                2
-                            };
-                            trait_bonus_cost += cost;
-                        }
-                        DotOrigin::Experience => {
-                            xp_dots += 1;
-                            let cost = if is_arete {
-                                idx as i32 * 8
-                            } else if is_sphere {
-                                if idx == 0 {
-                                    10 // Nova Esfera
-                                } else if is_affinity {
-                                    idx as i32 * 7 // Esfera de Afinidade
+                if is_flaw {
+                    // Defeitos concedem pontos de bônus (1 pt de bônus por nível de defeito)
+                    let flaw_pts = lvl as i32;
+                    trait_bonus_cost = -flaw_pts;
+                    bonus_dots = lvl;
+                } else {
+                    for (idx, &origin) in origins.iter().take(lvl).enumerate() {
+                        match origin {
+                            DotOrigin::Bonus => {
+                                bonus_dots += 1;
+                                let cost = if is_arete {
+                                    4
+                                } else if is_sphere {
+                                    7
+                                } else if is_willpower {
+                                    1
+                                } else if is_background {
+                                    1
+                                } else if is_merit {
+                                    1 // Qualidades: 1 ponto de bônus por bolinha
+                                } else if STANDARD_ATTRIBUTES.contains(&id.as_str()) {
+                                    5
                                 } else {
-                                    idx as i32 * 8 // Outras Esferas
-                                }
-                            } else if is_willpower {
-                                idx as i32 * 1
-                            } else if is_background {
-                                if idx == 0 { 3 } else { idx as i32 * 3 }
-                            } else if STANDARD_ATTRIBUTES.contains(&id.as_str()) {
-                                idx as i32 * 4
-                            } else {
-                                // Abilities
-                                if idx == 0 {
-                                    3 // Nova Habilidade
+                                    // Abilities / Ressonância / Outros
+                                    2
+                                };
+                                trait_bonus_cost += cost;
+                            }
+                            DotOrigin::Experience => {
+                                xp_dots += 1;
+                                let cost = if is_arete {
+                                    idx as i32 * 8
+                                } else if is_sphere {
+                                    if idx == 0 {
+                                        10 // Nova Esfera
+                                    } else if is_affinity {
+                                        idx as i32 * 7 // Esfera de Afinidade
+                                    } else {
+                                        idx as i32 * 8 // Outras Esferas
+                                    }
+                                } else if is_willpower {
+                                    idx as i32 * 1
+                                } else if is_background {
+                                    if idx == 0 { 3 } else { idx as i32 * 3 }
+                                } else if is_merit {
+                                    if idx == 0 { 2 } else { idx as i32 * 2 }
+                                } else if STANDARD_ATTRIBUTES.contains(&id.as_str()) {
+                                    idx as i32 * 4
                                 } else {
-                                    idx as i32 * 2 // Nível atual * 2
-                                }
-                            };
-                            trait_xp_cost += cost;
+                                    // Abilities
+                                    if idx == 0 {
+                                        3 // Nova Habilidade
+                                    } else {
+                                        idx as i32 * 2 // Nível atual * 2
+                                    }
+                                };
+                                trait_xp_cost += cost;
+                            }
+                            _ => {}
                         }
-                        _ => {}
                     }
                 }
 
-                if trait_bonus_cost > 0 || trait_xp_cost > 0 {
+                if trait_bonus_cost != 0 || trait_xp_cost > 0 {
                     total_bonus_spent += trait_bonus_cost;
                     total_xp_spent += trait_xp_cost;
                     items.push(CostBreakdownItem {
@@ -1251,5 +1282,32 @@ mod tests {
 
         // Total XP: 12 (Força) + 4 (Talento) + 7 (Forças Afinidade) + 8 (Correspondência) = 31 XP
         assert_eq!(summary.total_xp_spent, 31);
+    }
+
+    #[test]
+    fn test_calculate_costs_with_merits_and_flaws() {
+        let mut char_data = CharacterData::new("c2".to_string(), "Mago Merits Test".to_string());
+
+        // Qualidade: Level 3 com 2 Bônus -> +2 pontos de bônus
+        char_data.custom_lists.insert(keys::CAT_MERITS.to_string(), vec!["merit_1".to_string()]);
+        char_data.labels.insert("merit_1".to_string(), "Avatar Focado".to_string());
+        char_data.attributes.insert("merit_1".to_string(), AttributeValue {
+            level: 3,
+            modifier: String::new(),
+            dot_origins: vec![DotOrigin::Base, DotOrigin::Bonus, DotOrigin::Bonus],
+        });
+
+        // Defeito: Level 3 -> concede 3 pontos de bônus (-3 no total_bonus_spent)
+        char_data.custom_lists.insert(keys::CAT_FLAWS.to_string(), vec!["flaw_1".to_string()]);
+        char_data.labels.insert("flaw_1".to_string(), "Inimigo Jurado".to_string());
+        char_data.attributes.insert("flaw_1".to_string(), AttributeValue {
+            level: 3,
+            modifier: String::new(),
+            dot_origins: vec![DotOrigin::Base, DotOrigin::Base, DotOrigin::Base],
+        });
+
+        let summary = char_data.calculate_costs();
+        // Total Bonus: +2 (Qualidade) - 3 (Defeito) = -1 pts
+        assert_eq!(summary.total_bonus_spent, -1);
     }
 }
