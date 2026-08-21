@@ -1,43 +1,5 @@
 use leptos::*;
-use crate::state::CharacterData;
-
-/// Tipo de dano em cada caixa de saúde
-#[derive(Clone, Copy, PartialEq, Debug)]
-enum DamageType {
-    None,
-    Bashing,   // Contusivo  → risco diagonal /
-    Lethal,    // Letal       → X
-    Aggravated, // Agravado   → ✦ (X com cruzes)
-}
-
-impl DamageType {
-    fn cycle(self) -> Self {
-        match self {
-            DamageType::None       => DamageType::Bashing,
-            DamageType::Bashing    => DamageType::Lethal,
-            DamageType::Lethal     => DamageType::Aggravated,
-            DamageType::Aggravated => DamageType::None,
-        }
-    }
-
-    fn to_key(self) -> &'static str {
-        match self {
-            DamageType::None       => "none",
-            DamageType::Bashing    => "bashing",
-            DamageType::Lethal     => "lethal",
-            DamageType::Aggravated => "aggravated",
-        }
-    }
-
-    fn from_key(s: &str) -> Self {
-        match s {
-            "bashing"    => DamageType::Bashing,
-            "lethal"     => DamageType::Lethal,
-            "aggravated" => DamageType::Aggravated,
-            _            => DamageType::None,
-        }
-    }
-}
+use crate::state::{CharacterData, DamageType};
 
 // Níveis de saúde: (label, penalty)
 const HEALTH_LEVELS: [(&str, Option<&str>); 7] = [
@@ -55,22 +17,28 @@ pub fn Vitality() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
     let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
 
-    let update_health = move |index: usize, next: DamageType| {
-        set_data.update(|s| {
-            s.labels.insert(format!("health_{}", index), next.to_key().to_string());
-        });
-    };
+    let counts = move || data.with(|d| d.get_health_counts());
 
     view! {
         <div class="vitality-container">
-            <h3 class="column-title">"Vitalidade"</h3>
+            <div class="vitality-header-row">
+                <h3 class="column-title">"Vitalidade"</h3>
+                <div class="vitality-actions">
+                    <button
+                        type="button"
+                        class="vitality-reset-btn"
+                        on:click=move |_| set_data.update(|s| s.clear_health())
+                        title="Limpar todos os danos (Curar totalmente)"
+                    >
+                        "🧹 Limpar"
+                    </button>
+                </div>
+            </div>
+
             <div class="health-levels">
                 {(0..7).map(|i| {
                     let (label, penalty) = HEALTH_LEVELS[i];
-                    let current = move || {
-                        let s = data.with(|d| d.labels.get(&format!("health_{}", i)).cloned().unwrap_or_default());
-                        DamageType::from_key(&s)
-                    };
+                    let current = move || data.with(|d| d.get_health(i));
 
                     view! {
                         <div class="health-row">
@@ -87,14 +55,17 @@ pub fn Vitality() -> impl IntoView {
                                 class:damage-lethal=move || current() == DamageType::Lethal
                                 class:damage-aggravated=move || current() == DamageType::Aggravated
                                 on:click=move |_| {
-                                    let next = current().cycle();
-                                    update_health(i, next);
+                                    set_data.update(|s| s.click_health_box(i));
+                                }
+                                on:contextmenu=move |ev: ev::MouseEvent| {
+                                    ev.prevent_default();
+                                    set_data.update(|s| s.heal_health_box(i));
                                 }
                                 title=move || match current() {
-                                    DamageType::None       => "Clique para marcar dano",
-                                    DamageType::Bashing    => "Contusivo (/) – clique para Letal",
-                                    DamageType::Lethal     => "Letal (X) – clique para Agravado",
-                                    DamageType::Aggravated => "Agravado (✦) – clique para limpar",
+                                    DamageType::None       => "Vazio (Clique para marcar dano /)",
+                                    DamageType::Bashing    => "Contusivo (/) – Clique para Letal ✕ (Botão direito para curar)",
+                                    DamageType::Lethal     => "Letal (✕) – Clique para Agravado ✦ (Botão direito para curar)",
+                                    DamageType::Aggravated => "Agravado (✦) – Clique para curar",
                                 }
                             >
                                 {move || match current() {
@@ -107,6 +78,26 @@ pub fn Vitality() -> impl IntoView {
                         </div>
                     }
                 }).collect_view()}
+            </div>
+
+            <div class="vitality-footer-info">
+                {move || {
+                    let (agg, lethal, bashing) = counts();
+                    let total = agg + lethal + bashing;
+                    if total > 0 {
+                        view! {
+                            <div class="vitality-count-pills">
+                                {if agg > 0 { view! { <span class="count-pill pill-agg">{format!("✦ Agravado: {}", agg)}</span> }.into_view() } else { ().into_view() }}
+                                {if lethal > 0 { view! { <span class="count-pill pill-lethal">{format!("✕ Letal: {}", lethal)}</span> }.into_view() } else { ().into_view() }}
+                                {if bashing > 0 { view! { <span class="count-pill pill-bashing">{format!("/ Contusivo: {}", bashing)}</span> }.into_view() } else { ().into_view() }}
+                            </div>
+                        }.into_view()
+                    } else {
+                        view! {
+                            <span class="vitality-healthy-tag">"✨ Ileso (Sem Danos)"</span>
+                        }.into_view()
+                    }
+                }}
             </div>
         </div>
     }

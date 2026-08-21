@@ -93,6 +93,55 @@ impl DamageType {
     }
 }
 
+/// WoD / Mage: The Ascension Health Track Normalization & Overflow Resolution
+pub fn normalize_health_counts(mut agg: usize, mut lethal: usize, mut bashing: usize) -> (usize, usize, usize) {
+    // 1. Resolve bashing overflow: each excess point beyond 7 upgrades 1 existing bashing to lethal
+    while agg + lethal + bashing > 7 && bashing > 0 {
+        if bashing >= 2 {
+            bashing -= 2;
+            lethal += 1;
+        } else {
+            bashing -= 1;
+            if lethal > 0 {
+                lethal -= 1;
+                agg += 1;
+            } else {
+                agg += 1;
+            }
+        }
+    }
+
+    // 2. Resolve lethal overflow: each excess point beyond 7 upgrades 1 existing lethal to aggravated
+    while agg + lethal + bashing > 7 && lethal > 0 {
+        if lethal >= 2 {
+            lethal -= 2;
+            agg += 1;
+        } else {
+            lethal -= 1;
+            agg += 1;
+        }
+    }
+
+    // 3. Cap aggravated at 7 max
+    if agg >= 7 {
+        return (7, 0, 0);
+    }
+
+    // 4. Ensure sum fits in 7 boxes
+    let remaining = 7 - agg;
+    if lethal > remaining {
+        lethal = remaining;
+        bashing = 0;
+    } else {
+        let remaining_bashing = remaining - lethal;
+        if bashing > remaining_bashing {
+            bashing = remaining_bashing;
+        }
+    }
+
+    (agg, lethal, bashing)
+}
+
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum DotOrigin {
     #[default]
@@ -726,6 +775,8 @@ impl CharacterData {
             .level = val.clamp(1, 10);
     }
 
+    pub const TOTAL_HEALTH_BOXES: usize = 7;
+
     pub fn get_health(&self, index: usize) -> DamageType {
         let key = format!("{}{}", keys::HEALTH_KEY_PREFIX, index);
         let val = self.labels.get(&key).map(|s| s.as_str()).unwrap_or("none");
@@ -735,6 +786,98 @@ impl CharacterData {
     pub fn set_health(&mut self, index: usize, dmg: DamageType) {
         let key = format!("{}{}", keys::HEALTH_KEY_PREFIX, index);
         self.labels.insert(key, dmg.to_key().to_string());
+    }
+
+    pub fn get_health_counts(&self) -> (usize, usize, usize) {
+        let mut agg = 0;
+        let mut lethal = 0;
+        let mut bashing = 0;
+        for i in 0..Self::TOTAL_HEALTH_BOXES {
+            match self.get_health(i) {
+                DamageType::Aggravated => agg += 1,
+                DamageType::Lethal => lethal += 1,
+                DamageType::Bashing => bashing += 1,
+                DamageType::None => {}
+            }
+        }
+        (agg, lethal, bashing)
+    }
+
+    pub fn set_health_counts(&mut self, agg: usize, lethal: usize, bashing: usize) {
+        let (agg, lethal, bashing) = normalize_health_counts(agg, lethal, bashing);
+        for i in 0..Self::TOTAL_HEALTH_BOXES {
+            let dmg = if i < agg {
+                DamageType::Aggravated
+            } else if i < agg + lethal {
+                DamageType::Lethal
+            } else if i < agg + lethal + bashing {
+                DamageType::Bashing
+            } else {
+                DamageType::None
+            };
+            self.set_health(i, dmg);
+        }
+    }
+
+    pub fn click_health_box(&mut self, index: usize) {
+        if index >= Self::TOTAL_HEALTH_BOXES {
+            return;
+        }
+
+        let (mut agg, mut lethal, mut bashing) = self.get_health_counts();
+        let current_dmg = self.get_health(index);
+
+        match current_dmg {
+            DamageType::None => {
+                // User clicked an empty box: fill with bashing up to index + 1
+                let total_current = agg + lethal + bashing;
+                let target_total = index + 1;
+                if target_total > total_current {
+                    bashing += target_total - total_current;
+                }
+            }
+            DamageType::Bashing => {
+                // User clicked on a Bashing box: upgrade up to index + 1 to Lethal
+                // and push remaining bashing marks down
+                let new_lethal = (index + 1).saturating_sub(agg).max(lethal + 1);
+                lethal = new_lethal;
+            }
+            DamageType::Lethal => {
+                // User clicked on a Lethal box: upgrade up to index + 1 to Aggravated
+                // and push lethal and bashing marks down
+                let new_agg = (index + 1).max(agg + 1);
+                agg = new_agg;
+            }
+            DamageType::Aggravated => {
+                // User clicked on an Aggravated box: heal 1 aggravated damage
+                // and shift lower damage up
+                agg = agg.saturating_sub(1);
+            }
+        }
+
+        self.set_health_counts(agg, lethal, bashing);
+    }
+
+    pub fn heal_health_box(&mut self, index: usize) {
+        if index >= Self::TOTAL_HEALTH_BOXES {
+            return;
+        }
+
+        let (mut agg, mut lethal, mut bashing) = self.get_health_counts();
+        let current_dmg = self.get_health(index);
+
+        match current_dmg {
+            DamageType::Bashing => bashing = bashing.saturating_sub(1),
+            DamageType::Lethal => lethal = lethal.saturating_sub(1),
+            DamageType::Aggravated => agg = agg.saturating_sub(1),
+            DamageType::None => {}
+        }
+
+        self.set_health_counts(agg, lethal, bashing);
+    }
+
+    pub fn clear_health(&mut self) {
+        self.set_health_counts(0, 0, 0);
     }
 
     pub fn get_quintessence_paradox(&self) -> (i32, i32, String) {

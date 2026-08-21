@@ -484,4 +484,69 @@ mod tests {
         assert!(!legacy_recovered.is_owner);
         assert!(legacy_recovered.photo_url.is_empty());
     }
+
+    #[test]
+    fn test_wod_health_track_sorting_and_overflow() {
+        use crate::state::models::{CharacterData, DamageType};
+
+        let mut data = CharacterData::new("test_char".to_string(), "Test Mage".to_string());
+        assert_eq!(data.get_health_counts(), (0, 0, 0));
+
+        // 1. Click on index 2 (Ferido / 3rd box) on clean sheet -> marks 3 Bashing
+        data.click_health_box(2);
+        assert_eq!(data.get_health_counts(), (0, 0, 3));
+        assert_eq!(data.get_health(0), DamageType::Bashing);
+        assert_eq!(data.get_health(1), DamageType::Bashing);
+        assert_eq!(data.get_health(2), DamageType::Bashing);
+        assert_eq!(data.get_health(3), DamageType::None);
+
+        // 2. Click on index 1 (Machucado / 2nd box with Bashing) -> marks 2 Lethal, pushing 3 Bashing down
+        data.click_health_box(1);
+        assert_eq!(data.get_health_counts(), (0, 2, 3));
+        assert_eq!(data.get_health(0), DamageType::Lethal);
+        assert_eq!(data.get_health(1), DamageType::Lethal);
+        assert_eq!(data.get_health(2), DamageType::Bashing);
+        assert_eq!(data.get_health(3), DamageType::Bashing);
+        assert_eq!(data.get_health(4), DamageType::Bashing);
+        assert_eq!(data.get_health(5), DamageType::None);
+
+        // 3. Click on index 0 (Lethal) -> marks 1 Aggravated, pushing Lethal and Bashing down
+        data.click_health_box(0);
+        assert_eq!(data.get_health_counts(), (1, 2, 3));
+        assert_eq!(data.get_health(0), DamageType::Aggravated);
+        assert_eq!(data.get_health(1), DamageType::Lethal);
+        assert_eq!(data.get_health(2), DamageType::Lethal);
+        assert_eq!(data.get_health(3), DamageType::Bashing);
+        assert_eq!(data.get_health(4), DamageType::Bashing);
+        assert_eq!(data.get_health(5), DamageType::Bashing);
+        assert_eq!(data.get_health(6), DamageType::None);
+
+        // 4. Click index 0 (Aggravated) -> heals 1 Aggravated, shifting damage up
+        data.click_health_box(0);
+        assert_eq!(data.get_health_counts(), (0, 2, 3));
+        assert_eq!(data.get_health(0), DamageType::Lethal);
+        assert_eq!(data.get_health(1), DamageType::Lethal);
+        assert_eq!(data.get_health(2), DamageType::Bashing);
+
+        // 5. Overflow test: Fill track with 4 Lethal and 3 Bashing (total 7 boxes full)
+        data.set_health_counts(0, 4, 3);
+        assert_eq!(data.get_health_counts(), (0, 4, 3));
+
+        // Add 1 excess bashing: (0, 4, 4) -> should upgrade 1 bashing to lethal, resulting in (0, 5, 2)
+        data.set_health_counts(0, 4, 4);
+        assert_eq!(data.get_health_counts(), (0, 5, 2));
+
+        // Add excess lethal to full lethal track: (0, 8, 0) -> upgrades 1 lethal to aggravated -> (1, 6, 0)
+        data.set_health_counts(0, 8, 0);
+        assert_eq!(data.get_health_counts(), (1, 6, 0));
+
+        // 6. Right click / heal box
+        data.heal_health_box(0); // Heals the aggravated box
+        assert_eq!(data.get_health_counts(), (0, 6, 0));
+
+        // Clear all
+        data.clear_health();
+        assert_eq!(data.get_health_counts(), (0, 0, 0));
+        assert_eq!(data.get_health(0), DamageType::None);
+    }
 }
