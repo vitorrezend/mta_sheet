@@ -30,6 +30,8 @@ pub fn Spheres() -> impl IntoView {
         let name_str5 = name.to_string();
         let name_str6 = name.to_string();
 
+        let name_str7 = name.to_string();
+
         let level = Signal::derive({
             let name = name_str.clone();
             move || data.get().get_attribute_level(&name, 0)
@@ -41,6 +43,20 @@ pub fn Spheres() -> impl IntoView {
         let origins = Signal::derive({
             let name = name_str3.clone();
             move || data.get().attributes.get(&name).map(|a| a.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5])
+        });
+        let is_affinity = Signal::derive({
+            let name = name_str7.clone();
+            move || data.get().get_affinity_sphere().map(|s| s.eq_ignore_ascii_case(&name)).unwrap_or(false)
+        });
+        let display_sphere_label = Signal::derive({
+            let name = name.to_string();
+            move || {
+                if is_affinity.get() {
+                    format!("⭐ {}", name)
+                } else {
+                    name.clone()
+                }
+            }
         });
         
         let on_level_change = {
@@ -58,7 +74,7 @@ pub fn Spheres() -> impl IntoView {
 
         view! {
             <ValueField 
-                label=Signal::derive(move || name.to_string()) 
+                label=display_sphere_label
                 level=level
                 modifier=modifier
                 origins=origins

@@ -25,6 +25,7 @@ pub mod keys {
     pub const KEY_WILLPOWER_TOTAL: &str = "willpower_total";
     pub const KEY_WILLPOWER_CURRENT: &str = "willpower_current";
     pub const KEY_QUINTESSENCE_PARADOX: &str = "quintessence_paradox_states";
+    pub const KEY_AFFINITY_SPHERE: &str = "affinity_sphere";
     pub const HEALTH_KEY_PREFIX: &str = "health_";
 
     // Categories
@@ -34,6 +35,18 @@ pub mod keys {
     pub const CAT_ANTECEDENTES: &str = "Antecedentes";
     pub const CAT_RESONANCE: &str = "Resonance";
 }
+
+pub const STANDARD_ATTRIBUTES: [&str; 9] = [
+    "Força", "Destreza", "Vigor",
+    "Carisma", "Manipulação", "Aparência",
+    "Percepção", "Inteligência", "Raciocínio",
+];
+
+pub const STANDARD_SPHERES: [&str; 9] = [
+    "Correspondência", "Entropia", "Forças",
+    "Vida", "Matéria", "Mente",
+    "Primórdio", "Espírito", "Tempo",
+];
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum DamageType {
@@ -204,6 +217,29 @@ impl AttributeValue {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct CostBreakdownItem {
+    pub id: String,
+    pub name: String,
+    pub category: String,
+    pub level: i32,
+    pub bonus_dots: usize,
+    pub bonus_cost: i32,
+    pub xp_dots: usize,
+    pub xp_cost: i32,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct CostSummary {
+    pub total_bonus_spent: i32,
+    pub bonus_limit: i32, // 15
+    pub total_xp_spent: i32,
+    pub items: Vec<CostBreakdownItem>,
+    pub arete_warning: bool,
+    pub arete_total: i32,
+    pub affinity_sphere: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct CharacterData {
     pub id: String,
     pub name: String,
@@ -280,6 +316,254 @@ impl CharacterData {
             total_xp += xp;
         }
         (total_bonus, total_xp)
+    }
+
+    /// Get affinity sphere name
+    pub fn get_affinity_sphere(&self) -> Option<String> {
+        let aff = self.labels.get(keys::KEY_AFFINITY_SPHERE).cloned().unwrap_or_default();
+        if aff.trim().is_empty() {
+            None
+        } else {
+            Some(aff)
+        }
+    }
+
+    /// Set affinity sphere name
+    pub fn set_affinity_sphere(&mut self, sphere: Option<String>) {
+        if let Some(s) = sphere {
+            self.labels.insert(keys::KEY_AFFINITY_SPHERE.to_string(), s);
+        } else {
+            self.labels.remove(keys::KEY_AFFINITY_SPHERE);
+        }
+    }
+
+    /// Calculate full cost summary of Freebie Points (Bonus: 15) and Experience Points (XP)
+    pub fn calculate_costs(&self) -> CostSummary {
+        let affinity_sphere = self.get_affinity_sphere();
+        let mut total_bonus_spent = 0;
+        let mut total_xp_spent = 0;
+        let mut items = Vec::new();
+        let mut visited_keys = std::collections::HashSet::new();
+        let mut traits_to_process: Vec<(String, String, String, bool, bool, bool, bool)> = Vec::new();
+
+        // 1. Atributos
+        for &attr_name in &STANDARD_ATTRIBUTES {
+            visited_keys.insert(attr_name.to_string());
+            traits_to_process.push((attr_name.to_string(), attr_name.to_string(), "Atributo".to_string(), false, false, false, false));
+        }
+
+        // 2. Habilidades (Talentos, Perícias, Conhecimentos)
+        for (cat_key, cat_label) in [
+            (keys::CAT_TALENTOS, "Talento"),
+            (keys::CAT_PERICIAS, "Perícia"),
+            (keys::CAT_CONHECIMENTOS, "Conhecimento"),
+        ] {
+            if let Some(list) = self.custom_lists.get(cat_key) {
+                for id in list {
+                    visited_keys.insert(id.clone());
+                    let label = self.labels.get(id).cloned().unwrap_or_else(|| id.clone());
+                    traits_to_process.push((id.clone(), label, cat_label.to_string(), false, false, false, false));
+                }
+            }
+        }
+
+        // 3. Esferas
+        for &sphere_name in &STANDARD_SPHERES {
+            visited_keys.insert(sphere_name.to_string());
+            traits_to_process.push((sphere_name.to_string(), sphere_name.to_string(), "Esfera".to_string(), true, false, false, false));
+        }
+
+        // 4. Arete
+        let arete_val = self.get_attribute_level(keys::KEY_ARETE, 1);
+        visited_keys.insert(keys::KEY_ARETE.to_string());
+        traits_to_process.push((keys::KEY_ARETE.to_string(), "Arete".to_string(), "Vantagem".to_string(), false, true, false, false));
+
+        // 5. Força de Vontade
+        visited_keys.insert(keys::KEY_WILLPOWER_TOTAL.to_string());
+        traits_to_process.push((keys::KEY_WILLPOWER_TOTAL.to_string(), "Força de Vontade".to_string(), "Vantagem".to_string(), false, false, true, false));
+
+        // 6. Antecedentes
+        if let Some(list) = self.custom_lists.get(keys::CAT_ANTECEDENTES) {
+            for id in list {
+                visited_keys.insert(id.clone());
+                let label = self.labels.get(id).cloned().unwrap_or_else(|| id.clone());
+                traits_to_process.push((id.clone(), label, "Antecedente".to_string(), false, false, false, true));
+            }
+        }
+
+        // 7. Ressonância
+        if let Some(list) = self.custom_lists.get(keys::CAT_RESONANCE) {
+            for id in list {
+                visited_keys.insert(id.clone());
+                let label = self.labels.get(id).cloned().unwrap_or_else(|| id.clone());
+                traits_to_process.push((id.clone(), label, "Ressonância".to_string(), false, false, false, true));
+            }
+        }
+
+        // 8. Quaisquer outros atributos personalizados
+        for (id, attr) in &self.attributes {
+            if !visited_keys.contains(id) && attr.level > 0 {
+                let label = self.labels.get(id).cloned().unwrap_or_else(|| id.clone());
+                traits_to_process.push((id.clone(), label, "Outro".to_string(), false, false, false, false));
+            }
+        }
+
+        for (id, display_name, category, is_sphere, is_arete, is_willpower, is_background) in traits_to_process {
+            if let Some(attr) = self.attributes.get(&id) {
+                let lvl = attr.level.max(0) as usize;
+                if lvl == 0 {
+                    continue;
+                }
+                let origins = attr.get_origins(lvl);
+                let mut trait_bonus_cost = 0;
+                let mut trait_xp_cost = 0;
+                let mut bonus_dots = 0;
+                let mut xp_dots = 0;
+
+                let is_affinity = is_sphere && affinity_sphere.as_ref().map(|s| s.eq_ignore_ascii_case(&id)).unwrap_or(false);
+
+                for (idx, &origin) in origins.iter().take(lvl).enumerate() {
+                    match origin {
+                        DotOrigin::Bonus => {
+                            bonus_dots += 1;
+                            let cost = if is_arete {
+                                4
+                            } else if is_sphere {
+                                7
+                            } else if is_willpower {
+                                1
+                            } else if is_background {
+                                1
+                            } else if STANDARD_ATTRIBUTES.contains(&id.as_str()) {
+                                5
+                            } else {
+                                // Abilities / Ressonância / Outros
+                                2
+                            };
+                            trait_bonus_cost += cost;
+                        }
+                        DotOrigin::Experience => {
+                            xp_dots += 1;
+                            let cost = if is_arete {
+                                idx as i32 * 8
+                            } else if is_sphere {
+                                if idx == 0 {
+                                    10 // Nova Esfera
+                                } else if is_affinity {
+                                    idx as i32 * 7 // Esfera de Afinidade
+                                } else {
+                                    idx as i32 * 8 // Outras Esferas
+                                }
+                            } else if is_willpower {
+                                idx as i32 * 1
+                            } else if is_background {
+                                if idx == 0 { 3 } else { idx as i32 * 3 }
+                            } else if STANDARD_ATTRIBUTES.contains(&id.as_str()) {
+                                idx as i32 * 4
+                            } else {
+                                // Abilities
+                                if idx == 0 {
+                                    3 // Nova Habilidade
+                                } else {
+                                    idx as i32 * 2 // Nível atual * 2
+                                }
+                            };
+                            trait_xp_cost += cost;
+                        }
+                        _ => {}
+                    }
+                }
+
+                if trait_bonus_cost > 0 || trait_xp_cost > 0 {
+                    total_bonus_spent += trait_bonus_cost;
+                    total_xp_spent += trait_xp_cost;
+                    items.push(CostBreakdownItem {
+                        id,
+                        name: display_name,
+                        category: if is_affinity { "Esfera de Afinidade".to_string() } else { category },
+                        level: attr.level,
+                        bonus_dots,
+                        bonus_cost: trait_bonus_cost,
+                        xp_dots,
+                        xp_cost: trait_xp_cost,
+                    });
+                }
+            }
+        }
+
+        // Arete warning: na criação de ficha (pontos base + bônus), Arete não deve passar de 3
+        let arete_creation_dots = self.attributes.get(keys::KEY_ARETE).map(|a| {
+            let (_, bonus, _, _) = a.count_origins();
+            let base = a.level.max(0) as usize - a.dot_origins.iter().filter(|&&o| o == DotOrigin::Experience || o == DotOrigin::Temporary).count();
+            base.max(1) + bonus
+        }).unwrap_or(1);
+        let arete_warning = arete_creation_dots > 3;
+
+        CostSummary {
+            total_bonus_spent,
+            bonus_limit: 15,
+            total_xp_spent,
+            items,
+            arete_warning,
+            arete_total: arete_val,
+            affinity_sphere,
+        }
+    }
+
+    /// Helper to get single dot cost and explanation for tooltips
+    pub fn get_dot_cost_description(trait_name: &str, dot_idx: usize, origin: DotOrigin, is_affinity: bool) -> (i32, String) {
+        match origin {
+            DotOrigin::Base => (0, "Criação Base (Grátis)".to_string()),
+            DotOrigin::Temporary => (0, "Efeito Temporário / Magia".to_string()),
+            DotOrigin::Bonus => {
+                let cost = if trait_name == keys::KEY_ARETE {
+                    4
+                } else if STANDARD_SPHERES.contains(&trait_name) {
+                    7
+                } else if trait_name == keys::KEY_WILLPOWER_TOTAL {
+                    1
+                } else if STANDARD_ATTRIBUTES.contains(&trait_name) {
+                    5
+                } else {
+                    // Habilidades / Antecedentes / Outros
+                    if trait_name.starts_with("bg_") { 1 } else { 2 }
+                };
+                (cost, format!("{} pts de Bônus", cost))
+            }
+            DotOrigin::Experience => {
+                if trait_name == keys::KEY_ARETE {
+                    let cost = dot_idx as i32 * 8;
+                    (cost, format!("{} XP (Nível {} -> {})", cost, dot_idx, dot_idx + 1))
+                } else if STANDARD_SPHERES.contains(&trait_name) {
+                    if dot_idx == 0 {
+                        (10, "10 XP (Nova Esfera)".to_string())
+                    } else if is_affinity {
+                        let cost = dot_idx as i32 * 7;
+                        (cost, format!("{} XP (Afinidade Nível {} -> {})", cost, dot_idx, dot_idx + 1))
+                    } else {
+                        let cost = dot_idx as i32 * 8;
+                        (cost, format!("{} XP (Nível {} -> {})", cost, dot_idx, dot_idx + 1))
+                    }
+                } else if trait_name == keys::KEY_WILLPOWER_TOTAL {
+                    let cost = dot_idx as i32 * 1;
+                    (cost, format!("{} XP (Nível {} -> {})", cost, dot_idx, dot_idx + 1))
+                } else if STANDARD_ATTRIBUTES.contains(&trait_name) {
+                    let cost = dot_idx as i32 * 4;
+                    (cost, format!("{} XP (Nível {} -> {})", cost, dot_idx, dot_idx + 1))
+                } else if trait_name.starts_with("bg_") {
+                    let cost = if dot_idx == 0 { 3 } else { dot_idx as i32 * 3 };
+                    (cost, format!("{} XP (Nível {} -> {})", cost, dot_idx, dot_idx + 1))
+                } else {
+                    // Ability
+                    if dot_idx == 0 {
+                        (3, "3 XP (Nova Habilidade)".to_string())
+                    } else {
+                        let cost = dot_idx as i32 * 2;
+                        (cost, format!("{} XP (Nível {} -> {})", cost, dot_idx, dot_idx + 1))
+                    }
+                }
+            }
+        }
     }
 
     /// Get label value
@@ -731,5 +1015,73 @@ mod tests {
         assert_eq!(attr.level, 5);
         assert_eq!(attr.dot_origins, vec![DotOrigin::Base, DotOrigin::Base, DotOrigin::Base, DotOrigin::Bonus, DotOrigin::Experience]);
         assert_eq!(attr.count_origins(), (3, 1, 1, 0));
+    }
+
+    #[test]
+    fn test_calculate_costs_freebies_and_xp() {
+        let mut char_data = CharacterData::new("c1".to_string(), "Mago Teste".to_string());
+
+        // 1. Força (Attribute): Level 4 -> [Base, Base, Bonus, Experience]
+        // Bonus at idx 2: 5 pts
+        // XP at idx 3: idx 3 * 4 = 12 XP
+        char_data.attributes.insert("Força".to_string(), AttributeValue {
+            level: 4,
+            modifier: String::new(),
+            dot_origins: vec![DotOrigin::Base, DotOrigin::Base, DotOrigin::Bonus, DotOrigin::Experience],
+        });
+
+        // 2. Custom Ability (Talento): Level 3 -> [Base, Bonus, Experience]
+        // Bonus at idx 1: 2 pts
+        // XP at idx 2: idx 2 * 2 = 4 XP
+        char_data.custom_lists.insert(keys::CAT_TALENTOS.to_string(), vec!["tal_1".to_string()]);
+        char_data.labels.insert("tal_1".to_string(), "Prontidão".to_string());
+        char_data.attributes.insert("tal_1".to_string(), AttributeValue {
+            level: 3,
+            modifier: String::new(),
+            dot_origins: vec![DotOrigin::Base, DotOrigin::Bonus, DotOrigin::Experience],
+        });
+
+        // 3. Forças (Sphere): Level 2 -> [Base, Experience] (Affinity Sphere)
+        // XP at idx 1 (Affinity): 1 * 7 = 7 XP
+        char_data.set_affinity_sphere(Some("Forças".to_string()));
+        char_data.attributes.insert("Forças".to_string(), AttributeValue {
+            level: 2,
+            modifier: String::new(),
+            dot_origins: vec![DotOrigin::Base, DotOrigin::Experience],
+        });
+
+        // 4. Correspondência (Sphere): Level 2 -> [Base, Experience] (Other Sphere)
+        // XP at idx 1 (Non-affinity): 1 * 8 = 8 XP
+        char_data.attributes.insert("Correspondência".to_string(), AttributeValue {
+            level: 2,
+            modifier: String::new(),
+            dot_origins: vec![DotOrigin::Base, DotOrigin::Experience],
+        });
+
+        // 5. Arete: Level 2 -> [Base, Bonus]
+        // Bonus at idx 1: 4 pts
+        char_data.attributes.insert(keys::KEY_ARETE.to_string(), AttributeValue {
+            level: 2,
+            modifier: String::new(),
+            dot_origins: vec![DotOrigin::Base, DotOrigin::Bonus],
+        });
+
+        // 6. Willpower Total: Level 6 -> [Base x 5, Bonus]
+        // Bonus at idx 5: 1 pt
+        char_data.attributes.insert(keys::KEY_WILLPOWER_TOTAL.to_string(), AttributeValue {
+            level: 6,
+            modifier: String::new(),
+            dot_origins: vec![DotOrigin::Base, DotOrigin::Base, DotOrigin::Base, DotOrigin::Base, DotOrigin::Base, DotOrigin::Bonus],
+        });
+
+        let summary = char_data.calculate_costs();
+
+        // Total Bonus: 5 (Força) + 2 (Talento) + 4 (Arete) + 1 (Willpower) = 12 pts
+        assert_eq!(summary.total_bonus_spent, 12);
+        assert_eq!(summary.bonus_limit, 15);
+        assert_eq!(summary.arete_warning, false); // Arete is 2 (<= 3)
+
+        // Total XP: 12 (Força) + 4 (Talento) + 7 (Forças Afinidade) + 8 (Correspondência) = 31 XP
+        assert_eq!(summary.total_xp_spent, 31);
     }
 }
