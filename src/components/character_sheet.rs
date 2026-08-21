@@ -80,10 +80,10 @@ pub fn CharacterSheet() -> impl IntoView {
     create_effect(move |_| {
         data.track();
         
-        if is_loaded.get_untracked() {
+        if is_loaded.try_get_untracked().unwrap_or(false) {
             set_save_seq.update(|s| *s += 1);
-            let current_seq = save_seq.get_untracked();
-            set_save_status.set(SaveStatus::Pending);
+            let current_seq = save_seq.try_get_untracked().unwrap_or(0);
+            let _ = set_save_status.try_set(SaveStatus::Pending);
 
             let current_id = id();
             let current_data = data.get();
@@ -92,16 +92,16 @@ pub fn CharacterSheet() -> impl IntoView {
                 // Debounce timeout of 500ms
                 gloo_timers::future::TimeoutFuture::new(500).await;
 
-                // Check if this is still the most recent change
-                if save_seq.get_untracked() == current_seq && !current_id.is_empty() {
-                    set_save_status.set(SaveStatus::Saving);
+                // Safely check if this is still the most recent change and component is alive
+                if save_seq.try_get_untracked() == Some(current_seq) && !current_id.is_empty() {
+                    let _ = set_save_status.try_set(SaveStatus::Saving);
                     match update_sheet(current_id, current_data).await {
                         Ok(_) => {
-                            set_save_status.set(SaveStatus::Saved(get_current_time_str()));
+                            let _ = set_save_status.try_set(SaveStatus::Saved(get_current_time_str()));
                         }
                         Err(e) => {
                             log::error!("Auto-save error: {:?}", e);
-                            set_save_status.set(SaveStatus::Error(e.to_string()));
+                            let _ = set_save_status.try_set(SaveStatus::Error(e.to_string()));
                         }
                     }
                 }
@@ -113,15 +113,15 @@ pub fn CharacterSheet() -> impl IntoView {
         let current_id = id();
         let current_data = data.get_untracked();
         if !current_id.is_empty() {
-            set_save_status.set(SaveStatus::Saving);
+            let _ = set_save_status.try_set(SaveStatus::Saving);
             spawn_local(async move {
                 match update_sheet(current_id, current_data).await {
                     Ok(_) => {
-                        set_save_status.set(SaveStatus::Saved(get_current_time_str()));
+                        let _ = set_save_status.try_set(SaveStatus::Saved(get_current_time_str()));
                     }
                     Err(e) => {
                         log::error!("Manual save error: {:?}", e);
-                        set_save_status.set(SaveStatus::Error(e.to_string()));
+                        let _ = set_save_status.try_set(SaveStatus::Error(e.to_string()));
                     }
                 }
             });
