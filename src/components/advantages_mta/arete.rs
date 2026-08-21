@@ -7,7 +7,7 @@ pub fn Arete() -> impl IntoView {
     let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
 
     let name = "Arete";
-    let level = Signal::derive(move || data.get().attributes.get(name).map(|a| a.level).unwrap_or(1).max(1));
+    let level = Signal::derive(move || data.with(|d| d.attributes.get(name).map(|a| a.level).unwrap_or(1).max(1)));
 
     let update_level = move |new_val: i32| {
         let val = new_val.max(1);

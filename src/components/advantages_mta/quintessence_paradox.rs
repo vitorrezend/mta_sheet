@@ -9,7 +9,7 @@ pub fn QuintessenceParadox() -> impl IntoView {
     let states_key = "quintessence_paradox_states";
 
     let states = Signal::derive(move || {
-        let val = data.get().labels.get(states_key).cloned().unwrap_or_default();
+        let val = data.with(|d| d.labels.get(states_key).cloned().unwrap_or_default());
         if val.len() == 20 { val } else { "0".repeat(20) }
     });
 

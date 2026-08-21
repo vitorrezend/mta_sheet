@@ -10,12 +10,12 @@ pub fn Willpower() -> impl IntoView {
     let current_name = "willpower_current";
 
     let total = Signal::derive(move || {
-        let val = data.get().attributes.get(total_name).map(|a| a.level).unwrap_or(0);
+        let val = data.with(|d| d.attributes.get(total_name).map(|a| a.level).unwrap_or(0));
         if val == 0 { 5 } else { val }
     });
 
     let current = Signal::derive(move || {
-        data.get().attributes.get(current_name).map(|a| a.level).unwrap_or(0)
+        data.with(|d| d.attributes.get(current_name).map(|a| a.level).unwrap_or(0))
     });
 
     let update_total = move |new_val: i32| {

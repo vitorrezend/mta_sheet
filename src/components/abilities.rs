@@ -84,15 +84,15 @@ pub fn Abilities() -> impl IntoView {
         
         let level = Signal::derive({
             let name = n_level.clone();
-            move || data.get().get_attribute_level(&name, 0)
+            move || data.with(|d| d.get_attribute_level(&name, 0))
         });
         let modifier = Signal::derive({
             let name = n_mod.clone();
-            move || data.get().get_attribute_modifier(&name)
+            move || data.with(|d| d.get_attribute_modifier(&name))
         });
         let origins = Signal::derive({
             let name = n_origins.clone();
-            move || data.get().attributes.get(&name).map(|a| a.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5])
+            move || data.with(|d| d.attributes.get(&name).map(|a| a.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5]))
         });
 
         let on_dot_origin_change = {
@@ -146,7 +146,7 @@ pub fn Abilities() -> impl IntoView {
                     on_add=Callback::new(move |_| add_custom("Talentos"))
                 >
                     {TALENTOS.iter().map(|&n| render_field(n.to_string(), false, "Talentos")).collect_view()}
-                    {move || data.get().custom_lists.get("Talentos").cloned().unwrap_or_default().into_iter().map(|n| render_field(n, true, "Talentos")).collect_view()}
+                    {move || data.with(|d| d.custom_lists.get("Talentos").cloned().unwrap_or_default()).into_iter().map(|n| render_field(n, true, "Talentos")).collect_view()}
                 </AbilityColumn>
                 
                 <AbilityColumn 
@@ -154,7 +154,7 @@ pub fn Abilities() -> impl IntoView {
                     on_add=Callback::new(move |_| add_custom("Perícias"))
                 >
                     {PERICIAS.iter().map(|&n| render_field(n.to_string(), false, "Perícias")).collect_view()}
-                    {move || data.get().custom_lists.get("Perícias").cloned().unwrap_or_default().into_iter().map(|n| render_field(n, true, "Perícias")).collect_view()}
+                    {move || data.with(|d| d.custom_lists.get("Perícias").cloned().unwrap_or_default()).into_iter().map(|n| render_field(n, true, "Perícias")).collect_view()}
                 </AbilityColumn>
 
                 <AbilityColumn 
@@ -162,7 +162,7 @@ pub fn Abilities() -> impl IntoView {
                     on_add=Callback::new(move |_| add_custom("Conhecimentos"))
                 >
                     {CONHECIMENTOS.iter().map(|&n| render_field(n.to_string(), false, "Conhecimentos")).collect_view()}
-                    {move || data.get().custom_lists.get("Conhecimentos").cloned().unwrap_or_default().into_iter().map(|n| render_field(n, true, "Conhecimentos")).collect_view()}
+                    {move || data.with(|d| d.custom_lists.get("Conhecimentos").cloned().unwrap_or_default()).into_iter().map(|n| render_field(n, true, "Conhecimentos")).collect_view()}
                 </AbilityColumn>
             </div>
         </div>

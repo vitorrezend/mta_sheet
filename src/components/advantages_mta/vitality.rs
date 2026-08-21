@@ -68,7 +68,7 @@ pub fn Vitality() -> impl IntoView {
                 {(0..7).map(|i| {
                     let (label, penalty) = HEALTH_LEVELS[i];
                     let current = move || {
-                        let s = data.get().labels.get(&format!("health_{}", i)).cloned().unwrap_or_default();
+                        let s = data.with(|d| d.labels.get(&format!("health_{}", i)).cloned().unwrap_or_default());
                         DamageType::from_key(&s)
                     };
 

@@ -22,7 +22,7 @@ pub fn LabelColumn(
                 let key_str2 = key.to_string();
                 let value = Signal::derive({
                     let key = key_str.clone();
-                    move || data.get().labels.get(&key).cloned().unwrap_or_default()
+                    move || data.with(|d| d.labels.get(&key).cloned().unwrap_or_default())
                 });
                 view! {
                     <LabelField 

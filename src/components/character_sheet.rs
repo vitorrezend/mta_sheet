@@ -128,7 +128,7 @@ pub fn CharacterSheet() -> impl IntoView {
         }
     };
 
-    let costs = Signal::derive(move || data.get().calculate_costs());
+    let costs = create_memo(move |_| data.with(|d| d.calculate_costs()));
     let (show_breakdown, set_show_breakdown) = create_signal(false);
 
     view! {

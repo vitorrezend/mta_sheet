@@ -67,15 +67,21 @@ pub fn ValueField(
         }
     };
 
-    let (editing_label, set_editing_label) = create_signal(is_editable && label.get_untracked().is_empty());
+    let (editing_label, set_editing_label) = if is_editable {
+        create_signal(label.get_untracked().is_empty())
+    } else {
+        create_signal(false)
+    };
     let (local_label, set_local_label) = create_signal(label.get_untracked());
 
     // Sincroniza o valor local quando entra em modo de edição
-    create_effect(move |_| {
-        if editing_label.get() {
-            set_local_label.set(label.get());
-        }
-    });
+    if is_editable {
+        create_effect(move |_| {
+            if editing_label.get() {
+                set_local_label.set(label.get());
+            }
+        });
+    }
 
     view! {
         <div class="attribute-row">

@@ -30,7 +30,7 @@ pub fn Resonance() -> impl IntoView {
     });
 
     let list = Signal::derive(move || {
-        data.get().custom_lists.get(category).cloned().unwrap_or_default()
+        data.with(|d| d.custom_lists.get(category).cloned().unwrap_or_default())
     });
 
     let add_item = move |_| {
@@ -69,22 +69,22 @@ pub fn Resonance() -> impl IntoView {
 
         let label = Signal::derive({
             let id = id_label.clone();
-            move || data.get().labels.get(&id).cloned().unwrap_or_default()
+            move || data.with(|d| d.labels.get(&id).cloned().unwrap_or_default())
         });
 
         let level = Signal::derive({
             let id = id_level.clone();
-            move || data.get().get_attribute_level(&id, 0)
+            move || data.with(|d| d.get_attribute_level(&id, 0))
         });
         
         let modifier = Signal::derive({
             let id = id_mod.clone();
-            move || data.get().get_attribute_modifier(&id)
+            move || data.with(|d| d.get_attribute_modifier(&id))
         });
 
         let origins = Signal::derive({
             let id = id_origins.clone();
-            move || data.get().attributes.get(&id).map(|a| a.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5])
+            move || data.with(|d| d.attributes.get(&id).map(|a| a.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5]))
         });
 
         let on_dot_origin_change = {

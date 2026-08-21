@@ -34,19 +34,19 @@ pub fn Spheres() -> impl IntoView {
 
         let level = Signal::derive({
             let name = name_str.clone();
-            move || data.get().get_attribute_level(&name, 0)
+            move || data.with(|d| d.get_attribute_level(&name, 0))
         });
         let modifier = Signal::derive({
             let name = name_str2.clone();
-            move || data.get().get_attribute_modifier(&name)
+            move || data.with(|d| d.get_attribute_modifier(&name))
         });
         let origins = Signal::derive({
             let name = name_str3.clone();
-            move || data.get().attributes.get(&name).map(|a| a.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5])
+            move || data.with(|d| d.attributes.get(&name).map(|a| a.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5]))
         });
         let is_affinity = Signal::derive({
             let name = name_str7.clone();
-            move || data.get().get_affinity_sphere().map(|s| s.eq_ignore_ascii_case(&name)).unwrap_or(false)
+            move || data.with(|d| d.get_affinity_sphere().map(|s| s.eq_ignore_ascii_case(&name)).unwrap_or(false))
         });
         let display_sphere_label = Signal::derive({
             let name = name.to_string();

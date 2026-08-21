@@ -8,7 +8,7 @@ pub fn Experience() -> impl IntoView {
     let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
 
     let name = "Experiência";
-    let value = Signal::derive(move || data.get().labels.get(name).cloned().unwrap_or_default());
+    let value = Signal::derive(move || data.with(|d| d.labels.get(name).cloned().unwrap_or_default()));
 
     let update_value = move |val: String| {
         set_data.update(|s| {
