@@ -12,15 +12,18 @@ pub fn StableTextArea(
     #[prop(optional)] class: &'static str,
 ) -> impl IntoView {
     let textarea_ref = create_node_ref::<Textarea>();
-    let (is_focused, set_is_focused) = create_signal(false);
+    let is_focused = create_rw_signal(false);
+    let last_synced_value = create_rw_signal(String::new());
 
-    // Sincroniza o valor do sinal externo APENAS quando o usuário NÃO está digitando no campo
+    // Sincroniza o valor do sinal externo APENAS quando o valor externo mudar
+    // e o usuário NÃO estiver digitando ativamente no campo
     create_effect(move |_| {
         let val = value.get();
-        if !is_focused.get() {
+        if !is_focused.get_untracked() {
             if let Some(elem) = textarea_ref.get() {
                 elem.set_value(&val);
             }
+            last_synced_value.set(val);
         }
     });
 
@@ -29,15 +32,16 @@ pub fn StableTextArea(
             node_ref=textarea_ref
             class=class
             placeholder=placeholder
-            on:focus=move |_| set_is_focused.set(true)
+            on:focus=move |_| is_focused.set(true)
             on:blur=move |_| {
-                set_is_focused.set(false);
                 if let Some(elem) = textarea_ref.get() {
                     let current_val = elem.value();
-                    if current_val != value.get_untracked() {
+                    if current_val != last_synced_value.get_untracked() {
+                        last_synced_value.set(current_val.clone());
                         on_change.call(current_val);
                     }
                 }
+                is_focused.set(false);
             }
         ></textarea>
     }
@@ -52,15 +56,18 @@ pub fn StableTextInput(
     #[prop(optional)] class: &'static str,
 ) -> impl IntoView {
     let input_ref = create_node_ref::<Input>();
-    let (is_focused, set_is_focused) = create_signal(false);
+    let is_focused = create_rw_signal(false);
+    let last_synced_value = create_rw_signal(String::new());
 
-    // Sincroniza o valor do sinal externo APENAS quando o usuário NÃO está focado no campo
+    // Sincroniza o valor do sinal externo APENAS quando o valor externo mudar
+    // e o usuário NÃO estiver focado no campo
     create_effect(move |_| {
         let val = value.get();
-        if !is_focused.get() {
+        if !is_focused.get_untracked() {
             if let Some(elem) = input_ref.get() {
                 elem.set_value(&val);
             }
+            last_synced_value.set(val);
         }
     });
 
@@ -70,15 +77,16 @@ pub fn StableTextInput(
             node_ref=input_ref
             class=class
             placeholder=placeholder
-            on:focus=move |_| set_is_focused.set(true)
+            on:focus=move |_| is_focused.set(true)
             on:blur=move |_| {
-                set_is_focused.set(false);
                 if let Some(elem) = input_ref.get() {
                     let current_val = elem.value();
-                    if current_val != value.get_untracked() {
+                    if current_val != last_synced_value.get_untracked() {
+                        last_synced_value.set(current_val.clone());
                         on_change.call(current_val);
                     }
                 }
+                is_focused.set(false);
             }
         />
     }
