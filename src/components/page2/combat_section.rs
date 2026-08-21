@@ -8,13 +8,116 @@ pub fn CombatSection() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>()
         .expect("WriteSignal<CharacterData> context not found");
 
-    let weapons = Signal::derive(move || data.with(|d| d.weapons.clone()));
-    let armor = Signal::derive(move || data.with(|d| d.armor.clone()));
-
-    let add_weapon = move |_| {
-        set_data.update(|s| {
-            s.weapons.push(WeaponItem::default());
-        });
+    let render_weapon_row = move |idx: usize| {
+        view! {
+            <tr>
+                <td>
+                    <input 
+                        type="text" 
+                        class="table-cell-input text-left font-bold"
+                        placeholder="Arma / Golpe..."
+                        prop:value=move || data.with(|d| d.weapons.get(idx).map(|w| w.name.clone()).unwrap_or_default())
+                        on:input=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
+                                s.weapons[idx].name = val;
+                            });
+                        }
+                    />
+                </td>
+                <td>
+                    <input 
+                        type="text" 
+                        class="table-cell-input text-center"
+                        placeholder="Dif"
+                        prop:value=move || data.with(|d| d.weapons.get(idx).map(|w| w.diff.clone()).unwrap_or_default())
+                        on:input=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
+                                s.weapons[idx].diff = val;
+                            });
+                        }
+                    />
+                </td>
+                <td>
+                    <input 
+                        type="text" 
+                        class="table-cell-input text-center"
+                        placeholder="Dano"
+                        prop:value=move || data.with(|d| d.weapons.get(idx).map(|w| w.damage.clone()).unwrap_or_default())
+                        on:input=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
+                                s.weapons[idx].damage = val;
+                            });
+                        }
+                    />
+                </td>
+                <td>
+                    <input 
+                        type="text" 
+                        class="table-cell-input text-center"
+                        placeholder="Alc."
+                        prop:value=move || data.with(|d| d.weapons.get(idx).map(|w| w.range.clone()).unwrap_or_default())
+                        on:input=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
+                                s.weapons[idx].range = val;
+                            });
+                        }
+                    />
+                </td>
+                <td>
+                    <input 
+                        type="text" 
+                        class="table-cell-input text-center"
+                        placeholder="Cad."
+                        prop:value=move || data.with(|d| d.weapons.get(idx).map(|w| w.rate.clone()).unwrap_or_default())
+                        on:input=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
+                                s.weapons[idx].rate = val;
+                            });
+                        }
+                    />
+                </td>
+                <td>
+                    <input 
+                        type="text" 
+                        class="table-cell-input text-center"
+                        placeholder="Pente"
+                        prop:value=move || data.with(|d| d.weapons.get(idx).map(|w| w.clip.clone()).unwrap_or_default())
+                        on:input=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
+                                s.weapons[idx].clip = val;
+                            });
+                        }
+                    />
+                </td>
+                <td>
+                    <input 
+                        type="text" 
+                        class="table-cell-input text-center"
+                        placeholder="Ocult."
+                        prop:value=move || data.with(|d| d.weapons.get(idx).map(|w| w.conceal.clone()).unwrap_or_default())
+                        on:input=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.weapons.len() <= idx { s.weapons.push(WeaponItem::default()); }
+                                s.weapons[idx].conceal = val;
+                            });
+                        }
+                    />
+                </td>
+            </tr>
+        }
     };
 
     view! {
@@ -24,13 +127,10 @@ pub fn CombatSection() -> impl IntoView {
             </div>
 
             <div class="combat-grid">
-                // Tabela de Armas e Ataques
+                // Tabela de Armas e Ataques (4 Linhas Estáticas)
                 <div class="weapons-table-column">
                     <div class="weapons-table-header-row">
                         <span class="weapons-table-title">"ARMAS & ATAQUES"</span>
-                        <button type="button" class="add-mini-btn" on:click=add_weapon title="Adicionar arma">
-                            "+ Arma"
-                        </button>
                     </div>
 
                     <div class="weapons-table-container">
@@ -44,160 +144,10 @@ pub fn CombatSection() -> impl IntoView {
                                     <th class="th-stat">"CADÊNCIA"</th>
                                     <th class="th-stat">"PENTE"</th>
                                     <th class="th-stat">"OCULT."</th>
-                                    <th class="th-act"></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {move || {
-                                    weapons.get().into_iter().enumerate().map(|(idx, wp)| {
-                                        let w_name = wp.name.clone();
-                                        let w_diff = wp.diff.clone();
-                                        let w_damage = wp.damage.clone();
-                                        let w_range = wp.range.clone();
-                                        let w_rate = wp.rate.clone();
-                                        let w_clip = wp.clip.clone();
-                                        let w_conceal = wp.conceal.clone();
-
-                                        view! {
-                                            <tr>
-                                                <td>
-                                                    <input 
-                                                        type="text" 
-                                                        class="table-cell-input text-left font-bold"
-                                                        placeholder="Arma / Golpe..."
-                                                        prop:value=w_name
-                                                        on:input=move |ev| {
-                                                            let val = event_target_value(&ev);
-                                                            set_data.update(|s| {
-                                                                if let Some(w) = s.weapons.get_mut(idx) {
-                                                                    w.name = val;
-                                                                }
-                                                            });
-                                                        }
-                                                    />
-                                                </td>
-                                                <td>
-                                                    <input 
-                                                        type="text" 
-                                                        class="table-cell-input text-center"
-                                                        placeholder="6"
-                                                        prop:value=w_diff
-                                                        on:input=move |ev| {
-                                                            let val = event_target_value(&ev);
-                                                            set_data.update(|s| {
-                                                                if let Some(w) = s.weapons.get_mut(idx) {
-                                                                    w.diff = val;
-                                                                }
-                                                            });
-                                                        }
-                                                    />
-                                                </td>
-                                                <td>
-                                                    <input 
-                                                        type="text" 
-                                                        class="table-cell-input text-center"
-                                                        placeholder="For+2L"
-                                                        prop:value=w_damage
-                                                        on:input=move |ev| {
-                                                            let val = event_target_value(&ev);
-                                                            set_data.update(|s| {
-                                                                if let Some(w) = s.weapons.get_mut(idx) {
-                                                                    w.damage = val;
-                                                                }
-                                                            });
-                                                        }
-                                                    />
-                                                </td>
-                                                <td>
-                                                    <input 
-                                                        type="text" 
-                                                        class="table-cell-input text-center"
-                                                        placeholder="-"
-                                                        prop:value=w_range
-                                                        on:input=move |ev| {
-                                                            let val = event_target_value(&ev);
-                                                            set_data.update(|s| {
-                                                                if let Some(w) = s.weapons.get_mut(idx) {
-                                                                    w.range = val;
-                                                                }
-                                                            });
-                                                        }
-                                                    />
-                                                </td>
-                                                <td>
-                                                    <input 
-                                                        type="text" 
-                                                        class="table-cell-input text-center"
-                                                        placeholder="1"
-                                                        prop:value=w_rate
-                                                        on:input=move |ev| {
-                                                            let val = event_target_value(&ev);
-                                                            set_data.update(|s| {
-                                                                if let Some(w) = s.weapons.get_mut(idx) {
-                                                                    w.rate = val;
-                                                                }
-                                                            });
-                                                        }
-                                                    />
-                                                </td>
-                                                <td>
-                                                    <input 
-                                                        type="text" 
-                                                        class="table-cell-input text-center"
-                                                        placeholder="-"
-                                                        prop:value=w_clip
-                                                        on:input=move |ev| {
-                                                            let val = event_target_value(&ev);
-                                                            set_data.update(|s| {
-                                                                if let Some(w) = s.weapons.get_mut(idx) {
-                                                                    w.clip = val;
-                                                                }
-                                                            });
-                                                        }
-                                                    />
-                                                </td>
-                                                <td>
-                                                    <input 
-                                                        type="text" 
-                                                        class="table-cell-input text-center"
-                                                        placeholder="P"
-                                                        prop:value=w_conceal
-                                                        on:input=move |ev| {
-                                                            let val = event_target_value(&ev);
-                                                            set_data.update(|s| {
-                                                                if let Some(w) = s.weapons.get_mut(idx) {
-                                                                    w.conceal = val;
-                                                                }
-                                                            });
-                                                        }
-                                                    />
-                                                </td>
-                                                <td class="text-center">
-                                                    {if idx >= 4 {
-                                                        view! {
-                                                            <button 
-                                                                type="button" 
-                                                                class="remove-row-btn"
-                                                                title="Remover arma"
-                                                                on:click=move |_| {
-                                                                    set_data.update(|s| {
-                                                                        if idx < s.weapons.len() {
-                                                                            s.weapons.remove(idx);
-                                                                        }
-                                                                    });
-                                                                }
-                                                            >
-                                                                "✕"
-                                                            </button>
-                                                        }.into_view()
-                                                    } else {
-                                                        view! { <span></span> }.into_view()
-                                                    }}
-                                                </td>
-                                            </tr>
-                                        }
-                                    }).collect_view()
-                                }}
+                                {(0..4).map(render_weapon_row).collect_view()}
                             </tbody>
                         </table>
                     </div>
@@ -216,7 +166,7 @@ pub fn CombatSection() -> impl IntoView {
                                 type="text" 
                                 class="armor-input"
                                 placeholder="Ex: Jaqueta de Couro"
-                                prop:value=move || armor.get().class_name
+                                prop:value=move || data.with(|d| d.armor.class_name.clone())
                                 on:input=move |ev| {
                                     let val = event_target_value(&ev);
                                     set_data.update(|s| s.armor.class_name = val);
@@ -225,12 +175,12 @@ pub fn CombatSection() -> impl IntoView {
                         </div>
 
                         <div class="armor-field-row">
-                            <label class="armor-label">"Classificação (Rating):"</label>
+                            <label class="armor-label">"Rating:"</label>
                             <input 
                                 type="text" 
                                 class="armor-input text-center"
                                 placeholder="1"
-                                prop:value=move || armor.get().rating
+                                prop:value=move || data.with(|d| d.armor.rating.clone())
                                 on:input=move |ev| {
                                     let val = event_target_value(&ev);
                                     set_data.update(|s| s.armor.rating = val);
@@ -244,7 +194,7 @@ pub fn CombatSection() -> impl IntoView {
                                 type="text" 
                                 class="armor-input text-center"
                                 placeholder="0"
-                                prop:value=move || armor.get().penalty
+                                prop:value=move || data.with(|d| d.armor.penalty.clone())
                                 on:input=move |ev| {
                                     let val = event_target_value(&ev);
                                     set_data.update(|s| s.armor.penalty = val);
@@ -257,7 +207,7 @@ pub fn CombatSection() -> impl IntoView {
                             <textarea 
                                 class="armor-desc-textarea"
                                 placeholder="Detalhes da proteção..."
-                                prop:value=move || armor.get().description
+                                prop:value=move || data.with(|d| d.armor.description.clone())
                                 on:input=move |ev| {
                                     let val = event_target_value(&ev);
                                     set_data.update(|s| s.armor.description = val);

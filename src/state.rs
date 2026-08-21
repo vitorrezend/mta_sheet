@@ -317,11 +317,11 @@ impl CharacterData {
             attributes: HashMap::new(),
             labels: HashMap::new(),
             custom_lists: HashMap::new(),
-            merits: Vec::new(),
-            flaws: Vec::new(),
-            wonders: vec![WonderItem::default(), WonderItem::default(), WonderItem::default()],
+            merits: vec![MeritItem::default(); 7],
+            flaws: vec![FlawItem::default(); 7],
+            wonders: vec![WonderItem::default(); 3],
             rotes: String::new(),
-            weapons: vec![WeaponItem::default(), WeaponItem::default(), WeaponItem::default(), WeaponItem::default()],
+            weapons: vec![WeaponItem::default(); 4],
             armor: ArmorItem::default(),
         };
         sheet.sanitize();
@@ -828,7 +828,13 @@ impl CharacterData {
             }
         }
 
-        // Ensure minimum slots for Wonders (3) and Weapons (4)
+        // Ensure minimum slots for Merits (7), Flaws (7), Wonders (3) and Weapons (4)
+        while self.merits.len() < 7 {
+            self.merits.push(MeritItem::default());
+        }
+        while self.flaws.len() < 7 {
+            self.flaws.push(FlawItem::default());
+        }
         while self.wonders.len() < 3 {
             self.wonders.push(WonderItem::default());
         }
@@ -1078,6 +1084,7 @@ mod tests {
             attributes: HashMap::new(),
             labels: HashMap::new(),
             custom_lists: HashMap::new(),
+            ..Default::default()
         };
 
         char_data.sanitize();

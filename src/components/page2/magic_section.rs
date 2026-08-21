@@ -8,13 +8,98 @@ pub fn MagicSection() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>()
         .expect("WriteSignal<CharacterData> context not found");
 
-    let wonders = Signal::derive(move || data.with(|d| d.wonders.clone()));
-    let rotes = Signal::derive(move || data.with(|d| d.rotes.clone()));
+    let render_wonder_card = move |idx: usize| {
+        view! {
+            <div class="wonder-card">
+                <div class="wonder-card-top-row">
+                    <div class="wonder-field name-field">
+                        <label class="wonder-label">"Nome:"</label>
+                        <input 
+                            type="text" 
+                            class="wonder-input"
+                            placeholder="Nome do artefato / maravilha..."
+                            prop:value=move || data.with(|d| d.wonders.get(idx).map(|w| w.name.clone()).unwrap_or_default())
+                            on:input=move |ev| {
+                                let val = event_target_value(&ev);
+                                set_data.update(|s| {
+                                    while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+                                    s.wonders[idx].name = val;
+                                });
+                            }
+                        />
+                    </div>
+                </div>
 
-    let add_wonder = move |_| {
-        set_data.update(|s| {
-            s.wonders.push(WonderItem::default());
-        });
+                <div class="wonder-stats-row">
+                    <div class="wonder-field stat-field">
+                        <label class="wonder-label">"Pontos:"</label>
+                        <input 
+                            type="text" 
+                            class="wonder-input text-center"
+                            placeholder="Pts"
+                            prop:value=move || data.with(|d| d.wonders.get(idx).map(|w| w.points.clone()).unwrap_or_default())
+                            on:input=move |ev| {
+                                let val = event_target_value(&ev);
+                                set_data.update(|s| {
+                                    while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+                                    s.wonders[idx].points = val;
+                                });
+                            }
+                        />
+                    </div>
+
+                    <div class="wonder-field stat-field">
+                        <label class="wonder-label">"Arete:"</label>
+                        <input 
+                            type="text" 
+                            class="wonder-input text-center"
+                            placeholder="Arete"
+                            prop:value=move || data.with(|d| d.wonders.get(idx).map(|w| w.arete.clone()).unwrap_or_default())
+                            on:input=move |ev| {
+                                let val = event_target_value(&ev);
+                                set_data.update(|s| {
+                                    while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+                                    s.wonders[idx].arete = val;
+                                });
+                            }
+                        />
+                    </div>
+
+                    <div class="wonder-field stat-field">
+                        <label class="wonder-label">"Quintessência:"</label>
+                        <input 
+                            type="text" 
+                            class="wonder-input text-center"
+                            placeholder="Quint."
+                            prop:value=move || data.with(|d| d.wonders.get(idx).map(|w| w.quintessence.clone()).unwrap_or_default())
+                            on:input=move |ev| {
+                                let val = event_target_value(&ev);
+                                set_data.update(|s| {
+                                    while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+                                    s.wonders[idx].quintessence = val;
+                                });
+                            }
+                        />
+                    </div>
+                </div>
+
+                <div class="wonder-desc-row">
+                    <label class="wonder-label">"Descrição:"</label>
+                    <textarea 
+                        class="wonder-desc-textarea"
+                        placeholder="Poderes, gatilhos, histórico e efeitos..."
+                        prop:value=move || data.with(|d| d.wonders.get(idx).map(|w| w.description.clone()).unwrap_or_default())
+                        on:input=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+                                s.wonders[idx].description = val;
+                            });
+                        }
+                    ></textarea>
+                </div>
+            </div>
+        }
     };
 
     view! {
@@ -24,142 +109,14 @@ pub fn MagicSection() -> impl IntoView {
             </div>
 
             <div class="magic-columns-grid">
-                // Coluna: Wonders (Maravilhas / Talismãs)
+                // Coluna: Wonders (3 Cards Estáticos)
                 <div class="wonders-column">
                     <div class="section-sub-title-row">
                         <span class="section-sub-title">"MARAVILHAS (WONDERS)"</span>
-                        <button type="button" class="add-mini-btn" on:click=add_wonder title="Adicionar maravilha">
-                            "+ Maravilha"
-                        </button>
                     </div>
 
                     <div class="wonders-list">
-                        {move || {
-                            wonders.get().into_iter().enumerate().map(|(idx, wonder)| {
-                                let w_name = wonder.name.clone();
-                                let w_pts = wonder.points.clone();
-                                let w_arete = wonder.arete.clone();
-                                let w_quint = wonder.quintessence.clone();
-                                let w_desc = wonder.description.clone();
-
-                                view! {
-                                    <div class="wonder-card">
-                                        <div class="wonder-card-top-row">
-                                            <div class="wonder-field name-field">
-                                                <label class="wonder-label">"Nome:"</label>
-                                                <input 
-                                                    type="text" 
-                                                    class="wonder-input"
-                                                    placeholder="Nome do artefato..."
-                                                    prop:value=w_name
-                                                    on:input=move |ev| {
-                                                        let val = event_target_value(&ev);
-                                                        set_data.update(|s| {
-                                                            if let Some(w) = s.wonders.get_mut(idx) {
-                                                                w.name = val;
-                                                            }
-                                                        });
-                                                    }
-                                                />
-                                            </div>
-                                            {if idx >= 3 {
-                                                view! {
-                                                    <button 
-                                                        type="button" 
-                                                        class="remove-row-btn"
-                                                        title="Remover maravilha"
-                                                        on:click=move |_| {
-                                                            set_data.update(|s| {
-                                                                if idx < s.wonders.len() {
-                                                                    s.wonders.remove(idx);
-                                                                }
-                                                            });
-                                                        }
-                                                    >
-                                                        "✕"
-                                                    </button>
-                                                }.into_view()
-                                            } else {
-                                                view! { <span></span> }.into_view()
-                                            }}
-                                        </div>
-
-                                        <div class="wonder-stats-row">
-                                            <div class="wonder-field stat-field">
-                                                <label class="wonder-label">"Pontos:"</label>
-                                                <input 
-                                                    type="text" 
-                                                    class="wonder-input text-center"
-                                                    placeholder="Pts"
-                                                    prop:value=w_pts
-                                                    on:input=move |ev| {
-                                                        let val = event_target_value(&ev);
-                                                        set_data.update(|s| {
-                                                            if let Some(w) = s.wonders.get_mut(idx) {
-                                                                w.points = val;
-                                                            }
-                                                        });
-                                                    }
-                                                />
-                                            </div>
-
-                                            <div class="wonder-field stat-field">
-                                                <label class="wonder-label">"Arete:"</label>
-                                                <input 
-                                                    type="text" 
-                                                    class="wonder-input text-center"
-                                                    placeholder="Arete"
-                                                    prop:value=w_arete
-                                                    on:input=move |ev| {
-                                                        let val = event_target_value(&ev);
-                                                        set_data.update(|s| {
-                                                            if let Some(w) = s.wonders.get_mut(idx) {
-                                                                w.arete = val;
-                                                            }
-                                                        });
-                                                    }
-                                                />
-                                            </div>
-
-                                            <div class="wonder-field stat-field">
-                                                <label class="wonder-label">"Quintessência:"</label>
-                                                <input 
-                                                    type="text" 
-                                                    class="wonder-input text-center"
-                                                    placeholder="Quint."
-                                                    prop:value=w_quint
-                                                    on:input=move |ev| {
-                                                        let val = event_target_value(&ev);
-                                                        set_data.update(|s| {
-                                                            if let Some(w) = s.wonders.get_mut(idx) {
-                                                                w.quintessence = val;
-                                                            }
-                                                        });
-                                                    }
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div class="wonder-desc-row">
-                                            <label class="wonder-label">"Descrição:"</label>
-                                            <textarea 
-                                                class="wonder-desc-textarea"
-                                                placeholder="Poderes, gatilhos, histórico e efeitos..."
-                                                prop:value=w_desc
-                                                on:input=move |ev| {
-                                                    let val = event_target_value(&ev);
-                                                    set_data.update(|s| {
-                                                        if let Some(w) = s.wonders.get_mut(idx) {
-                                                            w.description = val;
-                                                        }
-                                                    });
-                                                }
-                                            ></textarea>
-                                        </div>
-                                    </div>
-                                }
-                            }).collect_view()
-                        }}
+                        {(0..3).map(render_wonder_card).collect_view()}
                     </div>
                 </div>
 
@@ -173,7 +130,7 @@ pub fn MagicSection() -> impl IntoView {
                         <textarea 
                             class="rotes-textarea"
                             placeholder="Liste aqui suas Fórmulas (Rotes) consagradas: Nome da Fórmula, Esferas necessárias, Instrumentos/Focos, Dificuldade e Efeitos..."
-                            prop:value=move || rotes.get()
+                            prop:value=move || data.with(|d| d.rotes.clone())
                             on:input=move |ev| {
                                 let val = event_target_value(&ev);
                                 set_data.update(|s| s.rotes = val);
