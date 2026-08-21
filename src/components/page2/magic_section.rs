@@ -339,7 +339,7 @@ pub fn MagicSection() -> impl IntoView {
                     />
                 </div>
 
-                // 4. Bloco de Quintessência (5 a 20 pontos em linha única contínua)
+                // 4. Bloco de Quintessência (5 a 20 pontos organizados em 2 linhas de 10)
                 <div class="wonder-quintessence-row">
                     <div class="wonder-quint-header">
                         <span class="wonder-stat-label">"Quintessência:"</span>
@@ -368,7 +368,7 @@ pub fn MagicSection() -> impl IntoView {
                         </div>
                     </div>
 
-                    <div class="wonder-squares-container">
+                    <div class="wonder-squares-grid-10">
                         {move || {
                             let max_q = data.with(|d| d.wonders.get(idx).map(|w| w.quintessence_max).unwrap_or(5));
                             (1..=max_q).map(|sq_i| {
@@ -415,7 +415,7 @@ pub fn MagicSection() -> impl IntoView {
 
     view! {
         <div class="group-box magic-section-box">
-            <span class="group-title">"MARAVILHAS & ARTEFATOS (WONDERS)"</span>
+            <span class="group-title">"MARAVILHAS & ARTEFATOS"</span>
 
             // Grade 2x2 preenchendo toda a largura da folha
             <div class="wonders-grid-2x2">

@@ -2866,67 +2866,28 @@ body {
 
 /* 3. Magia (Wonders & Rotes) */
 .magic-section-box {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    padding: 0.6rem 0.75rem;
-    box-sizing: border-box;
-}
-
-.magic-columns-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-@media (max-width: 768px) {
-    .magic-columns-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.wonders-column, .rotes-column {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-}
-
-.section-sub-title-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 2px;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.section-sub-title {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #1e293b;
-    letter-spacing: 0.5px;
-}
-
-.add-mini-btn {
-    font-size: 0.68rem;
-    font-weight: 600;
-    padding: 2px 6px;
-    background: #f1f5f9;
-    color: #475569;
-    border: 1px solid #cbd5e1;
+    position: relative;
+    margin-top: 1.2rem;
+    padding: 1.2rem 0.8rem 0.8rem 0.8rem;
+    background: var(--paper-bg);
+    border: 1px solid #bdc3c7;
     border-radius: 4px;
-    cursor: pointer;
+    box-sizing: border-box;
+    width: 100%;
 }
 
-.add-mini-btn:hover {
-    background: #e2e8f0;
+.magic-section-box > .group-title {
+    white-space: nowrap;
+    z-index: 2;
+    background-color: var(--paper-bg);
+    padding: 0 10px;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
 }
 
 .wonders-grid-2x2 {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
     align-items: start;
     width: 100%;
@@ -2947,14 +2908,16 @@ body {
 }
 
 .wonder-card {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
     border-radius: 6px;
-    padding: 0.6rem;
+    padding: 0.65rem;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.45rem;
     box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
 }
 
 .wonder-card-top-row {
@@ -3185,28 +3148,28 @@ body {
     font-family: monospace;
 }
 
-.wonder-squares-container {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 3.5px;
-    align-items: center;
-    justify-content: flex-start;
+.wonder-squares-grid-10 {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 4px;
     width: 100%;
+    max-width: 240px;
     box-sizing: border-box;
-    overflow-x: auto;
-    padding-bottom: 1px;
+    justify-items: center;
+    align-items: center;
+    padding: 3px 0;
 }
 
 .wonder-square {
-    width: 9.5px;
-    height: 9.5px;
-    min-width: 9.5px;
-    min-height: 9.5px;
-    flex-shrink: 0;
+    width: 13px;
+    height: 13px;
+    min-width: 13px;
+    min-height: 13px;
     border: 1.5px solid var(--primary-color);
     cursor: pointer;
     display: inline-block;
     box-sizing: border-box;
+    border-radius: 2px;
     transition: all 0.15s ease;
 }
 
