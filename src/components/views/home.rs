@@ -82,14 +82,14 @@ pub fn Home() -> impl IntoView {
                 <form on:submit=on_create class="create-form">
                     <input
                         type="text"
-                        placeholder="Nome do Personagem (opcional, padrão: 'Novo Mago')"
+                        placeholder="🧙‍♂️ Nome do Personagem (ex: Hermes Trismegisto)"
                         on:input=move |ev| set_name.set(event_target_value(&ev))
                         prop:value=name
                         class="name-input"
                         disabled=is_creating
                     />
                     <button type="submit" class="create-btn" disabled=is_creating>
-                        {move || if is_creating.get() { "Criando..." } else { "Criar Ficha" }}
+                        {move || if is_creating.get() { "✨ Criando..." } else { "+ Criar Ficha" }}
                     </button>
                 </form>
             </section>
@@ -146,6 +146,17 @@ pub fn Home() -> impl IntoView {
                                                         </div>
                                                     }.into_view()
                                                 }}
+                                                <div class="card-portrait-gradient"></div>
+                                                <button
+                                                    class="card-delete-floating-btn"
+                                                    on:click=move |ev: ev::MouseEvent| {
+                                                        ev.stop_propagation();
+                                                        set_sheet_to_delete.set(Some(summary_clone.clone()));
+                                                    }
+                                                    title="Excluir ficha"
+                                                >
+                                                    "🗑️"
+                                                </button>
                                             </div>
 
                                             <div class="card-content">
@@ -218,25 +229,9 @@ pub fn Home() -> impl IntoView {
                                                     <span class="card-date" title=format!("Atualizado em {}", updated_at_full)>
                                                         "🕒 " {date_display}
                                                     </span>
-                                                    <div class="card-actions">
-                                                        <A
-                                                            href=format!("/sheet/{}", id)
-                                                            class="card-open-btn"
-                                                            on:click=move |ev: ev::MouseEvent| ev.stop_propagation()
-                                                        >
-                                                            "Abrir 📜"
-                                                        </A>
-                                                        <button
-                                                            class="card-delete-btn"
-                                                            on:click=move |ev: ev::MouseEvent| {
-                                                                ev.stop_propagation();
-                                                                set_sheet_to_delete.set(Some(summary_clone.clone()));
-                                                            }
-                                                            title="Excluir ficha"
-                                                        >
-                                                            "🗑️"
-                                                        </button>
-                                                    </div>
+                                                    <span class="card-access-cta">
+                                                        "Acessar Ficha →"
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
