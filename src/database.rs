@@ -203,6 +203,55 @@ async fn migrate_and_extract_base64_images(pool: &SqlitePool) {
             }
         }
 
+        // Migrate profile photo if it is stored as inline base64
+        if let Some(photo_data) = char_data.labels.get("profile_photo").cloned() {
+            if photo_data.starts_with("data:image") {
+                if let Some(idx) = photo_data.find(";base64,") {
+                    let mime_type = if photo_data.starts_with("data:") {
+                        &photo_data[5..idx]
+                    } else {
+                        "image/webp"
+                    };
+                    let payload = &photo_data[idx + 8..];
+
+                    if let Ok(bytes) = base64::engine::general_purpose::STANDARD.decode(payload.trim()) {
+                        let ext = match mime_type {
+                            "image/png" => "png",
+                            "image/jpeg" | "image/jpg" => "jpg",
+                            "image/gif" => "gif",
+                            "image/svg+xml" => "svg",
+                            _ => "webp",
+                        };
+
+                        let asset_id = format!("img_{}", uuid::Uuid::new_v4());
+                        let safe_filename = format!("portrait_{}.{}", asset_id, ext);
+                        let dir_path = format!("uploads/sheets/{}/profile", sheet_id);
+                        let file_path = format!("{}/{}", dir_path, safe_filename);
+                        let relative_url = format!("/uploads/sheets/{}/profile/{}", sheet_id, safe_filename);
+
+                        let _ = tokio::fs::create_dir_all(&dir_path).await;
+                        let _ = tokio::fs::write(&file_path, &bytes).await;
+
+                        let _ = sqlx::query(
+                            "INSERT OR REPLACE INTO media_assets (id, sheet_id, block, file_path, mime_type, size_bytes, data_blob) VALUES (?, ?, ?, ?, ?, ?, ?)"
+                        )
+                        .bind(&asset_id)
+                        .bind(&sheet_id)
+                        .bind("profile")
+                        .bind(&file_path)
+                        .bind(mime_type)
+                        .bind(bytes.len() as i64)
+                        .bind(&bytes)
+                        .execute(pool)
+                        .await;
+
+                        char_data.labels.insert("profile_photo".to_string(), relative_url);
+                        modified = true;
+                    }
+                }
+            }
+        }
+
         if modified {
             if let Ok(new_json) = serde_json::to_string(&char_data) {
                 let _ = sqlx::query("UPDATE character_sheets SET data = ? WHERE id = ?")

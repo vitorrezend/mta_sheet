@@ -32,13 +32,34 @@ pub fn CharacterProfile() -> impl IntoView {
         }
 
         set_upload_error.set(None);
+        let file_name = file.name();
+        let sheet_id = data.with_untracked(|d| d.id.clone());
 
         if let Ok(reader) = FileReader::new() {
             let reader_clone = reader.clone();
+            let set_data_clone = set_data.clone();
             let onload = wasm_bindgen::closure::Closure::wrap(Box::new(move |_e: ProgressEvent| {
                 if let Ok(result) = reader_clone.result() {
                     if let Some(data_url) = result.as_string() {
-                        set_data.update(|s| s.set_profile_photo(data_url));
+                        let s_id = sheet_id.clone();
+                        let f_name = file_name.clone();
+                        let set_d = set_data_clone.clone();
+
+                        spawn_local(async move {
+                            match crate::state::save_uploaded_media(s_id, "profile".to_string(), f_name, data_url).await {
+                                Ok(uploaded_url) => {
+                                    set_d.update(|s| s.set_profile_photo(uploaded_url));
+                                }
+                                Err(e) => {
+                                    crate::logging::log_client(
+                                        "errors",
+                                        "ERROR",
+                                        "Falha ao enviar foto de perfil para o servidor",
+                                        Some(&e.to_string()),
+                                    );
+                                }
+                            }
+                        });
                     }
                 }
             }) as Box<dyn FnMut(ProgressEvent)>);
