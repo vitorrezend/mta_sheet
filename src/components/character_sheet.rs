@@ -44,9 +44,9 @@ fn get_current_time_str() -> String {
 #[component]
 pub fn CharacterSheet() -> impl IntoView {
     let params = use_params_map();
-    let id = move || params.with(|p| p.get("id").cloned().unwrap_or_default());
+    let id = create_memo(move |_| params.with(|p| p.get("id").cloned().unwrap_or_default()));
 
-    let sheet_resource = create_local_resource(id, |id| async move {
+    let sheet_resource = create_local_resource(move || id.get(), |id| async move {
         if id.is_empty() {
             return Err(ServerFnError::new("ID da ficha não fornecido"));
         }
@@ -75,10 +75,11 @@ pub fn CharacterSheet() -> impl IntoView {
             set_is_loaded.set(true);
             set_is_dirty.set(false);
             set_save_status.set(SaveStatus::Saved(get_current_time_str()));
+            let current_id = id.get_untracked();
             crate::logging::log_client(
                 "user_actions",
                 "INFO",
-                &format!("Ficha carregada no navegador: id='{}'", id()),
+                &format!("Ficha carregada no navegador: id='{}'", current_id),
                 None,
             );
         }
@@ -100,7 +101,7 @@ pub fn CharacterSheet() -> impl IntoView {
                 loop {
                     gloo_timers::future::TimeoutFuture::new(30_000).await;
                     if is_dirty.try_get_untracked().unwrap_or(false) {
-                        let current_id = id();
+                        let current_id = id.get_untracked();
                         let current_data = data.get_untracked();
                         if !current_id.is_empty() {
                             let _ = set_save_status.try_set(SaveStatus::Saving);
@@ -134,7 +135,7 @@ pub fn CharacterSheet() -> impl IntoView {
 
     // Salvamento manual ou ao sair
     let do_manual_save = move |_| {
-        let current_id = id();
+        let current_id = id.get_untracked();
         let current_data = data.get_untracked();
         if !current_id.is_empty() {
             let _ = set_save_status.try_set(SaveStatus::Saving);
@@ -167,8 +168,8 @@ pub fn CharacterSheet() -> impl IntoView {
     // Navegação ao clicar em "← Início" garantindo salvamento antes de sair
     let on_back_click = move |ev: ev::MouseEvent| {
         ev.prevent_default();
+        let current_id = id.get_untracked();
         if is_dirty.get_untracked() {
-            let current_id = id();
             let current_data = data.get_untracked();
             let nav = navigate.clone();
             let _ = set_save_status.try_set(SaveStatus::Saving);
