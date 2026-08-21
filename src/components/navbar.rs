@@ -35,6 +35,7 @@ pub fn Navbar() -> impl IntoView {
                 <div class="navbar-links">
                     <A href="/" class="nav-link" exact=true>"📜 Fichas"</A>
                     <A href="/rooms" class="nav-link">"🏰 Salas de Jogo"</A>
+                    <A href="/logs" class="nav-link">"📊 Logs"</A>
                 </div>
 
                 <div class="navbar-auth">

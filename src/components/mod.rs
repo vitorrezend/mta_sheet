@@ -16,6 +16,7 @@ pub mod rooms_page;
 pub mod room_view;
 pub mod character_profile;
 pub mod page2;
+pub mod logs_page;
 
 pub use home::Home;
 pub use character_sheet::CharacterSheet;
@@ -33,3 +34,4 @@ pub use rooms_page::RoomsPage;
 pub use room_view::RoomView;
 pub use character_profile::CharacterProfile;
 pub use page2::PageMagicCombat;
+pub use logs_page::LogsPage;

@@ -55,10 +55,11 @@ pub fn CharacterSheet() -> impl IntoView {
 
     let (data, set_data) = create_signal(CharacterData::default());
     let (save_status, set_save_status) = create_signal(SaveStatus::Idle);
-    let (save_seq, set_save_seq) = create_signal(0u64);
+    let (is_dirty, set_is_dirty) = create_signal(false);
     let (is_loaded, set_is_loaded) = create_signal(false);
     let (active_origin, set_active_origin) = create_signal(DotOrigin::Base);
     let (active_tab, set_active_tab) = create_signal(SheetPageTab::Main);
+    let navigate = use_navigate();
 
     // Provide the sheet data and active dot origin as context for all child components
     provide_context(set_data);
@@ -72,36 +73,58 @@ pub fn CharacterSheet() -> impl IntoView {
         if let Some(Ok(fetched_data)) = sheet_resource.get() {
             set_data.set(fetched_data);
             set_is_loaded.set(true);
+            set_is_dirty.set(false);
             set_save_status.set(SaveStatus::Saved(get_current_time_str()));
+            crate::logging::log_client(
+                "user_actions",
+                "INFO",
+                &format!("Ficha carregada no navegador: id='{}'", id()),
+                None,
+            );
         }
     });
 
-    // Real Debounced Auto-Save
+    // Marca o formulário como alterado (dirty) quando qualquer dado muda
     create_effect(move |_| {
         data.track();
-        
         if is_loaded.try_get_untracked().unwrap_or(false) {
-            set_save_seq.update(|s| *s += 1);
-            let current_seq = save_seq.try_get_untracked().unwrap_or(0);
+            set_is_dirty.set(true);
             let _ = set_save_status.try_set(SaveStatus::Pending);
+        }
+    });
 
-            let current_id = id();
-            let current_data = data.get();
-
+    // Salvamento Automático em Background a cada 30 segundos
+    create_effect(move |_| {
+        if is_loaded.get() {
             spawn_local(async move {
-                // Debounce timeout of 500ms
-                gloo_timers::future::TimeoutFuture::new(500).await;
-
-                // Safely check if this is still the most recent change and component is alive
-                if save_seq.try_get_untracked() == Some(current_seq) && !current_id.is_empty() {
-                    let _ = set_save_status.try_set(SaveStatus::Saving);
-                    match update_sheet(current_id, current_data).await {
-                        Ok(_) => {
-                            let _ = set_save_status.try_set(SaveStatus::Saved(get_current_time_str()));
-                        }
-                        Err(e) => {
-                            log::error!("Auto-save error: {:?}", e);
-                            let _ = set_save_status.try_set(SaveStatus::Error(e.to_string()));
+                loop {
+                    gloo_timers::future::TimeoutFuture::new(30_000).await;
+                    if is_dirty.try_get_untracked().unwrap_or(false) {
+                        let current_id = id();
+                        let current_data = data.get_untracked();
+                        if !current_id.is_empty() {
+                            let _ = set_save_status.try_set(SaveStatus::Saving);
+                            match update_sheet(current_id.clone(), current_data).await {
+                                Ok(_) => {
+                                    set_is_dirty.set(false);
+                                    crate::logging::log_client(
+                                        "database",
+                                        "INFO",
+                                        "Auto-save periódico (30s) executado com sucesso",
+                                        Some(&format!("id={}", current_id)),
+                                    );
+                                    let _ = set_save_status.try_set(SaveStatus::Saved(get_current_time_str()));
+                                }
+                                Err(e) => {
+                                    crate::logging::log_client(
+                                        "errors",
+                                        "ERROR",
+                                        "Falha no auto-save periódico (30s)",
+                                        Some(&e.to_string()),
+                                    );
+                                    let _ = set_save_status.try_set(SaveStatus::Error(e.to_string()));
+                                }
+                            }
                         }
                     }
                 }
@@ -109,22 +132,60 @@ pub fn CharacterSheet() -> impl IntoView {
         }
     });
 
+    // Salvamento manual ou ao sair
     let do_manual_save = move |_| {
         let current_id = id();
         let current_data = data.get_untracked();
         if !current_id.is_empty() {
             let _ = set_save_status.try_set(SaveStatus::Saving);
             spawn_local(async move {
-                match update_sheet(current_id, current_data).await {
+                match update_sheet(current_id.clone(), current_data).await {
                     Ok(_) => {
+                        set_is_dirty.set(false);
+                        crate::logging::log_client(
+                            "user_actions",
+                            "INFO",
+                            "Salvamento manual acionado pelo usuário",
+                            Some(&format!("id={}", current_id)),
+                        );
                         let _ = set_save_status.try_set(SaveStatus::Saved(get_current_time_str()));
                     }
                     Err(e) => {
-                        log::error!("Manual save error: {:?}", e);
+                        crate::logging::log_client(
+                            "errors",
+                            "ERROR",
+                            "Falha no salvamento manual",
+                            Some(&e.to_string()),
+                        );
                         let _ = set_save_status.try_set(SaveStatus::Error(e.to_string()));
                     }
                 }
             });
+        }
+    };
+
+    // Navegação ao clicar em "← Início" garantindo salvamento antes de sair
+    let on_back_click = move |ev: ev::MouseEvent| {
+        ev.prevent_default();
+        if is_dirty.get_untracked() {
+            let current_id = id();
+            let current_data = data.get_untracked();
+            let nav = navigate.clone();
+            let _ = set_save_status.try_set(SaveStatus::Saving);
+            spawn_local(async move {
+                if !current_id.is_empty() {
+                    let _ = update_sheet(current_id.clone(), current_data).await;
+                    crate::logging::log_client(
+                        "user_actions",
+                        "INFO",
+                        "Ficha salva automaticamente ao navegar para a tela inicial",
+                        Some(&format!("id={}", current_id)),
+                    );
+                }
+                nav("/", Default::default());
+            });
+        } else {
+            navigate.clone()("/", Default::default());
         }
     };
 
@@ -136,7 +197,8 @@ pub fn CharacterSheet() -> impl IntoView {
         <div class="sheet-page-container">
             <header class="sheet-top-bar">
                 <div class="top-bar-left">
-                    <A href="/" class="back-link">"← Início"</A>
+                    <a href="/" class="back-link" on:click=on_back_click>"← Início"</a>
+                    <A href="/logs" class="back-link logs-nav-link">"📊 Logs"</A>
                 </div>
 
                 <div class="top-bar-center">

@@ -208,7 +208,11 @@ pub fn CombatSection() -> impl IntoView {
                                 class="armor-desc-textarea"
                                 placeholder="Detalhes da proteção..."
                                 prop:value=move || data.with(|d| d.armor.description.clone())
-                                on:input=move |ev| {
+                                on:change=move |ev| {
+                                    let val = event_target_value(&ev);
+                                    set_data.update(|s| s.armor.description = val);
+                                }
+                                on:blur=move |ev| {
                                     let val = event_target_value(&ev);
                                     set_data.update(|s| s.armor.description = val);
                                 }

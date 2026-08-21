@@ -859,23 +859,32 @@ pub struct CharacterSummary {
 pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
     use sqlx::{SqlitePool, Row};
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        log::error!("Database pool not found in request context");
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in get_sheets", None);
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
     })?;
 
+    let start = std::time::Instant::now();
     let rows = sqlx::query("SELECT id, name, updated_at FROM character_sheets ORDER BY updated_at DESC")
         .fetch_all(&pool)
         .await
         .map_err(|e: sqlx::Error| {
-            log::error!("Failed to fetch sheets from DB: {:?}", e);
+            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to fetch sheets from DB", Some(&e.to_string()));
             ServerFnError::new(format!("Falha ao consultar fichas: {}", e))
         })?;
 
+    let count = rows.len();
     let summaries = rows.into_iter().map(|row| CharacterSummary {
         id: row.get("id"),
         name: row.get("name"),
         updated_at: row.get("updated_at"),
     }).collect();
+
+    crate::logging::server::write_log(
+        crate::logging::LogCategory::Database,
+        "INFO",
+        &format!("SELECT character_sheets: retornou {} fichas em {}ms", count, start.elapsed().as_millis()),
+        None,
+    );
 
     Ok(summaries)
 }
@@ -888,30 +897,38 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
 
     use sqlx::{SqlitePool, Row};
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        log::error!("Database pool not found in request context");
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in get_sheet", Some(&format!("id={}", id)));
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
     })?;
 
+    let start = std::time::Instant::now();
     let row = sqlx::query("SELECT data FROM character_sheets WHERE id = ?")
         .bind(&id)
         .fetch_optional(&pool)
         .await
         .map_err(|e: sqlx::Error| {
-            log::error!("Error querying sheet {}: {:?}", id, e);
+            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Error querying sheet {}", id), Some(&e.to_string()));
             ServerFnError::new(format!("Erro ao buscar ficha no banco: {}", e))
         })?
         .ok_or_else(|| {
-            log::warn!("Sheet with id {} not found", id);
+            crate::logging::server::write_log(crate::logging::LogCategory::Requests, "WARN", &format!("Sheet with id {} not found", id), None);
             ServerFnError::new(format!("Ficha com ID '{}' não encontrada", id))
         })?;
 
     let data_json: String = row.get("data");
     let mut data: CharacterData = serde_json::from_str(&data_json).map_err(|e: serde_json::Error| {
-        log::error!("Corrupted JSON in DB for sheet {}: {:?}", id, e);
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Corrupted JSON for sheet {}", id), Some(&e.to_string()));
         ServerFnError::new(format!("Dados da ficha corrompidos: {}", e))
     })?;
 
     data.sanitize();
+    crate::logging::server::write_log(
+        crate::logging::LogCategory::Database,
+        "INFO",
+        &format!("SELECT character_sheets id='{}' (nome='{}') carregada com sucesso em {}ms", id, data.name, start.elapsed().as_millis()),
+        None,
+    );
+
     Ok(data)
 }
 
@@ -923,15 +940,16 @@ pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
     use sqlx::SqlitePool;
     use uuid::Uuid;
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        log::error!("Database pool not found in request context");
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in create_sheet", None);
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
     })?;
 
+    let start = std::time::Instant::now();
     let id = Uuid::new_v4().to_string();
     let initial_data = CharacterData::new(id.clone(), final_name.clone());
 
     let data_json = serde_json::to_string(&initial_data).map_err(|e: serde_json::Error| {
-        log::error!("Serialization error creating sheet: {:?}", e);
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Serialization error creating sheet", Some(&e.to_string()));
         ServerFnError::new(format!("Falha ao serializar dados iniciais: {}", e))
     })?;
 
@@ -942,11 +960,17 @@ pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
         .execute(&pool)
         .await
         .map_err(|e: sqlx::Error| {
-            log::error!("Failed to insert new sheet {}: {:?}", id, e);
+            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to insert new sheet {}", id), Some(&e.to_string()));
             ServerFnError::new(format!("Falha ao salvar nova ficha no banco: {}", e))
         })?;
 
-    log::info!("Created new character sheet: id={}, name={}", id, final_name);
+    crate::logging::server::write_log(
+        crate::logging::LogCategory::UserActions,
+        "INFO",
+        &format!("CREATE SHEET: Nova ficha criada id='{}', nome='{}' em {}ms", id, final_name, start.elapsed().as_millis()),
+        None,
+    );
+
     Ok(id)
 }
 
@@ -961,15 +985,17 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
 
     use sqlx::SqlitePool;
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        log::error!("Database pool not found in request context");
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in update_sheet", Some(&format!("id={}", id)));
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
     })?;
 
+    let start = std::time::Instant::now();
     let data_json = serde_json::to_string(&data).map_err(|e: serde_json::Error| {
-        log::error!("Serialization error updating sheet {}: {:?}", id, e);
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Serialization error updating sheet {}", id), Some(&e.to_string()));
         ServerFnError::new(format!("Falha ao serializar dados da ficha: {}", e))
     })?;
 
+    let payload_kb = (data_json.len() as f64) / 1024.0;
     let result = sqlx::query("UPDATE character_sheets SET name = ?, data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
         .bind(&data.name)
         .bind(data_json)
@@ -977,14 +1003,21 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
         .execute(&pool)
         .await
         .map_err(|e: sqlx::Error| {
-            log::error!("Failed to update sheet {}: {:?}", id, e);
-            ServerFnError::new(format!("Falha ao atualizar ficha no banco: {}", e))
+            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to update sheet {}", id), Some(&e.to_string()));
+            ServerFnError::new(format!("Falha ao atualizar dados da ficha no banco: {}", e))
         })?;
 
     if result.rows_affected() == 0 {
-        log::warn!("UpdateSheet: No rows updated for id {}", id);
-        return Err(ServerFnError::new("Ficha não encontrada para atualização"));
+        crate::logging::server::write_log(crate::logging::LogCategory::Requests, "WARN", &format!("Ficha com ID '{}' não encontrada para atualização", id), None);
+        return Err(ServerFnError::new(format!("Ficha com ID '{}' não encontrada para atualização", id)));
     }
+
+    crate::logging::server::write_log(
+        crate::logging::LogCategory::Database,
+        "INFO",
+        &format!("UPDATE character_sheets id='{}' (nome='{}') salva com sucesso em {}ms ({:.1} KB)", id, data.name, start.elapsed().as_millis(), payload_kb),
+        None,
+    );
 
     Ok(())
 }
@@ -992,25 +1025,36 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
 #[server(endpoint = "delete_sheet")]
 pub async fn delete_sheet(id: String) -> Result<(), ServerFnError> {
     if id.trim().is_empty() {
-        return Err(ServerFnError::new("ID da ficha não fornecido"));
+        return Err(ServerFnError::new("ID da ficha não pode ser vazio"));
     }
 
     use sqlx::SqlitePool;
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        log::error!("Database pool not found in request context");
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in delete_sheet", Some(&format!("id={}", id)));
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
     })?;
 
-    sqlx::query("DELETE FROM character_sheets WHERE id = ?")
+    let start = std::time::Instant::now();
+    let result = sqlx::query("DELETE FROM character_sheets WHERE id = ?")
         .bind(&id)
         .execute(&pool)
         .await
         .map_err(|e: sqlx::Error| {
-            log::error!("Failed to delete sheet {}: {:?}", id, e);
+            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to delete sheet {}", id), Some(&e.to_string()));
             ServerFnError::new(format!("Falha ao excluir ficha do banco: {}", e))
         })?;
 
-    log::info!("Deleted character sheet id={}", id);
+    if result.rows_affected() == 0 {
+        return Err(ServerFnError::new(format!("Ficha com ID '{}' não encontrada", id)));
+    }
+
+    crate::logging::server::write_log(
+        crate::logging::LogCategory::UserActions,
+        "INFO",
+        &format!("DELETE SHEET: Ficha '{}' excluída com sucesso em {}ms", id, start.elapsed().as_millis()),
+        None,
+    );
+
     Ok(())
 }
 
