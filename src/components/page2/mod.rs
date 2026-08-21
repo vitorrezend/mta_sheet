@@ -1,10 +1,14 @@
 pub mod merits_flaws;
 pub mod other_traits;
+pub mod wonder_card;
+pub mod image_modal;
 pub mod magic_section;
 pub mod combat_section;
 
 pub use merits_flaws::MeritsFlaws;
 pub use other_traits::OtherTraits;
+pub use wonder_card::WonderCard;
+pub use image_modal::ImageModal;
 pub use magic_section::MagicSection;
 pub use combat_section::CombatSection;
 
