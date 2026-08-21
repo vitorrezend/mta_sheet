@@ -201,11 +201,7 @@ pub fn CharacterProfile() -> impl IntoView {
                                 class="profile-textarea"
                                 placeholder="Escreva aqui a trajetória do personagem: sua vida antes do Despertar, o momento da Epifania, a natureza de seu Avatar, mentores, tradição, alianças passadas, motivações e objetivos arcanos..."
                                 prop:value=move || history_text.get()
-                                on:change=move |ev| {
-                                    let val = event_target_value(&ev);
-                                    set_data.update(|s| s.set_history(val));
-                                }
-                                on:blur=move |ev| {
+                                on:input=move |ev| {
                                     let val = event_target_value(&ev);
                                     set_data.update(|s| s.set_history(val));
                                 }
@@ -229,11 +225,7 @@ pub fn CharacterProfile() -> impl IntoView {
                             class="profile-textarea notes-textarea"
                             placeholder="Registre feitiços conhecidos (Rotes), instrumentos de foco mágico, aliados da Cabala, pertences místicos, sanctuários, diário de sessões e observações do narrador..."
                             prop:value=move || notes_text.get()
-                            on:change=move |ev| {
-                                let val = event_target_value(&ev);
-                                set_data.update(|s| s.set_notes(val));
-                            }
-                            on:blur=move |ev| {
+                            on:input=move |ev| {
                                 let val = event_target_value(&ev);
                                 set_data.update(|s| s.set_notes(val));
                             }
