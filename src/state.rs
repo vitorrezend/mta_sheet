@@ -140,9 +140,50 @@ impl DotOrigin {
     }
 }
 
+pub fn deserialize_flexible_i32<'de, D>(deserializer: D) -> Result<i32, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum IntOrString {
+        Num(i32),
+        Str(String),
+    }
+
+    match IntOrString::deserialize(deserializer)? {
+        IntOrString::Num(n) => Ok(n),
+        IntOrString::Str(s) => Ok(s.trim().parse::<i32>().unwrap_or(0)),
+    }
+}
+
+pub fn deserialize_flexible_attribute_value<'de, D>(deserializer: D) -> Result<AttributeValue, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum AttrValOrStringOrNum {
+        Attr(AttributeValue),
+        Num(i32),
+        Str(String),
+    }
+
+    match AttrValOrStringOrNum::deserialize(deserializer)? {
+        AttrValOrStringOrNum::Attr(a) => Ok(a),
+        AttrValOrStringOrNum::Num(n) => Ok(AttributeValue::new(n, String::new())),
+        AttrValOrStringOrNum::Str(s) => {
+            let n = s.trim().parse::<i32>().unwrap_or(0);
+            Ok(AttributeValue::new(n, String::new()))
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct AttributeValue {
+    #[serde(default, deserialize_with = "deserialize_flexible_i32")]
     pub level: i32,
+    #[serde(default)]
     pub modifier: String,
     #[serde(default)]
     pub dot_origins: Vec<DotOrigin>,
@@ -266,13 +307,13 @@ pub struct WonderItem {
     pub id: String,
     #[serde(default)]
     pub name: String,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "deserialize_flexible_attribute_value")]
     pub points: AttributeValue,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "deserialize_flexible_attribute_value")]
     pub arete: AttributeValue,
-    #[serde(default = "default_wonder_quint_max")]
+    #[serde(default = "default_wonder_quint_max", deserialize_with = "deserialize_flexible_i32")]
     pub quintessence_max: i32,
-    #[serde(default)]
+    #[serde(default, alias = "quintessence", deserialize_with = "deserialize_flexible_i32")]
     pub quintessence_current: i32,
     #[serde(default)]
     pub description: String,
@@ -1448,5 +1489,39 @@ mod tests {
         let summary = char_data.calculate_costs();
         assert_eq!(summary.total_bonus_spent, 1);
         assert_eq!(summary.total_xp_spent, 6);
+    }
+
+    #[test]
+    fn test_legacy_string_wonders_deserialization() {
+        let legacy_json = r#"{
+            "id": "legacy_char_1",
+            "name": "Mago do Passado",
+            "attributes": {},
+            "labels": {},
+            "custom_lists": {},
+            "wonders": [
+                {
+                    "name": "Grimório Antigo",
+                    "points": "5",
+                    "arete": "3",
+                    "quintessence": "4",
+                    "description": "Livro de couro antigo"
+                }
+            ]
+        }"#;
+
+        let res: Result<CharacterData, _> = serde_json::from_str(legacy_json);
+        assert!(res.is_ok(), "Failed to deserialize legacy CharacterData: {:?}", res.err());
+        
+        let mut char_data = res.unwrap();
+        char_data.sanitize();
+
+        assert_eq!(char_data.wonders.len(), 1);
+        let wonder = &char_data.wonders[0];
+        assert_eq!(wonder.name, "Grimório Antigo");
+        assert_eq!(wonder.points.level, 5);
+        assert_eq!(wonder.arete.level, 3);
+        assert_eq!(wonder.quintessence_max, 5);
+        assert_eq!(wonder.quintessence_current, 4);
     }
 }
