@@ -1,6 +1,7 @@
 use super::models::{
-    keys, ArmorItem, AttributeValue, ChantryEntry, CharacterData, DotOrigin, ExpandedBackgroundsData,
-    FlawItem, MeritItem, PossessionsData, WeaponItem, WonderItem,
+    keys, ArmorItem, AttributeValue, ChantryEntry, CharacterData, CharacterDescriptionData,
+    CharacterHistoryData, CharacterVisualsData, DotOrigin, ExpandedBackgroundsData, FlawItem, MeritItem,
+    PossessionsData, WeaponItem, WonderItem,
 };
 
 impl CharacterData {
@@ -186,6 +187,25 @@ impl CharacterData {
                 if let Ok(entry) = serde_json::from_value::<ChantryEntry>(c.clone()) {
                     char_data.chantry.push(entry);
                 }
+            }
+        }
+
+        // Page 4 Recovery
+        if let Some(hist) = val.get("history_data") {
+            if let Ok(h) = serde_json::from_value::<CharacterHistoryData>(hist.clone()) {
+                char_data.history_data = h;
+            }
+        }
+
+        if let Some(desc) = val.get("description_data") {
+            if let Ok(d) = serde_json::from_value::<CharacterDescriptionData>(desc.clone()) {
+                char_data.description_data = d;
+            }
+        }
+
+        if let Some(vis) = val.get("visuals") {
+            if let Ok(v) = serde_json::from_value::<CharacterVisualsData>(vis.clone()) {
+                char_data.visuals = v;
             }
         }
 

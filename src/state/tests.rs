@@ -376,4 +376,32 @@ mod tests {
         assert_eq!(recovered.possessions.familiar, "Corvo espiritual de nome Huginn");
         assert_eq!(recovered.chantry[0].location, "Capela Concordia");
     }
+
+    #[test]
+    fn test_page4_history_description_and_visuals_serialization() {
+        let mut char_data = CharacterData::new("page4_test".to_string(), "Mago Hermético".to_string());
+        char_data.history_data.history = "Nascido em Praga, despertou em 2017...".to_string();
+        char_data.history_data.goals_destiny = "Alcançar Arete 10 e restaurar a Biblioteca de Alexandria".to_string();
+        char_data.history_data.seekings = "Busca pelo Olho de Hermes".to_string();
+        char_data.history_data.quiets = "Silêncio de Delírio Estático".to_string();
+
+        char_data.description_data.age = "32".to_string();
+        char_data.description_data.hair = "Negros".to_string();
+        char_data.description_data.avatar_nature = "Primordial e Incandescente".to_string();
+        char_data.visuals.cabal_chart_url = "/uploads/cabal_concordia.png".to_string();
+        char_data.visuals.character_sketch_url = "/uploads/portrait_32.webp".to_string();
+
+        char_data.sanitize();
+
+        // Roundtrip serialization
+        let json = serde_json::to_string(&char_data).unwrap();
+        let recovered: CharacterData = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(recovered.history_data.history, "Nascido em Praga, despertou em 2017...");
+        assert_eq!(recovered.history_data.goals_destiny, "Alcançar Arete 10 e restaurar a Biblioteca de Alexandria");
+        assert_eq!(recovered.description_data.age, "32");
+        assert_eq!(recovered.description_data.avatar_nature, "Primordial e Incandescente");
+        assert_eq!(recovered.visuals.cabal_chart_url, "/uploads/cabal_concordia.png");
+        assert_eq!(recovered.visuals.character_sketch_url, "/uploads/portrait_32.webp");
+    }
 }

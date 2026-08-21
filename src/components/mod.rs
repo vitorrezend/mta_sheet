@@ -4,6 +4,7 @@ pub mod common;
 pub mod page1;
 pub mod page2;
 pub mod page3;
+pub mod page4;
 pub mod profile;
 pub mod rooms;
 pub mod sheet;
@@ -20,6 +21,9 @@ pub use page2::{CombatSection, MagicSection, MeritsFlaws, OtherTraits, PageMagic
 
 // Re-export Page 3 components
 pub use page3::{Chantry, ExpandedBackgrounds, PageExpandedBackgroundsPossessions, Possessions};
+
+// Re-export Page 4 components
+pub use page4::{DescriptionSection, HistorySection, PageHistoryDescriptionVisuals, VisualsSection};
 
 // Re-export Profile components
 pub use profile::CharacterProfile;

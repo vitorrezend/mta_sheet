@@ -420,6 +420,56 @@ pub struct ChantryEntry {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct CharacterHistoryData {
+    #[serde(default)]
+    pub history: String,
+    #[serde(default)]
+    pub goals_destiny: String,
+    #[serde(default)]
+    pub seekings: String,
+    #[serde(default)]
+    pub quiets: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct CharacterDescriptionData {
+    #[serde(default)]
+    pub age: String,
+    #[serde(default)]
+    pub apparent_age: String,
+    #[serde(default)]
+    pub date_of_birth: String,
+    #[serde(default)]
+    pub age_of_awakening: String,
+    #[serde(default)]
+    pub hair: String,
+    #[serde(default)]
+    pub eyes: String,
+    #[serde(default)]
+    pub race: String,
+    #[serde(default)]
+    pub nationality: String,
+    #[serde(default)]
+    pub height: String,
+    #[serde(default)]
+    pub weight: String,
+    #[serde(default)]
+    pub sex: String,
+    #[serde(default)]
+    pub physical_description: String,
+    #[serde(default)]
+    pub avatar_nature: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct CharacterVisualsData {
+    #[serde(default)]
+    pub cabal_chart_url: String,
+    #[serde(default)]
+    pub character_sketch_url: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct CharacterData {
     pub id: String,
     #[serde(default)]
@@ -452,6 +502,14 @@ pub struct CharacterData {
     pub possessions: PossessionsData,
     #[serde(default)]
     pub chantry: Vec<ChantryEntry>,
+
+    // Page 4: History, Description & Visuals
+    #[serde(default)]
+    pub history_data: CharacterHistoryData,
+    #[serde(default)]
+    pub description_data: CharacterDescriptionData,
+    #[serde(default)]
+    pub visuals: CharacterVisualsData,
 }
 
 impl CharacterData {
@@ -471,6 +529,9 @@ impl CharacterData {
             expanded_backgrounds: ExpandedBackgroundsData::default(),
             possessions: PossessionsData::default(),
             chantry: vec![ChantryEntry::default(); 3],
+            history_data: CharacterHistoryData::default(),
+            description_data: CharacterDescriptionData::default(),
+            visuals: CharacterVisualsData::default(),
         };
         sheet.sanitize();
         sheet

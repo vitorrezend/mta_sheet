@@ -5,7 +5,7 @@ use crate::components::common::Sheet;
 use crate::components::page1::{Abilities, AdvantagesMta, Attributes, InfoHeader, Spheres};
 use crate::components::page2::PageMagicCombat;
 use crate::components::page3::PageExpandedBackgroundsPossessions;
-use crate::components::profile::CharacterProfile;
+use crate::components::page4::PageHistoryDescriptionVisuals;
 use crate::components::sheet::{
     ActiveDotOriginContext, CostBreakdownModal, SaveStatus, SheetPageTab, SheetTabs, SheetTopBar,
 };
@@ -246,10 +246,10 @@ pub fn CharacterSheet() -> impl IntoView {
                         </div>
 
                         <div 
-                            class="sheet-page-tab-pane page-profile"
-                            class:tab-hidden=move || active_tab.get() != SheetPageTab::Profile
+                            class="sheet-page-tab-pane page-history-visuals"
+                            class:tab-hidden=move || active_tab.get() != SheetPageTab::HistoryVisuals
                         >
-                            <CharacterProfile />
+                            <PageHistoryDescriptionVisuals />
                         </div>
                     </Sheet>
                 }.into_view(),

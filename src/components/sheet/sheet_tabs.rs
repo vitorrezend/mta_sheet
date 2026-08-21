@@ -5,7 +5,7 @@ pub enum SheetPageTab {
     Main,
     MagicCombat,
     Expanded,
-    Profile,
+    HistoryVisuals,
 }
 
 #[component]
@@ -51,13 +51,13 @@ pub fn SheetTabs(
 
                 <button 
                     class="sheet-tab-btn"
-                    class:active=move || active_tab.get() == SheetPageTab::Profile
-                    on:click=move |_| set_active_tab.set(SheetPageTab::Profile)
-                    title="Página de Perfil: Retrato, História e Anotações Gerais"
+                    class:active=move || active_tab.get() == SheetPageTab::HistoryVisuals
+                    on:click=move |_| set_active_tab.set(SheetPageTab::HistoryVisuals)
+                    title="Página 4: História, Objetivos, Descrição Física, Avatar, Cabal e Retrato"
                 >
                     <span class="sheet-tab-icon">"👤"</span>
-                    <span class="sheet-tab-title">"Perfil do Personagem"</span>
-                    <span class="sheet-tab-page-tag">"Perfil"</span>
+                    <span class="sheet-tab-title">"História & Visual"</span>
+                    <span class="sheet-tab-page-tag">"Pág. 4"</span>
                 </button>
             </div>
         </nav>
