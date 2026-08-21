@@ -98,6 +98,87 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
     Ok(data)
 }
 
+pub fn validate_image_magic_bytes(bytes: &[u8]) -> Result<(&'static str, &'static str), ServerFnError> {
+    if bytes.len() < 4 {
+        return Err(ServerFnError::new("Arquivo muito pequeno para ser uma imagem válida"));
+    }
+
+    // PNG: 89 50 4E 47 0D 0A 1A 0A
+    if bytes.len() >= 8 && &bytes[0..8] == b"\x89PNG\r\n\x1a\n" {
+        return Ok(("image/png", "png"));
+    }
+
+    // JPEG / JPG: FF D8 FF
+    if bytes.len() >= 3 && &bytes[0..3] == b"\xFF\xD8\xFF" {
+        return Ok(("image/jpeg", "jpg"));
+    }
+
+    // GIF: GIF87a or GIF89a
+    if bytes.len() >= 6 && (&bytes[0..6] == b"GIF87a" || &bytes[0..6] == b"GIF89a") {
+        return Ok(("image/gif", "gif"));
+    }
+
+    // WEBP: RIFF....WEBP
+    if bytes.len() >= 12 && &bytes[0..4] == b"RIFF" && &bytes[8..12] == b"WEBP" {
+        return Ok(("image/webp", "webp"));
+    }
+
+    // SVG / XML text (allow <svg or <?xml ... <svg)
+    if bytes.len() >= 4 {
+        let snippet = String::from_utf8_lossy(&bytes[0..std::cmp::min(bytes.len(), 512)]).to_lowercase();
+        if snippet.contains("<svg") {
+            return Ok(("image/svg+xml", "svg"));
+        }
+    }
+
+    Err(ServerFnError::new("Formato de arquivo não suportado. Apenas imagens autênticas PNG, JPEG, WebP, GIF e SVG são permitidas."))
+}
+
+#[cfg(feature = "ssr")]
+async fn verify_sheet_write_permission(pool: &sqlx::SqlitePool, sheet_id: &str) -> Result<(), ServerFnError> {
+    use sqlx::Row;
+    let auth_user_id = crate::auth::get_auth_user_id().await.map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    let row = sqlx::query("SELECT user_id, room_id FROM character_sheets WHERE id = ?")
+        .bind(sheet_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    if let Some(r) = row {
+        let sheet_owner: Option<String> = r.get("user_id");
+        let room_id: Option<String> = r.get("room_id");
+
+        // If sheet has an owner, verify if caller is owner or room GM
+        if let Some(owner_id) = sheet_owner {
+            if let Some(user_id) = auth_user_id {
+                if user_id == owner_id {
+                    return Ok(());
+                }
+
+                // Check if user is GM of the room
+                if let Some(r_id) = room_id {
+                    let is_gm = sqlx::query("SELECT 1 FROM rooms WHERE id = ? AND gm_id = ?")
+                        .bind(r_id)
+                        .bind(&user_id)
+                        .fetch_optional(pool)
+                        .await
+                        .map_err(|e| ServerFnError::new(e.to_string()))?;
+                    if is_gm.is_some() {
+                        return Ok(());
+                    }
+                }
+
+                return Err(ServerFnError::new("Permissão negada: Você não é o proprietário desta ficha"));
+            } else {
+                return Err(ServerFnError::new("Autenticação necessária para alterar esta ficha"));
+            }
+        }
+    }
+
+    Ok(())
+}
+
 #[server(endpoint = "create_sheet")]
 pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
     let clean_name = name.trim().to_string();
@@ -119,8 +200,11 @@ pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
         ServerFnError::new(format!("Falha ao serializar dados iniciais: {}", e))
     })?;
 
-    sqlx::query("INSERT INTO character_sheets (id, name, data) VALUES (?, ?, ?)")
+    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
+
+    sqlx::query("INSERT INTO character_sheets (id, user_id, name, data) VALUES (?, ?, ?, ?)")
         .bind(&id)
+        .bind(auth_user_id)
         .bind(&final_name)
         .bind(data_json)
         .execute(&pool)
@@ -154,6 +238,9 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
         crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in update_sheet", Some(&format!("id={}", id)));
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
     })?;
+
+    // Check ownership / GM permission
+    verify_sheet_write_permission(&pool, &id).await?;
 
     let start = std::time::Instant::now();
     let data_json = serde_json::to_string(&data).map_err(|e: serde_json::Error| {
@@ -200,6 +287,9 @@ pub async fn delete_sheet(id: String) -> Result<(), ServerFnError> {
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
     })?;
 
+    // Check ownership / GM permission
+    verify_sheet_write_permission(&pool, &id).await?;
+
     let start = std::time::Instant::now();
     let result = sqlx::query("DELETE FROM character_sheets WHERE id = ?")
         .bind(&id)
@@ -240,7 +330,12 @@ pub async fn save_uploaded_media(
     let clean_sheet_id = if sheet_id.trim().is_empty() { "temp".to_string() } else { sheet_id.trim().to_string() };
     let clean_block = if block.trim().is_empty() { "wonders".to_string() } else { block.trim().to_string() };
 
-    let (mime_type, base64_payload) = if let Some(idx) = data_base64.find(";base64,") {
+    // Check ownership / GM permission if sheet exists
+    if clean_sheet_id != "temp" {
+        verify_sheet_write_permission(&pool, &clean_sheet_id).await?;
+    }
+
+    let (_mime_hint, base64_payload) = if let Some(idx) = data_base64.find(";base64,") {
         let mime = if data_base64.starts_with("data:") {
             &data_base64[5..idx]
         } else {
@@ -260,13 +355,8 @@ pub async fn save_uploaded_media(
         return Err(ServerFnError::new("A imagem excede o limite máximo de 10MB"));
     }
 
-    let ext = match mime_type.as_str() {
-        "image/png" => "png",
-        "image/jpeg" | "image/jpg" => "jpg",
-        "image/gif" => "gif",
-        "image/svg+xml" => "svg",
-        _ => "webp",
-    };
+    // Strict Magic Bytes Validation
+    let (mime_type, ext) = validate_image_magic_bytes(&bytes)?;
 
     let asset_id = format!("img_{}", uuid::Uuid::new_v4());
     let safe_filename = if file_name.trim().is_empty() {
@@ -296,7 +386,7 @@ pub async fn save_uploaded_media(
     .bind(&clean_sheet_id)
     .bind(&clean_block)
     .bind(&file_path)
-    .bind(&mime_type)
+    .bind(mime_type)
     .bind(bytes.len() as i64)
     .bind(&bytes)
     .execute(&pool)

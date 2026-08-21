@@ -404,4 +404,41 @@ mod tests {
         assert_eq!(recovered.visuals.cabal_chart_url, "/uploads/cabal_concordia.png");
         assert_eq!(recovered.visuals.character_sketch_url, "/uploads/portrait_32.webp");
     }
+
+    #[test]
+    fn test_validate_image_magic_bytes_security() {
+        use crate::state::server_fns::validate_image_magic_bytes;
+
+        // Valid PNG
+        let valid_png = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR...";
+        assert_eq!(validate_image_magic_bytes(valid_png).unwrap(), ("image/png", "png"));
+
+        // Valid JPEG
+        let valid_jpeg = b"\xFF\xD8\xFF\xE0\x00\x10JFIF...";
+        assert_eq!(validate_image_magic_bytes(valid_jpeg).unwrap(), ("image/jpeg", "jpg"));
+
+        // Valid WebP
+        let valid_webp = b"RIFF\x00\x00\x00\x00WEBPVP8 ...";
+        assert_eq!(validate_image_magic_bytes(valid_webp).unwrap(), ("image/webp", "webp"));
+
+        // Valid GIF
+        let valid_gif = b"GIF89a\x01\x00\x01\x00...";
+        assert_eq!(validate_image_magic_bytes(valid_gif).unwrap(), ("image/gif", "gif"));
+
+        // Valid SVG
+        let valid_svg = b"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"></svg>";
+        assert_eq!(validate_image_magic_bytes(valid_svg).unwrap(), ("image/svg+xml", "svg"));
+
+        // MALICIOUS / INVALID: Fake PNG with shell script or ELF binary
+        let fake_png_script = b"#!/bin/bash\necho 'malicious script'";
+        assert!(validate_image_magic_bytes(fake_png_script).is_err());
+
+        // MALICIOUS / INVALID: Fake Windows EXE
+        let fake_exe = b"MZ\x90\x00\x03\x00\x00\x00\x04\x00\x00\x00\xff\xff";
+        assert!(validate_image_magic_bytes(fake_exe).is_err());
+
+        // MALICIOUS / INVALID: Random garbage
+        let garbage = b"random string without image signature";
+        assert!(validate_image_magic_bytes(garbage).is_err());
+    }
 }

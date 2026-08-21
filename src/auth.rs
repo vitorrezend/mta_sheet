@@ -38,7 +38,7 @@ pub async fn extract_session_token() -> Option<String> {
 pub fn set_session_cookie(token: &str, max_age_secs: i64) {
     if let Some(res_options) = use_context::<leptos_axum::ResponseOptions>() {
         let cookie_str = format!(
-            "session_token={}; Path=/; SameSite=Lax; Max-Age={}",
+            "session_token={}; Path=/; SameSite=Lax; HttpOnly; Max-Age={}",
             token, max_age_secs
         );
         if let Ok(header_val) = http::HeaderValue::from_str(&cookie_str) {

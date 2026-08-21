@@ -100,6 +100,7 @@ async fn main() {
         .leptos_routes_with_context(&conf.leptos_options, routes, move || {
             provide_context(db_for_routes.clone());
         }, mta_sheet::App)
+        .layer(axum::middleware::from_fn(security_headers_middleware))
         .with_state(conf.leptos_options);
 
     let listener = match tokio::net::TcpListener::bind(&addr).await {
@@ -113,6 +114,36 @@ async fn main() {
     if let Err(e) = axum::serve(listener, app).await {
         eprintln!("Erro na execução do servidor HTTP: {}", e);
     }
+}
+
+#[cfg(feature = "ssr")]
+async fn security_headers_middleware(
+    request: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> axum::response::Response {
+    let mut response = next.run(request).await;
+    let headers = response.headers_mut();
+
+    headers.insert(
+        http::header::X_CONTENT_TYPE_OPTIONS,
+        http::HeaderValue::from_static("nosniff"),
+    );
+    headers.insert(
+        http::header::X_FRAME_OPTIONS,
+        http::HeaderValue::from_static("SAMEORIGIN"),
+    );
+    headers.insert(
+        http::header::REFERRER_POLICY,
+        http::HeaderValue::from_static("strict-origin-when-cross-origin"),
+    );
+    headers.insert(
+        http::header::CONTENT_SECURITY_POLICY,
+        http::HeaderValue::from_static(
+            "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ws: wss:;"
+        ),
+    );
+
+    response
 }
 
 #[cfg(not(feature = "ssr"))]
