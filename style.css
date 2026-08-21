@@ -4347,11 +4347,39 @@ body {
    ========================================================================== */
 @page {
     size: A4 portrait;
-    margin: 8mm 10mm;
+    margin: 5mm 8mm;
 }
 
 @media print {
-    /* 1. Ocultar todos os controles de interface e navegação */
+    /* 1. Reset e Base */
+    html, body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .app-layout, .main-container, .sheet-view-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .sheet-container, .sheet-wrapper, .sheet {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        background: #ffffff !important;
+    }
+
+    /* 2. Ocultar todos os controles de interface e navegação */
     .main-navbar,
     .sheet-top-bar,
     .sheet-tabs-container,
@@ -4375,45 +4403,50 @@ body {
         visibility: hidden !important;
     }
 
-    /* 2. Configuração do Documento Base */
-    html, body {
-        background: #ffffff !important;
-        color: #000000 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        width: 100% !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
-
-    .sheet-container, .sheet-wrapper, .sheet {
-        box-shadow: none !important;
-        border: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        background: #ffffff !important;
-    }
-
-    /* 3. Forçar todas as 4 páginas a aparecerem em sequência no PDF */
-    .sheet-page-tab-pane {
-        display: block !important;
+    /* 3. Forçar TODAS as 4 páginas a aparecerem em sequência no PDF */
+    .sheet-page-tab-pane,
+    .sheet-page-tab-pane.tab-hidden {
+        display: flex !important;
+        flex-direction: column !important;
         visibility: visible !important;
         opacity: 1 !important;
         break-after: page !important;
         page-break-after: always !important;
-        padding-bottom: 0 !important;
-        margin-bottom: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
     }
 
     /* A última página não deve forçar uma 5ª página em branco */
-    .sheet-page-tab-pane:last-child {
+    .sheet-page-tab-pane:last-child,
+    .sheet-page-tab-pane.tab-hidden:last-child {
         break-after: auto !important;
         page-break-after: auto !important;
     }
 
-    /* 4. Textareas e Inputs sem caixas de rolagem */
+    /* 4. Compactação harmônica para enquadramento A4 */
+    .page-main {
+        gap: 0.35rem !important;
+    }
+    .page-main .group-box {
+        margin-bottom: 0.2rem !important;
+        padding: 0.35rem 0.5rem !important;
+    }
+    .page-magic-combat {
+        gap: 0.4rem !important;
+    }
+    .page-expanded {
+        gap: 0.4rem !important;
+    }
+    .page-history-visuals {
+        gap: 0.4rem !important;
+    }
+    .page-history-visuals .group-box {
+        margin-bottom: 0.3rem !important;
+        padding: 0.4rem 0.6rem !important;
+    }
+
+    /* 5. Textareas e Inputs sem caixas de rolagem */
     textarea {
         resize: none !important;
         overflow: hidden !important;
@@ -4428,7 +4461,7 @@ body {
         print-color-adjust: exact !important;
     }
 
-    /* 5. Preservar as cores das bolinhas no PDF */
+    /* 6. Preservar as cores das bolinhas no PDF */
     .dot-circle {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
@@ -4450,7 +4483,7 @@ body {
         background-color: #d97706 !important;
     }
 
-    /* 6. Evitar quebras de caixas no meio da folha */
+    /* 7. Evitar quebras de caixas no meio da folha */
     .group-box,
     .attribute-column,
     .ability-column,
