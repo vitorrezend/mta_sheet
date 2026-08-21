@@ -68,7 +68,7 @@ pub fn DescriptionSection() -> impl IntoView {
                         <label class="demographic-label">"Hair (Cabelos):"</label>
                         <StableTextInput 
                             class="demographic-input"
-                            placeholder="Ex: Castanhos escuros"
+                            placeholder="Ex: Castanhos"
                             value=Signal::derive(move || data.with(|d| d.description_data.hair.clone()))
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.description_data.hair = val);
@@ -80,7 +80,7 @@ pub fn DescriptionSection() -> impl IntoView {
                         <label class="demographic-label">"Eyes (Olhos):"</label>
                         <StableTextInput 
                             class="demographic-input"
-                            placeholder="Ex: Âmbar com brilho azul"
+                            placeholder="Ex: Âmbar"
                             value=Signal::derive(move || data.with(|d| d.description_data.eyes.clone()))
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.description_data.eyes = val);
@@ -92,7 +92,7 @@ pub fn DescriptionSection() -> impl IntoView {
                         <label class="demographic-label">"Race (Etnia):"</label>
                         <StableTextInput 
                             class="demographic-input"
-                            placeholder="Ex: Latina / Mestiço"
+                            placeholder="Ex: Latina"
                             value=Signal::derive(move || data.with(|d| d.description_data.race.clone()))
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.description_data.race = val);
@@ -116,7 +116,7 @@ pub fn DescriptionSection() -> impl IntoView {
                         <label class="demographic-label">"Height (Altura):"</label>
                         <StableTextInput 
                             class="demographic-input"
-                            placeholder="Ex: 1,82 m"
+                            placeholder="Ex: 1,82m"
                             value=Signal::derive(move || data.with(|d| d.description_data.height.clone()))
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.description_data.height = val);
@@ -128,7 +128,7 @@ pub fn DescriptionSection() -> impl IntoView {
                         <label class="demographic-label">"Weight (Peso):"</label>
                         <StableTextInput 
                             class="demographic-input"
-                            placeholder="Ex: 78 kg"
+                            placeholder="Ex: 78kg"
                             value=Signal::derive(move || data.with(|d| d.description_data.weight.clone()))
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.description_data.weight = val);
