@@ -23,7 +23,7 @@ uuid = { version = "1.0", features = ["v4", "serde", "js"] }
 getrandom = { version = "0.2", features = ["js"] }
 console_error_panic_hook = "0.1.7"
 wasm-bindgen = "0.2"
-web-sys = { version = "0.3", features = ["Storage", "Window", "HtmlInputElement", "Navigator", "Clipboard"] }
+web-sys = { version = "0.3", features = ["Storage", "Window", "HtmlInputElement", "Navigator", "Clipboard", "FileList", "File", "Blob", "FileReader", "ProgressEvent", "HtmlTextAreaElement", "DragEvent", "DataTransfer"] }
 js-sys = "0.3"
 http = "1.0"
 log = "0.4"

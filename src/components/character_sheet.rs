@@ -1,7 +1,14 @@
 use leptos::*;
 use leptos_router::*;
 use crate::state::{get_sheet, update_sheet, CharacterData, DotOrigin};
-use crate::components::{Attributes, InfoHeader, Abilities, Spheres, AdvantagesMta, Sheet};
+use crate::components::{Attributes, InfoHeader, Abilities, Spheres, AdvantagesMta, Sheet, CharacterProfile};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum SheetPageTab {
+    #[default]
+    Main,
+    Profile,
+}
 
 #[derive(Clone, Copy)]
 pub struct ActiveDotOriginContext {
@@ -50,6 +57,7 @@ pub fn CharacterSheet() -> impl IntoView {
     let (save_seq, set_save_seq) = create_signal(0u64);
     let (is_loaded, set_is_loaded) = create_signal(false);
     let (active_origin, set_active_origin) = create_signal(DotOrigin::Base);
+    let (active_tab, set_active_tab) = create_signal(SheetPageTab::Main);
 
     // Provide the sheet data and active dot origin as context for all child components
     provide_context(set_data);
@@ -368,15 +376,53 @@ pub fn CharacterSheet() -> impl IntoView {
                 view! { <div></div> }.into_view()
             }}
 
+            // Barra de Navegação de Páginas da Ficha (Abas A4)
+            <nav class="sheet-tabs-container" aria-label="Páginas da Ficha">
+                <div class="sheet-tabs-nav">
+                    <button 
+                        class="sheet-tab-btn"
+                        class:active=move || active_tab.get() == SheetPageTab::Main
+                        on:click=move |_| set_active_tab.set(SheetPageTab::Main)
+                        title="Página 1: Atributos, Habilidades, Esferas e Vantagens"
+                    >
+                        <span class="sheet-tab-icon">"📜"</span>
+                        <span class="sheet-tab-title">"Ficha Principal"</span>
+                        <span class="sheet-tab-page-tag">"Pág. 1"</span>
+                    </button>
+
+                    <button 
+                        class="sheet-tab-btn"
+                        class:active=move || active_tab.get() == SheetPageTab::Profile
+                        on:click=move |_| set_active_tab.set(SheetPageTab::Profile)
+                        title="Página 2: Retrato, História e Anotações"
+                    >
+                        <span class="sheet-tab-icon">"👤"</span>
+                        <span class="sheet-tab-title">"Perfil do Personagem"</span>
+                        <span class="sheet-tab-page-tag">"Pág. 2"</span>
+                    </button>
+                </div>
+            </nav>
+
             <Suspense fallback=move || view! { <div class="loading-state"><p>"Carregando Ficha..."</p></div> }>
                 {move || sheet_resource.get().map(|res| match res {
                     Ok(_) => view! {
                         <Sheet>
-                            <InfoHeader />
-                            <Attributes />
-                            <Abilities />
-                            <Spheres />
-                            <AdvantagesMta />
+                            {move || match active_tab.get() {
+                                SheetPageTab::Main => view! {
+                                    <div class="sheet-page-tab-pane">
+                                        <InfoHeader />
+                                        <Attributes />
+                                        <Abilities />
+                                        <Spheres />
+                                        <AdvantagesMta />
+                                    </div>
+                                }.into_view(),
+                                SheetPageTab::Profile => view! {
+                                    <div class="sheet-page-tab-pane">
+                                        <CharacterProfile />
+                                    </div>
+                                }.into_view(),
+                            }}
                         </Sheet>
                     }.into_view(),
                     Err(e) => view! { 

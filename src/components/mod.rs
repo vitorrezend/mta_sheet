@@ -14,6 +14,7 @@ pub mod navbar;
 pub mod auth_page;
 pub mod rooms_page;
 pub mod room_view;
+pub mod character_profile;
 
 pub use home::Home;
 pub use character_sheet::CharacterSheet;
@@ -29,3 +30,4 @@ pub use navbar::Navbar;
 pub use auth_page::AuthPage;
 pub use rooms_page::RoomsPage;
 pub use room_view::RoomView;
+pub use character_profile::CharacterProfile;

@@ -34,6 +34,11 @@ pub mod keys {
     pub const CAT_CONHECIMENTOS: &str = "Conhecimentos";
     pub const CAT_ANTECEDENTES: &str = "Antecedentes";
     pub const CAT_RESONANCE: &str = "Resonance";
+
+    // Character Profile Keys
+    pub const KEY_PROFILE_PHOTO: &str = "profile_photo";
+    pub const KEY_HISTORY: &str = "profile_history";
+    pub const KEY_NOTES: &str = "profile_notes";
 }
 
 pub const STANDARD_ATTRIBUTES: [&str; 9] = [
@@ -334,6 +339,48 @@ impl CharacterData {
             self.labels.insert(keys::KEY_AFFINITY_SPHERE.to_string(), s);
         } else {
             self.labels.remove(keys::KEY_AFFINITY_SPHERE);
+        }
+    }
+
+    /// Get profile photo (data URL or empty)
+    pub fn get_profile_photo(&self) -> String {
+        self.labels.get(keys::KEY_PROFILE_PHOTO).cloned().unwrap_or_default()
+    }
+
+    /// Set profile photo
+    pub fn set_profile_photo(&mut self, photo: String) {
+        if photo.trim().is_empty() {
+            self.labels.remove(keys::KEY_PROFILE_PHOTO);
+        } else {
+            self.labels.insert(keys::KEY_PROFILE_PHOTO.to_string(), photo);
+        }
+    }
+
+    /// Get character history text
+    pub fn get_history(&self) -> String {
+        self.labels.get(keys::KEY_HISTORY).cloned().unwrap_or_default()
+    }
+
+    /// Set character history text
+    pub fn set_history(&mut self, history: String) {
+        if history.is_empty() {
+            self.labels.remove(keys::KEY_HISTORY);
+        } else {
+            self.labels.insert(keys::KEY_HISTORY.to_string(), history);
+        }
+    }
+
+    /// Get character notes text
+    pub fn get_notes(&self) -> String {
+        self.labels.get(keys::KEY_NOTES).cloned().unwrap_or_default()
+    }
+
+    /// Set character notes text
+    pub fn set_notes(&mut self, notes: String) {
+        if notes.is_empty() {
+            self.labels.remove(keys::KEY_NOTES);
+        } else {
+            self.labels.insert(keys::KEY_NOTES.to_string(), notes);
         }
     }
 
