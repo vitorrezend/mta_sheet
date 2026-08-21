@@ -118,10 +118,102 @@ pub async fn get_db() -> SqlitePool {
     let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN user_id TEXT REFERENCES users(id) ON DELETE SET NULL").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN room_id TEXT REFERENCES rooms(id) ON DELETE SET NULL").execute(&pool).await;
 
+    // Automatic extraction of legacy base64 images from JSON to static uploads and media_assets
+    migrate_and_extract_base64_images(&pool).await;
+
     // Automatic re-hydration of uploads from database backup if missing on disk
     rehydrate_media_assets_if_needed(&pool).await;
 
     pool
+}
+
+#[cfg(feature = "ssr")]
+async fn migrate_and_extract_base64_images(pool: &SqlitePool) {
+    use sqlx::Row;
+    use base64::Engine;
+
+    let rows = match sqlx::query("SELECT id, data FROM character_sheets").fetch_all(pool).await {
+        Ok(r) => r,
+        Err(_) => return,
+    };
+
+    for row in rows {
+        let sheet_id: String = row.get("id");
+        let data_json: String = row.get("data");
+
+        let mut char_data: crate::state::CharacterData = match serde_json::from_str(&data_json) {
+            Ok(d) => d,
+            Err(_) => {
+                if let Some(d) = crate::state::CharacterData::from_raw_json_resilient(&sheet_id, &data_json) {
+                    d
+                } else {
+                    continue;
+                }
+            }
+        };
+
+        let mut modified = false;
+
+        for wonder in &mut char_data.wonders {
+            if wonder.image_url.starts_with("data:image") {
+                let img_data = &wonder.image_url;
+                if let Some(idx) = img_data.find(";base64,") {
+                    let mime_type = if img_data.starts_with("data:") {
+                        &img_data[5..idx]
+                    } else {
+                        "image/webp"
+                    };
+                    let payload = &img_data[idx + 8..];
+
+                    if let Ok(bytes) = base64::engine::general_purpose::STANDARD.decode(payload.trim()) {
+                        let ext = match mime_type {
+                            "image/png" => "png",
+                            "image/jpeg" | "image/jpg" => "jpg",
+                            "image/gif" => "gif",
+                            "image/svg+xml" => "svg",
+                            _ => "webp",
+                        };
+
+                        let asset_id = format!("img_{}", uuid::Uuid::new_v4());
+                        let safe_filename = format!("{}_{}.{}", wonder.id, asset_id, ext);
+                        let dir_path = format!("uploads/sheets/{}/wonders", sheet_id);
+                        let file_path = format!("{}/{}", dir_path, safe_filename);
+                        let relative_url = format!("/uploads/sheets/{}/wonders/{}", sheet_id, safe_filename);
+
+                        let _ = tokio::fs::create_dir_all(&dir_path).await;
+                        let _ = tokio::fs::write(&file_path, &bytes).await;
+
+                        let _ = sqlx::query(
+                            "INSERT OR REPLACE INTO media_assets (id, sheet_id, block, file_path, mime_type, size_bytes, data_blob) VALUES (?, ?, ?, ?, ?, ?, ?)"
+                        )
+                        .bind(&asset_id)
+                        .bind(&sheet_id)
+                        .bind("wonders")
+                        .bind(&file_path)
+                        .bind(mime_type)
+                        .bind(bytes.len() as i64)
+                        .bind(&bytes)
+                        .execute(pool)
+                        .await;
+
+                        wonder.image_url = relative_url;
+                        modified = true;
+                    }
+                }
+            }
+        }
+
+        if modified {
+            if let Ok(new_json) = serde_json::to_string(&char_data) {
+                let _ = sqlx::query("UPDATE character_sheets SET data = ? WHERE id = ?")
+                    .bind(new_json)
+                    .bind(&sheet_id)
+                    .execute(pool)
+                    .await;
+                log::info!("Migrated inline base64 images to static uploads for sheet: {}", sheet_id);
+            }
+        }
+    }
 }
 
 #[cfg(feature = "ssr")]
