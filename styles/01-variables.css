@@ -26,8 +26,8 @@ body {
 
 /* ─── Home Page Styles ─────────────────────────────────────────────── */
 .home-container {
-    max-width: 800px;
-    width: 90%;
+    max-width: 1150px;
+    width: 95%;
     margin: 0 auto;
     padding: 2rem;
     background: var(--paper-bg);
@@ -97,7 +97,7 @@ body {
 /* Character Cards Grid (Home Page) */
 .character-cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1.5rem;
 }
 

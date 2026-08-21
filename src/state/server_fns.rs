@@ -38,8 +38,8 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
         if let Ok(data) = serde_json::from_str::<CharacterData>(&data_json) {
             tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
             essence = data.labels.get("Essência").cloned().unwrap_or_default();
-            arete = data.arete;
-            willpower = data.advantages.willpower;
+            arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
+            willpower = data.get_attribute_level(crate::state::models::keys::KEY_WILLPOWER_TOTAL, 5);
             photo_url = if !data.visuals.character_sketch_url.is_empty() {
                 data.visuals.character_sketch_url.clone()
             } else {
@@ -48,8 +48,8 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
         } else if let Some(data) = CharacterData::from_raw_json_resilient(&id, &data_json) {
             tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
             essence = data.labels.get("Essência").cloned().unwrap_or_default();
-            arete = data.arete;
-            willpower = data.advantages.willpower;
+            arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
+            willpower = data.get_attribute_level(crate::state::models::keys::KEY_WILLPOWER_TOTAL, 5);
             photo_url = if !data.visuals.character_sketch_url.is_empty() {
                 data.visuals.character_sketch_url.clone()
             } else {
