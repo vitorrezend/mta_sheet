@@ -1,0 +1,390 @@
+/* ==========================================================================
+   04: PÁGINA 1 — FICHA PRINCIPAL (ATRIBUTOS, HABILIDADES, ESFERAS, VANTAGENS)
+   ========================================================================== */
+
+/* Camada Secundária: Campos de Atributos/Habilidades */
+.attributes-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    align-items: flex-start; /* Alinhado a esquerda dentro do grupo */
+    width: fit-content;
+}
+
+.attribute-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 3px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.attribute-row > .tooltip-container:first-child {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 60%;
+    overflow: hidden;
+}
+
+.attribute-label {
+    font-size: 0.67rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: -0.015em;
+    white-space: nowrap;
+    color: #4b5563;
+    cursor: help;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 2px; 
+    text-align: left;
+    display: block;
+}
+
+.field-modifier {
+    flex: 1 1 0%;
+    min-width: 6px;
+    width: 100%;
+    height: 16px;
+    border: none;
+    border-bottom: 1px dotted #cbd5e1;
+    text-align: left;
+    font-size: 0.65rem;
+    background: transparent;
+    color: var(--primary-color);
+    font-family: inherit;
+    transition: all 0.2s;
+    margin: 0 2px;
+    padding: 0 2px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.field-modifier:focus {
+    outline: none;
+    border-bottom: 1px solid var(--primary-color);
+    background-color: rgba(0,0,0,0.02);
+}
+
+/* Camada Terciária: Bolinhas (Dots) */
+.dots-container {
+    display: flex;
+    gap: 3.5px;
+    flex-shrink: 0;
+    margin-left: auto;
+    align-items: center;
+}
+
+.dot {
+    display: inline-block;
+    width: 12.5px;
+    height: 12.5px;
+    border: 1.8px solid var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    background-color: transparent;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.dot:hover {
+    transform: scale(1.2);
+    border-color: #1e293b;
+}
+
+.dot.filled {
+    background-color: var(--primary-color);
+}
+
+.square {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    border: 1.8px solid var(--primary-color);
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    background-color: transparent;
+    box-sizing: border-box;
+}
+
+.square:hover {
+    transform: scale(1.2);
+    border-color: #34495e;
+}
+
+.square.filled {
+    background-color: var(--primary-color);
+}
+
+
+.group-box {
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    padding: 0.8rem 0.6rem 0.6rem 0.6rem;
+    position: relative;
+    margin-top: 0.8rem; /* Reduzido para economizar espaço */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.group-title {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--paper-bg);
+    padding: 0 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    color: var(--primary-color);
+    letter-spacing: 0.15em;
+}
+
+.attributes-block {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.attribute-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.column-title {
+    font-size: 0.8rem;
+    color: #95a5a6;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 0.4rem;
+    padding-bottom: 0.1rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Posicionamento do grupo na ficha (Obsoleto após o grid, mas mantido para referência) */
+.align-right {
+    align-self: flex-end; 
+    margin-right: 20mm;
+}
+
+.status-badge {
+    background-color: #f1f3f5;
+    color: #495057;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #dee2e6;
+}
+
+
+
+/* Info Header & Label Fields */
+.info-header {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem; /* Mesmo gap dos atributos */
+    width: 100%;
+    margin-bottom: 0; /* Removido para aproximar do bloco abaixo */
+    padding: 0 0.8rem; /* Alinhamento com o padding do box de atributos */
+    box-sizing: border-box;
+}
+
+.info-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.label-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.label-text {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #7f8c8d;
+    white-space: nowrap;
+    padding-bottom: 2px;
+    text-align: left;
+    flex-shrink: 0;
+}
+
+.label-input {
+    flex: 1;
+    width: 0;
+    min-width: 0;
+    border: none;
+    border-bottom: 1px solid #bdc3c7;
+    background: transparent;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    padding: 2px 4px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    text-overflow: ellipsis; /* Adiciona "..." se o texto for longo */
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.label-input:focus {
+    outline: none;
+    border-bottom-color: var(--primary-color);
+}
+
+
+/* Quintessence & Paradox Static Tracker */
+.quintessence-paradox-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.qp-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px;
+    background: rgba(0,0,0,0.02);
+    border-radius: 4px;
+}
+
+.qp-square {
+    transition: all 0.2s ease;
+}
+
+.qp-square:hover {
+    transform: scale(1.15);
+    z-index: 10;
+}
+
+.qp-square.paradox {
+    background-color: #000000 !important;
+    border-color: #000000 !important;
+}
+
+.qp-square.quintessence {
+    background-color: #3498db !important;
+    border-color: #1a5276 !important;
+}
+
+
+/* ─── Vitalidade (Health Tracker) ─────────────────────────────────────── */
+.vitality-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    width: 100%;
+}
+
+.health-levels {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.health-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    width: 100%;
+}
+
+.health-label-group {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.health-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: #555;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.health-penalty {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #c0392b;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Caixa de dano */
+.health-box {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--primary-color);
+    border-radius: 2px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease-in-out;
+    background-color: transparent;
+    box-sizing: border-box;
+}
+
+.health-box:hover {
+    transform: scale(1.15);
+    border-color: #34495e;
+}
+
+.dmg-mark {
+    font-size: 0;
+    line-height: 1;
+}
+
+/* / → Contusivo (bashing) */
+.dmg-slash {
+    font-size: 0.8rem;
+    font-weight: 900;
+    color: var(--primary-color);
+    line-height: 1;
+}
+
+/* ✕ → Letal */
+.dmg-x {
+    font-size: 0.72rem;
+    font-weight: 900;
+    color: #c0392b;
+    line-height: 1;
+}
+
+/* ✦ → Agravado */
+.dmg-agg {
+    font-size: 0.72rem;
+    font-weight: 900;
+    color: #8e44ad;
+    line-height: 1;
+}
+

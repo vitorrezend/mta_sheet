@@ -1,0 +1,316 @@
+/* ==========================================================================
+   07: PÁGINA 4 — HISTÓRIA, DADOS DEMOGRÁFICOS, AVATAR & VISUAIS
+   ========================================================================== */
+
+/* ==========================================================================
+   PÁGINA 4: HISTORY, DESCRIPTION & VISUALS
+   ========================================================================== */
+.page-history-visuals-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* --- 1. HISTORY --- */
+.history-box {
+    margin-bottom: 0.5rem;
+}
+
+.history-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    background: #fafafa;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.65rem 0.85rem;
+    margin-bottom: 0.75rem;
+}
+
+.history-item:last-child {
+    margin-bottom: 0;
+}
+
+.history-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #334155;
+}
+
+.history-textarea {
+    width: 100%;
+    min-height: 70px;
+    resize: vertical;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.84rem;
+    color: #1e293b;
+    line-height: 1.4;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.history-main-textarea {
+    min-height: 110px;
+}
+
+.history-seeking-textarea {
+    min-height: 80px;
+}
+
+.history-textarea:focus {
+    background: #ffffff;
+    border-radius: 4px;
+}
+
+.history-grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+/* --- 2. DESCRIPTION --- */
+.description-box {
+    margin-bottom: 0.5rem;
+}
+
+.description-grid-container {
+    display: grid;
+    grid-template-columns: minmax(280px, 320px) 1fr;
+    gap: 1.25rem;
+    margin-top: 0.5rem;
+}
+
+.description-demographics-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    background: #fafafa;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.65rem 0.85rem;
+    box-sizing: border-box;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.demographic-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.demographic-label {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.demographic-input {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px dashed #cbd5e1;
+    background: transparent;
+    font-size: 0.8rem;
+    color: #1e293b;
+    padding: 0.15rem 0.3rem;
+    outline: none;
+    text-align: right;
+}
+
+.demographic-input:focus {
+    border-bottom: 1px solid #6366f1;
+    background: #ffffff;
+}
+
+.description-narrative-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.narrative-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    background: #fafafa;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.65rem 0.85rem;
+}
+
+.narrative-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #334155;
+}
+
+.narrative-textarea {
+    width: 100%;
+    min-height: 90px;
+    resize: vertical;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.84rem;
+    color: #1e293b;
+    line-height: 1.4;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.narrative-avatar-textarea {
+    min-height: 80px;
+}
+
+.narrative-textarea:focus {
+    background: #ffffff;
+    border-radius: 4px;
+}
+
+/* --- 3. VISUALS --- */
+.visuals-box {
+    margin-bottom: 1rem;
+}
+
+.visuals-grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-top: 0.5rem;
+}
+
+.visual-card {
+    display: flex;
+    flex-direction: column;
+    background: #fafafa;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.65rem 0.85rem;
+}
+
+.visual-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.visual-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #334155;
+}
+
+.btn-remove-visual {
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-remove-visual:hover {
+    background: #fee2e2;
+}
+
+.visual-preview-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.visual-image-wrapper {
+    width: 100%;
+    height: 100%;
+    max-height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0f172a;
+}
+
+.visual-img {
+    max-width: 100%;
+    max-height: 250px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.visual-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: background 0.15s ease;
+}
+
+.visual-dropzone:hover {
+    background: #f8fafc;
+}
+
+.visual-dropzone-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.4rem;
+}
+
+.visual-dropzone-text {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.2rem;
+}
+
+.visual-dropzone-hint {
+    font-size: 0.7rem;
+    color: #94a3b8;
+}
+
+.visual-error-msg {
+    color: #dc2626;
+    font-size: 0.72rem;
+    margin-top: 0.4rem;
+}
+
+@media (max-width: 768px) {
+    .history-grid-2col {
+        grid-template-columns: 1fr;
+    }
+    .description-grid-container {
+        grid-template-columns: 1fr;
+    }
+    .visuals-grid-2col {
+        grid-template-columns: 1fr;
+    }
+}
+
