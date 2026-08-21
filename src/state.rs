@@ -260,13 +260,44 @@ pub struct FlawItem {
     pub bonus: i32,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct WonderItem {
+    #[serde(default = "default_wonder_id")]
+    pub id: String,
+    #[serde(default)]
     pub name: String,
-    pub points: String,
-    pub arete: String,
-    pub quintessence: String,
+    #[serde(default)]
+    pub points: AttributeValue,
+    #[serde(default)]
+    pub arete: AttributeValue,
+    #[serde(default = "default_wonder_quint_max")]
+    pub quintessence_max: i32,
+    #[serde(default)]
+    pub quintessence_current: i32,
+    #[serde(default)]
     pub description: String,
+}
+
+fn default_wonder_id() -> String {
+    format!("wonder_{}", uuid::Uuid::new_v4())
+}
+
+fn default_wonder_quint_max() -> i32 {
+    5
+}
+
+impl Default for WonderItem {
+    fn default() -> Self {
+        Self {
+            id: default_wonder_id(),
+            name: String::new(),
+            points: AttributeValue::default(),
+            arete: AttributeValue::default(),
+            quintessence_max: 5,
+            quintessence_current: 0,
+            description: String::new(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
@@ -631,6 +662,54 @@ impl CharacterData {
             }
         }
 
+        // 11. Maravilhas (Wonders)
+        for (w_idx, wonder) in self.wonders.iter().enumerate() {
+            if wonder.points.level > 0 {
+                let display_name = if wonder.name.trim().is_empty() {
+                    format!("Maravilha {}", w_idx + 1)
+                } else {
+                    format!("Maravilha ({})", wonder.name.trim())
+                };
+                let id = if !wonder.id.is_empty() { wonder.id.clone() } else { format!("wonder_{}", w_idx) };
+                let lvl = wonder.points.level.max(0) as usize;
+                let origins = wonder.points.get_origins(lvl);
+                let mut trait_bonus_cost = 0;
+                let mut trait_xp_cost = 0;
+                let mut bonus_dots = 0;
+                let mut xp_dots = 0;
+
+                for (idx, &origin) in origins.iter().take(lvl).enumerate() {
+                    match origin {
+                        DotOrigin::Bonus => {
+                            bonus_dots += 1;
+                            trait_bonus_cost += 1; // 1 Ponto de Bônus por bolinha de Maravilha
+                        }
+                        DotOrigin::Experience => {
+                            xp_dots += 1;
+                            let cost = if idx == 0 { 3 } else { idx as i32 * 3 }; // 3 XP por nível (como Antecedentes)
+                            trait_xp_cost += cost;
+                        }
+                        _ => {}
+                    }
+                }
+
+                if trait_bonus_cost > 0 || trait_xp_cost > 0 {
+                    total_bonus_spent += trait_bonus_cost;
+                    total_xp_spent += trait_xp_cost;
+                    items.push(CostBreakdownItem {
+                        id,
+                        name: display_name,
+                        category: "Maravilha (Antecedente)".to_string(),
+                        level: wonder.points.level,
+                        bonus_dots,
+                        bonus_cost: trait_bonus_cost,
+                        xp_dots,
+                        xp_cost: trait_xp_cost,
+                    });
+                }
+            }
+        }
+
         // Arete warning: na criação de ficha (pontos base + bônus), Arete não deve passar de 3
         let arete_creation_dots = self.attributes.get(keys::KEY_ARETE).map(|a| {
             let (_, bonus, _, _) = a.count_origins();
@@ -859,15 +938,45 @@ impl CharacterData {
             }
         }
 
-        // Ensure minimum slots for Merits (7), Flaws (7), Wonders (3) and Weapons (4)
+        // Ensure minimum slots for Merits (7), Flaws (7) and Weapons (4)
         while self.merits.len() < 7 {
             self.merits.push(MeritItem::default());
         }
         while self.flaws.len() < 7 {
             self.flaws.push(FlawItem::default());
         }
-        while self.wonders.len() < 3 {
+        if self.wonders.is_empty() {
             self.wonders.push(WonderItem::default());
+        }
+        for wonder in &mut self.wonders {
+            if wonder.id.is_empty() {
+                wonder.id = format!("wonder_{}", uuid::Uuid::new_v4());
+            }
+            if wonder.quintessence_max < 5 {
+                wonder.quintessence_max = 5;
+            } else if wonder.quintessence_max > 20 {
+                wonder.quintessence_max = 20;
+            } else {
+                // Round to nearest multiple of 5
+                wonder.quintessence_max = ((wonder.quintessence_max + 4) / 5) * 5;
+            }
+            wonder.quintessence_current = wonder.quintessence_current.clamp(0, wonder.quintessence_max);
+
+            let p_lvl = wonder.points.level.max(0) as usize;
+            while wonder.points.dot_origins.len() < p_lvl {
+                wonder.points.dot_origins.push(DotOrigin::Base);
+            }
+            if wonder.points.dot_origins.len() > p_lvl {
+                wonder.points.dot_origins.truncate(p_lvl);
+            }
+
+            let a_lvl = wonder.arete.level.max(0) as usize;
+            while wonder.arete.dot_origins.len() < a_lvl {
+                wonder.arete.dot_origins.push(DotOrigin::Base);
+            }
+            if wonder.arete.dot_origins.len() > a_lvl {
+                wonder.arete.dot_origins.truncate(a_lvl);
+            }
         }
         while self.weapons.len() < 4 {
             self.weapons.push(WeaponItem::default());
@@ -1309,5 +1418,35 @@ mod tests {
         let summary = char_data.calculate_costs();
         // Total Bonus: +2 (Qualidade) - 3 (Defeito) = -1 pts
         assert_eq!(summary.total_bonus_spent, -1);
+    }
+
+    #[test]
+    fn test_calculate_costs_with_wonders() {
+        let mut char_data = CharacterData::new("c3".to_string(), "Mago Wonder Test".to_string());
+
+        // Maravilha: Nível 3 (1 Base, 1 Bonus, 1 XP)
+        // Bonus at idx 1: 1 pt
+        // XP at idx 2: 2 * 3 = 6 XP
+        char_data.wonders = vec![WonderItem {
+            id: "w1".to_string(),
+            name: "Anel do Éter".to_string(),
+            points: AttributeValue {
+                level: 3,
+                modifier: String::new(),
+                dot_origins: vec![DotOrigin::Base, DotOrigin::Bonus, DotOrigin::Experience],
+            },
+            arete: AttributeValue {
+                level: 2,
+                modifier: String::new(),
+                dot_origins: vec![DotOrigin::Base, DotOrigin::Base],
+            },
+            quintessence_max: 10,
+            quintessence_current: 7,
+            description: "Armazena quintessência e manipula forças".to_string(),
+        }];
+
+        let summary = char_data.calculate_costs();
+        assert_eq!(summary.total_bonus_spent, 1);
+        assert_eq!(summary.total_xp_spent, 6);
     }
 }
