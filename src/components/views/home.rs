@@ -122,9 +122,13 @@ pub fn Home() -> impl IntoView {
                                     let wp_val = summary.willpower;
                                     let date_display = summary.updated_at.split(' ').next().unwrap_or(&summary.updated_at).to_string();
                                     let updated_at_full = summary.updated_at.clone();
+                                    let id_nav = id.clone();
 
                                     view! {
-                                        <div class="character-card">
+                                        <div
+                                            class="character-card"
+                                            on:click=move |_| use_navigate()(&format!("/sheet/{}", id_nav), Default::default())
+                                        >
                                             <div class="card-portrait-box">
                                                 {if has_photo {
                                                     view! {
@@ -182,34 +186,32 @@ pub fn Home() -> impl IntoView {
                                                 </div>
 
                                                 <div class="card-spheres-preview">
-                                                    <span class="spheres-label">"Esferas"</span>
-                                                    {if summary.active_spheres.is_empty() {
-                                                        view! {
-                                                            <span class="no-spheres-tag">"Nenhuma esfera pontuada"</span>
-                                                        }.into_view()
-                                                    } else {
-                                                        view! {
-                                                            <div class="spheres-chips-grid">
-                                                                {summary.active_spheres.iter().map(|(sphere_name, lvl)| {
-                                                                    let s_name = sphere_name.clone();
-                                                                    let s_lvl = *lvl;
-                                                                    view! {
-                                                                        <div class="sphere-chip" title=format!("{}: nível {}", s_name, s_lvl)>
-                                                                            <span class="sphere-chip-title">{s_name}</span>
-                                                                            <div class="sphere-chip-dots">
-                                                                                {(1..=5).map(|dot_i| {
-                                                                                    let filled = dot_i <= s_lvl;
-                                                                                    view! {
-                                                                                        <span class=if filled { "stat-dot filled-sphere" } else { "stat-dot empty-dot" }></span>
-                                                                                    }
-                                                                                }).collect_view()}
-                                                                            </div>
-                                                                        </div>
-                                                                    }
-                                                                }).collect_view()}
-                                                            </div>
-                                                        }.into_view()
-                                                    }}
+                                                    <div class="spheres-header-row">
+                                                        <span class="spheres-label">"9 Esferas"</span>
+                                                    </div>
+                                                    <div class="spheres-9-grid">
+                                                        {summary.spheres.iter().map(|(sphere_name, lvl)| {
+                                                            let s_name = sphere_name.clone();
+                                                            let s_lvl = *lvl;
+                                                            let is_active = s_lvl > 0;
+                                                            view! {
+                                                                <div
+                                                                    class=if is_active { "sphere-item-active" } else { "sphere-item-inactive" }
+                                                                    title=format!("{}: nível {}", s_name, s_lvl)
+                                                                >
+                                                                    <span class="sphere-mini-name">{s_name}</span>
+                                                                    <div class="sphere-mini-dots">
+                                                                        {(1..=5).map(|dot_i| {
+                                                                            let filled = dot_i <= s_lvl;
+                                                                            view! {
+                                                                                <span class=if filled { "stat-dot filled-sphere" } else { "stat-dot empty-dot" }></span>
+                                                                            }
+                                                                        }).collect_view()}
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                        }).collect_view()}
+                                                    </div>
                                                 </div>
 
                                                 <div class="card-footer">
@@ -217,12 +219,19 @@ pub fn Home() -> impl IntoView {
                                                         "🕒 " {date_display}
                                                     </span>
                                                     <div class="card-actions">
-                                                        <A href=format!("/sheet/{}", id) class="card-open-btn">
+                                                        <A
+                                                            href=format!("/sheet/{}", id)
+                                                            class="card-open-btn"
+                                                            on:click=move |ev: ev::MouseEvent| ev.stop_propagation()
+                                                        >
                                                             "Abrir 📜"
                                                         </A>
                                                         <button
                                                             class="card-delete-btn"
-                                                            on:click=move |_| set_sheet_to_delete.set(Some(summary_clone.clone()))
+                                                            on:click=move |ev: ev::MouseEvent| {
+                                                                ev.stop_propagation();
+                                                                set_sheet_to_delete.set(Some(summary_clone.clone()));
+                                                            }
                                                             title="Excluir ficha"
                                                         >
                                                             "🗑️"

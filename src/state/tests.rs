@@ -454,7 +454,7 @@ mod tests {
             arete: 4,
             willpower: 8,
             photo_url: "/uploads/john.webp".to_string(),
-            active_spheres: vec![("Tempo".to_string(), 3), ("Mente".to_string(), 2)],
+            spheres: vec![("Tempo".to_string(), 3), ("Mente".to_string(), 2)],
             updated_at: "2026-08-21 17:00:00".to_string(),
         };
 
@@ -468,7 +468,7 @@ mod tests {
         assert_eq!(recovered.arete, 4);
         assert_eq!(recovered.willpower, 8);
         assert_eq!(recovered.photo_url, "/uploads/john.webp");
-        assert_eq!(recovered.active_spheres, vec![("Tempo".to_string(), 3), ("Mente".to_string(), 2)]);
+        assert_eq!(recovered.spheres, vec![("Tempo".to_string(), 3), ("Mente".to_string(), 2)]);
 
         // Backward compatibility: old JSON without the new fields
         let legacy_json = r#"{"id":"legacy_1","name":"Mago Antigo","updated_at":"2026-08-20"}"#;

@@ -108,6 +108,7 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    cursor: pointer;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -293,6 +294,12 @@ body {
     gap: 0.4rem;
 }
 
+.spheres-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
 .spheres-label {
     font-size: 0.78rem;
     font-weight: 700;
@@ -301,39 +308,53 @@ body {
     letter-spacing: 0.05em;
 }
 
-.no-spheres-tag {
-    font-size: 0.78rem;
-    color: #9333ea;
-    font-style: italic;
+.spheres-9-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.35rem 0.5rem;
 }
 
-.spheres-chips-grid {
+.sphere-item-active {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-}
-
-.sphere-chip {
+    flex-direction: column;
+    gap: 2px;
+    padding: 0.25rem 0.35rem;
     background: #ffffff;
-    border: 1px solid #e9d5ff;
-    border-radius: 6px;
-    padding: 0.25rem 0.5rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    border: 1px solid #d8b4fe;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(126, 34, 206, 0.06);
 }
 
-.sphere-chip-title {
-    font-size: 0.76rem;
-    font-weight: 600;
-    color: #581c87;
+.sphere-item-inactive {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0.25rem 0.35rem;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px dashed #e9d5ff;
+    border-radius: 4px;
+    opacity: 0.75;
 }
 
-.sphere-chip-dots {
-    display: inline-flex;
-    gap: 2.5px;
+.sphere-mini-name {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #4c1d95;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sphere-mini-dots {
+    display: flex;
+    gap: 2px;
     align-items: center;
+}
+
+.sphere-mini-dots .stat-dot {
+    width: 7px;
+    height: 7px;
+    border-width: 1px;
 }
 
 .card-footer {
