@@ -3,6 +3,7 @@
 pub mod common;
 pub mod page1;
 pub mod page2;
+pub mod page3;
 pub mod profile;
 pub mod rooms;
 pub mod sheet;
@@ -16,6 +17,9 @@ pub use page1::{Abilities, AdvantagesMta, Attributes, InfoHeader, Spheres};
 
 // Re-export Page 2 components
 pub use page2::{CombatSection, MagicSection, MeritsFlaws, OtherTraits, PageMagicCombat};
+
+// Re-export Page 3 components
+pub use page3::{Chantry, ExpandedBackgrounds, PageExpandedBackgroundsPossessions, Possessions};
 
 // Re-export Profile components
 pub use profile::CharacterProfile;

@@ -1,5 +1,6 @@
 use super::models::{
-    keys, ArmorItem, AttributeValue, CharacterData, DotOrigin, FlawItem, MeritItem, WeaponItem, WonderItem,
+    keys, ArmorItem, AttributeValue, ChantryEntry, CharacterData, DotOrigin, ExpandedBackgroundsData,
+    FlawItem, MeritItem, PossessionsData, WeaponItem, WonderItem,
 };
 
 impl CharacterData {
@@ -92,6 +93,11 @@ impl CharacterData {
         while self.weapons.len() < 4 {
             self.weapons.push(WeaponItem::default());
         }
+
+        // Ensure minimum slots for Chantry (3)
+        while self.chantry.len() < 3 {
+            self.chantry.push(ChantryEntry::default());
+        }
     }
 
     /// Resilient JSON recovery for backwards compatibility and damaged data
@@ -159,6 +165,28 @@ impl CharacterData {
 
         if let Some(rotes) = val.get("rotes").and_then(|v| v.as_str()) {
             char_data.rotes = rotes.to_string();
+        }
+
+        // Page 3 Recovery
+        if let Some(exp_bg) = val.get("expanded_backgrounds") {
+            if let Ok(bg) = serde_json::from_value::<ExpandedBackgroundsData>(exp_bg.clone()) {
+                char_data.expanded_backgrounds = bg;
+            }
+        }
+
+        if let Some(poss) = val.get("possessions") {
+            if let Ok(p) = serde_json::from_value::<PossessionsData>(poss.clone()) {
+                char_data.possessions = p;
+            }
+        }
+
+        if let Some(chantry_arr) = val.get("chantry").and_then(|v| v.as_array()) {
+            char_data.chantry.clear();
+            for c in chantry_arr {
+                if let Ok(entry) = serde_json::from_value::<ChantryEntry>(c.clone()) {
+                    char_data.chantry.push(entry);
+                }
+            }
         }
 
         char_data.sanitize();

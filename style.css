@@ -3733,5 +3733,278 @@ body {
     cursor: zoom-in;
 }
 
+/* ==========================================================================
+   PÁGINA 3: EXPANDED BACKGROUNDS, POSSESSIONS & CHANTRY
+   ========================================================================== */
+.page-expanded-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
 
+/* --- 1. EXPANDED BACKGROUNDS --- */
+.expanded-backgrounds-box {
+    margin-bottom: 0.5rem;
+}
 
+.expanded-bg-grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-top: 0.75rem;
+}
+
+.expanded-bg-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.expanded-bg-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    background: #fafafa;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.6rem 0.75rem;
+}
+
+.expanded-bg-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #334155;
+}
+
+.expanded-bg-other-header {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.expanded-bg-title-input {
+    flex: 1;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: none;
+    border-bottom: 1px solid #94a3b8;
+    background: transparent;
+    padding: 0.1rem 0.25rem;
+    color: #1e293b;
+    outline: none;
+}
+
+.expanded-bg-title-input:focus {
+    border-bottom-color: #6366f1;
+}
+
+.expanded-bg-textarea {
+    width: 100%;
+    min-height: 55px;
+    resize: vertical;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.82rem;
+    color: #1e293b;
+    line-height: 1.35;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.expanded-bg-textarea:focus {
+    background: #ffffff;
+    border-radius: 4px;
+}
+
+/* --- 2. POSSESSIONS --- */
+.possessions-box {
+    margin-bottom: 0.5rem;
+}
+
+.possessions-grid-3col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.possessions-grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.possessions-col {
+    display: flex;
+    flex-direction: column;
+    background: #fafafa;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.6rem 0.75rem;
+}
+
+.possessions-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #334155;
+}
+
+.possessions-sublabel {
+    font-size: 0.68rem;
+    color: #64748b;
+    margin-bottom: 0.4rem;
+}
+
+.possessions-textarea {
+    width: 100%;
+    min-height: 80px;
+    resize: vertical;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.82rem;
+    color: #1e293b;
+    line-height: 1.35;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.possessions-textarea:focus {
+    background: #ffffff;
+    border-radius: 4px;
+}
+
+/* --- 3. CHANTRY --- */
+.chantry-box {
+    margin-bottom: 1rem;
+}
+
+.chantry-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.chantry-subtitle {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-style: italic;
+    flex: 1;
+    margin-left: 0.8rem;
+}
+
+.btn-add-chantry {
+    background: #334155;
+    color: #ffffff;
+    border: none;
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.btn-add-chantry:hover {
+    background: #1e293b;
+}
+
+.chantry-table-header {
+    display: flex;
+    align-items: center;
+    background: #f1f5f9;
+    border-radius: 4px 4px 0 0;
+    border: 1px solid #cbd5e1;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #475569;
+}
+
+.chantry-loc-header {
+    flex: 1;
+    min-width: 160px;
+}
+
+.chantry-desc-header {
+    flex: 2;
+}
+
+.chantry-action-header {
+    width: 28px;
+}
+
+.chantry-rows-container {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #cbd5e1;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    background: #ffffff;
+}
+
+.chantry-row {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 0.35rem 0.6rem;
+    gap: 0.5rem;
+}
+
+.chantry-row:last-child {
+    border-bottom: none;
+}
+
+.chantry-loc-cell {
+    flex: 1;
+    min-width: 160px;
+}
+
+.chantry-desc-cell {
+    flex: 2;
+}
+
+.chantry-action-cell {
+    width: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chantry-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px dashed #cbd5e1;
+    background: transparent;
+    padding: 0.3rem 0.4rem;
+    font-size: 0.82rem;
+    color: #1e293b;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.chantry-input:focus {
+    border-bottom: 1px solid #6366f1;
+    background: #f8fafc;
+}
+
+@media (max-width: 768px) {
+    .expanded-bg-grid-2col {
+        grid-template-columns: 1fr;
+    }
+    .possessions-grid-3col {
+        grid-template-columns: 1fr;
+    }
+    .possessions-grid-2col {
+        grid-template-columns: 1fr;
+    }
+}

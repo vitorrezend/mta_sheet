@@ -4,6 +4,7 @@ use leptos::*;
 pub enum SheetPageTab {
     Main,
     MagicCombat,
+    Expanded,
     Profile,
 }
 
@@ -35,6 +36,17 @@ pub fn SheetTabs(
                     <span class="sheet-tab-icon">"⚔️"</span>
                     <span class="sheet-tab-title">"Magia & Combate"</span>
                     <span class="sheet-tab-page-tag">"Pág. 2"</span>
+                </button>
+
+                <button 
+                    class="sheet-tab-btn"
+                    class:active=move || active_tab.get() == SheetPageTab::Expanded
+                    on:click=move |_| set_active_tab.set(SheetPageTab::Expanded)
+                    title="Página 3: Antecedentes Expandidos, Posses, Focos, Grimório e Capela"
+                >
+                    <span class="sheet-tab-icon">"🏛️"</span>
+                    <span class="sheet-tab-title">"Antecedentes & Posses"</span>
+                    <span class="sheet-tab-page-tag">"Pág. 3"</span>
                 </button>
 
                 <button 

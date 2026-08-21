@@ -2,10 +2,13 @@ use leptos::*;
 use leptos_router::*;
 use crate::state::{get_sheet, update_sheet, CharacterData, DotOrigin};
 use crate::components::common::Sheet;
-use crate::components::page1::{Attributes, InfoHeader, Abilities, Spheres, AdvantagesMta};
+use crate::components::page1::{Abilities, AdvantagesMta, Attributes, InfoHeader, Spheres};
 use crate::components::page2::PageMagicCombat;
+use crate::components::page3::PageExpandedBackgroundsPossessions;
 use crate::components::profile::CharacterProfile;
-use crate::components::sheet::{SheetTopBar, SaveStatus, CostBreakdownModal, SheetTabs, SheetPageTab, ActiveDotOriginContext};
+use crate::components::sheet::{
+    ActiveDotOriginContext, CostBreakdownModal, SaveStatus, SheetPageTab, SheetTabs, SheetTopBar,
+};
 
 fn get_current_time_str() -> &'static str {
     "agora"
@@ -233,6 +236,13 @@ pub fn CharacterSheet() -> impl IntoView {
                             class:tab-hidden=move || active_tab.get() != SheetPageTab::MagicCombat
                         >
                             <PageMagicCombat />
+                        </div>
+
+                        <div 
+                            class="sheet-page-tab-pane page-expanded"
+                            class:tab-hidden=move || active_tab.get() != SheetPageTab::Expanded
+                        >
+                            <PageExpandedBackgroundsPossessions />
                         </div>
 
                         <div 

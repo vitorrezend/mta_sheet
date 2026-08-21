@@ -343,4 +343,37 @@ mod tests {
         assert_eq!(data.wonders[0].name, "Amuleto");
         assert_eq!(data.wonders[0].points.level, 2);
     }
+
+    #[test]
+    fn test_page3_serialization_and_recovery() {
+        let mut char_data = CharacterData::new("page3_test".to_string(), "Mago Arcano".to_string());
+        char_data.expanded_backgrounds.allies = "Conselho das Nove".to_string();
+        char_data.expanded_backgrounds.contacts = "Informante da Interpol".to_string();
+        char_data.expanded_backgrounds.other_title = "Avatar Secreto".to_string();
+        char_data.expanded_backgrounds.other_text = "Manifestação ancestral".to_string();
+
+        char_data.possessions.gear_carried = "Mochila tática, celular descartável".to_string();
+        char_data.possessions.foci = "Varinha de teixo, anel hermético".to_string();
+        char_data.possessions.familiar = "Corvo espiritual de nome Huginn".to_string();
+
+        char_data.chantry = vec![
+            ChantryEntry {
+                location: "Capela Concordia".to_string(),
+                description: "Refúgio da Tradição Hermética".to_string(),
+            }
+        ];
+
+        char_data.sanitize();
+        assert!(char_data.chantry.len() >= 3, "Sanitize must ensure at least 3 chantry rows");
+
+        // Serialize and Deserialize roundtrip
+        let json = serde_json::to_string(&char_data).unwrap();
+        let recovered: CharacterData = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(recovered.expanded_backgrounds.allies, "Conselho das Nove");
+        assert_eq!(recovered.expanded_backgrounds.other_title, "Avatar Secreto");
+        assert_eq!(recovered.possessions.gear_carried, "Mochila tática, celular descartável");
+        assert_eq!(recovered.possessions.familiar, "Corvo espiritual de nome Huginn");
+        assert_eq!(recovered.chantry[0].location, "Capela Concordia");
+    }
 }

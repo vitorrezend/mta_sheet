@@ -372,6 +372,54 @@ pub struct CharacterSummary {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct ExpandedBackgroundsData {
+    #[serde(default)]
+    pub allies: String,
+    #[serde(default)]
+    pub contacts: String,
+    #[serde(default)]
+    pub fame: String,
+    #[serde(default)]
+    pub influence: String,
+    #[serde(default)]
+    pub library: String,
+    #[serde(default)]
+    pub node: String,
+    #[serde(default)]
+    pub resources: String,
+    #[serde(default)]
+    pub retainers: String,
+    #[serde(default)]
+    pub sanctum: String,
+    #[serde(default)]
+    pub other_title: String,
+    #[serde(default)]
+    pub other_text: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct PossessionsData {
+    #[serde(default)]
+    pub gear_carried: String,
+    #[serde(default)]
+    pub equipment_owned: String,
+    #[serde(default)]
+    pub foci: String,
+    #[serde(default)]
+    pub familiar: String,
+    #[serde(default)]
+    pub grimoire: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct ChantryEntry {
+    #[serde(default)]
+    pub location: String,
+    #[serde(default)]
+    pub description: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct CharacterData {
     pub id: String,
     #[serde(default)]
@@ -396,6 +444,14 @@ pub struct CharacterData {
     pub weapons: Vec<WeaponItem>,
     #[serde(default)]
     pub armor: ArmorItem,
+
+    // Page 3: Expanded Backgrounds, Possessions & Chantry
+    #[serde(default)]
+    pub expanded_backgrounds: ExpandedBackgroundsData,
+    #[serde(default)]
+    pub possessions: PossessionsData,
+    #[serde(default)]
+    pub chantry: Vec<ChantryEntry>,
 }
 
 impl CharacterData {
@@ -412,6 +468,9 @@ impl CharacterData {
             rotes: String::new(),
             weapons: vec![WeaponItem::default(); 4],
             armor: ArmorItem::default(),
+            expanded_backgrounds: ExpandedBackgroundsData::default(),
+            possessions: PossessionsData::default(),
+            chantry: vec![ChantryEntry::default(); 3],
         };
         sheet.sanitize();
         sheet
