@@ -36,6 +36,7 @@ pub mod keys {
     pub const CAT_RESONANCE: &str = "Resonance";
     pub const CAT_MERITS: &str = "Qualidades";
     pub const CAT_FLAWS: &str = "Defeitos";
+    pub const CAT_OTHER_TRAITS: &str = "other_traits";
 
     // Character Profile Keys
     pub const KEY_PROFILE_PHOTO: &str = "profile_photo";
@@ -612,11 +613,20 @@ impl CharacterData {
             }
         }
 
-        // 10. Quaisquer outros atributos personalizados
+        // 10. Outros Traços (Other Traits)
+        if let Some(list) = self.custom_lists.get(keys::CAT_OTHER_TRAITS) {
+            for id in list {
+                visited_keys.insert(id.clone());
+                let label = self.labels.get(id).cloned().unwrap_or_else(|| id.clone());
+                traits_to_process.push((id.clone(), label, "Outro Traço".to_string(), false, false, false, true, false, false));
+            }
+        }
+
+        // 11. Quaisquer outros atributos personalizados
         for (id, attr) in &self.attributes {
             if !visited_keys.contains(id) && attr.level > 0 {
                 let label = self.labels.get(id).cloned().unwrap_or_else(|| id.clone());
-                traits_to_process.push((id.clone(), label, "Outro".to_string(), false, false, false, false, false, false));
+                traits_to_process.push((id.clone(), label, "Outro".to_string(), false, false, false, true, false, false));
             }
         }
 
@@ -635,7 +645,7 @@ impl CharacterData {
                 let is_affinity = is_sphere && affinity_sphere.as_ref().map(|s| s.eq_ignore_ascii_case(&id)).unwrap_or(false);
 
                 if is_flaw {
-                    // Defeitos concedem pontos de bônus (1 pt de bônus por nível de defeito)
+                    // Defeitos concedem pontos de bônus (1 pt de bônus negativo para subtrair do total de bônus)
                     let flaw_pts = lvl as i32;
                     trait_bonus_cost = -flaw_pts;
                     bonus_dots = lvl;
@@ -645,19 +655,17 @@ impl CharacterData {
                             DotOrigin::Bonus => {
                                 bonus_dots += 1;
                                 let cost = if is_arete {
-                                    4
+                                    4 // Arete: 4 pontos de bônus por bolinha
                                 } else if is_sphere {
-                                    7
+                                    7 // Esferas: 7 pontos de bônus por bolinha
                                 } else if is_willpower {
-                                    1
-                                } else if is_background {
-                                    1
-                                } else if is_merit {
-                                    1 // Qualidades: 1 ponto de bônus por bolinha
+                                    1 // Força de Vontade: 1 ponto de bônus por bolinha
+                                } else if is_background || is_merit {
+                                    1 // Antecedentes, Qualidades, Outros Traços, Ressonância: 1 ponto de bônus
                                 } else if STANDARD_ATTRIBUTES.contains(&id.as_str()) {
-                                    5
+                                    5 // Atributos: 5 pontos de bônus por bolinha
                                 } else {
-                                    // Abilities / Ressonância / Outros
+                                    // Habilidades (Talentos, Perícias, Conhecimentos): 2 pontos de bônus
                                     2
                                 };
                                 trait_bonus_cost += cost;
@@ -665,29 +673,27 @@ impl CharacterData {
                             DotOrigin::Experience => {
                                 xp_dots += 1;
                                 let cost = if is_arete {
-                                    idx as i32 * 8
+                                    idx as i32 * 8 // Arete: Nível Atual × 8
                                 } else if is_sphere {
                                     if idx == 0 {
-                                        10 // Nova Esfera
+                                        10 // Nova Esfera: 10 XP
                                     } else if is_affinity {
-                                        idx as i32 * 7 // Esfera de Afinidade
+                                        idx as i32 * 7 // Esfera de Afinidade: Nível Atual × 7
                                     } else {
-                                        idx as i32 * 8 // Outras Esferas
+                                        idx as i32 * 8 // Outras Esferas: Nível Atual × 8
                                     }
                                 } else if is_willpower {
-                                    idx as i32 * 1
-                                } else if is_background {
-                                    if idx == 0 { 3 } else { idx as i32 * 3 }
-                                } else if is_merit {
-                                    if idx == 0 { 2 } else { idx as i32 * 2 }
+                                    idx as i32 * 1 // Força de Vontade: Nível Atual × 1
+                                } else if is_background || is_merit {
+                                    if idx == 0 { 3 } else { idx as i32 * 3 } // Antecedentes / Qualidades / Outros Traços: 3 XP / Atual × 3
                                 } else if STANDARD_ATTRIBUTES.contains(&id.as_str()) {
-                                    idx as i32 * 4
+                                    idx as i32 * 4 // Atributos: Nível Atual × 4
                                 } else {
-                                    // Abilities
+                                    // Habilidades (Talentos, Perícias, Conhecimentos)
                                     if idx == 0 {
-                                        3 // Nova Habilidade
+                                        3 // Nova Habilidade: 3 XP
                                     } else {
-                                        idx as i32 * 2 // Nível atual * 2
+                                        idx as i32 * 2 // Habilidade: Nível Atual × 2
                                     }
                                 };
                                 trait_xp_cost += cost;
@@ -1596,12 +1602,13 @@ mod tests {
             dot_origins: vec![DotOrigin::Base, DotOrigin::Experience],
         });
 
-        // 5. Arete: Level 2 -> [Base, Bonus]
+        // 5. Arete: Level 3 -> [Base, Bonus, Experience]
         // Bonus at idx 1: 4 pts
+        // XP at idx 2: 2 * 8 = 16 XP
         char_data.attributes.insert(keys::KEY_ARETE.to_string(), AttributeValue {
-            level: 2,
+            level: 3,
             modifier: String::new(),
-            dot_origins: vec![DotOrigin::Base, DotOrigin::Bonus],
+            dot_origins: vec![DotOrigin::Base, DotOrigin::Bonus, DotOrigin::Experience],
         });
 
         // 6. Willpower Total: Level 6 -> [Base x 5, Bonus]
@@ -1617,10 +1624,10 @@ mod tests {
         // Total Bonus: 5 (Força) + 2 (Talento) + 4 (Arete) + 1 (Willpower) = 12 pts
         assert_eq!(summary.total_bonus_spent, 12);
         assert_eq!(summary.bonus_limit, 15);
-        assert_eq!(summary.arete_warning, false); // Arete is 2 (<= 3)
+        assert_eq!(summary.arete_warning, false); // Arete is 3 (<= 3)
 
-        // Total XP: 12 (Força) + 4 (Talento) + 7 (Forças Afinidade) + 8 (Correspondência) = 31 XP
-        assert_eq!(summary.total_xp_spent, 31);
+        // Total XP: 12 (Força) + 4 (Talento) + 7 (Forças Afinidade) + 8 (Correspondência) + 16 (Arete) = 47 XP
+        assert_eq!(summary.total_xp_spent, 47);
     }
 
     #[test]
