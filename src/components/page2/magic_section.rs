@@ -219,7 +219,8 @@ pub fn MagicSection() -> impl IntoView {
                             class="wonder-input font-bold"
                             placeholder="Nome da Maravilha / Artefato..."
                             prop:value=move || data.with(|d| d.wonders.get(idx).map(|w| w.name.clone()).unwrap_or_default())
-                            on:input=move |ev| update_wonder_name(idx, event_target_value(&ev))
+                            on:change=move |ev| update_wonder_name(idx, event_target_value(&ev))
+                            on:blur=move |ev| update_wonder_name(idx, event_target_value(&ev))
                         />
                     </div>
                     <button 
@@ -263,7 +264,8 @@ pub fn MagicSection() -> impl IntoView {
                                         class="wonder-image-url-input"
                                         placeholder="Ou cole a URL da imagem (https://...)"
                                         prop:value=move || current_image_url.get()
-                                        on:input=move |ev| update_wonder_image(idx, event_target_value(&ev))
+                                        on:change=move |ev| update_wonder_image(idx, event_target_value(&ev))
+                                        on:blur=move |ev| update_wonder_image(idx, event_target_value(&ev))
                                     />
                                 </div>
                                 {if !url.trim().is_empty() {
@@ -391,7 +393,14 @@ pub fn MagicSection() -> impl IntoView {
                         class="wonder-desc-textarea"
                         placeholder="Poderes místicos, esferas exigidas, gatilhos, histórico e efeitos..."
                         prop:value=move || data.with(|d| d.wonders.get(idx).map(|w| w.description.clone()).unwrap_or_default())
-                        on:input=move |ev| {
+                        on:change=move |ev| {
+                            let val = event_target_value(&ev);
+                            set_data.update(|s| {
+                                while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+                                s.wonders[idx].description = val;
+                            });
+                        }
+                        on:blur=move |ev| {
                             let val = event_target_value(&ev);
                             set_data.update(|s| {
                                 while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
@@ -464,7 +473,11 @@ fn _render_rotes_preserved_section(
                     class="rotes-textarea"
                     placeholder="Liste aqui suas Fórmulas (Rotes) consagradas: Nome da Fórmula, Esferas necessárias, Instrumentos/Focos, Dificuldade e Efeitos..."
                     prop:value=move || data.with(|d| d.rotes.clone())
-                    on:input=move |ev| {
+                    on:change=move |ev| {
+                        let val = event_target_value(&ev);
+                        set_data.update(|s| s.rotes = val);
+                    }
+                    on:blur=move |ev| {
                         let val = event_target_value(&ev);
                         set_data.update(|s| s.rotes = val);
                     }
