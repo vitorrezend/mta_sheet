@@ -311,6 +311,8 @@ pub struct WonderItem {
     pub id: String,
     #[serde(default)]
     pub name: String,
+    #[serde(default)]
+    pub image_url: String,
     #[serde(default, deserialize_with = "deserialize_flexible_attribute_value")]
     pub points: AttributeValue,
     #[serde(default, deserialize_with = "deserialize_flexible_attribute_value")]
@@ -336,6 +338,7 @@ impl Default for WonderItem {
         Self {
             id: default_wonder_id(),
             name: String::new(),
+            image_url: String::new(),
             points: AttributeValue::default(),
             arete: AttributeValue::default(),
             quintessence_max: 5,
@@ -1566,6 +1569,7 @@ mod tests {
         char_data.wonders = vec![WonderItem {
             id: "w1".to_string(),
             name: "Anel do Éter".to_string(),
+            image_url: String::new(),
             points: AttributeValue {
                 level: 3,
                 modifier: String::new(),

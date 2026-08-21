@@ -27,6 +27,20 @@ pub fn MagicSection() -> impl IntoView {
         });
     };
 
+    let update_wonder_name = move |idx: usize, val: String| {
+        set_data.update(|s| {
+            while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+            s.wonders[idx].name = val;
+        });
+    };
+
+    let update_wonder_image = move |idx: usize, val: String| {
+        set_data.update(|s| {
+            while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+            s.wonders[idx].image_url = val;
+        });
+    };
+
     let update_wonder_points = move |idx: usize, new_lvl: i32, origin: DotOrigin| {
         set_data.update(|s| {
             while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
@@ -91,6 +105,8 @@ pub fn MagicSection() -> impl IntoView {
     };
 
     let render_wonder_card = move |idx: usize| {
+        let (show_image_field, set_show_image_field) = create_signal(false);
+
         let points_level = Signal::derive(move || {
             data.with(|d| d.wonders.get(idx).map(|w| w.points.level).unwrap_or(0))
         });
@@ -98,7 +114,7 @@ pub fn MagicSection() -> impl IntoView {
             data.with(|d| d.wonders.get(idx).map(|w| w.points.modifier.clone()).unwrap_or_default())
         });
         let points_origins = Signal::derive(move || {
-            data.with(|d| d.wonders.get(idx).map(|w| w.points.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5]))
+            data.with(|d| d.wonders.get(idx).map(|w| w.points.get_origins(20)).unwrap_or_else(|| vec![DotOrigin::Base; 20]))
         });
 
         let arete_level = Signal::derive(move || {
@@ -108,11 +124,16 @@ pub fn MagicSection() -> impl IntoView {
             data.with(|d| d.wonders.get(idx).map(|w| w.arete.modifier.clone()).unwrap_or_default())
         });
         let arete_origins = Signal::derive(move || {
-            data.with(|d| d.wonders.get(idx).map(|w| w.arete.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5]))
+            data.with(|d| d.wonders.get(idx).map(|w| w.arete.get_origins(9)).unwrap_or_else(|| vec![DotOrigin::Base; 9]))
+        });
+
+        let current_image_url = Signal::derive(move || {
+            data.with(|d| d.wonders.get(idx).map(|w| w.image_url.clone()).unwrap_or_default())
         });
 
         view! {
             <div class="wonder-card">
+                // 1. Linha do Topo: Nome, Botão de Imagem e Botão de Remover
                 <div class="wonder-card-top-row">
                     <div class="wonder-field name-field">
                         <input 
@@ -120,22 +141,19 @@ pub fn MagicSection() -> impl IntoView {
                             class="wonder-input font-bold"
                             placeholder="Nome da Maravilha / Artefato..."
                             prop:value=move || data.with(|d| d.wonders.get(idx).map(|w| w.name.clone()).unwrap_or_default())
-                            on:change=move |ev| {
-                                let val = event_target_value(&ev);
-                                set_data.update(|s| {
-                                    while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
-                                    s.wonders[idx].name = val;
-                                });
-                            }
-                            on:blur=move |ev| {
-                                let val = event_target_value(&ev);
-                                set_data.update(|s| {
-                                    while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
-                                    s.wonders[idx].name = val;
-                                });
-                            }
+                            on:change=move |ev| update_wonder_name(idx, event_target_value(&ev))
+                            on:blur=move |ev| update_wonder_name(idx, event_target_value(&ev))
                         />
                     </div>
+                    <button 
+                        type="button" 
+                        class="wonder-img-toggle-btn"
+                        class:active=move || !current_image_url.get().is_empty() || show_image_field.get()
+                        on:click=move |_| set_show_image_field.update(|cur| *cur = !*cur)
+                        title="Vincular/Alterar Imagem da Maravilha"
+                    >
+                        "🖼️"
+                    </button>
                     <button 
                         type="button" 
                         class="wonder-remove-btn" 
@@ -146,14 +164,52 @@ pub fn MagicSection() -> impl IntoView {
                     </button>
                 </div>
 
-                // Linha de Pontos e Arete utilizando ValueField padronizado
-                <div class="wonder-fields-block">
+                // Bloco de Imagem do Item (opcional / expansível)
+                {move || {
+                    let url = current_image_url.get();
+                    let is_visible = show_image_field.get() || !url.is_empty();
+                    if is_visible {
+                        view! {
+                            <div class="wonder-image-section">
+                                <div class="wonder-image-input-row">
+                                    <input 
+                                        type="text" 
+                                        class="wonder-image-url-input"
+                                        placeholder="https://... Link da Imagem do Item/Artefato"
+                                        prop:value=move || current_image_url.get()
+                                        on:change=move |ev| update_wonder_image(idx, event_target_value(&ev))
+                                        on:blur=move |ev| update_wonder_image(idx, event_target_value(&ev))
+                                    />
+                                </div>
+                                {if !url.trim().is_empty() {
+                                    view! {
+                                        <div class="wonder-image-preview-wrapper">
+                                            <img 
+                                                src=url.clone() 
+                                                alt="Imagem da Maravilha"
+                                                class="wonder-image-preview"
+                                                loading="lazy"
+                                            />
+                                        </div>
+                                    }.into_view()
+                                } else {
+                                    view! {}.into_view()
+                                }}
+                            </div>
+                        }.into_view()
+                    } else {
+                        view! {}.into_view()
+                    }
+                }}
+
+                // 2. Bloco de Pontos da Maravilha (1 a 20 pontos com custo e origens)
+                <div class="wonder-stat-row-block">
                     <ValueField 
-                        label=Signal::derive(move || "Pontos".to_string())
+                        label=Signal::derive(move || "Pontos (1-20)".to_string())
                         level=points_level
                         modifier=points_mod
                         origins=points_origins
-                        max_level=5
+                        max_level=20
                         min_level=0
                         on_level_change=move |v| {
                             let current_origin = active_origin_ctx.map(|a| a.origin.get()).unwrap_or(DotOrigin::Base);
@@ -163,13 +219,16 @@ pub fn MagicSection() -> impl IntoView {
                         on_dot_origin_change=Callback::new(move |(dot_i, orig)| update_wonder_points_dot_origin(idx, dot_i, orig))
                         is_editable=false
                     />
+                </div>
 
+                // 3. Bloco de Arete da Maravilha (1 a 9 pontos - Estatística Própria)
+                <div class="wonder-stat-row-block">
                     <ValueField 
-                        label=Signal::derive(move || "Arete".to_string())
+                        label=Signal::derive(move || "Arete (1-9)".to_string())
                         level=arete_level
                         modifier=arete_mod
                         origins=arete_origins
-                        max_level=5
+                        max_level=9
                         min_level=0
                         on_level_change=move |v| {
                             let current_origin = active_origin_ctx.map(|a| a.origin.get()).unwrap_or(DotOrigin::Base);
@@ -181,7 +240,7 @@ pub fn MagicSection() -> impl IntoView {
                     />
                 </div>
 
-                // Trilha de Quintessência com Quadradinhos (Flexível de 5 a 20)
+                // 4. Bloco de Quintessência (5 a 20 pontos, com quebra elegante)
                 <div class="wonder-quintessence-row">
                     <div class="wonder-quint-header">
                         <span class="wonder-stat-label">"Quintessência:"</span>
@@ -228,9 +287,9 @@ pub fn MagicSection() -> impl IntoView {
                     </div>
                 </div>
 
-                // Descrição da Maravilha
+                // 5. Bloco de Descrição e Poderes da Maravilha
                 <div class="wonder-desc-row">
-                    <label class="wonder-label">"Descrição / Poderes:"</label>
+                    <label class="wonder-label">"Descrição / Poderes & Esferas:"</label>
                     <textarea 
                         class="wonder-desc-textarea"
                         placeholder="Poderes místicos, esferas exigidas, gatilhos, histórico e efeitos..."
