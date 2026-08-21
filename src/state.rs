@@ -245,12 +245,68 @@ pub struct CostSummary {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct MeritItem {
+    pub name: String,
+    pub merit_type: String,
+    pub cost: i32,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct FlawItem {
+    pub name: String,
+    pub flaw_type: String,
+    pub bonus: i32,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct WonderItem {
+    pub name: String,
+    pub points: String,
+    pub arete: String,
+    pub quintessence: String,
+    pub description: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct WeaponItem {
+    pub name: String,
+    pub diff: String,
+    pub damage: String,
+    pub range: String,
+    pub rate: String,
+    pub clip: String,
+    pub conceal: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct ArmorItem {
+    pub class_name: String,
+    pub rating: String,
+    pub penalty: String,
+    pub description: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct CharacterData {
     pub id: String,
     pub name: String,
     pub attributes: HashMap<String, AttributeValue>,
     pub labels: HashMap<String, String>,
     pub custom_lists: HashMap<String, Vec<String>>,
+    
+    // Page 2: Magic & Combat
+    #[serde(default)]
+    pub merits: Vec<MeritItem>,
+    #[serde(default)]
+    pub flaws: Vec<FlawItem>,
+    #[serde(default)]
+    pub wonders: Vec<WonderItem>,
+    #[serde(default)]
+    pub rotes: String,
+    #[serde(default)]
+    pub weapons: Vec<WeaponItem>,
+    #[serde(default)]
+    pub armor: ArmorItem,
 }
 
 impl CharacterData {
@@ -261,6 +317,12 @@ impl CharacterData {
             attributes: HashMap::new(),
             labels: HashMap::new(),
             custom_lists: HashMap::new(),
+            merits: Vec::new(),
+            flaws: Vec::new(),
+            wonders: vec![WonderItem::default(), WonderItem::default(), WonderItem::default()],
+            rotes: String::new(),
+            weapons: vec![WeaponItem::default(), WeaponItem::default(), WeaponItem::default(), WeaponItem::default()],
+            armor: ArmorItem::default(),
         };
         sheet.sanitize();
         sheet
@@ -764,6 +826,14 @@ impl CharacterData {
             if attr.dot_origins.len() > lvl {
                 attr.dot_origins.truncate(lvl);
             }
+        }
+
+        // Ensure minimum slots for Wonders (3) and Weapons (4)
+        while self.wonders.len() < 3 {
+            self.wonders.push(WonderItem::default());
+        }
+        while self.weapons.len() < 4 {
+            self.weapons.push(WeaponItem::default());
         }
     }
 }

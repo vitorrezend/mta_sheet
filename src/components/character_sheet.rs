@@ -1,12 +1,13 @@
 use leptos::*;
 use leptos_router::*;
 use crate::state::{get_sheet, update_sheet, CharacterData, DotOrigin};
-use crate::components::{Attributes, InfoHeader, Abilities, Spheres, AdvantagesMta, Sheet, CharacterProfile};
+use crate::components::{Attributes, InfoHeader, Abilities, Spheres, AdvantagesMta, Sheet, CharacterProfile, PageMagicCombat};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum SheetPageTab {
     #[default]
     Main,
+    MagicCombat,
     Profile,
 }
 
@@ -392,13 +393,24 @@ pub fn CharacterSheet() -> impl IntoView {
 
                     <button 
                         class="sheet-tab-btn"
+                        class:active=move || active_tab.get() == SheetPageTab::MagicCombat
+                        on:click=move |_| set_active_tab.set(SheetPageTab::MagicCombat)
+                        title="Página 2: Qualidades & Defeitos, Outros Traços, Maravilhas, Rotes e Combate"
+                    >
+                        <span class="sheet-tab-icon">"⚔️"</span>
+                        <span class="sheet-tab-title">"Magia & Combate"</span>
+                        <span class="sheet-tab-page-tag">"Pág. 2"</span>
+                    </button>
+
+                    <button 
+                        class="sheet-tab-btn"
                         class:active=move || active_tab.get() == SheetPageTab::Profile
                         on:click=move |_| set_active_tab.set(SheetPageTab::Profile)
-                        title="Página 2: Retrato, História e Anotações"
+                        title="Página de Perfil: Retrato, História e Anotações Gerais"
                     >
                         <span class="sheet-tab-icon">"👤"</span>
                         <span class="sheet-tab-title">"Perfil do Personagem"</span>
-                        <span class="sheet-tab-page-tag">"Pág. 2"</span>
+                        <span class="sheet-tab-page-tag">"Perfil"</span>
                     </button>
                 </div>
             </nav>
@@ -416,6 +428,13 @@ pub fn CharacterSheet() -> impl IntoView {
                                 <Abilities />
                                 <Spheres />
                                 <AdvantagesMta />
+                            </div>
+
+                            <div 
+                                class="sheet-page-tab-pane page-magic-combat"
+                                class:tab-hidden=move || active_tab.get() != SheetPageTab::MagicCombat
+                            >
+                                <PageMagicCombat />
                             </div>
 
                             <div 
