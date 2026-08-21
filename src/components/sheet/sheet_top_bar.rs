@@ -116,6 +116,18 @@ pub fn SheetTopBar(
                     <button class="manual-save-btn" on:click=move |ev| do_manual_save.call(ev) title="Salvar imediatamente">
                         "Salvar"
                     </button>
+                    <button 
+                        type="button" 
+                        class="export-pdf-btn" 
+                        on:click=move |_| {
+                            if let Some(w) = web_sys::window() {
+                                let _ = w.print();
+                            }
+                        } 
+                        title="Exportar Ficha em PDF Oficial (4 Páginas A4)"
+                    >
+                        "🖨️ PDF"
+                    </button>
                 </div>
             </div>
         </header>

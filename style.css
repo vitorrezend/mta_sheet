@@ -887,6 +887,27 @@ body {
     transform: translateY(-1px);
 }
 
+.export-pdf-btn {
+    background: #047857;
+    color: white;
+    border: none;
+    padding: 0.45rem 0.9rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.export-pdf-btn:hover {
+    background: #065f46;
+    transform: translateY(-1px);
+}
+
 /* ==========================================
    Alerts & Error Messages
    ========================================== */
@@ -4318,6 +4339,133 @@ body {
     }
     .visuals-grid-2col {
         grid-template-columns: 1fr;
+    }
+}
+
+/* ==========================================================================
+   EXPORTAÇÃO EM PDF OFICIAL (4 PÁGINAS A4 VETORIAIS)
+   ========================================================================== */
+@page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+}
+
+@media print {
+    /* 1. Ocultar todos os controles de interface e navegação */
+    .main-navbar,
+    .sheet-top-bar,
+    .sheet-tabs-container,
+    .btn-add-chantry,
+    .btn-delete-row,
+    .btn-remove-visual,
+    .btn-add-item,
+    .btn-delete-custom,
+    .btn-add-wonder,
+    .wonder-file-btn,
+    .wonder-remove-btn,
+    .visual-dropzone,
+    .points-popover-menu,
+    .cost-breakdown-modal,
+    .alert-box,
+    .modal-overlay,
+    .image-modal-backdrop,
+    .image-lightbox-backdrop,
+    .btn-delete-placeholder {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    /* 2. Configuração do Documento Base */
+    html, body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .sheet-container, .sheet-wrapper, .sheet {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        background: #ffffff !important;
+    }
+
+    /* 3. Forçar todas as 4 páginas a aparecerem em sequência no PDF */
+    .sheet-page-tab-pane {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        break-after: page !important;
+        page-break-after: always !important;
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* A última página não deve forçar uma 5ª página em branco */
+    .sheet-page-tab-pane:last-child {
+        break-after: auto !important;
+        page-break-after: auto !important;
+    }
+
+    /* 4. Textareas e Inputs sem caixas de rolagem */
+    textarea {
+        resize: none !important;
+        overflow: hidden !important;
+        border-color: #cbd5e1 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    input {
+        border-color: #cbd5e1 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* 5. Preservar as cores das bolinhas no PDF */
+    .dot-circle {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .dot-base {
+        background-color: #1e293b !important;
+    }
+
+    .dot-bonus {
+        background-color: #7c3aed !important;
+    }
+
+    .dot-xp {
+        background-color: #059669 !important;
+    }
+
+    .dot-temp {
+        background-color: #d97706 !important;
+    }
+
+    /* 6. Evitar quebras de caixas no meio da folha */
+    .group-box,
+    .attribute-column,
+    .ability-column,
+    .sphere-column,
+    .advantage-column,
+    .expanded-bg-item,
+    .possessions-col,
+    .chantry-box,
+    .history-item,
+    .narrative-item,
+    .visual-card {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 }
 
