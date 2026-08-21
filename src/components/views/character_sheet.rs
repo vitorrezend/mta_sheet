@@ -71,14 +71,19 @@ pub fn CharacterSheet() -> impl IntoView {
             spawn_local(async move {
                 loop {
                     gloo_timers::future::TimeoutFuture::new(30_000).await;
+                    // Se o componente foi desmontado/descartado, interrompe o loop suavemente
+                    let current_data = match data.try_get_untracked() {
+                        Some(d) => d,
+                        None => break,
+                    };
+
                     if is_dirty.try_get_untracked().unwrap_or(false) {
                         let current_id = get_id_untracked();
-                        let current_data = data.get_untracked();
                         if !current_id.is_empty() {
                             let _ = set_save_status.try_set(SaveStatus::Saving);
                             match update_sheet(current_id.clone(), current_data).await {
                                 Ok(_) => {
-                                    set_is_dirty.set(false);
+                                    let _ = set_is_dirty.try_set(false);
                                     crate::logging::log_client(
                                         "database",
                                         "INFO",
@@ -107,55 +112,59 @@ pub fn CharacterSheet() -> impl IntoView {
     // Salvamento manual
     let do_manual_save = Callback::new(move |_: ev::MouseEvent| {
         let current_id = get_id_untracked();
-        let current_data = data.get_untracked();
-        if !current_id.is_empty() {
-            let _ = set_save_status.try_set(SaveStatus::Saving);
-            spawn_local(async move {
-                match update_sheet(current_id.clone(), current_data).await {
-                    Ok(_) => {
-                        set_is_dirty.set(false);
-                        crate::logging::log_client(
-                            "user_actions",
-                            "INFO",
-                            "Salvamento manual acionado pelo usuário",
-                            Some(&format!("id={}", current_id)),
-                        );
-                        let _ = set_save_status.try_set(SaveStatus::Saved(get_current_time_str()));
+        if let Some(current_data) = data.try_get_untracked() {
+            if !current_id.is_empty() {
+                let _ = set_save_status.try_set(SaveStatus::Saving);
+                spawn_local(async move {
+                    match update_sheet(current_id.clone(), current_data).await {
+                        Ok(_) => {
+                            let _ = set_is_dirty.try_set(false);
+                            crate::logging::log_client(
+                                "user_actions",
+                                "INFO",
+                                "Salvamento manual acionado pelo usuário",
+                                Some(&format!("id={}", current_id)),
+                            );
+                            let _ = set_save_status.try_set(SaveStatus::Saved(get_current_time_str()));
+                        }
+                        Err(e) => {
+                            crate::logging::log_client(
+                                "errors",
+                                "ERROR",
+                                "Falha no salvamento manual",
+                                Some(&e.to_string()),
+                            );
+                            let _ = set_save_status.try_set(SaveStatus::Error(e.to_string()));
+                        }
                     }
-                    Err(e) => {
-                        crate::logging::log_client(
-                            "errors",
-                            "ERROR",
-                            "Falha no salvamento manual",
-                            Some(&e.to_string()),
-                        );
-                        let _ = set_save_status.try_set(SaveStatus::Error(e.to_string()));
-                    }
-                }
-            });
+                });
+            }
         }
     });
 
     // Navegação ao clicar em "← Início" garantindo salvamento antes de sair
     let on_back_click = Callback::new(move |ev: ev::MouseEvent| {
         ev.prevent_default();
-        if is_dirty.get_untracked() {
+        if is_dirty.try_get_untracked().unwrap_or(false) {
             let current_id = get_id_untracked();
-            let current_data = data.get_untracked();
-            let nav = navigate.clone();
-            let _ = set_save_status.try_set(SaveStatus::Saving);
-            spawn_local(async move {
-                if !current_id.is_empty() {
-                    let _ = update_sheet(current_id.clone(), current_data).await;
-                    crate::logging::log_client(
-                        "user_actions",
-                        "INFO",
-                        "Ficha salva automaticamente ao navegar para a tela inicial",
-                        Some(&format!("id={}", current_id)),
-                    );
-                }
-                nav("/", Default::default());
-            });
+            if let Some(current_data) = data.try_get_untracked() {
+                let nav = navigate.clone();
+                let _ = set_save_status.try_set(SaveStatus::Saving);
+                spawn_local(async move {
+                    if !current_id.is_empty() {
+                        let _ = update_sheet(current_id.clone(), current_data).await;
+                        crate::logging::log_client(
+                            "user_actions",
+                            "INFO",
+                            "Ficha salva automaticamente ao navegar para a tela inicial",
+                            Some(&format!("id={}", current_id)),
+                        );
+                    }
+                    nav("/", Default::default());
+                });
+            } else {
+                navigate.clone()("/", Default::default());
+            }
         } else {
             navigate.clone()("/", Default::default());
         }
