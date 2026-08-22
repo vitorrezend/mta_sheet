@@ -44,11 +44,21 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
         let mut willpower = 5;
         let mut photo_url = String::new();
         let mut spheres = Vec::new();
+        let mut sheet_type = row.try_get::<String, _>("sheet_type").unwrap_or_else(|_| "mage".to_string());
 
         if let Ok(data) = serde_json::from_str::<CharacterData>(&data_json) {
-            tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
-            essence = data.labels.get("Essência").cloned().unwrap_or_default();
-            arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
+            if sheet_type.is_empty() || sheet_type == "mage" {
+                sheet_type = data.sheet_type.clone();
+            }
+            if data.is_gods_and_monsters() {
+                tradition = data.labels.get("Type").cloned().unwrap_or_else(|| "Familiar / Bygone".to_string());
+                essence = data.labels.get("Concept").cloned().unwrap_or_default();
+                arete = data.get_attribute_level("Gnosis", 0);
+            } else {
+                tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
+                essence = data.labels.get("Essência").cloned().unwrap_or_default();
+                arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
+            }
             willpower = data.get_attribute_level(crate::state::models::keys::KEY_WILLPOWER_TOTAL, 5);
             photo_url = if !data.visuals.character_sketch_url.is_empty() {
                 data.visuals.character_sketch_url.clone()
@@ -60,9 +70,18 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
                 spheres.push((sphere.to_string(), lvl));
             }
         } else if let Some(data) = CharacterData::from_raw_json_resilient(&id, &data_json) {
-            tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
-            essence = data.labels.get("Essência").cloned().unwrap_or_default();
-            arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
+            if sheet_type.is_empty() || sheet_type == "mage" {
+                sheet_type = data.sheet_type.clone();
+            }
+            if data.is_gods_and_monsters() {
+                tradition = data.labels.get("Type").cloned().unwrap_or_else(|| "Familiar / Bygone".to_string());
+                essence = data.labels.get("Concept").cloned().unwrap_or_default();
+                arete = data.get_attribute_level("Gnosis", 0);
+            } else {
+                tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
+                essence = data.labels.get("Essência").cloned().unwrap_or_default();
+                arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
+            }
             willpower = data.get_attribute_level(crate::state::models::keys::KEY_WILLPOWER_TOTAL, 5);
             photo_url = if !data.visuals.character_sketch_url.is_empty() {
                 data.visuals.character_sketch_url.clone()
@@ -88,6 +107,7 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
             willpower,
             photo_url,
             spheres,
+            sheet_type,
             is_public,
             is_owner: true,
             updated_at,
@@ -113,9 +133,9 @@ pub async fn get_public_sheets() -> Result<Vec<CharacterSummary>, ServerFnError>
     })?;
 
     let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
-
     let start = std::time::Instant::now();
-    let rows = sqlx::query("SELECT id, user_id, name, data, is_public, updated_at FROM character_sheets WHERE is_public = 1 ORDER BY updated_at DESC")
+
+    let rows = sqlx::query("SELECT id, user_id, name, data, sheet_type, is_public, updated_at FROM character_sheets WHERE is_public = 1 ORDER BY updated_at DESC LIMIT 100")
         .fetch_all(&pool)
         .await
         .map_err(|e: sqlx::Error| {
@@ -126,12 +146,11 @@ pub async fn get_public_sheets() -> Result<Vec<CharacterSummary>, ServerFnError>
     let count = rows.len();
     let summaries = rows.into_iter().map(|row| {
         let id: String = row.get("id");
-        let sheet_user_id: Option<String> = row.get("user_id");
+        let owner_id: Option<String> = row.get("user_id");
         let name: String = row.get("name");
         let data_json: String = row.get("data");
-        let is_public: bool = row.get::<i32, _>("is_public") == 1;
-        let is_owner = auth_user_id.is_some() && auth_user_id == sheet_user_id;
         let updated_at: String = row.get("updated_at");
+        let is_owner = auth_user_id.is_some() && auth_user_id == owner_id;
 
         let mut tradition = String::new();
         let mut essence = String::new();
@@ -139,11 +158,21 @@ pub async fn get_public_sheets() -> Result<Vec<CharacterSummary>, ServerFnError>
         let mut willpower = 5;
         let mut photo_url = String::new();
         let mut spheres = Vec::new();
+        let mut sheet_type = row.try_get::<String, _>("sheet_type").unwrap_or_else(|_| "mage".to_string());
 
         if let Ok(data) = serde_json::from_str::<CharacterData>(&data_json) {
-            tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
-            essence = data.labels.get("Essência").cloned().unwrap_or_default();
-            arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
+            if sheet_type.is_empty() || sheet_type == "mage" {
+                sheet_type = data.sheet_type.clone();
+            }
+            if data.is_gods_and_monsters() {
+                tradition = data.labels.get("Type").cloned().unwrap_or_else(|| "Familiar / Bygone".to_string());
+                essence = data.labels.get("Concept").cloned().unwrap_or_default();
+                arete = data.get_attribute_level("Gnosis", 0);
+            } else {
+                tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
+                essence = data.labels.get("Essência").cloned().unwrap_or_default();
+                arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
+            }
             willpower = data.get_attribute_level(crate::state::models::keys::KEY_WILLPOWER_TOTAL, 5);
             photo_url = if !data.visuals.character_sketch_url.is_empty() {
                 data.visuals.character_sketch_url.clone()
@@ -155,9 +184,18 @@ pub async fn get_public_sheets() -> Result<Vec<CharacterSummary>, ServerFnError>
                 spheres.push((sphere.to_string(), lvl));
             }
         } else if let Some(data) = CharacterData::from_raw_json_resilient(&id, &data_json) {
-            tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
-            essence = data.labels.get("Essência").cloned().unwrap_or_default();
-            arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
+            if sheet_type.is_empty() || sheet_type == "mage" {
+                sheet_type = data.sheet_type.clone();
+            }
+            if data.is_gods_and_monsters() {
+                tradition = data.labels.get("Type").cloned().unwrap_or_else(|| "Familiar / Bygone".to_string());
+                essence = data.labels.get("Concept").cloned().unwrap_or_default();
+                arete = data.get_attribute_level("Gnosis", 0);
+            } else {
+                tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
+                essence = data.labels.get("Essência").cloned().unwrap_or_default();
+                arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
+            }
             willpower = data.get_attribute_level(crate::state::models::keys::KEY_WILLPOWER_TOTAL, 5);
             photo_url = if !data.visuals.character_sketch_url.is_empty() {
                 data.visuals.character_sketch_url.clone()
@@ -183,7 +221,8 @@ pub async fn get_public_sheets() -> Result<Vec<CharacterSummary>, ServerFnError>
             willpower,
             photo_url,
             spheres,
-            is_public,
+            sheet_type,
+            is_public: true,
             is_owner,
             updated_at,
         }
@@ -214,7 +253,7 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
     let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
 
     let start = std::time::Instant::now();
-    let row = sqlx::query("SELECT user_id, room_id, data, is_public FROM character_sheets WHERE id = ?")
+    let row = sqlx::query("SELECT user_id, room_id, data, sheet_type, is_public FROM character_sheets WHERE id = ?")
         .bind(&id)
         .fetch_optional(&pool)
         .await
@@ -229,6 +268,7 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
 
     let sheet_user_id: Option<String> = row.get("user_id");
     let room_id: Option<String> = row.get("room_id");
+    let sheet_type_db = row.try_get::<String, _>("sheet_type").unwrap_or_else(|_| "mage".to_string());
     let is_public: bool = row.get::<i32, _>("is_public") == 1;
 
     let is_owner = auth_user_id.is_some() && auth_user_id == sheet_user_id;
@@ -266,6 +306,9 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
         }
     };
 
+    if (data.sheet_type.is_empty() || data.sheet_type == "mage") && !sheet_type_db.is_empty() && sheet_type_db != "mage" {
+        data.sheet_type = sheet_type_db;
+    }
     data.is_public = is_public;
     data.sanitize();
     crate::logging::server::write_log(
@@ -360,9 +403,11 @@ async fn verify_sheet_write_permission(pool: &sqlx::SqlitePool, sheet_id: &str) 
 }
 
 #[server(endpoint = "create_sheet")]
-pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
+pub async fn create_sheet(name: String, sheet_type: Option<String>) -> Result<String, ServerFnError> {
     let clean_name = name.trim().to_string();
-    let final_name = if clean_name.is_empty() { "Novo Mago".to_string() } else { clean_name };
+    let s_type = sheet_type.unwrap_or_else(|| "mage".to_string());
+    let default_name = if s_type == "gods_and_monsters" { "New Monster / Familiar" } else { "Novo Mago" };
+    let final_name = if clean_name.is_empty() { default_name.to_string() } else { clean_name };
 
     use sqlx::SqlitePool;
     use uuid::Uuid;
@@ -373,7 +418,11 @@ pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
 
     let start = std::time::Instant::now();
     let id = Uuid::new_v4().to_string();
-    let initial_data = CharacterData::new(id.clone(), final_name.clone());
+    let initial_data = if s_type == "gods_and_monsters" {
+        CharacterData::new_gods_and_monsters(id.clone(), final_name.clone())
+    } else {
+        CharacterData::new(id.clone(), final_name.clone())
+    };
 
     let data_json = serde_json::to_string(&initial_data).map_err(|e: serde_json::Error| {
         crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Serialization error creating sheet", Some(&e.to_string()));
@@ -382,11 +431,12 @@ pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
 
     let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
 
-    sqlx::query("INSERT INTO character_sheets (id, user_id, name, data) VALUES (?, ?, ?, ?)")
+    sqlx::query("INSERT INTO character_sheets (id, user_id, name, data, sheet_type) VALUES (?, ?, ?, ?, ?)")
         .bind(&id)
         .bind(auth_user_id)
         .bind(&final_name)
         .bind(data_json)
+        .bind(&s_type)
         .execute(&pool)
         .await
         .map_err(|e: sqlx::Error| {
@@ -397,7 +447,7 @@ pub async fn create_sheet(name: String) -> Result<String, ServerFnError> {
     crate::logging::server::write_log(
         crate::logging::LogCategory::UserActions,
         "INFO",
-        &format!("CREATE SHEET: Nova ficha criada id='{}', nome='{}' em {}ms", id, final_name, start.elapsed().as_millis()),
+        &format!("CREATE SHEET: Nova ficha criada id='{}', tipo='{}', nome='{}' em {}ms", id, s_type, final_name, start.elapsed().as_millis()),
         None,
     );
 
@@ -430,9 +480,10 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
 
     let payload_kb = (data_json.len() as f64) / 1024.0;
     let is_public_int = if data.is_public { 1 } else { 0 };
-    let result = sqlx::query("UPDATE character_sheets SET name = ?, data = ?, is_public = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+    let result = sqlx::query("UPDATE character_sheets SET name = ?, data = ?, sheet_type = ?, is_public = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
         .bind(&data.name)
         .bind(data_json)
+        .bind(&data.sheet_type)
         .bind(is_public_int)
         .bind(&id)
         .execute(&pool)

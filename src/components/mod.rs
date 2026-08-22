@@ -9,6 +9,7 @@ pub mod profile;
 pub mod rooms;
 pub mod sheet;
 pub mod views;
+pub mod gods_and_monsters;
 
 // Re-export common UI components
 pub use common::{LabelColumn, LabelField, Navbar, Sheet, StableTextArea, StableTextInput, ValueField};

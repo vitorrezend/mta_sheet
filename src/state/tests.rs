@@ -455,6 +455,7 @@ mod tests {
             willpower: 8,
             photo_url: "/uploads/john.webp".to_string(),
             spheres: vec![("Tempo".to_string(), 3), ("Mente".to_string(), 2)],
+            sheet_type: "mage".to_string(),
             is_public: true,
             is_owner: true,
             updated_at: "2026-08-21 17:00:00".to_string(),
@@ -549,4 +550,74 @@ mod tests {
         assert_eq!(data.get_health_counts(), (0, 0, 0));
         assert_eq!(data.get_health(0), DamageType::None);
     }
+
+    #[test]
+    fn test_gods_and_monsters_creation_and_pools() {
+        let mut gm = CharacterData::new_gods_and_monsters("gm_01".to_string(), "Quimera de Hermes".to_string());
+        assert_eq!(gm.sheet_type, "gods_and_monsters");
+        assert!(gm.is_gods_and_monsters());
+        assert_eq!(gm.labels.get("Type").unwrap(), "Familiar");
+
+        // Gnosis test (10 dots + 10 boxes)
+        assert_eq!(gm.get_gnosis(), (0, "0".repeat(10)));
+        gm.set_gnosis_dots(4);
+        assert_eq!(gm.get_gnosis().0, 4);
+        gm.cycle_gnosis_box(0);
+        gm.cycle_gnosis_box(1);
+        assert_eq!(gm.get_gnosis().1, "1100000000");
+
+        // Essence Pool test (50 boxes - progressive like dots)
+        assert_eq!(gm.get_essence_pool(), (0, "0".repeat(50)));
+        gm.click_essence_box(4); // Fills 5 boxes (indices 0..=4)
+        assert_eq!(gm.get_essence_pool().0, 5);
+        assert_eq!(&gm.get_essence_pool().1[0..5], "11111");
+        assert_eq!(&gm.get_essence_pool().1[5..10], "00000");
+
+        gm.click_essence_box(4); // Clicking same box reduces by 1 -> 4 boxes
+        assert_eq!(gm.get_essence_pool().0, 4);
+
+        gm.clear_essence(); // Clears all
+        assert_eq!(gm.get_essence_pool().0, 0);
+
+        gm.set_essence_spent(25);
+        assert_eq!(gm.get_essence_pool().0, 25);
+
+        // Paradox Pool test (20 boxes)
+        assert_eq!(gm.get_paradox_pool(), (0, "0".repeat(20)));
+        gm.cycle_paradox_box(0);
+        gm.cycle_paradox_box(19);
+        assert_eq!(gm.get_paradox_pool().0, 2);
+
+        // Extra Bruised Health Levels (Gods & Monsters / Large Bygones)
+        assert_eq!(gm.get_extra_bruised(), 0);
+        assert_eq!(gm.get_total_health_boxes(), 7);
+        gm.add_extra_bruised();
+        gm.add_extra_bruised();
+        assert_eq!(gm.get_extra_bruised(), 2);
+        assert_eq!(gm.get_total_health_boxes(), 9);
+
+        // Click box 8 (Incapacitado) with Bashing -> fills all 9 boxes with Bashing
+        gm.click_health_box(8);
+        assert_eq!(gm.get_health_counts(), (0, 0, 9));
+
+        // Excess damage overflow on 9 boxes:
+        gm.set_health_counts(0, 5, 5); // 10 total -> upgrades 1 to lethal -> (0, 6, 3)
+        assert_eq!(gm.get_health_counts(), (0, 6, 3));
+
+        gm.remove_extra_bruised();
+        assert_eq!(gm.get_extra_bruised(), 1);
+        assert_eq!(gm.get_total_health_boxes(), 8);
+
+        // Roundtrip JSON serialization preserves all pools and sheet_type
+        let json = serde_json::to_string(&gm).unwrap();
+        let recovered: CharacterData = serde_json::from_str(&json).unwrap();
+        assert_eq!(recovered.sheet_type, "gods_and_monsters");
+        assert!(recovered.is_gods_and_monsters());
+        assert_eq!(recovered.get_gnosis().0, 4);
+        assert_eq!(recovered.get_essence_pool().0, 25);
+        assert_eq!(recovered.get_paradox_pool().0, 2);
+        assert_eq!(recovered.get_extra_bruised(), 1);
+        assert_eq!(recovered.get_total_health_boxes(), 8);
+    }
 }
+

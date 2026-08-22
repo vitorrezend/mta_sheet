@@ -94,9 +94,12 @@ impl DamageType {
 }
 
 /// WoD / Mage: The Ascension Health Track Normalization & Overflow Resolution
-pub fn normalize_health_counts(mut agg: usize, mut lethal: usize, mut bashing: usize) -> (usize, usize, usize) {
-    // 1. Resolve bashing overflow: each excess point beyond 7 upgrades 1 existing bashing to lethal
-    while agg + lethal + bashing > 7 && bashing > 0 {
+pub fn normalize_health_counts_for_total(mut agg: usize, mut lethal: usize, mut bashing: usize, total: usize) -> (usize, usize, usize) {
+    if total == 0 {
+        return (0, 0, 0);
+    }
+    // 1. Resolve bashing overflow: each excess point beyond total upgrades 1 existing bashing to lethal
+    while agg + lethal + bashing > total && bashing > 0 {
         if bashing >= 2 {
             bashing -= 2;
             lethal += 1;
@@ -111,8 +114,8 @@ pub fn normalize_health_counts(mut agg: usize, mut lethal: usize, mut bashing: u
         }
     }
 
-    // 2. Resolve lethal overflow: each excess point beyond 7 upgrades 1 existing lethal to aggravated
-    while agg + lethal + bashing > 7 && lethal > 0 {
+    // 2. Resolve lethal overflow: each excess point beyond total upgrades 1 existing lethal to aggravated
+    while agg + lethal + bashing > total && lethal > 0 {
         if lethal >= 2 {
             lethal -= 2;
             agg += 1;
@@ -122,13 +125,13 @@ pub fn normalize_health_counts(mut agg: usize, mut lethal: usize, mut bashing: u
         }
     }
 
-    // 3. Cap aggravated at 7 max
-    if agg >= 7 {
-        return (7, 0, 0);
+    // 3. Cap aggravated at total max
+    if agg >= total {
+        return (total, 0, 0);
     }
 
-    // 4. Ensure sum fits in 7 boxes
-    let remaining = 7 - agg;
+    // 4. Ensure sum fits in total boxes
+    let remaining = total - agg;
     if lethal > remaining {
         lethal = remaining;
         bashing = 0;
@@ -140,6 +143,10 @@ pub fn normalize_health_counts(mut agg: usize, mut lethal: usize, mut bashing: u
     }
 
     (agg, lethal, bashing)
+}
+
+pub fn normalize_health_counts(agg: usize, lethal: usize, bashing: usize) -> (usize, usize, usize) {
+    normalize_health_counts_for_total(agg, lethal, bashing, 7)
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -429,6 +436,8 @@ pub struct CharacterSummary {
     pub photo_url: String,
     #[serde(default, alias = "active_spheres")]
     pub spheres: Vec<(String, i32)>,
+    #[serde(default = "default_sheet_type")]
+    pub sheet_type: String,
     #[serde(default)]
     pub is_public: bool,
     #[serde(default)]
@@ -436,6 +445,7 @@ pub struct CharacterSummary {
     pub updated_at: String,
 }
 
+pub fn default_sheet_type() -> String { "mage".to_string() }
 fn default_arete() -> i32 { 1 }
 fn default_willpower() -> i32 { 5 }
 
@@ -542,6 +552,8 @@ pub struct CharacterData {
     pub id: String,
     #[serde(default)]
     pub name: String,
+    #[serde(default = "default_sheet_type")]
+    pub sheet_type: String,
     #[serde(default)]
     pub is_public: bool,
     #[serde(default)]
@@ -587,6 +599,7 @@ impl CharacterData {
         let mut sheet = Self {
             id,
             name: if name.trim().is_empty() { "Novo Mago".to_string() } else { name },
+            sheet_type: "mage".to_string(),
             is_public: false,
             attributes: HashMap::new(),
             labels: HashMap::new(),
@@ -606,6 +619,41 @@ impl CharacterData {
         };
         sheet.sanitize();
         sheet
+    }
+
+    pub fn new_gods_and_monsters(id: String, name: String) -> Self {
+        let mut sheet = Self {
+            id,
+            name: if name.trim().is_empty() { "New Monster / Familiar".to_string() } else { name },
+            sheet_type: "gods_and_monsters".to_string(),
+            is_public: false,
+            attributes: HashMap::new(),
+            labels: HashMap::new(),
+            custom_lists: HashMap::new(),
+            merits: vec![MeritItem::default(); 7],
+            flaws: vec![FlawItem::default(); 7],
+            wonders: Vec::new(),
+            rotes: String::new(),
+            weapons: vec![WeaponItem::default(); 6],
+            armor: ArmorItem::default(),
+            expanded_backgrounds: ExpandedBackgroundsData::default(),
+            possessions: PossessionsData::default(),
+            chantry: Vec::new(),
+            history_data: CharacterHistoryData::default(),
+            description_data: CharacterDescriptionData::default(),
+            visuals: CharacterVisualsData::default(),
+        };
+        sheet.labels.insert("Type".to_string(), "Familiar".to_string());
+        sheet.labels.insert("Concept".to_string(), "".to_string());
+        sheet.labels.insert("essence_pool".to_string(), "0".repeat(50));
+        sheet.labels.insert("gnosis_temp".to_string(), "0".repeat(10));
+        sheet.labels.insert("paradox_pool".to_string(), "0".repeat(20));
+        sheet.sanitize();
+        sheet
+    }
+
+    pub fn is_gods_and_monsters(&self) -> bool {
+        self.sheet_type == "gods_and_monsters"
     }
 
     pub fn get_attribute_level(&self, name: &str, default_min: i32) -> i32 {
@@ -777,6 +825,32 @@ impl CharacterData {
 
     pub const TOTAL_HEALTH_BOXES: usize = 7;
 
+    pub fn get_extra_bruised(&self) -> usize {
+        self.labels.get("extra_bruised_levels").and_then(|s| s.parse().ok()).unwrap_or(0)
+    }
+
+    pub fn set_extra_bruised(&mut self, val: usize) {
+        self.labels.insert("extra_bruised_levels".to_string(), val.to_string());
+    }
+
+    pub fn add_extra_bruised(&mut self) {
+        let cur = self.get_extra_bruised();
+        self.set_extra_bruised(cur + 1);
+    }
+
+    pub fn remove_extra_bruised(&mut self) {
+        let cur = self.get_extra_bruised();
+        if cur > 0 {
+            self.set_extra_bruised(cur - 1);
+            let (agg, lethal, bashing) = self.get_health_counts();
+            self.set_health_counts(agg, lethal, bashing);
+        }
+    }
+
+    pub fn get_total_health_boxes(&self) -> usize {
+        7 + self.get_extra_bruised()
+    }
+
     pub fn get_health(&self, index: usize) -> DamageType {
         let key = format!("{}{}", keys::HEALTH_KEY_PREFIX, index);
         let val = self.labels.get(&key).map(|s| s.as_str()).unwrap_or("none");
@@ -792,7 +866,8 @@ impl CharacterData {
         let mut agg = 0;
         let mut lethal = 0;
         let mut bashing = 0;
-        for i in 0..Self::TOTAL_HEALTH_BOXES {
+        let total = self.get_total_health_boxes();
+        for i in 0..total {
             match self.get_health(i) {
                 DamageType::Aggravated => agg += 1,
                 DamageType::Lethal => lethal += 1,
@@ -804,8 +879,9 @@ impl CharacterData {
     }
 
     pub fn set_health_counts(&mut self, agg: usize, lethal: usize, bashing: usize) {
-        let (agg, lethal, bashing) = normalize_health_counts(agg, lethal, bashing);
-        for i in 0..Self::TOTAL_HEALTH_BOXES {
+        let total = self.get_total_health_boxes();
+        let (agg, lethal, bashing) = normalize_health_counts_for_total(agg, lethal, bashing, total);
+        for i in 0..total {
             let dmg = if i < agg {
                 DamageType::Aggravated
             } else if i < agg + lethal {
@@ -820,7 +896,8 @@ impl CharacterData {
     }
 
     pub fn click_health_box(&mut self, index: usize) {
-        if index >= Self::TOTAL_HEALTH_BOXES {
+        let total = self.get_total_health_boxes();
+        if index >= total {
             return;
         }
 
@@ -829,7 +906,6 @@ impl CharacterData {
 
         match current_dmg {
             DamageType::None => {
-                // User clicked an empty box: fill with bashing up to index + 1
                 let total_current = agg + lethal + bashing;
                 let target_total = index + 1;
                 if target_total > total_current {
@@ -837,20 +913,14 @@ impl CharacterData {
                 }
             }
             DamageType::Bashing => {
-                // User clicked on a Bashing box: upgrade up to index + 1 to Lethal
-                // and push remaining bashing marks down
                 let new_lethal = (index + 1).saturating_sub(agg).max(lethal + 1);
                 lethal = new_lethal;
             }
             DamageType::Lethal => {
-                // User clicked on a Lethal box: upgrade up to index + 1 to Aggravated
-                // and push lethal and bashing marks down
                 let new_agg = (index + 1).max(agg + 1);
                 agg = new_agg;
             }
             DamageType::Aggravated => {
-                // User clicked on an Aggravated box: heal 1 aggravated damage
-                // and shift lower damage up
                 agg = agg.saturating_sub(1);
             }
         }
@@ -859,7 +929,8 @@ impl CharacterData {
     }
 
     pub fn heal_health_box(&mut self, index: usize) {
-        if index >= Self::TOTAL_HEALTH_BOXES {
+        let total = self.get_total_health_boxes();
+        if index >= total {
             return;
         }
 
@@ -910,6 +981,91 @@ impl CharacterData {
             '1' => '2',
             _ => '0',
         };
+        *raw = chars.into_iter().collect();
+    }
+
+    // Gods & Monsters: Gnosis (10 dots + 10 temp boxes)
+    pub fn get_gnosis(&self) -> (i32, String) {
+        let dots = self.get_attribute_level("Gnosis", 0);
+        let temp_raw = self.labels.get("gnosis_temp").cloned().unwrap_or_else(|| "0".repeat(10));
+        let normalized = if temp_raw.len() == 10 { temp_raw } else { "0".repeat(10) };
+        (dots, normalized)
+    }
+
+    pub fn set_gnosis_dots(&mut self, dots: i32) {
+        self.set_attribute("Gnosis", Some(dots.clamp(0, 10)), None);
+    }
+
+    pub fn cycle_gnosis_box(&mut self, index: usize) {
+        if index >= 10 {
+            return;
+        }
+        let raw = self.labels.entry("gnosis_temp".to_string()).or_insert_with(|| "0".repeat(10));
+        let mut chars: Vec<char> = raw.chars().collect();
+        while chars.len() < 10 {
+            chars.push('0');
+        }
+        chars[index] = if chars[index] == '1' { '0' } else { '1' };
+        *raw = chars.into_iter().collect();
+    }
+
+    // Gods & Monsters: Essence Pool (50 boxes / 5 rows of 10)
+    pub fn get_essence_pool(&self) -> (i32, String) {
+        let raw = self.labels.get("essence_pool").cloned().unwrap_or_else(|| "0".repeat(50));
+        let normalized = if raw.len() == 50 { raw } else { "0".repeat(50) };
+        let spent = normalized.chars().filter(|&c| c == '1').count() as i32;
+        (spent, normalized)
+    }
+
+    pub fn set_essence_spent(&mut self, amount: usize) {
+        let count = amount.min(50);
+        let mut chars = vec!['0'; 50];
+        for i in 0..count {
+            chars[i] = '1';
+        }
+        let pool_str: String = chars.into_iter().collect();
+        self.labels.insert("essence_pool".to_string(), pool_str);
+    }
+
+    pub fn click_essence_box(&mut self, index: usize) {
+        if index >= 50 {
+            return;
+        }
+        let (current_spent, _) = self.get_essence_pool();
+        let target = (index + 1) as i32;
+        if current_spent == target {
+            self.set_essence_spent(index);
+        } else {
+            self.set_essence_spent(index + 1);
+        }
+    }
+
+    pub fn clear_essence(&mut self) {
+        self.set_essence_spent(0);
+    }
+
+    pub fn cycle_essence_box(&mut self, index: usize) {
+        self.click_essence_box(index);
+    }
+
+    // Gods & Monsters: Paradox Pool (20 boxes / 2 rows of 10)
+    pub fn get_paradox_pool(&self) -> (i32, String) {
+        let raw = self.labels.get("paradox_pool").cloned().unwrap_or_else(|| "0".repeat(20));
+        let normalized = if raw.len() == 20 { raw } else { "0".repeat(20) };
+        let active = normalized.chars().filter(|&c| c == '1').count() as i32;
+        (active, normalized)
+    }
+
+    pub fn cycle_paradox_box(&mut self, index: usize) {
+        if index >= 20 {
+            return;
+        }
+        let raw = self.labels.entry("paradox_pool".to_string()).or_insert_with(|| "0".repeat(20));
+        let mut chars: Vec<char> = raw.chars().collect();
+        while chars.len() < 20 {
+            chars.push('0');
+        }
+        chars[index] = if chars[index] == '1' { '0' } else { '1' };
         *raw = chars.into_iter().collect();
     }
 }

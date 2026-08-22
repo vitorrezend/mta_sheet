@@ -251,6 +251,8 @@ pub fn CharacterSheet() -> impl IntoView {
         }
     });
 
+    let is_gods_and_monsters = create_memo(move |_| data.with(|d| d.is_gods_and_monsters()));
+
     view! {
         <link rel="stylesheet" href="/style.css"/>
         <div class="sheet-page-container">
@@ -275,48 +277,72 @@ pub fn CharacterSheet() -> impl IntoView {
                 set_data=set_data
             />
 
-            // Barra de Navegação de Abas (Página 1, Página 2, Perfil)
+            // Barra de Navegação de Abas (Páginas da Ficha)
             <SheetTabs 
                 active_tab=active_tab
                 set_active_tab=set_active_tab
+                is_gods_and_monsters=is_gods_and_monsters.into()
             />
 
             {move || match sheet_resource.get() {
-                Some(Ok(_)) => view! {
-                    <Sheet>
-                        <div 
-                            class="sheet-page-tab-pane page-main"
-                            class:tab-hidden=move || active_tab.get() != SheetPageTab::Main
-                        >
-                            <InfoHeader />
-                            <Attributes />
-                            <Abilities />
-                            <Spheres />
-                            <AdvantagesMta />
-                        </div>
+                Some(Ok(_)) => {
+                    let is_gm = is_gods_and_monsters.get();
+                    if is_gm {
+                        view! {
+                            <Sheet>
+                                <div 
+                                    class="sheet-page-tab-pane page-gods-1"
+                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::Main
+                                >
+                                    <crate::components::gods_and_monsters::GodsAndMonstersPage1 />
+                                </div>
 
-                        <div 
-                            class="sheet-page-tab-pane page-magic-combat"
-                            class:tab-hidden=move || active_tab.get() != SheetPageTab::MagicCombat
-                        >
-                            <PageMagicCombat />
-                        </div>
+                                <div 
+                                    class="sheet-page-tab-pane page-gods-2"
+                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::MagicCombat
+                                >
+                                    <crate::components::gods_and_monsters::GodsAndMonstersPage2 />
+                                </div>
+                            </Sheet>
+                        }.into_view()
+                    } else {
+                        view! {
+                            <Sheet>
+                                <div 
+                                    class="sheet-page-tab-pane page-main"
+                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::Main
+                                >
+                                    <InfoHeader />
+                                    <Attributes />
+                                    <Abilities />
+                                    <Spheres />
+                                    <AdvantagesMta />
+                                </div>
 
-                        <div 
-                            class="sheet-page-tab-pane page-expanded"
-                            class:tab-hidden=move || active_tab.get() != SheetPageTab::Expanded
-                        >
-                            <PageExpandedBackgroundsPossessions />
-                        </div>
+                                <div 
+                                    class="sheet-page-tab-pane page-magic-combat"
+                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::MagicCombat
+                                >
+                                    <PageMagicCombat />
+                                </div>
 
-                        <div 
-                            class="sheet-page-tab-pane page-history-visuals"
-                            class:tab-hidden=move || active_tab.get() != SheetPageTab::HistoryVisuals
-                        >
-                            <PageHistoryDescriptionVisuals />
-                        </div>
-                    </Sheet>
-                }.into_view(),
+                                <div 
+                                    class="sheet-page-tab-pane page-expanded"
+                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::Expanded
+                                >
+                                    <PageExpandedBackgroundsPossessions />
+                                </div>
+
+                                <div 
+                                    class="sheet-page-tab-pane page-history-visuals"
+                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::HistoryVisuals
+                                >
+                                    <PageHistoryDescriptionVisuals />
+                                </div>
+                            </Sheet>
+                        }.into_view()
+                    }
+                },
                 Some(Err(e)) => view! { 
                     <div class="error-container">
                         <p class="error-title">"Erro ao carregar a ficha"</p>

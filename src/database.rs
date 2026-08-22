@@ -91,6 +91,7 @@ pub async fn get_db() -> SqlitePool {
             room_id TEXT REFERENCES rooms(id) ON DELETE SET NULL,
             name TEXT NOT NULL,
             data TEXT NOT NULL,
+            sheet_type TEXT NOT NULL DEFAULT 'mage',
             is_public INTEGER NOT NULL DEFAULT 0,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )"
@@ -118,6 +119,7 @@ pub async fn get_db() -> SqlitePool {
     // Graceful migrations for existing databases
     let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN user_id TEXT REFERENCES users(id) ON DELETE SET NULL").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN room_id TEXT REFERENCES rooms(id) ON DELETE SET NULL").execute(&pool).await;
+    let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN sheet_type TEXT NOT NULL DEFAULT 'mage'").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN is_public INTEGER NOT NULL DEFAULT 0").execute(&pool).await;
 
     // Automatic extraction of legacy base64 images from JSON to static uploads and media_assets

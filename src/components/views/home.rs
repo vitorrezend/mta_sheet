@@ -26,19 +26,23 @@ pub fn Home() -> impl IntoView {
     let (error_msg, set_error_msg) = create_signal(Option::<String>::None);
     let (sheet_to_delete, set_sheet_to_delete) = create_signal(Option::<CharacterSummary>::None);
     let (is_creating, set_is_creating) = create_signal(false);
+    let (selected_sheet_type, set_selected_sheet_type) = create_signal("mage".to_string());
 
     let on_create = move |ev: ev::SubmitEvent| {
         ev.prevent_default();
+        if is_creating.get() { return; }
+        
         let raw_name = name.get().trim().to_string();
-        let final_name = if raw_name.is_empty() {
-            "Novo Mago".to_string()
-        } else {
-            raw_name
-        };
+        let s_type = selected_sheet_type.get();
+        let default_name = if s_type == "gods_and_monsters" { "Novo Familiar / Monstro" } else { "Novo Mago" };
+        let final_name = if raw_name.is_empty() { default_name.to_string() } else { raw_name };
+        
         set_is_creating.set(true);
         set_error_msg.set(None);
+        
+        let type_param = Some(s_type);
         spawn_local(async move {
-            match create_sheet(final_name).await {
+            match create_sheet(final_name, type_param).await {
                 Ok(id) => {
                     use_navigate()(&format!("/sheet/{}", id), Default::default());
                 }
@@ -99,7 +103,7 @@ pub fn Home() -> impl IntoView {
         <div class="home-container">
             <header class="home-header">
                 <h1>"MTA Character Manager"</h1>
-                <p>"Gerencie suas fichas de Mago: A Ascensão com total privacidade"</p>
+                <p>"Gerencie suas fichas de Mago: A Ascensão e Gods & Monsters com total privacidade"</p>
             </header>
 
             {move || error_msg.get().map(|msg| view! {
@@ -126,10 +130,34 @@ pub fn Home() -> impl IntoView {
                 view! {
                     <section class="create-section">
                         <h2>"Criar Nova Ficha"</h2>
+                        
+                        <div class="sheet-type-selector">
+                            <button
+                                type="button"
+                                class="type-pill-btn"
+                                class:active=move || selected_sheet_type.get() == "mage"
+                                on:click=move |_| set_selected_sheet_type.set("mage".to_string())
+                            >
+                                "🧙‍♂️ Mago: A Ascensão (4 Págs)"
+                            </button>
+                            <button
+                                type="button"
+                                class="type-pill-btn"
+                                class:active=move || selected_sheet_type.get() == "gods_and_monsters"
+                                on:click=move |_| set_selected_sheet_type.set("gods_and_monsters".to_string())
+                            >
+                                "🐉 Gods & Monsters (2 Págs)"
+                            </button>
+                        </div>
+
                         <form on:submit=move |ev| on_create(ev) class="create-form">
                             <input
                                 type="text"
-                                placeholder="🧙‍♂️ Nome do Personagem (ex: Hermes Trismegisto)"
+                                placeholder=move || if selected_sheet_type.get() == "gods_and_monsters" {
+                                    "🐉 Nome do Familiar / Monstro (ex: Quimera de Hermes)"
+                                } else {
+                                    "🧙‍♂️ Nome do Personagem (ex: Hermes Trismegisto)"
+                                }
                                 on:input=move |ev| set_name.set(event_target_value(&ev))
                                 prop:value=name
                                 class="name-input"
@@ -239,14 +267,19 @@ where
                 let is_pub_val = summary.is_public;
                 let is_owner = summary.is_owner;
                 let photo = summary.photo_url.clone();
+                let is_gm = summary.sheet_type == "gods_and_monsters";
                 let has_photo = !photo.is_empty();
                 let tradition_display = if !summary.tradition.is_empty() {
                     summary.tradition.clone()
+                } else if is_gm {
+                    "Familiar / Bygone".to_string()
                 } else {
                     "Tradição não definida".to_string()
                 };
                 let essence_display = if !summary.essence.is_empty() {
                     summary.essence.clone()
+                } else if is_gm {
+                    "Gods & Monsters".to_string()
                 } else {
                     "Mago Desperto".to_string()
                 };
@@ -273,8 +306,8 @@ where
                             } else {
                                 view! {
                                     <div class="card-portrait-placeholder">
-                                        <span class="placeholder-icon">"🔮"</span>
-                                        <span class="placeholder-tag">"Sem Imagem"</span>
+                                        <span class="placeholder-icon">{if is_gm { "🐉" } else { "🔮" }}</span>
+                                        <span class="placeholder-tag">{if is_gm { "Gods & Monsters" } else { "Sem Imagem" }}</span>
                                     </div>
                                 }.into_view()
                             }}
@@ -301,6 +334,15 @@ where
                             <div class="card-header-info">
                                 <h3 class="card-name" title=summary.name.clone()>{summary.name.clone()}</h3>
                                 <div class="card-meta-tags">
+                                    {if is_gm {
+                                        view! {
+                                            <span class="meta-tag type-badge-gm">"🐉 Gods & Monsters"</span>
+                                        }.into_view()
+                                    } else {
+                                        view! {
+                                            <span class="meta-tag type-badge-mage">"🧙‍♂️ Mago"</span>
+                                        }.into_view()
+                                    }}
                                     <span class="meta-tag tradition-tag">{tradition_display}</span>
                                     <span class="meta-tag essence-tag">{essence_display}</span>
                                     {if is_owner {
@@ -328,9 +370,9 @@ where
 
                             <div class="card-stats-preview">
                                 <div class="card-stat-item">
-                                    <span class="stat-label">"Arete"</span>
+                                    <span class="stat-label">{if is_gm { "Gnose" } else { "Arete" }}</span>
                                     <div class="stat-dots arete-dots">
-                                        {(1..=5).map(|idx| {
+                                        {(1..=if is_gm { 10 } else { 5 }).map(|idx| {
                                             let filled = idx <= arete_val;
                                             view! {
                                                 <span class=if filled { "stat-dot filled-arete" } else { "stat-dot empty-dot" }></span>
@@ -354,42 +396,50 @@ where
                                 </div>
                             </div>
 
-                            <div class="card-spheres-preview">
-                                <div class="spheres-header-row">
-                                    <span class="spheres-label">"9 Esferas"</span>
-                                </div>
-                                <div class="spheres-9-grid">
-                                    {summary.spheres.iter().map(|(sphere_name, lvl)| {
-                                        let s_name = sphere_name.clone();
-                                        let s_lvl = *lvl;
-                                        let is_active = s_lvl > 0;
-                                        view! {
-                                            <div
-                                                class=if is_active { "sphere-item-active" } else { "sphere-item-inactive" }
-                                                title=format!("{}: nível {}", s_name, s_lvl)
-                                            >
-                                                <span class="sphere-mini-name">{s_name}</span>
-                                                <div class="sphere-mini-dots">
-                                                    {(1..=5).map(|dot_i| {
-                                                        let filled = dot_i <= s_lvl;
-                                                        view! {
-                                                            <span class=if filled { "stat-dot filled-sphere" } else { "stat-dot empty-dot" }></span>
-                                                        }
-                                                    }).collect_view()}
-                                                </div>
-                                            </div>
-                                        }
-                                    }).collect_view()}
-                                </div>
-                            </div>
+                            {if !is_gm {
+                                view! {
+                                    <div class="card-spheres-preview">
+                                        <div class="spheres-header-row">
+                                            <span class="spheres-label">"9 Esferas"</span>
+                                        </div>
+                                        <div class="spheres-9-grid">
+                                            {summary.spheres.iter().map(|(sphere_name, lvl)| {
+                                                let s_name = sphere_name.clone();
+                                                let s_lvl = *lvl;
+                                                let is_active = s_lvl > 0;
+                                                view! {
+                                                    <div
+                                                        class=if is_active { "sphere-item-active" } else { "sphere-item-inactive" }
+                                                        title=format!("{}: nível {}", s_name, s_lvl)
+                                                    >
+                                                        <span class="sphere-mini-name">{s_name}</span>
+                                                        <div class="sphere-mini-dots">
+                                                            {(1..=5).map(|dot_i| {
+                                                                let filled = dot_i <= s_lvl;
+                                                                view! {
+                                                                    <span class=if filled { "stat-dot filled-sphere" } else { "stat-dot empty-dot" }></span>
+                                                                }
+                                                            }).collect_view()}
+                                                        </div>
+                                                    </div>
+                                                }
+                                            }).collect_view()}
+                                        </div>
+                                    </div>
+                                }.into_view()
+                            } else {
+                                view! {
+                                    <div class="card-gm-badge-footer">
+                                        <span class="gm-creature-desc">"🐉 Entidade Sobrenatural (Familiar / Bygone / Espírito)"</span>
+                                    </div>
+                                }.into_view()
+                            }}
 
                             <div class="card-footer">
-                                <span class="card-date" title=format!("Atualizado em {}", updated_at_full)>
-                                    "🕒 " {date_display}
+                                <span class="card-date" title=format!("Última alteração: {}", updated_at_full)>
+                                    "Atualizado: " {date_display}
                                 </span>
-                                <span class="card-access-cta">
-                                    "Acessar Ficha →"
-                                </span>
+                                <span class="card-cta">"Abrir Ficha →"</span>
                             </div>
                         </div>
                     </div>
