@@ -65,7 +65,9 @@
     .remove-rote-card-btn,
     .rote-collapse-btn,
     .add-grimoire-pill-btn,
-    .rote-collapsed-preview {
+    .rote-collapsed-preview,
+    .add-sphere-inline-control,
+    .sphere-pill-remove-btn {
         display: none !important;
         visibility: hidden !important;
     }

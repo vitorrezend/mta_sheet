@@ -83,7 +83,6 @@
     background: #ffffff;
 }
 
-
 /* Duas Colunas: Práticas & Instrumentos */
 .grimoire-2col-grid {
     display: grid;
@@ -327,13 +326,14 @@
     border: 1px solid #cbd5e1;
     border-left: 4px solid #7c3aed;
     border-radius: 8px;
-    padding: 0.75rem 0.9rem;
+    padding: 0.85rem 1rem;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.75rem;
     transition: all 0.2s ease;
     box-sizing: border-box;
+    width: 100%;
 }
 
 .rote-card:hover {
@@ -343,8 +343,8 @@
 }
 
 .rote-card.collapsed {
-    padding: 0.55rem 0.9rem;
-    gap: 0.35rem;
+    padding: 0.6rem 0.9rem;
+    gap: 0.4rem;
     background: #fafafa;
 }
 
@@ -354,7 +354,7 @@
     align-items: center;
     gap: 0.6rem;
     border-bottom: 1px solid #f1f5f9;
-    padding-bottom: 0.4rem;
+    padding-bottom: 0.45rem;
 }
 
 .rote-card.collapsed .rote-card-header {
@@ -451,6 +451,13 @@
     padding-left: 2rem;
 }
 
+.preview-pills-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
 .preview-pill {
     font-size: 0.65rem;
     font-weight: 700;
@@ -465,6 +472,12 @@
     border: 1px solid #ddd6fe;
 }
 
+.preview-ability {
+    background: #fdf4ff;
+    color: #a21caf;
+    border: 1px solid #f5d0fe;
+}
+
 .preview-practice {
     background: #eff6ff;
     color: #2563eb;
@@ -477,17 +490,115 @@
     border: 1px solid #fef08a;
 }
 
+.preview-diff-tag {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    font-weight: 800;
+}
+
 /* Corpo Expandido */
 .rote-card-body {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.75rem;
+    width: 100%;
 }
 
-.rote-meta-grid {
+/* ─── Matriz de Dificuldade M20 ───────────────────────────────────────── */
+.rote-diff-matrix {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 6px 10px;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.diff-matrix-title {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: #475569;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.diff-pills-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.diff-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 9999px;
+    line-height: 1.2;
+    transition: transform 0.15s ease;
+}
+
+.diff-pill:hover {
+    transform: scale(1.04);
+}
+
+.diff-icon {
+    font-size: 0.65rem;
+    line-height: 1;
+}
+
+.diff-type {
+    font-weight: 600;
+}
+
+.diff-value {
+    font-weight: 800;
+}
+
+.diff-calc {
+    font-size: 0.58rem;
+    opacity: 0.75;
+}
+
+.diff-coincidental {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.diff-vulgar {
+    background: #fefce8;
+    color: #a16207;
+    border: 1px solid #fef08a;
+}
+
+.diff-witness {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+/* ─── Grid 2x2 Organizado para Metadados da Rotina ────────────────────── */
+.rote-meta-2col-grid {
     display: grid;
-    grid-template-columns: 1.1fr 1.1fr 1fr 1fr;
-    gap: 0.7rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.rote-meta-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
     width: 100%;
     box-sizing: border-box;
 }
@@ -496,6 +607,8 @@
     display: flex;
     flex-direction: column;
     gap: 3px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .rote-meta-label {
@@ -519,9 +632,11 @@
     background: #f8fafc;
     font-size: 0.78rem;
     color: var(--primary-color, #1e293b);
-    padding: 4px 8px;
+    padding: 5px 8px;
     font-family: inherit;
     transition: all 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .rote-meta-input:focus {
@@ -531,17 +646,167 @@
     box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12);
 }
 
-.rote-spheres-input {
-    font-weight: 700;
-    color: #6d28d9;
+/* ─── Bloco Interativo de Esferas Utilizadas ─────────────────────────── */
+.rote-spheres-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
     background: #faf5ff;
-    border-color: #ddd6fe;
+    border: 1px solid #ddd6fe;
+    border-radius: 6px;
+    padding: 0.55rem 0.7rem;
+    box-sizing: border-box;
+    width: 100%;
 }
 
+.rote-sphere-tags-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    min-height: 26px;
+}
+
+.rote-sphere-pill-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #ffffff;
+    border: 1px solid #7c3aed;
+    color: #6d28d9;
+    border-radius: 9999px;
+    padding: 2px 7px 2px 8px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.12);
+    transition: all 0.15s ease;
+}
+
+.rote-sphere-pill-tag:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(124, 58, 237, 0.2);
+}
+
+.sphere-pill-icon {
+    font-size: 0.7rem;
+}
+
+.sphere-pill-name {
+    font-weight: 700;
+}
+
+.sphere-pill-lvl {
+    background: #7c3aed;
+    color: #ffffff;
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.58rem;
+    margin-left: 2px;
+}
+
+.sphere-pill-remove-btn {
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.sphere-pill-remove-btn:hover {
+    color: #ffffff;
+    background: #ef4444;
+}
+
+.add-sphere-inline-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 2px;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.sphere-select-dropdown {
+    flex: 1.5;
+    min-width: 115px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #334155;
+    padding: 3px 6px;
+    font-family: inherit;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.sphere-select-dropdown:focus {
+    border-color: #7c3aed;
+}
+
+.sphere-level-dropdown {
+    flex: 1;
+    min-width: 75px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #334155;
+    padding: 3px 6px;
+    font-family: inherit;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.sphere-level-dropdown:focus {
+    border-color: #7c3aed;
+}
+
+.btn-add-sphere-tag {
+    background: #7c3aed;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.btn-add-sphere-tag:hover {
+    background: #6d28d9;
+    transform: scale(1.03);
+}
+
+.no-spheres-hint {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* Descrição Narrativa */
 .rote-desc-wrap {
     display: flex;
     flex-direction: column;
     gap: 3px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .rote-desc-label {
@@ -611,96 +876,4 @@
     border-color: #7c3aed;
     background: #ffffff;
     box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
-}
-
-/* ─── Matriz de Dificuldade M20 ───────────────────────────────────────── */
-.rote-diff-matrix {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    padding: 5px 10px;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.diff-matrix-title {
-    font-size: 0.62rem;
-    font-weight: 800;
-    color: #475569;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.diff-pills-wrap {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.diff-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.65rem;
-    padding: 3px 8px;
-    border-radius: 9999px;
-    line-height: 1.2;
-    transition: transform 0.15s ease;
-}
-
-.diff-pill:hover {
-    transform: scale(1.04);
-}
-
-.diff-icon {
-    font-size: 0.65rem;
-    line-height: 1;
-}
-
-.diff-type {
-    font-weight: 600;
-}
-
-.diff-value {
-    font-weight: 800;
-}
-
-.diff-calc {
-    font-size: 0.58rem;
-    opacity: 0.75;
-}
-
-.diff-coincidental {
-    background: #f0fdf4;
-    color: #15803d;
-    border: 1px solid #bbf7d0;
-}
-
-.diff-vulgar {
-    background: #fefce8;
-    color: #a16207;
-    border: 1px solid #fef08a;
-}
-
-.diff-witness {
-    background: #fef2f2;
-    color: #b91c1c;
-    border: 1px solid #fecaca;
-}
-
-.preview-ability {
-    background: #fdf4ff;
-    color: #a21caf;
-    border: 1px solid #f5d0fe;
-}
-
-.preview-diff-tag {
-    background: #f1f5f9;
-    color: #334155;
-    border: 1px solid #cbd5e1;
-    font-weight: 800;
 }

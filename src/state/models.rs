@@ -548,6 +548,18 @@ pub struct CharacterVisualsData {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct RoteSphereRequirement {
+    #[serde(default)]
+    pub sphere: String,
+    #[serde(default = "default_sphere_level")]
+    pub level: i32,
+}
+
+fn default_sphere_level() -> i32 {
+    1
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct GrimoireRoteItem {
     #[serde(default)]
     pub id: String,
@@ -555,6 +567,8 @@ pub struct GrimoireRoteItem {
     pub name: String,
     #[serde(default)]
     pub spheres: String,
+    #[serde(default)]
+    pub sphere_list: Vec<RoteSphereRequirement>,
     #[serde(default)]
     pub highest_sphere: i32,
     #[serde(default)]
@@ -570,10 +584,14 @@ pub struct GrimoireRoteItem {
 }
 
 impl GrimoireRoteItem {
-    /// Retorna o nível da maior esfera usada (manualmente definido ou extraído do texto de esferas)
+    /// Retorna o nível da maior esfera usada (da lista estruturada, do campo highest_sphere ou do texto)
     pub fn get_highest_sphere_level(&self) -> i32 {
         if self.highest_sphere > 0 {
             return self.highest_sphere.clamp(1, 10);
+        }
+        if !self.sphere_list.is_empty() {
+            let max = self.sphere_list.iter().map(|s| s.level).max().unwrap_or(1);
+            return max.clamp(1, 10);
         }
         let mut max_lvl = 1;
         for word in self.spheres.split(|c: char| !c.is_numeric()) {
@@ -590,6 +608,17 @@ impl GrimoireRoteItem {
     pub fn calculate_difficulties(&self) -> (i32, i32, i32) {
         let max_sphere = self.get_highest_sphere_level();
         (max_sphere + 2, max_sphere + 3, max_sphere + 4)
+    }
+
+    /// Sincroniza a string de esferas com base na lista de esferas
+    pub fn sync_spheres_string(&mut self) {
+        if !self.sphere_list.is_empty() {
+            self.spheres = self.sphere_list
+                .iter()
+                .map(|s| format!("{} {}", s.sphere, s.level))
+                .collect::<Vec<_>>()
+                .join(", ");
+        }
     }
 }
 

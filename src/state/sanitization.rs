@@ -1,7 +1,7 @@
 use super::models::{
     keys, ArmorItem, AttributeValue, ChantryEntry, CharacterData, CharacterDescriptionData,
     CharacterHistoryData, CharacterVisualsData, DotOrigin, ExpandedBackgroundsData, FlawItem, MeritItem,
-    PossessionsData, WeaponItem, WonderItem, GrimoireData,
+    PossessionsData, WeaponItem, WonderItem, GrimoireData, RoteSphereRequirement,
 };
 
 impl CharacterData {
@@ -100,11 +100,57 @@ impl CharacterData {
             self.chantry.push(ChantryEntry::default());
         }
 
-        // Ensure Grimoire rotes have valid UUIDs
+        // Ensure Grimoire rotes have valid UUIDs and synced sphere lists
+        let known_spheres = [
+            ("Correspondência", "correspond"),
+            ("Entropia", "entrop"),
+            ("Espírito", "espírit"),
+            ("Espírito", "spirit"),
+            ("Forças", "força"),
+            ("Forças", "force"),
+            ("Matéria", "matéria"),
+            ("Matéria", "materia"),
+            ("Matéria", "matter"),
+            ("Mente", "mente"),
+            ("Mente", "mind"),
+            ("Primórdio", "primórdio"),
+            ("Primórdio", "primordio"),
+            ("Primórdio", "prime"),
+            ("Tempo", "tempo"),
+            ("Tempo", "time"),
+            ("Vida", "vida"),
+            ("Vida", "life"),
+        ];
+
         for rote in &mut self.grimoire.rotes {
             if rote.id.is_empty() {
                 rote.id = format!("rote_{}", uuid::Uuid::new_v4());
             }
+
+            if rote.sphere_list.is_empty() && !rote.spheres.trim().is_empty() {
+                let lower = rote.spheres.to_lowercase();
+                for (std_name, pattern) in &known_spheres {
+                    if let Some(pos) = lower.find(pattern) {
+                        let after = &lower[pos + pattern.len()..];
+                        let mut lvl = 1;
+                        for word in after.split(|c: char| !c.is_numeric()) {
+                            if let Ok(n) = word.parse::<i32>() {
+                                if (1..=10).contains(&n) {
+                                    lvl = n;
+                                    break;
+                                }
+                            }
+                        }
+                        if !rote.sphere_list.iter().any(|s| s.sphere == *std_name) {
+                            rote.sphere_list.push(RoteSphereRequirement {
+                                sphere: std_name.to_string(),
+                                level: lvl,
+                            });
+                        }
+                    }
+                }
+            }
+            rote.sync_spheres_string();
         }
 
         // Ensure minimum slots for practices and instruments (3)

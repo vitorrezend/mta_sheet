@@ -639,6 +639,10 @@ mod tests {
                 id: "rote_1".to_string(),
                 name: "Transmutação de Chumbo em Ouro".to_string(),
                 spheres: "Matéria 3, Primórdio 2".to_string(),
+                sphere_list: vec![
+                    RoteSphereRequirement { sphere: "Matéria".to_string(), level: 3 },
+                    RoteSphereRequirement { sphere: "Primórdio".to_string(), level: 2 },
+                ],
                 highest_sphere: 0,
                 enhancing_ability: "Ciência".to_string(),
                 focus: "Alambique de Prata e Fogo Sagrado".to_string(),
