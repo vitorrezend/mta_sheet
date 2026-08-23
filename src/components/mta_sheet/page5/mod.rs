@@ -122,6 +122,8 @@ pub fn PageGrimoire() -> impl IntoView {
                 id: format!("rote_{}", uuid::Uuid::new_v4()),
                 name: String::new(),
                 spheres: String::new(),
+                highest_sphere: 0,
+                enhancing_ability: String::new(),
                 focus: String::new(),
                 practice: String::new(),
                 instrument: String::new(),
@@ -319,6 +321,7 @@ pub fn PageGrimoire() -> impl IntoView {
 
                                 let rote_name = rote.name.clone();
                                 let rote_spheres = rote.spheres.clone();
+                                let rote_ability = rote.enhancing_ability.clone();
                                 let rote_practice = rote.practice.clone();
                                 let rote_focus = rote.focus.clone();
                                 let rote_desc = rote.description.clone();
@@ -329,6 +332,10 @@ pub fn PageGrimoire() -> impl IntoView {
                                 });
                                 let r_spheres_sig = Signal::derive({
                                     let v = rote_spheres.clone();
+                                    move || v.clone()
+                                });
+                                let r_ability_sig = Signal::derive({
+                                    let v = rote_ability.clone();
                                     move || v.clone()
                                 });
                                 let r_practice_sig = Signal::derive({
@@ -344,8 +351,18 @@ pub fn PageGrimoire() -> impl IntoView {
                                     move || v.clone()
                                 });
 
+                                let r_diff_sig = Signal::derive({
+                                    let r = rote.clone();
+                                    move || r.calculate_difficulties()
+                                });
+                                let r_max_sphere_sig = Signal::derive({
+                                    let r = rote.clone();
+                                    move || r.get_highest_sphere_level()
+                                });
+
                                 let rote_for_name = rote.clone();
                                 let rote_for_spheres = rote.clone();
+                                let rote_for_ability = rote.clone();
                                 let rote_for_practice = rote.clone();
                                 let rote_for_focus = rote.clone();
                                 let rote_for_desc = rote.clone();
@@ -394,12 +411,18 @@ pub fn PageGrimoire() -> impl IntoView {
                                         <div class="rote-collapsed-preview" class:tab-hidden=move || !is_collapsed.get()>
                                             {move || {
                                                 let s_txt = r_spheres_sig.get();
+                                                let a_txt = r_ability_sig.get();
                                                 let p_txt = r_practice_sig.get();
-                                                let f_txt = r_focus_sig.get();
+                                                let (c_diff, v_diff, vw_diff) = r_diff_sig.get();
                                                 view! {
                                                     <div class="preview-pills-row">
                                                         {if !s_txt.is_empty() {
                                                             view! { <span class="preview-pill preview-spheres">{format!("🔮 {}", s_txt)}</span> }.into_view()
+                                                        } else {
+                                                            view! {}.into_view()
+                                                        }}
+                                                        {if !a_txt.is_empty() {
+                                                            view! { <span class="preview-pill preview-ability">{format!("⭐ {}", a_txt)}</span> }.into_view()
                                                         } else {
                                                             view! {}.into_view()
                                                         }}
@@ -408,11 +431,9 @@ pub fn PageGrimoire() -> impl IntoView {
                                                         } else {
                                                             view! {}.into_view()
                                                         }}
-                                                        {if !f_txt.is_empty() {
-                                                            view! { <span class="preview-pill preview-focus">{format!("🎯 {}", f_txt)}</span> }.into_view()
-                                                        } else {
-                                                            view! {}.into_view()
-                                                        }}
+                                                        <span class="preview-pill preview-diff-tag" title="Dificuldades M20: Coincidente / Vulgar / Vulgar com Testemunha">
+                                                            {format!("🎯 Dif: {} / {} / {}", c_diff, v_diff, vw_diff)}
+                                                        </span>
                                                     </div>
                                                 }
                                             }}
@@ -420,6 +441,33 @@ pub fn PageGrimoire() -> impl IntoView {
 
                                         // Corpo Expandido do Card
                                         <div class="rote-card-body" class:tab-hidden=is_collapsed>
+                                            // Matriz de Cálculo de Dificuldade M20
+                                            <div class="rote-diff-matrix">
+                                                <span class="diff-matrix-title">"DIFICULDADE MÁGICA (M20):"</span>
+                                                <div class="diff-pills-wrap">
+                                                    <span class="diff-pill diff-coincidental" title="Magia Coincidente: Maior Esfera + 2">
+                                                        <span class="diff-icon">"🟢"</span>
+                                                        <span class="diff-type">"Coincidente:"</span>
+                                                        <strong class="diff-value">{move || format!("Dif {}", r_diff_sig.get().0)}</strong>
+                                                        <small class="diff-calc">{move || format!("({}+2)", r_max_sphere_sig.get())}</small>
+                                                    </span>
+
+                                                    <span class="diff-pill diff-vulgar" title="Magia Vulgar (Sem Testemunhas): Maior Esfera + 3">
+                                                        <span class="diff-icon">"🟡"</span>
+                                                        <span class="diff-type">"Vulgar:"</span>
+                                                        <strong class="diff-value">{move || format!("Dif {}", r_diff_sig.get().1)}</strong>
+                                                        <small class="diff-calc">{move || format!("({}+3)", r_max_sphere_sig.get())}</small>
+                                                    </span>
+
+                                                    <span class="diff-pill diff-witness" title="Magia Vulgar com Testemunha Adormecida: Maior Esfera + 4">
+                                                        <span class="diff-icon">"🔴"</span>
+                                                        <span class="diff-type">"Vulgar c/ Testemunha:"</span>
+                                                        <strong class="diff-value">{move || format!("Dif {}", r_diff_sig.get().2)}</strong>
+                                                        <small class="diff-calc">{move || format!("({}+4)", r_max_sphere_sig.get())}</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+
                                             <div class="rote-meta-grid">
                                                 <div class="rote-meta-field">
                                                     <label class="rote-meta-label">
@@ -432,6 +480,22 @@ pub fn PageGrimoire() -> impl IntoView {
                                                         on_change=Callback::new(move |val| {
                                                             let mut r = rote_for_spheres.clone();
                                                             r.spheres = val;
+                                                            update_rote(idx, r);
+                                                        })
+                                                    />
+                                                </div>
+
+                                                <div class="rote-meta-field">
+                                                    <label class="rote-meta-label">
+                                                        <span class="meta-icon">"⭐"</span> "HABILIDADE REALÇANDO:"
+                                                    </label>
+                                                    <StableTextInput 
+                                                        class="rote-meta-input rote-ability-input"
+                                                        placeholder="Ex: Ocultismo, Ciência, Medicina..."
+                                                        value=r_ability_sig
+                                                        on_change=Callback::new(move |val| {
+                                                            let mut r = rote_for_ability.clone();
+                                                            r.enhancing_ability = val;
                                                             update_rote(idx, r);
                                                         })
                                                     />

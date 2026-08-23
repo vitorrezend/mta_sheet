@@ -639,6 +639,8 @@ mod tests {
                 id: "rote_1".to_string(),
                 name: "Transmutação de Chumbo em Ouro".to_string(),
                 spheres: "Matéria 3, Primórdio 2".to_string(),
+                highest_sphere: 0,
+                enhancing_ability: "Ciência".to_string(),
                 focus: "Alambique de Prata e Fogo Sagrado".to_string(),
                 practice: "Alquimia Clássica".to_string(),
                 instrument: "Metais e Ácido Purificado".to_string(),
@@ -656,6 +658,9 @@ mod tests {
         assert_eq!(recovered.grimoire.rotes.len(), 1);
         assert_eq!(recovered.grimoire.rotes[0].name, "Transmutação de Chumbo em Ouro");
         assert_eq!(recovered.grimoire.rotes[0].spheres, "Matéria 3, Primórdio 2");
+        assert_eq!(recovered.grimoire.rotes[0].enhancing_ability, "Ciência");
+        assert_eq!(recovered.grimoire.rotes[0].get_highest_sphere_level(), 3);
+        assert_eq!(recovered.grimoire.rotes[0].calculate_difficulties(), (5, 6, 7));
 
         // Test resilient recovery from legacy JSON without grimoire field
         let legacy_json = r#"{"id":"legacy_grim","name":"Mago Sem Grimorio"}"#;

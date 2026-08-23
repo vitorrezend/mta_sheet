@@ -556,6 +556,10 @@ pub struct GrimoireRoteItem {
     #[serde(default)]
     pub spheres: String,
     #[serde(default)]
+    pub highest_sphere: i32,
+    #[serde(default)]
+    pub enhancing_ability: String,
+    #[serde(default)]
     pub focus: String,
     #[serde(default)]
     pub practice: String,
@@ -563,6 +567,30 @@ pub struct GrimoireRoteItem {
     pub instrument: String,
     #[serde(default)]
     pub description: String,
+}
+
+impl GrimoireRoteItem {
+    /// Retorna o nível da maior esfera usada (manualmente definido ou extraído do texto de esferas)
+    pub fn get_highest_sphere_level(&self) -> i32 {
+        if self.highest_sphere > 0 {
+            return self.highest_sphere.clamp(1, 10);
+        }
+        let mut max_lvl = 1;
+        for word in self.spheres.split(|c: char| !c.is_numeric()) {
+            if let Ok(num) = word.parse::<i32>() {
+                if (1..=10).contains(&num) && num > max_lvl {
+                    max_lvl = num;
+                }
+            }
+        }
+        max_lvl
+    }
+
+    /// Retorna a tupla de dificuldades (Coincidente: +2, Vulgar: +3, Vulgar com Testemunha: +4)
+    pub fn calculate_difficulties(&self) -> (i32, i32, i32) {
+        let max_sphere = self.get_highest_sphere_level();
+        (max_sphere + 2, max_sphere + 3, max_sphere + 4)
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]

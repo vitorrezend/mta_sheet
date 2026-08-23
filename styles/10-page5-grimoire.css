@@ -486,7 +486,7 @@
 
 .rote-meta-grid {
     display: grid;
-    grid-template-columns: 1.2fr 1fr 1fr;
+    grid-template-columns: 1.1fr 1.1fr 1fr 1fr;
     gap: 0.7rem;
     width: 100%;
     box-sizing: border-box;
@@ -611,4 +611,96 @@
     border-color: #7c3aed;
     background: #ffffff;
     box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+/* ─── Matriz de Dificuldade M20 ───────────────────────────────────────── */
+.rote-diff-matrix {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 5px 10px;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.diff-matrix-title {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: #475569;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.diff-pills-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.diff-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 9999px;
+    line-height: 1.2;
+    transition: transform 0.15s ease;
+}
+
+.diff-pill:hover {
+    transform: scale(1.04);
+}
+
+.diff-icon {
+    font-size: 0.65rem;
+    line-height: 1;
+}
+
+.diff-type {
+    font-weight: 600;
+}
+
+.diff-value {
+    font-weight: 800;
+}
+
+.diff-calc {
+    font-size: 0.58rem;
+    opacity: 0.75;
+}
+
+.diff-coincidental {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.diff-vulgar {
+    background: #fefce8;
+    color: #a16207;
+    border: 1px solid #fef08a;
+}
+
+.diff-witness {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.preview-ability {
+    background: #fdf4ff;
+    color: #a21caf;
+    border: 1px solid #f5d0fe;
+}
+
+.preview-diff-tag {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    font-weight: 800;
 }
