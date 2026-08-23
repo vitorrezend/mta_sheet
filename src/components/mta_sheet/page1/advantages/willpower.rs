@@ -252,11 +252,36 @@ pub fn Willpower() -> impl IntoView {
                                 };
                                 update_current(new_val);
                             }
-                            title=format!("Força de Vontade Temporária ({}/{})", i, total.get())
+                            title=move || format!("Força de Vontade Temporária ({}/{})", i, total.get())
                         ></span>
                     }
                 }).collect_view()}
             </div>
         </div>
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_willpower_reactive_scope_instantiation() {
+        let runtime = create_runtime();
+        let (data, set_data) = create_signal(CharacterData::new("wp_test".to_string(), "Mago".to_string()));
+        provide_context(data);
+        provide_context(set_data);
+
+        // Instantiate component inside reactive root
+        let _view = Willpower();
+
+        // Update willpower level and ensure reactive signals work without un-tracked access panics
+        set_data.update(|s| {
+            s.set_willpower_total(7);
+        });
+
+        assert_eq!(data.get().get_willpower().0, 7);
+        runtime.dispose();
     }
 }

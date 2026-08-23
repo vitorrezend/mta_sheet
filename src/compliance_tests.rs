@@ -155,4 +155,56 @@ mod compliance_tests {
         );
     }
 
+
+    #[test]
+    fn test_no_unwrapped_signal_get_in_view_attributes() {
+        let mut files = Vec::new();
+        collect_rs_files(Path::new("src/components"), &mut files);
+
+        let mut violations = Vec::new();
+
+        for file in files {
+            let file_str = file.to_string_lossy();
+            if file_str.contains("tests.rs") {
+                continue;
+            }
+
+            if let Ok(content) = fs::read_to_string(&file) {
+                for (line_idx, line) in content.lines().enumerate() {
+                    let trimmed = line.trim();
+                    if trimmed.starts_with("//") {
+                        continue;
+                    }
+
+                    // Detect format!(... .get()) assigned directly to view properties without 'move ||'
+                    if (trimmed.contains("title=format!(")
+                        || trimmed.contains("class=format!(")
+                        || trimmed.contains("placeholder=format!(")
+                        || trimmed.contains("href=format!(")
+                        || trimmed.contains("src=format!("))
+                        && (trimmed.contains(".get()") || trimmed.contains(".with("))
+                        && !trimmed.contains("move ||")
+                    {
+                        violations.push(format!(
+                            "{}:{}: Acesso a sinal '.get()' fora de contexto reativo em atributo do view!: '{}'. Use 'move || format!(...)' para garantir rastreamento reativo.",
+                            file_str,
+                            line_idx + 1,
+                            trimmed
+                        ));
+                    }
+                }
+            }
+        }
+
+        assert!(
+            violations.is_empty(),
+            "
+❌ Acessos a sinais fora de contexto reativo detectados:
+{}
+",
+            violations.join("
+")
+        );
+    }
+
 }
