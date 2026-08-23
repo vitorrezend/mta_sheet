@@ -619,5 +619,49 @@ mod tests {
         assert_eq!(recovered.get_extra_bruised(), 1);
         assert_eq!(recovered.get_total_health_boxes(), 8);
     }
-}
 
+    #[test]
+    fn test_page5_grimoire_serialization_and_recovery() {
+        let mut char_data = CharacterData::new("grim1".to_string(), "Mago Alquimista".to_string());
+        
+        char_data.grimoire.paradigm = "A Criação é Alquimia Divina".to_string();
+        char_data.grimoire.practices = vec![
+            "Alquimia Clássica".to_string(),
+            "Bruxaria Tradicional".to_string(),
+        ];
+        char_data.grimoire.instruments = vec![
+            "Atanor e Alambique".to_string(),
+            "Adaga Cerimonial".to_string(),
+            "Ervas Raras".to_string(),
+        ];
+        char_data.grimoire.rotes = vec![
+            GrimoireRoteItem {
+                id: "rote_1".to_string(),
+                name: "Transmutação de Chumbo em Ouro".to_string(),
+                spheres: "Matéria 3, Primórdio 2".to_string(),
+                focus: "Alambique de Prata e Fogo Sagrado".to_string(),
+                practice: "Alquimia Clássica".to_string(),
+                instrument: "Metais e Ácido Purificado".to_string(),
+                description: "Purifica a estrutura da matéria transformando chumbo em ouro puro.".to_string(),
+            }
+        ];
+        char_data.grimoire.general_notes = "Grimório herdado do Mestre Paracelso.".to_string();
+
+        let json = serde_json::to_string(&char_data).unwrap();
+        let recovered: CharacterData = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(recovered.grimoire.paradigm, "A Criação é Alquimia Divina");
+        assert_eq!(recovered.grimoire.practices.len(), 2);
+        assert_eq!(recovered.grimoire.instruments.len(), 3);
+        assert_eq!(recovered.grimoire.rotes.len(), 1);
+        assert_eq!(recovered.grimoire.rotes[0].name, "Transmutação de Chumbo em Ouro");
+        assert_eq!(recovered.grimoire.rotes[0].spheres, "Matéria 3, Primórdio 2");
+
+        // Test resilient recovery from legacy JSON without grimoire field
+        let legacy_json = r#"{"id":"legacy_grim","name":"Mago Sem Grimorio"}"#;
+        let recovered_legacy = CharacterData::from_raw_json_resilient("legacy_grim", legacy_json).unwrap();
+        assert_eq!(recovered_legacy.grimoire.rotes.len(), 0);
+        assert_eq!(recovered_legacy.grimoire.paradigm, "");
+    }
+
+}

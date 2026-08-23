@@ -173,7 +173,7 @@ pub fn WonderCard(
     let change_wonder_quint_max = move |idx: usize, delta: i32| {
         set_data.update(|s| {
             while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
-            let new_max = (s.wonders[idx].quintessence_max + delta).clamp(5, 20);
+            let new_max = (s.wonders[idx].quintessence_max + delta).clamp(0, 20);
             s.wonders[idx].quintessence_max = new_max;
             s.wonders[idx].quintessence_current = s.wonders[idx].quintessence_current.clamp(0, new_max);
         });
@@ -329,7 +329,7 @@ pub fn WonderCard(
                 />
             </div>
 
-            // 4. Bloco de Quintessência (5 a 20 pontos organizados em 2 linhas de 10)
+            // 4. Bloco de Quintessência (0 a 20 pontos organizados em 2 linhas de 10)
             <div class="wonder-quintessence-row">
                 <div class="wonder-quint-header">
                     <span class="wonder-stat-label">"Quintessência:"</span>
@@ -339,12 +339,12 @@ pub fn WonderCard(
                             class="quint-step-btn" 
                             on:click=move |_| change_wonder_quint_max(idx, -5)
                             title="Reduzir capacidade de Quintessência (-5)"
-                            disabled=move || data.with(|d| d.wonders.get(idx).map(|w| w.quintessence_max <= 5).unwrap_or(true))
+                            disabled=move || data.with(|d| d.wonders.get(idx).map(|w| w.quintessence_max <= 0).unwrap_or(true))
                         >
                             "-5"
                         </button>
                         <span class="quint-max-badge">
-                            {move || data.with(|d| d.wonders.get(idx).map(|w| format!("{}/{}", w.quintessence_current, w.quintessence_max)).unwrap_or_else(|| "0/5".to_string()))}
+                            {move || data.with(|d| d.wonders.get(idx).map(|w| format!("{}/{}", w.quintessence_current, w.quintessence_max)).unwrap_or_else(|| "0/0".to_string()))}
                         </span>
                         <button 
                             type="button" 
@@ -360,7 +360,7 @@ pub fn WonderCard(
 
                 <div class="wonder-squares-grid-10">
                     {move || {
-                        let max_q = data.with(|d| d.wonders.get(idx).map(|w| w.quintessence_max).unwrap_or(5));
+                        let max_q = data.with(|d| d.wonders.get(idx).map(|w| w.quintessence_max).unwrap_or(0));
                         (1..=max_q).map(|sq_i| {
                             let is_filled = move || data.with(|d| d.wonders.get(idx).map(|w| w.quintessence_current >= sq_i).unwrap_or(false));
                             view! {

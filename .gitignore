@@ -4,6 +4,7 @@
 
 # --- Rust & WebAssembly Build Artifacts ---
 /target/
+/mta_sheet
 /dist/
 /pkg/
 *.wasm

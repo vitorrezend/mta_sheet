@@ -548,6 +548,38 @@ pub struct CharacterVisualsData {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct GrimoireRoteItem {
+    #[serde(default)]
+    pub id: String,
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub spheres: String,
+    #[serde(default)]
+    pub focus: String,
+    #[serde(default)]
+    pub practice: String,
+    #[serde(default)]
+    pub instrument: String,
+    #[serde(default)]
+    pub description: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct GrimoireData {
+    #[serde(default)]
+    pub paradigm: String,
+    #[serde(default)]
+    pub practices: Vec<String>,
+    #[serde(default)]
+    pub instruments: Vec<String>,
+    #[serde(default)]
+    pub rotes: Vec<GrimoireRoteItem>,
+    #[serde(default)]
+    pub general_notes: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct CharacterData {
     pub id: String,
     #[serde(default)]
@@ -592,6 +624,10 @@ pub struct CharacterData {
     pub description_data: CharacterDescriptionData,
     #[serde(default)]
     pub visuals: CharacterVisualsData,
+
+    // Page 5: Grimoire
+    #[serde(default)]
+    pub grimoire: GrimoireData,
 }
 
 impl CharacterData {
@@ -616,6 +652,7 @@ impl CharacterData {
             history_data: CharacterHistoryData::default(),
             description_data: CharacterDescriptionData::default(),
             visuals: CharacterVisualsData::default(),
+            grimoire: GrimoireData::default(),
         };
         sheet.sanitize();
         sheet
@@ -642,6 +679,7 @@ impl CharacterData {
             history_data: CharacterHistoryData::default(),
             description_data: CharacterDescriptionData::default(),
             visuals: CharacterVisualsData::default(),
+            grimoire: GrimoireData::default(),
         };
         sheet.labels.insert("Type".to_string(), "Familiar".to_string());
         sheet.labels.insert("Concept".to_string(), "".to_string());

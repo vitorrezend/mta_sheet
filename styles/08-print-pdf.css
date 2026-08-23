@@ -58,7 +58,11 @@
     .modal-overlay,
     .image-modal-backdrop,
     .image-lightbox-backdrop,
-    .btn-delete-placeholder {
+    .btn-delete-placeholder,
+    .add-grimoire-item-btn,
+    .remove-grimoire-btn,
+    .add-rote-card-btn,
+    .remove-rote-card-btn {
         display: none !important;
         visibility: hidden !important;
     }
@@ -104,6 +108,17 @@
     .page-history-visuals .group-box {
         margin-bottom: 0.3rem !important;
         padding: 0.4rem 0.6rem !important;
+    }
+    .page-grimoire {
+        gap: 0.35rem !important;
+    }
+    .page-grimoire .group-box {
+        margin-bottom: 0.25rem !important;
+        padding: 0.35rem 0.5rem !important;
+    }
+    .rote-card {
+        padding: 0.4rem 0.5rem !important;
+        break-inside: avoid !important;
     }
 
     /* 5. Textareas e Inputs sem caixas de rolagem */
@@ -162,3 +177,20 @@
     }
 }
 
+
+@media print {
+    .affinity-star-btn:not(.active) {
+        display: none !important;
+    }
+    .affinity-star-btn.active {
+        display: inline-flex !important;
+    }
+    .affinity-star-icon.active {
+        color: #d97706 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .spheres-header-bar {
+        display: none !important;
+    }
+}

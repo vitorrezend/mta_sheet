@@ -1,0 +1,441 @@
+/* ==========================================================================
+   10: PÁGINA 5 — GRIMÓRIO (PARADIGMA, PRÁTICAS, INSTRUMENTOS E ROTINAS MÁGICAS)
+   ========================================================================== */
+
+.page-grimoire-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ─── Box 1: Fundamentos Mágicos (Paradigma, Práticas & Instrumentos) ─── */
+.grimoire-foundations-box {
+    margin-top: 0.8rem;
+}
+
+.grimoire-paradigm-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px dashed #cbd5e1;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.grimoire-section-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--primary-color, #1e293b);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.grimoire-paradigm-input {
+    flex: 1;
+    border: none;
+    border-bottom: 1.5px solid #cbd5e1;
+    background: transparent;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary-color, #1e293b);
+    padding: 3px 6px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.grimoire-paradigm-input:focus {
+    outline: none;
+    border-bottom-color: #7c3aed;
+    background: rgba(124, 58, 237, 0.03);
+}
+
+.grimoire-2col-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.grimoire-list-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    background: rgba(0, 0, 0, 0.015);
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.6rem;
+    box-sizing: border-box;
+}
+
+.grimoire-col-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.35rem;
+    margin-bottom: 0.3rem;
+}
+
+.grimoire-col-header .column-title {
+    margin: 0;
+    border: none;
+    padding: 0;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #475569;
+}
+
+.add-grimoire-item-btn {
+    background: #f8fafc;
+    border: 1px dashed #94a3b8;
+    color: #475569;
+    border-radius: 4px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.add-grimoire-item-btn:hover {
+    background: #7c3aed;
+    color: #ffffff;
+    border-color: #7c3aed;
+    transform: scale(1.04);
+}
+
+.grimoire-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.grimoire-list-item-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+}
+
+.grimoire-item-bullet {
+    font-size: 0.65rem;
+    color: #7c3aed;
+    flex-shrink: 0;
+}
+
+.grimoire-item-input {
+    flex: 1;
+    border: none;
+    border-bottom: 1px dotted #cbd5e1;
+    background: transparent;
+    font-size: 0.78rem;
+    color: var(--primary-color, #1e293b);
+    padding: 2px 4px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.grimoire-item-input:focus {
+    outline: none;
+    border-bottom-color: #7c3aed;
+    background: rgba(124, 58, 237, 0.02);
+}
+
+.remove-grimoire-btn {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 4px;
+    opacity: 0.4;
+    transition: all 0.15s ease;
+}
+
+.remove-grimoire-btn:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+
+/* ─── Box 2: Cards de Rotinas Mágicas (Rotes) ────────────────────────── */
+.grimoire-rotes-box {
+    margin-top: 0.8rem;
+}
+
+.rotes-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.rotes-hint {
+    font-size: 0.68rem;
+    font-style: italic;
+    color: #64748b;
+}
+
+.add-rote-card-btn {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.25);
+    transition: all 0.2s ease;
+}
+
+.add-rote-card-btn:hover {
+    background: linear-gradient(135deg, #6d28d9, #4338ca);
+    box-shadow: 0 4px 10px rgba(124, 58, 237, 0.4);
+    transform: translateY(-1px);
+}
+
+.rotes-cards-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.empty-rotes-banner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    background: rgba(0, 0, 0, 0.015);
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.empty-rotes-icon {
+    font-size: 2rem;
+    margin-bottom: 0.4rem;
+    opacity: 0.6;
+}
+
+.empty-rotes-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #475569;
+    margin: 0 0 0.2rem 0;
+}
+
+.empty-rotes-desc {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin: 0;
+}
+
+/* Card Individual de Rotina */
+.rote-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-left: 4px solid #7c3aed;
+    border-radius: 6px;
+    padding: 0.7rem 0.8rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.rote-card:hover {
+    border-color: #94a3b8;
+    border-left-color: #6d28d9;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.rote-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 0.4rem;
+}
+
+.rote-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.rote-number-tag {
+    font-size: 0.65rem;
+    font-weight: 800;
+    background: #f5f3ff;
+    color: #7c3aed;
+    border: 1px solid #ddd6fe;
+    padding: 2px 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.rote-name-input {
+    flex: 1;
+    border: none;
+    border-bottom: 1.5px solid transparent;
+    background: transparent;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--primary-color, #1e293b);
+    font-family: inherit;
+    padding: 2px 4px;
+    letter-spacing: -0.01em;
+    transition: all 0.2s ease;
+}
+
+.rote-name-input:focus {
+    outline: none;
+    border-bottom-color: #7c3aed;
+    background: #fdf4ff;
+}
+
+.remove-rote-card-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1;
+    padding: 0 4px;
+    transition: all 0.15s ease;
+}
+
+.remove-rote-card-btn:hover {
+    color: #ef4444;
+    transform: scale(1.25);
+}
+
+.rote-meta-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 0.6rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.rote-meta-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.rote-meta-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.rote-meta-input {
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    background: #f8fafc;
+    font-size: 0.75rem;
+    color: var(--primary-color, #1e293b);
+    padding: 3px 6px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.rote-meta-input:focus {
+    outline: none;
+    border-color: #7c3aed;
+    background: #ffffff;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+}
+
+.rote-spheres-input {
+    font-weight: 700;
+    color: #6d28d9;
+}
+
+.rote-desc-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 0.2rem;
+}
+
+.rote-desc-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.rote-desc-textarea {
+    width: 100%;
+    min-height: 55px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    background: #fafafa;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--primary-color, #1e293b);
+    padding: 6px 8px;
+    font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.rote-desc-textarea:focus {
+    outline: none;
+    border-color: #7c3aed;
+    background: #ffffff;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+}
+
+
+/* ─── Box 3: Anotações Gerais do Grimório ─────────────────────────────── */
+.grimoire-notes-box {
+    margin-top: 0.8rem;
+}
+
+.grimoire-notes-textarea {
+    width: 100%;
+    min-height: 120px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    background: #fafafa;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--primary-color, #1e293b);
+    padding: 8px 10px;
+    font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.grimoire-notes-textarea:focus {
+    outline: none;
+    border-color: #7c3aed;
+    background: #ffffff;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+}

@@ -116,4 +116,43 @@ mod compliance_tests {
             violations.join("\n")
         );
     }
+
+    #[test]
+    fn test_no_dynamic_closures_wrapping_optional_callbacks() {
+        let mut files = Vec::new();
+        collect_rs_files(Path::new("src/components"), &mut files);
+
+        let mut violations = Vec::new();
+
+        for file in files {
+            let file_str = file.to_string_lossy();
+            if let Ok(content) = fs::read_to_string(&file) {
+                for (line_idx, line) in content.lines().enumerate() {
+                    let trimmed = line.trim();
+                    // Detect anti-pattern: {move || if let Some(...) = on_...
+                    if (trimmed.contains("move || if let Some(") || trimmed.contains("move || { if let Some("))
+                        && (trimmed.contains("on_") || trimmed.contains("callback") || trimmed.contains("cb"))
+                    {
+                        violations.push(format!(
+                            "{}:{}: Anti-padrão detectado: '{}'. Use '.map(|cb| view! {{ ... }})' estático em vez de fecho reativo dinâmico para evitar recriação de escopo e panic de 'could not get stored value'.",
+                            file_str,
+                            line_idx + 1,
+                            trimmed
+                        ));
+                    }
+                }
+            }
+        }
+
+        assert!(
+            violations.is_empty(),
+            "
+❌ Anti-padrão de renderização de Callbacks detectado:
+{}
+",
+            violations.join("
+")
+        );
+    }
+
 }

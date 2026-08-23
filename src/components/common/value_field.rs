@@ -1,4 +1,5 @@
 use leptos::*;
+use std::rc::Rc;
 use crate::state::DotOrigin;
 
 #[component]
@@ -16,9 +17,12 @@ pub fn ValueField(
     #[prop(optional)] on_label_change: Option<Callback<String>>,
     #[prop(optional)] origins: Option<Signal<Vec<DotOrigin>>>,
     #[prop(optional)] on_dot_origin_change: Option<Callback<(usize, DotOrigin)>>,
+    #[prop(optional)] is_starred: Option<Signal<bool>>,
+    #[prop(optional)] on_toggle_star: Option<Callback<()>>,
+    #[prop(optional)] star_tooltip: Option<&'static str>,
 ) -> impl IntoView {
-    let on_level_change = store_value(on_level_change);
-    let on_modifier_change = store_value(on_modifier_change);
+    let on_level_change = Rc::new(on_level_change);
+    let on_modifier_change = Rc::new(on_modifier_change);
     let (open_popover_idx, set_open_popover_idx) = create_signal(Option::<usize>::None);
 
     let display_label = move || {
@@ -85,9 +89,35 @@ pub fn ValueField(
         });
     }
 
+    let on_level_change_click = on_level_change.clone();
+    let on_modifier_input = on_modifier_change.clone();
+
     view! {
         <div class="attribute-row">
             <div class="tooltip-container">
+                {on_toggle_star.map(|on_star| {
+                    let is_active = move || is_starred.map(|s| s.get()).unwrap_or(false);
+                    view! {
+                        <button 
+                            type="button" 
+                            class="affinity-star-btn"
+                            class:active=is_active
+                            on:click=move |ev| {
+                                ev.stop_propagation();
+                                on_star.call(());
+                            }
+                            title=move || if is_active() {
+                                star_tooltip.unwrap_or("Esfera de Afinidade ativa (Custo XP: Atual × 7). Clique para desmarcar.")
+                            } else {
+                                "Clique para definir como Esfera de Afinidade (Custo XP: Atual × 7)"
+                            }
+                        >
+                            <span class="affinity-star-icon" class:active=is_active>
+                                {move || if is_active() { "★" } else { "☆" }}
+                            </span>
+                        </button>
+                    }
+                })}
                 {move || if editing_label.get() {
                     view! {
                         <input 
@@ -126,6 +156,7 @@ pub fn ValueField(
                     view! {
                         <span 
                             class="attribute-label"
+                            class:affinity-active=move || is_starred.map(|s| s.get()).unwrap_or(false)
                             on:dblclick=move |_| if is_editable { set_editing_label.set(true) }
                         >
                             {display_label}
@@ -142,7 +173,7 @@ pub fn ValueField(
                     placeholder="..."
                     maxlength="30"
                     prop:value=modifier
-                    on:input=move |ev| on_modifier_change.with_value(|cb| cb(event_target_value(&ev)))
+                    on:input=move |ev| on_modifier_input(event_target_value(&ev))
                 />
                 <span class="tooltip-text" 
                     class:hidden=move || modifier.get().is_empty()
@@ -190,6 +221,8 @@ pub fn ValueField(
                         set_open_popover_idx.set(None);
                     };
 
+                    let on_click_level = on_level_change_click.clone();
+
                     view! {
                         <div class="dot-wrapper">
                             <span 
@@ -207,7 +240,7 @@ pub fn ValueField(
                                     } else {
                                         i
                                     };
-                                    on_level_change.with_value(|cb| cb(new_val))
+                                    on_click_level(new_val);
                                 }
                                 on:contextmenu=on_right_click
                                 title="Botão esquerdo: alterar nível | Botão direito: mudar origem (Base/Bônus/XP/Buff)"
@@ -271,20 +304,40 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_value_field_instantiation() {
+    fn test_value_field_instantiation_and_reactive_updates() {
         let runtime = create_runtime();
-        let (level, _) = create_signal(3);
-        let (modifier, _) = create_signal("Test".to_string());
-        
+        let (level, set_level) = create_signal(3);
+        let (modifier, set_modifier) = create_signal("Test".to_string());
+        let (is_starred, set_starred) = create_signal(false);
+        let (_star_clicked, set_star_clicked) = create_signal(false);
+
+        let on_toggle_star = Callback::new(move |_| {
+            set_star_clicked.set(true);
+            set_starred.update(|s| *s = !*s);
+        });
+
         let _view = view! {
             <ValueField 
-                label=Signal::derive(|| "Força".to_string())
+                label=Signal::derive(|| "Correspondência".to_string())
                 level=level.into()
                 modifier=modifier.into()
-                on_level_change=|_| {}
-                on_modifier_change=|_| {}
+                on_level_change=move |v| set_level.set(v)
+                on_modifier_change=move |m| set_modifier.set(m)
+                is_starred=is_starred.into()
+                on_toggle_star=on_toggle_star
+                star_tooltip="Esfera de Afinidade"
             />
         };
+
+        // Simulate signal mutation after initial render to ensure no panic
+        set_starred.set(true);
+        set_level.set(4);
+        set_modifier.set("Especialização".to_string());
+
+        assert_eq!(level.get(), 4);
+        assert_eq!(modifier.get(), "Especialização");
+        assert_eq!(is_starred.get(), true);
+
         runtime.dispose();
     }
 }

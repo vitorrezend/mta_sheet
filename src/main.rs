@@ -1,4 +1,134 @@
 #[cfg(feature = "ssr")]
+use axum::response::IntoResponse;
+
+#[cfg(feature = "ssr")]
+#[derive(rust_embed::RustEmbed)]
+#[folder = "target/site/"]
+struct SiteAssets;
+
+#[cfg(feature = "ssr")]
+#[derive(rust_embed::RustEmbed)]
+#[folder = "styles/"]
+struct StyleAssets;
+
+#[cfg(feature = "ssr")]
+const EMBEDDED_STYLE_CSS: &str = include_str!("../style.css");
+
+#[cfg(feature = "ssr")]
+async fn pkg_handler(
+    axum::extract::Path(path): axum::extract::Path<String>,
+) -> impl IntoResponse {
+    let key = format!("pkg/{}", path);
+    // 1. Tenta servir do binário embutido
+    if let Some(file) = SiteAssets::get(&key) {
+        let mime = if path.ends_with(".wasm") {
+            "application/wasm".to_string()
+        } else if path.ends_with(".js") {
+            "text/javascript".to_string()
+        } else if path.ends_with(".css") {
+            "text/css".to_string()
+        } else {
+            mime_guess::from_path(&path).first_or_octet_stream().to_string()
+        };
+        return (
+            [
+                (http::header::CONTENT_TYPE, mime),
+                (http::header::CACHE_CONTROL, "public, max-age=31536000".to_string()),
+            ],
+            file.data.into_owned(),
+        )
+            .into_response();
+    }
+
+    // 2. Fallback para o disco local se existir
+    let disk_path = format!("target/site/pkg/{}", path);
+    if let Ok(bytes) = tokio::fs::read(&disk_path).await {
+        let mime = if path.ends_with(".wasm") {
+            "application/wasm".to_string()
+        } else if path.ends_with(".js") {
+            "text/javascript".to_string()
+        } else if path.ends_with(".css") {
+            "text/css".to_string()
+        } else {
+            mime_guess::from_path(&path).first_or_octet_stream().to_string()
+        };
+        return (
+            [(http::header::CONTENT_TYPE, mime)],
+            bytes,
+        )
+            .into_response();
+    }
+
+    (http::StatusCode::NOT_FOUND, "Arquivo pkg não encontrado").into_response()
+}
+
+#[cfg(feature = "ssr")]
+async fn assets_handler(
+    axum::extract::Path(path): axum::extract::Path<String>,
+) -> impl IntoResponse {
+    let key = format!("assets/{}", path);
+    if let Some(file) = SiteAssets::get(&key) {
+        let mime = mime_guess::from_path(&path).first_or_octet_stream().to_string();
+        return (
+            [(http::header::CONTENT_TYPE, mime)],
+            file.data.into_owned(),
+        )
+            .into_response();
+    }
+
+    let disk_path = format!("target/site/assets/{}", path);
+    if let Ok(bytes) = tokio::fs::read(&disk_path).await {
+        let mime = mime_guess::from_path(&path).first_or_octet_stream().to_string();
+        return (
+            [(http::header::CONTENT_TYPE, mime)],
+            bytes,
+        )
+            .into_response();
+    }
+
+    (http::StatusCode::NOT_FOUND, "Asset não encontrado").into_response()
+}
+
+#[cfg(feature = "ssr")]
+async fn styles_handler(
+    axum::extract::Path(path): axum::extract::Path<String>,
+) -> impl IntoResponse {
+    if let Some(file) = StyleAssets::get(&path) {
+        return (
+            [(http::header::CONTENT_TYPE, "text/css")],
+            file.data.into_owned(),
+        )
+            .into_response();
+    }
+
+    let disk_path = format!("styles/{}", path);
+    if let Ok(bytes) = tokio::fs::read(&disk_path).await {
+        return (
+            [(http::header::CONTENT_TYPE, "text/css")],
+            bytes,
+        )
+            .into_response();
+    }
+
+    (http::StatusCode::NOT_FOUND, "Estilo não encontrado").into_response()
+}
+
+#[cfg(feature = "ssr")]
+async fn style_css_handler() -> impl IntoResponse {
+    if let Ok(css) = tokio::fs::read_to_string("style.css").await {
+        (
+            [(http::header::CONTENT_TYPE, "text/css")],
+            css,
+        )
+    } else {
+        (
+            [(http::header::CONTENT_TYPE, "text/css")],
+            EMBEDDED_STYLE_CSS.to_string(),
+        )
+    }
+}
+
+#[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
     use axum::Router;
@@ -7,25 +137,39 @@ async fn main() {
     use mta_sheet::database;
     use tower_http::services::ServeDir;
 
-    let conf = match get_configuration(Some("Cargo.toml")).await {
+    // Obtém configuração do Leptos com fallback seguro caso Cargo.toml não exista
+    let conf = match get_configuration(None).await {
         Ok(c) => c,
-        Err(e) => {
-            eprintln!("Falha crítica ao ler configuração do Leptos: {}", e);
-            return;
+        Err(_) => {
+            let mut opt = LeptosOptions::default();
+            opt.output_name = "mta_sheet".into();
+            opt.site_root = "target/site".into();
+            opt.site_pkg_dir = "pkg".into();
+            opt.site_addr = "0.0.0.0:3000".parse().unwrap_or_else(|_| std::net::SocketAddr::from(([0, 0, 0, 0], 3000)));
+            leptos::leptos_config::ConfFile { leptos_options: opt }
         }
     };
-    let addr = conf.leptos_options.site_addr;
+
+    let mut leptos_options = conf.leptos_options;
+
+    // Permite sobrescrever o endereço por variável de ambiente
+    if let Ok(addr_str) = std::env::var("LEPTOS_SITE_ADDR") {
+        if let Ok(parsed_addr) = addr_str.parse() {
+            leptos_options.site_addr = parsed_addr;
+        }
+    }
+
+    let addr = leptos_options.site_addr;
     let routes = generate_route_list(mta_sheet::App);
-    let site_root = conf.leptos_options.site_root.clone();
 
     let db = database::get_db().await;
-
     let db_for_server_fn = db.clone();
     let db_for_routes = db.clone();
 
+    // Garante que o diretório de uploads exista
     let _ = tokio::fs::create_dir_all("uploads").await;
 
-    // build our application with a route
+    // Monta o roteador da aplicação
     let app = Router::new()
         .route(
             "/api/*fn_name",
@@ -60,48 +204,21 @@ async fn main() {
                 }
             }),
         )
-        .route("/pkg/mta_sheet_bg.wasm", axum::routing::get(|state: axum::extract::State<leptos::LeptosOptions>| async move {
-            let site_root = state.site_root.clone();
-            let path_bg = format!("{}/pkg/mta_sheet_bg.wasm", &site_root);
-            let path_std = format!("{}/pkg/mta_sheet.wasm", &site_root);
-            if let Ok(bytes) = tokio::fs::read(&path_bg).await {
-                (
-                    [(http::header::CONTENT_TYPE, "application/wasm")],
-                    bytes
-                )
-            } else if let Ok(bytes) = tokio::fs::read(&path_std).await {
-                (
-                    [(http::header::CONTENT_TYPE, "application/wasm")],
-                    bytes
-                )
-            } else {
-                (
-                    [(http::header::CONTENT_TYPE, "text/plain")],
-                    Vec::new()
-                )
-            }
-        }))
-        .nest_service("/pkg", ServeDir::new(format!("{}/pkg", site_root)))
-        .nest_service("/assets", ServeDir::new(format!("{}/assets", site_root)))
+        .route("/pkg/*path", axum::routing::get(pkg_handler))
+        .route("/assets/*path", axum::routing::get(assets_handler))
+        .route("/styles/*path", axum::routing::get(styles_handler))
+        .route("/style.css", axum::routing::get(style_css_handler))
         .nest_service("/uploads", ServeDir::new("uploads"))
-        .nest_service("/styles", ServeDir::new("styles"))
-        .route("/style.css", axum::routing::get(|| async {
-            match tokio::fs::read_to_string("style.css").await {
-                Ok(css) => (
-                    [(http::header::CONTENT_TYPE, "text/css")],
-                    css
-                ),
-                Err(_) => (
-                    [(http::header::CONTENT_TYPE, "text/css")],
-                    String::new()
-                )
-            }
-        }))
-        .leptos_routes_with_context(&conf.leptos_options, routes, move || {
-            provide_context(db_for_routes.clone());
-        }, mta_sheet::App)
+        .leptos_routes_with_context(
+            &leptos_options,
+            routes,
+            move || {
+                provide_context(db_for_routes.clone());
+            },
+            mta_sheet::App,
+        )
         .layer(axum::middleware::from_fn(security_headers_middleware))
-        .with_state(conf.leptos_options);
+        .with_state(leptos_options);
 
     let listener = match tokio::net::TcpListener::bind(&addr).await {
         Ok(l) => l,

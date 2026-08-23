@@ -2,11 +2,12 @@ use leptos::*;
 use leptos_router::*;
 use crate::state::{get_sheet, update_sheet, CharacterData, DotOrigin};
 use crate::components::common::Sheet;
-use crate::components::page1::{Abilities, AdvantagesMta, Attributes, InfoHeader, Spheres};
-use crate::components::page2::PageMagicCombat;
-use crate::components::page3::PageExpandedBackgroundsPossessions;
-use crate::components::page4::PageHistoryDescriptionVisuals;
-use crate::components::sheet::{
+use crate::components::mta_sheet::page1::{Abilities, AdvantagesMta, Attributes, InfoHeader, Spheres};
+use crate::components::mta_sheet::page2::PageMagicCombat;
+use crate::components::mta_sheet::page3::PageExpandedBackgroundsPossessions;
+use crate::components::mta_sheet::page4::PageHistoryDescriptionVisuals;
+use crate::components::mta_sheet::page5::PageGrimoire;
+use crate::components::mta_sheet::sheet::{
     ActiveDotOriginContext, CostBreakdownModal, SaveStatus, SheetPageTab, SheetTabs, SheetTopBar,
 };
 
@@ -338,6 +339,13 @@ pub fn CharacterSheet() -> impl IntoView {
                                     class:tab-hidden=move || active_tab.get() != SheetPageTab::HistoryVisuals
                                 >
                                     <PageHistoryDescriptionVisuals />
+                                </div>
+
+                                <div 
+                                    class="sheet-page-tab-pane page-grimoire"
+                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::Grimoire
+                                >
+                                    <PageGrimoire />
                                 </div>
                             </Sheet>
                         }.into_view()

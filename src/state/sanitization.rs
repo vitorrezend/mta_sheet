@@ -1,7 +1,7 @@
 use super::models::{
     keys, ArmorItem, AttributeValue, ChantryEntry, CharacterData, CharacterDescriptionData,
     CharacterHistoryData, CharacterVisualsData, DotOrigin, ExpandedBackgroundsData, FlawItem, MeritItem,
-    PossessionsData, WeaponItem, WonderItem,
+    PossessionsData, WeaponItem, WonderItem, GrimoireData,
 };
 
 impl CharacterData {
@@ -65,8 +65,8 @@ impl CharacterData {
             if wonder.id.is_empty() {
                 wonder.id = format!("wonder_{}", uuid::Uuid::new_v4());
             }
-            if wonder.quintessence_max < 5 {
-                wonder.quintessence_max = 5;
+            if wonder.quintessence_max < 0 {
+                wonder.quintessence_max = 0;
             } else if wonder.quintessence_max > 20 {
                 wonder.quintessence_max = 20;
             } else {
@@ -98,6 +98,13 @@ impl CharacterData {
         // Ensure minimum slots for Chantry (3)
         while self.chantry.len() < 3 {
             self.chantry.push(ChantryEntry::default());
+        }
+
+        // Ensure Grimoire rotes have valid UUIDs
+        for rote in &mut self.grimoire.rotes {
+            if rote.id.is_empty() {
+                rote.id = format!("rote_{}", uuid::Uuid::new_v4());
+            }
         }
     }
 
@@ -206,6 +213,13 @@ impl CharacterData {
         if let Some(vis) = val.get("visuals") {
             if let Ok(v) = serde_json::from_value::<CharacterVisualsData>(vis.clone()) {
                 char_data.visuals = v;
+            }
+        }
+
+        // Page 5 Grimoire Recovery
+        if let Some(grim) = val.get("grimoire") {
+            if let Ok(g) = serde_json::from_value::<GrimoireData>(grim.clone()) {
+                char_data.grimoire = g;
             }
         }
 

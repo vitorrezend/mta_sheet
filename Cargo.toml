@@ -1,6 +1,6 @@
 [package]
 name = "mta_sheet"
-version = "0.7.0"
+version = "0.8.0"
 edition = "2024"
 
 [lints.clippy]
@@ -10,7 +10,6 @@ panic = "deny"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
-
 
 [dependencies]
 leptos = { version = "0.6" }
@@ -37,6 +36,8 @@ bcrypt = { version = "0.15", optional = true }
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"], optional = true }
 gloo-timers = { version = "0.3", features = ["futures"] }
 base64 = "0.22"
+rust-embed = { version = "8.5", optional = true }
+mime_guess = { version = "2.0", optional = true }
 
 [features]
 csr = ["leptos/csr", "leptos_router/csr", "leptos_meta/csr"]
@@ -51,6 +52,8 @@ ssr = [
     "dep:dotenvy",
     "dep:bcrypt",
     "dep:chrono",
+    "dep:rust-embed",
+    "dep:mime_guess",
     "leptos/ssr",
     "leptos_router/ssr",
     "leptos_meta/ssr",

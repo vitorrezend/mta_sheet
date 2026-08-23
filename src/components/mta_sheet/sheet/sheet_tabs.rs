@@ -6,6 +6,7 @@ pub enum SheetPageTab {
     MagicCombat,
     Expanded,
     HistoryVisuals,
+    Grimoire,
 }
 
 #[component]
@@ -87,6 +88,17 @@ pub fn SheetTabs(
                             <span class="sheet-tab-icon">"👤"</span>
                             <span class="sheet-tab-title">"História & Visual"</span>
                             <span class="sheet-tab-page-tag">"Pág. 4"</span>
+                        </button>
+
+                        <button 
+                            class="sheet-tab-btn"
+                            class:active=move || active_tab.get() == SheetPageTab::Grimoire
+                            on:click=move |_| set_active_tab.set(SheetPageTab::Grimoire)
+                            title="Página 5: Grimório, Práticas, Instrumentos e Rotinas Mágicas (Rotes)"
+                        >
+                            <span class="sheet-tab-icon">"📖"</span>
+                            <span class="sheet-tab-title">"Grimório"</span>
+                            <span class="sheet-tab-page-tag">"Pág. 5"</span>
                         </button>
                     }.into_view()
                 }}
