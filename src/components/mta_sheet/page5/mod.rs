@@ -1,4 +1,5 @@
 use leptos::*;
+use std::collections::HashSet;
 use crate::components::{StableTextArea, StableTextInput};
 use crate::state::{CharacterData, GrimoireRoteItem};
 
@@ -6,6 +7,19 @@ use crate::state::{CharacterData, GrimoireRoteItem};
 pub fn PageGrimoire() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
     let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
+
+    // Controle de cards de rotinas recolhidos/expandidos
+    let (collapsed_rotes, set_collapsed_rotes) = create_signal::<HashSet<String>>(HashSet::new());
+
+    let toggle_collapse = move |id: String| {
+        set_collapsed_rotes.update(|set| {
+            if set.contains(&id) {
+                set.remove(&id);
+            } else {
+                set.insert(id);
+            }
+        });
+    };
 
     // Paradigma Mágico
     let paradigm = Signal::derive(move || data.with(|d| d.grimoire.paradigm.clone()));
@@ -122,14 +136,20 @@ pub fn PageGrimoire() -> impl IntoView {
         <div class="sheet-page-content page-grimoire-content">
             // Box 1: Paradigma, Práticas e Instrumentos
             <div class="group-box grimoire-foundations-box">
-                <span class="group-title">"MAGICKAL FOUNDATION (Paradigma, Práticas & Instrumentos)"</span>
+                <span class="group-title">"MAGICKAL FOUNDATION"</span>
 
-                // Paradigma
-                <div class="grimoire-paradigm-row">
-                    <label class="grimoire-section-label">"PARADIGMA / FILOSOFIA MÁGICA:"</label>
+                // Banner Hero do Paradigma Central
+                <div class="grimoire-paradigm-hero">
+                    <div class="paradigm-header-wrap">
+                        <span class="paradigm-icon">"🔮"</span>
+                        <div class="paradigm-titles">
+                            <label class="paradigm-main-title">"PARADIGMA CENTRAL (CRENÇA MÁGICA)"</label>
+                            <span class="paradigm-sub-title">"A Filosofia e Verdade que moldam a Realidade do Mago"</span>
+                        </div>
+                    </div>
                     <StableTextInput 
                         class="grimoire-paradigm-input"
-                        placeholder="Ex: Tudo é Mente e Informação, A Criação é Alquimia Divina, Magia Mecânica..."
+                        placeholder="Ex: Tudo é Mente e Informação • A Criação é Alquimia Divina • Caos e Vontade Pura..."
                         value=paradigm
                         on_change=on_paradigm_change
                     />
@@ -140,12 +160,15 @@ pub fn PageGrimoire() -> impl IntoView {
                     // Coluna de Práticas
                     <div class="grimoire-list-col">
                         <div class="grimoire-col-header">
-                            <h3 class="column-title">"PRÁTICAS MÁGICAS (PRACTICES)"</h3>
+                            <div class="col-title-wrap">
+                                <span class="col-header-icon">"✦"</span>
+                                <h3 class="column-title">"PRÁTICAS MÁGICAS"</h3>
+                            </div>
                             <button 
                                 type="button"
-                                class="add-grimoire-item-btn" 
+                                class="add-grimoire-pill-btn" 
                                 on:click=add_practice
-                                title="Adicionar Prática Mágica"
+                                title="Adicionar nova Prática Mágica"
                             >
                                 "+ Prática"
                             </button>
@@ -161,10 +184,10 @@ pub fn PageGrimoire() -> impl IntoView {
                                     });
                                     view! {
                                         <div class="grimoire-list-item-row">
-                                            <span class="grimoire-item-bullet">"✦"</span>
+                                            <span class="grimoire-item-tag">{format!("{:02}", idx + 1)}</span>
                                             <StableTextInput 
                                                 class="grimoire-item-input"
-                                                placeholder="Ex: Alquimia, Alta Magia Ritual, Bruxaria, Artes Marciais..."
+                                                placeholder="Ex: Alquimia, Alta Magia Ritual, Bruxaria, Cybernética..."
                                                 value=val_sig
                                                 on_change=Callback::new(move |new_val| update_practice(idx, new_val))
                                             />
@@ -186,12 +209,15 @@ pub fn PageGrimoire() -> impl IntoView {
                     // Coluna de Instrumentos
                     <div class="grimoire-list-col">
                         <div class="grimoire-col-header">
-                            <h3 class="column-title">"INSTRUMENTOS MÁGICOS (INSTRUMENTS)"</h3>
+                            <div class="col-title-wrap">
+                                <span class="col-header-icon">"✧"</span>
+                                <h3 class="column-title">"INSTRUMENTOS MÁGICOS"</h3>
+                            </div>
                             <button 
                                 type="button"
-                                class="add-grimoire-item-btn" 
+                                class="add-grimoire-pill-btn" 
                                 on:click=add_instrument
-                                title="Adicionar Instrumento"
+                                title="Adicionar novo Instrumento"
                             >
                                 "+ Instrumento"
                             </button>
@@ -207,10 +233,10 @@ pub fn PageGrimoire() -> impl IntoView {
                                     });
                                     view! {
                                         <div class="grimoire-list-item-row">
-                                            <span class="grimoire-item-bullet">"✧"</span>
+                                            <span class="grimoire-item-tag">{format!("{:02}", idx + 1)}</span>
                                             <StableTextInput 
                                                 class="grimoire-item-input"
-                                                placeholder="Ex: Cálice de Prata, Varinha, Sigilos, Computador, Sangue..."
+                                                placeholder="Ex: Cálice de Prata, Varinha, Sigilos, Sangue, Computador..."
                                                 value=val_sig
                                                 on_change=Callback::new(move |new_val| update_instrument(idx, new_val))
                                             />
@@ -233,10 +259,13 @@ pub fn PageGrimoire() -> impl IntoView {
 
             // Box 2: Cards de Rotinas Mágicas (Rotes)
             <div class="group-box grimoire-rotes-box">
-                <span class="group-title">"MAGICKAL ROTES (Rotinas Mágicas & Feitiços)"</span>
+                <span class="group-title">"MAGICKAL ROTES (ROTINAS MÁGICAS)"</span>
 
                 <div class="rotes-header-actions">
-                    <span class="rotes-hint">"Rotinas consagradas, efeitos característicos e fórmulas místicas do Mago"</span>
+                    <div class="rotes-header-info">
+                        <span class="rotes-main-badge">"📜 Grimório de Feitiços"</span>
+                        <span class="rotes-hint">"Rotinas consagradas, fórmulas arcanas e efeitos característicos do Mago"</span>
+                    </div>
                     <button 
                         type="button"
                         class="add-rote-card-btn" 
@@ -254,12 +283,20 @@ pub fn PageGrimoire() -> impl IntoView {
                             view! {
                                 <div class="empty-rotes-banner">
                                     <span class="empty-rotes-icon">"📖"</span>
-                                    <p class="empty-rotes-title">"Nenhuma rotina mágica registrada ainda."</p>
-                                    <p class="empty-rotes-desc">"Clique no botão acima para adicionar suas rotinas, fórmulas e rituais ao Grimório."</p>
+                                    <p class="empty-rotes-title">"Nenhuma rotina mágica registrada no Grimório."</p>
+                                    <p class="empty-rotes-desc">"Clique no botão acima para adicionar feitiços, fórmulas e rituais."</p>
                                 </div>
                             }.into_view()
                         } else {
                             rotes.into_iter().enumerate().map(|(idx, rote)| {
+                                let rote_id = if rote.id.is_empty() { format!("rote_{}", idx) } else { rote.id.clone() };
+                                let rote_id_for_collapse = rote_id.clone();
+                                
+                                let is_collapsed = Signal::derive({
+                                    let r_id = rote_id.clone();
+                                    move || collapsed_rotes.get().contains(&r_id)
+                                });
+
                                 let rote_name = rote.name.clone();
                                 let rote_spheres = rote.spheres.clone();
                                 let rote_practice = rote.practice.clone();
@@ -294,10 +331,21 @@ pub fn PageGrimoire() -> impl IntoView {
                                 let rote_for_desc = rote.clone();
 
                                 view! {
-                                    <div class="rote-card">
+                                    <div class="rote-card" class:collapsed=is_collapsed>
                                         <div class="rote-card-header">
                                             <div class="rote-title-wrap">
-                                                <span class="rote-number-tag">{format!("#{}", idx + 1)}</span>
+                                                <button 
+                                                    type="button" 
+                                                    class="rote-collapse-btn"
+                                                    on:click={
+                                                        let r_id = rote_id_for_collapse.clone();
+                                                        move |_| toggle_collapse(r_id.clone())
+                                                    }
+                                                    title=move || if is_collapsed.get() { "Expandir Rotina" } else { "Recolher Rotina" }
+                                                >
+                                                    {move || if is_collapsed.get() { "▶" } else { "▼" }}
+                                                </button>
+                                                <span class="rote-number-tag">{format!("Rote #{:02}", idx + 1)}</span>
                                                 <StableTextInput 
                                                     class="rote-name-input"
                                                     placeholder="Nome da Rotina / Feitiço..."
@@ -309,72 +357,114 @@ pub fn PageGrimoire() -> impl IntoView {
                                                     })
                                                 />
                                             </div>
-                                            <button 
-                                                type="button"
-                                                class="remove-rote-card-btn"
-                                                on:click=move |_| remove_rote(idx)
-                                                title="Remover esta Rotina"
-                                            >
-                                                "×"
-                                            </button>
-                                        </div>
 
-                                        <div class="rote-meta-grid">
-                                            <div class="rote-meta-field">
-                                                <label class="rote-meta-label">"ESFERAS & NÍVEIS:"</label>
-                                                <StableTextInput 
-                                                    class="rote-meta-input rote-spheres-input"
-                                                    placeholder="Ex: Forças 3, Primórdio 2..."
-                                                    value=r_spheres_sig
-                                                    on_change=Callback::new(move |val| {
-                                                        let mut r = rote_for_spheres.clone();
-                                                        r.spheres = val;
-                                                        update_rote(idx, r);
-                                                    })
-                                                />
-                                            </div>
-
-                                            <div class="rote-meta-field">
-                                                <label class="rote-meta-label">"PRÁTICA UTILIZADA:"</label>
-                                                <StableTextInput 
-                                                    class="rote-meta-input"
-                                                    placeholder="Ex: Alquimia, Bruxaria, Hipertecnologia..."
-                                                    value=r_practice_sig
-                                                    on_change=Callback::new(move |val| {
-                                                        let mut r = rote_for_practice.clone();
-                                                        r.practice = val;
-                                                        update_rote(idx, r);
-                                                    })
-                                                />
-                                            </div>
-
-                                            <div class="rote-meta-field">
-                                                <label class="rote-meta-label">"FOCO & INSTRUMENTO:"</label>
-                                                <StableTextInput 
-                                                    class="rote-meta-input"
-                                                    placeholder="Ex: Adaga e Canto, Dispositivo Eletrônico..."
-                                                    value=r_focus_sig
-                                                    on_change=Callback::new(move |val| {
-                                                        let mut r = rote_for_focus.clone();
-                                                        r.focus = val;
-                                                        update_rote(idx, r);
-                                                    })
-                                                />
+                                            <div class="rote-header-actions-right">
+                                                <button 
+                                                    type="button"
+                                                    class="remove-rote-card-btn"
+                                                    on:click=move |_| remove_rote(idx)
+                                                    title="Remover esta Rotina"
+                                                >
+                                                    "×"
+                                                </button>
                                             </div>
                                         </div>
 
-                                        <div class="rote-desc-wrap">
-                                            <label class="rote-desc-label">"DESCRIÇÃO NARRATIVA & EFEITOS MECÂNICOS:"</label>
-                                            <StableTextArea 
-                                                class="rote-desc-textarea"
-                                                placeholder="Descreva o procedimento mágico, narrativa visual do feitiço, paradas de dados, dificuldade, gastos de quintessência, regras de paradoxo e efeitos..."
-                                                value=r_desc_sig
-                                                on_change=Callback::new(move |val| {
-                                                    let mut r = rote_for_desc.clone();
-                                                    r.description = val;
-                                                    update_rote(idx, r);
-                                                })
-                                            />
+                                        // Preview resumido quando recolhido
+                                        <div class="rote-collapsed-preview" class:tab-hidden=move || !is_collapsed.get()>
+                                            {move || {
+                                                let s_txt = r_spheres_sig.get();
+                                                let p_txt = r_practice_sig.get();
+                                                let f_txt = r_focus_sig.get();
+                                                view! {
+                                                    <div class="preview-pills-row">
+                                                        {if !s_txt.is_empty() {
+                                                            view! { <span class="preview-pill preview-spheres">{format!("🔮 {}", s_txt)}</span> }.into_view()
+                                                        } else {
+                                                            view! {}.into_view()
+                                                        }}
+                                                        {if !p_txt.is_empty() {
+                                                            view! { <span class="preview-pill preview-practice">{format!("⚡ {}", p_txt)}</span> }.into_view()
+                                                        } else {
+                                                            view! {}.into_view()
+                                                        }}
+                                                        {if !f_txt.is_empty() {
+                                                            view! { <span class="preview-pill preview-focus">{format!("🎯 {}", f_txt)}</span> }.into_view()
+                                                        } else {
+                                                            view! {}.into_view()
+                                                        }}
+                                                    </div>
+                                                }
+                                            }}
+                                        </div>
+
+                                        // Corpo Expandido do Card
+                                        <div class="rote-card-body" class:tab-hidden=is_collapsed>
+                                            <div class="rote-meta-grid">
+                                                <div class="rote-meta-field">
+                                                    <label class="rote-meta-label">
+                                                        <span class="meta-icon">"🔮"</span> "ESFERAS & NÍVEIS:"
+                                                    </label>
+                                                    <StableTextInput 
+                                                        class="rote-meta-input rote-spheres-input"
+                                                        placeholder="Ex: Forças 3, Primórdio 2..."
+                                                        value=r_spheres_sig
+                                                        on_change=Callback::new(move |val| {
+                                                            let mut r = rote_for_spheres.clone();
+                                                            r.spheres = val;
+                                                            update_rote(idx, r);
+                                                        })
+                                                    />
+                                                </div>
+
+                                                <div class="rote-meta-field">
+                                                    <label class="rote-meta-label">
+                                                        <span class="meta-icon">"⚡"</span> "PRÁTICA UTILIZADA:"
+                                                    </label>
+                                                    <StableTextInput 
+                                                        class="rote-meta-input"
+                                                        placeholder="Ex: Alquimia, Bruxaria, Cybernética..."
+                                                        value=r_practice_sig
+                                                        on_change=Callback::new(move |val| {
+                                                            let mut r = rote_for_practice.clone();
+                                                            r.practice = val;
+                                                            update_rote(idx, r);
+                                                        })
+                                                    />
+                                                </div>
+
+                                                <div class="rote-meta-field">
+                                                    <label class="rote-meta-label">
+                                                        <span class="meta-icon">"🎯"</span> "FOCO & INSTRUMENTO:"
+                                                    </label>
+                                                    <StableTextInput 
+                                                        class="rote-meta-input"
+                                                        placeholder="Ex: Adaga e Canto, Computador, Sangue..."
+                                                        value=r_focus_sig
+                                                        on_change=Callback::new(move |val| {
+                                                            let mut r = rote_for_focus.clone();
+                                                            r.focus = val;
+                                                            update_rote(idx, r);
+                                                        })
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div class="rote-desc-wrap">
+                                                <label class="rote-desc-label">
+                                                    <span class="desc-icon">"📜"</span> "DESCRIÇÃO NARRATIVA & EFEITOS MECÂNICOS:"
+                                                </label>
+                                                <StableTextArea 
+                                                    class="rote-desc-textarea"
+                                                    placeholder="Descreva o procedimento mágico, narrativa visual do feitiço, paradas de dados, dificuldade, gastos de quintessência, regras de paradoxo e efeitos..."
+                                                    value=r_desc_sig
+                                                    on_change=Callback::new(move |val| {
+                                                        let mut r = rote_for_desc.clone();
+                                                        r.description = val;
+                                                        update_rote(idx, r);
+                                                    })
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 }
@@ -386,10 +476,10 @@ pub fn PageGrimoire() -> impl IntoView {
 
             // Box 3: Anotações Gerais do Grimório
             <div class="group-box grimoire-notes-box">
-                <span class="group-title">"GRIMOIRE NOTES & SECRETS (Anotações do Tomo Mágico)"</span>
+                <span class="group-title">"GRIMOIRE SECRETS (ANOTAÇÕES DO TOMO)"</span>
                 <StableTextArea 
                     class="grimoire-notes-textarea"
-                    placeholder="Histórico do grimório, linhagem de mestres, linguagens herméticas ou enochianas, códigos arcanos e anotações adicionais..."
+                    placeholder="Histórico do tomo, linhagem de mestres, linguagens herméticas ou enochianas, cifras secretas, senhas arcanas e anotações adicionais..."
                     value=general_notes
                     on_change=on_general_notes_change
                 />

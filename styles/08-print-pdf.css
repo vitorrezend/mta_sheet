@@ -62,7 +62,10 @@
     .add-grimoire-item-btn,
     .remove-grimoire-btn,
     .add-rote-card-btn,
-    .remove-rote-card-btn {
+    .remove-rote-card-btn,
+    .rote-collapse-btn,
+    .add-grimoire-pill-btn,
+    .rote-collapsed-preview {
         display: none !important;
         visibility: hidden !important;
     }
@@ -119,6 +122,9 @@
     .rote-card {
         padding: 0.4rem 0.5rem !important;
         break-inside: avoid !important;
+    }
+    .rote-card.collapsed .rote-card-body {
+        display: flex !important;
     }
 
     /* 5. Textareas e Inputs sem caixas de rolagem */

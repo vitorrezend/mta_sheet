@@ -5,56 +5,86 @@
 .page-grimoire-content {
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
+    gap: 1.2rem;
     width: 100%;
     box-sizing: border-box;
 }
 
 /* ─── Box 1: Fundamentos Mágicos (Paradigma, Práticas & Instrumentos) ─── */
 .grimoire-foundations-box {
-    margin-top: 0.8rem;
+    margin-top: 1rem;
+    padding: 1.1rem 1rem 0.9rem 1rem !important;
+    position: relative;
 }
 
-.grimoire-paradigm-row {
+/* Hero Banner do Paradigma Central */
+.grimoire-paradigm-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(79, 70, 229, 0.03) 100%);
+    border: 1px solid #ddd6fe;
+    border-left: 4px solid #7c3aed;
+    border-radius: 8px;
+    padding: 0.75rem 0.9rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.05);
+}
+
+.paradigm-header-wrap {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 0.8rem;
-    padding-bottom: 0.6rem;
-    border-bottom: 1px dashed #cbd5e1;
-    width: 100%;
-    box-sizing: border-box;
+    gap: 0.5rem;
 }
 
-.grimoire-section-label {
+.paradigm-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.paradigm-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.paradigm-main-title {
     font-size: 0.72rem;
     font-weight: 800;
     text-transform: uppercase;
-    color: var(--primary-color, #1e293b);
-    letter-spacing: 0.05em;
-    white-space: nowrap;
-    flex-shrink: 0;
+    color: #5b21b6;
+    letter-spacing: 0.04em;
+}
+
+.paradigm-sub-title {
+    font-size: 0.62rem;
+    color: #64748b;
+    font-style: italic;
 }
 
 .grimoire-paradigm-input {
-    flex: 1;
-    border: none;
-    border-bottom: 1.5px solid #cbd5e1;
-    background: transparent;
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    background: #ffffff;
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--primary-color, #1e293b);
-    padding: 3px 6px;
+    padding: 6px 10px;
     font-family: inherit;
     transition: all 0.2s ease;
+    box-sizing: border-box;
 }
 
 .grimoire-paradigm-input:focus {
     outline: none;
-    border-bottom-color: #7c3aed;
-    background: rgba(124, 58, 237, 0.03);
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+    background: #ffffff;
 }
 
+
+/* Duas Colunas: Práticas & Instrumentos */
 .grimoire-2col-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -66,11 +96,11 @@
 .grimoire-list-col {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
-    background: rgba(0, 0, 0, 0.015);
+    gap: 0.5rem;
+    background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    padding: 0.6rem;
+    border-radius: 8px;
+    padding: 0.75rem;
     box-sizing: border-box;
 }
 
@@ -78,9 +108,19 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 0.35rem;
-    margin-bottom: 0.3rem;
+    border-bottom: 1.5px solid #e2e8f0;
+    padding-bottom: 0.4rem;
+}
+
+.col-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.col-header-icon {
+    font-size: 0.8rem;
+    color: #7c3aed;
 }
 
 .grimoire-col-header .column-title {
@@ -90,126 +130,161 @@
     text-align: left;
     font-size: 0.72rem;
     font-weight: 800;
-    color: #475569;
+    color: #334155;
+    letter-spacing: 0.03em;
 }
 
-.add-grimoire-item-btn {
-    background: #f8fafc;
-    border: 1px dashed #94a3b8;
+.add-grimoire-pill-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
     color: #475569;
-    border-radius: 4px;
+    border-radius: 9999px;
     font-size: 0.62rem;
     font-weight: 700;
     padding: 2px 8px;
     cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     transition: all 0.15s ease;
 }
 
-.add-grimoire-item-btn:hover {
+.add-grimoire-pill-btn:hover {
     background: #7c3aed;
     color: #ffffff;
     border-color: #7c3aed;
     transform: scale(1.04);
+    box-shadow: 0 2px 5px rgba(124, 58, 237, 0.25);
 }
 
 .grimoire-items-list {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.4rem;
 }
 
 .grimoire-list-item-row {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    width: 100%;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    padding: 3px 6px;
+    transition: all 0.15s ease;
 }
 
-.grimoire-item-bullet {
-    font-size: 0.65rem;
-    color: #7c3aed;
+.grimoire-list-item-row:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.grimoire-item-tag {
+    font-size: 0.58rem;
+    font-weight: 800;
+    color: #94a3b8;
+    background: #f1f5f9;
+    padding: 2px 4px;
+    border-radius: 3px;
     flex-shrink: 0;
 }
 
 .grimoire-item-input {
     flex: 1;
     border: none;
-    border-bottom: 1px dotted #cbd5e1;
     background: transparent;
     font-size: 0.78rem;
     color: var(--primary-color, #1e293b);
     padding: 2px 4px;
     font-family: inherit;
-    transition: border-color 0.2s;
+    width: 100%;
 }
 
 .grimoire-item-input:focus {
     outline: none;
-    border-bottom-color: #7c3aed;
-    background: rgba(124, 58, 237, 0.02);
 }
 
 .remove-grimoire-btn {
     background: transparent;
     border: none;
-    color: #ef4444;
+    color: #94a3b8;
     cursor: pointer;
     font-size: 1rem;
     line-height: 1;
     padding: 0 4px;
-    opacity: 0.4;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.15s ease;
 }
 
 .remove-grimoire-btn:hover {
-    opacity: 1;
-    transform: scale(1.2);
+    color: #ffffff;
+    background: #ef4444;
+    transform: scale(1.1);
 }
 
 
 /* ─── Box 2: Cards de Rotinas Mágicas (Rotes) ────────────────────────── */
 .grimoire-rotes-box {
-    margin-top: 0.8rem;
+    margin-top: 1rem;
+    padding: 1.1rem 1rem 0.9rem 1rem !important;
 }
 
 .rotes-header-actions {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.8rem;
-    padding-bottom: 0.4rem;
-    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1.5px solid #e2e8f0;
+}
+
+.rotes-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.rotes-main-badge {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .rotes-hint {
-    font-size: 0.68rem;
-    font-style: italic;
+    font-size: 0.65rem;
     color: #64748b;
+    font-style: italic;
 }
 
 .add-rote-card-btn {
-    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
     color: #ffffff;
     border: none;
-    border-radius: 6px;
+    border-radius: 9999px;
     font-size: 0.72rem;
     font-weight: 700;
-    padding: 4px 12px;
+    padding: 5px 14px;
     cursor: pointer;
     box-shadow: 0 2px 6px rgba(124, 58, 237, 0.25);
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .add-rote-card-btn:hover {
-    background: linear-gradient(135deg, #6d28d9, #4338ca);
-    box-shadow: 0 4px 10px rgba(124, 58, 237, 0.4);
+    background: linear-gradient(135deg, #6d28d9 0%, #4338ca 100%);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
     transform: translateY(-1px);
 }
 
 .rotes-cards-grid {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.85rem;
     width: 100%;
 }
 
@@ -218,29 +293,29 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 2rem 1rem;
-    background: rgba(0, 0, 0, 0.015);
-    border: 1px dashed #cbd5e1;
+    padding: 2.5rem 1rem;
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
     border-radius: 8px;
     text-align: center;
 }
 
 .empty-rotes-icon {
-    font-size: 2rem;
-    margin-bottom: 0.4rem;
-    opacity: 0.6;
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.7;
 }
 
 .empty-rotes-title {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     font-weight: 700;
-    color: #475569;
-    margin: 0 0 0.2rem 0;
+    color: #334155;
+    margin: 0 0 0.25rem 0;
 }
 
 .empty-rotes-desc {
     font-size: 0.72rem;
-    color: #94a3b8;
+    color: #64748b;
     margin: 0;
 }
 
@@ -249,12 +324,12 @@
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-left: 4px solid #7c3aed;
-    border-radius: 6px;
-    padding: 0.7rem 0.8rem;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+    padding: 0.75rem 0.9rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.6rem;
     transition: all 0.2s ease;
     box-sizing: border-box;
 }
@@ -262,7 +337,13 @@
 .rote-card:hover {
     border-color: #94a3b8;
     border-left-color: #6d28d9;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+}
+
+.rote-card.collapsed {
+    padding: 0.55rem 0.9rem;
+    gap: 0.35rem;
+    background: #fafafa;
 }
 
 .rote-card-header {
@@ -274,11 +355,34 @@
     padding-bottom: 0.4rem;
 }
 
+.rote-card.collapsed .rote-card-header {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
 .rote-title-wrap {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     flex: 1;
+}
+
+.rote-collapse-btn {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    color: #64748b;
+    font-size: 0.65rem;
+    padding: 3px 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.rote-collapse-btn:hover {
+    background: #7c3aed;
+    color: #ffffff;
+    border-color: #7c3aed;
 }
 
 .rote-number-tag {
@@ -287,9 +391,10 @@
     background: #f5f3ff;
     color: #7c3aed;
     border: 1px solid #ddd6fe;
-    padding: 2px 6px;
+    padding: 2px 7px;
     border-radius: 4px;
     flex-shrink: 0;
+    letter-spacing: 0.02em;
 }
 
 .rote-name-input {
@@ -301,15 +406,21 @@
     font-weight: 800;
     color: var(--primary-color, #1e293b);
     font-family: inherit;
-    padding: 2px 4px;
-    letter-spacing: -0.01em;
+    padding: 2px 6px;
     transition: all 0.2s ease;
 }
 
 .rote-name-input:focus {
     outline: none;
     border-bottom-color: #7c3aed;
-    background: #fdf4ff;
+    background: rgba(124, 58, 237, 0.04);
+    border-radius: 4px;
+}
+
+.rote-header-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
 }
 
 .remove-rote-card-btn {
@@ -319,19 +430,62 @@
     cursor: pointer;
     font-size: 1.2rem;
     line-height: 1;
-    padding: 0 4px;
+    padding: 2px 6px;
+    border-radius: 4px;
     transition: all 0.15s ease;
 }
 
 .remove-rote-card-btn:hover {
-    color: #ef4444;
-    transform: scale(1.25);
+    color: #ffffff;
+    background: #ef4444;
+}
+
+/* Preview Recolhido */
+.rote-collapsed-preview {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    padding-left: 2rem;
+}
+
+.preview-pill {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    line-height: 1.2;
+}
+
+.preview-spheres {
+    background: #f5f3ff;
+    color: #7c3aed;
+    border: 1px solid #ddd6fe;
+}
+
+.preview-practice {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+}
+
+.preview-focus {
+    background: #fefce8;
+    color: #ca8a04;
+    border: 1px solid #fef08a;
+}
+
+/* Corpo Expandido */
+.rote-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
 }
 
 .rote-meta-grid {
     display: grid;
     grid-template-columns: 1.2fr 1fr 1fr;
-    gap: 0.6rem;
+    gap: 0.7rem;
     width: 100%;
     box-sizing: border-box;
 }
@@ -339,24 +493,31 @@
 .rote-meta-field {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
 }
 
 .rote-meta-label {
     font-size: 0.62rem;
-    font-weight: 700;
-    color: #64748b;
+    font-weight: 800;
+    color: #475569;
     text-transform: uppercase;
     letter-spacing: 0.03em;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.meta-icon {
+    font-size: 0.75rem;
 }
 
 .rote-meta-input {
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
     background: #f8fafc;
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     color: var(--primary-color, #1e293b);
-    padding: 3px 6px;
+    padding: 4px 8px;
     font-family: inherit;
     transition: all 0.2s ease;
 }
@@ -365,39 +526,47 @@
     outline: none;
     border-color: #7c3aed;
     background: #ffffff;
-    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12);
 }
 
 .rote-spheres-input {
     font-weight: 700;
     color: #6d28d9;
+    background: #faf5ff;
+    border-color: #ddd6fe;
 }
 
 .rote-desc-wrap {
     display: flex;
     flex-direction: column;
     gap: 3px;
-    margin-top: 0.2rem;
 }
 
 .rote-desc-label {
     font-size: 0.62rem;
-    font-weight: 700;
-    color: #64748b;
+    font-weight: 800;
+    color: #475569;
     text-transform: uppercase;
     letter-spacing: 0.03em;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.desc-icon {
+    font-size: 0.75rem;
 }
 
 .rote-desc-textarea {
     width: 100%;
-    min-height: 55px;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    background: #fafafa;
-    font-size: 0.75rem;
-    line-height: 1.4;
+    min-height: 65px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    background: #fbfbfe;
+    font-size: 0.78rem;
+    line-height: 1.45;
     color: var(--primary-color, #1e293b);
-    padding: 6px 8px;
+    padding: 8px 10px;
     font-family: inherit;
     resize: vertical;
     box-sizing: border-box;
@@ -408,25 +577,26 @@
     outline: none;
     border-color: #7c3aed;
     background: #ffffff;
-    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12);
 }
 
 
 /* ─── Box 3: Anotações Gerais do Grimório ─────────────────────────────── */
 .grimoire-notes-box {
-    margin-top: 0.8rem;
+    margin-top: 1rem;
+    padding: 1.1rem 1rem 0.9rem 1rem !important;
 }
 
 .grimoire-notes-textarea {
     width: 100%;
-    min-height: 120px;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    background: #fafafa;
-    font-size: 0.78rem;
+    min-height: 130px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fbfbfe;
+    font-size: 0.8rem;
     line-height: 1.5;
     color: var(--primary-color, #1e293b);
-    padding: 8px 10px;
+    padding: 10px 12px;
     font-family: inherit;
     resize: vertical;
     box-sizing: border-box;
@@ -437,5 +607,5 @@
     outline: none;
     border-color: #7c3aed;
     background: #ffffff;
-    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
 }
