@@ -106,6 +106,14 @@ impl CharacterData {
                 rote.id = format!("rote_{}", uuid::Uuid::new_v4());
             }
         }
+
+        // Ensure minimum slots for practices and instruments (3)
+        while self.grimoire.practices.len() < 3 {
+            self.grimoire.practices.push(String::new());
+        }
+        while self.grimoire.instruments.len() < 3 {
+            self.grimoire.instruments.push(String::new());
+        }
     }
 
     /// Resilient JSON recovery for backwards compatibility and damaged data

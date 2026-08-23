@@ -12,8 +12,8 @@
 
 /* ─── Box 1: Fundamentos Mágicos (Paradigma, Práticas & Instrumentos) ─── */
 .grimoire-foundations-box {
-    margin-top: 1rem;
-    padding: 1.1rem 1rem 0.9rem 1rem !important;
+    margin-top: 1.5rem !important;
+    padding: 1.6rem 1rem 1rem 1rem !important;
     position: relative;
 }
 
@@ -226,16 +226,18 @@
 
 /* ─── Box 2: Cards de Rotinas Mágicas (Rotes) ────────────────────────── */
 .grimoire-rotes-box {
-    margin-top: 1rem;
-    padding: 1.1rem 1rem 0.9rem 1rem !important;
+    margin-top: 1.5rem !important;
+    padding: 1.6rem 1rem 1rem 1rem !important;
+    position: relative;
 }
 
 .rotes-header-actions {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 0.35rem;
     margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.6rem;
     border-bottom: 1.5px solid #e2e8f0;
 }
 
@@ -583,8 +585,9 @@
 
 /* ─── Box 3: Anotações Gerais do Grimório ─────────────────────────────── */
 .grimoire-notes-box {
-    margin-top: 1rem;
-    padding: 1.1rem 1rem 0.9rem 1rem !important;
+    margin-top: 1.5rem !important;
+    padding: 1.6rem 1rem 1rem 1rem !important;
+    position: relative;
 }
 
 .grimoire-notes-textarea {

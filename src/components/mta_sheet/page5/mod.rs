@@ -31,7 +31,7 @@ pub fn PageGrimoire() -> impl IntoView {
     let practices_list = Signal::derive(move || {
         let list = data.with(|d| d.grimoire.practices.clone());
         if list.is_empty() {
-            vec!["".to_string(), "".to_string(), "".to_string()]
+            vec![String::new(), String::new(), String::new()]
         } else {
             list
         }
@@ -39,12 +39,19 @@ pub fn PageGrimoire() -> impl IntoView {
 
     let add_practice = move |_| {
         set_data.update(|s| {
-            s.grimoire.practices.push(String::new());
+            if s.grimoire.practices.is_empty() {
+                s.grimoire.practices = vec![String::new(), String::new(), String::new(), String::new()];
+            } else {
+                s.grimoire.practices.push(String::new());
+            }
         });
     };
 
     let remove_practice = move |idx: usize| {
         set_data.update(|s| {
+            if s.grimoire.practices.is_empty() {
+                s.grimoire.practices = vec![String::new(), String::new(), String::new()];
+            }
             if idx < s.grimoire.practices.len() {
                 s.grimoire.practices.remove(idx);
             }
@@ -53,6 +60,9 @@ pub fn PageGrimoire() -> impl IntoView {
 
     let update_practice = move |idx: usize, val: String| {
         set_data.update(|s| {
+            if s.grimoire.practices.is_empty() {
+                s.grimoire.practices = vec![String::new(), String::new(), String::new()];
+            }
             while s.grimoire.practices.len() <= idx {
                 s.grimoire.practices.push(String::new());
             }
@@ -64,7 +74,7 @@ pub fn PageGrimoire() -> impl IntoView {
     let instruments_list = Signal::derive(move || {
         let list = data.with(|d| d.grimoire.instruments.clone());
         if list.is_empty() {
-            vec!["".to_string(), "".to_string(), "".to_string()]
+            vec![String::new(), String::new(), String::new()]
         } else {
             list
         }
@@ -72,12 +82,19 @@ pub fn PageGrimoire() -> impl IntoView {
 
     let add_instrument = move |_| {
         set_data.update(|s| {
-            s.grimoire.instruments.push(String::new());
+            if s.grimoire.instruments.is_empty() {
+                s.grimoire.instruments = vec![String::new(), String::new(), String::new(), String::new()];
+            } else {
+                s.grimoire.instruments.push(String::new());
+            }
         });
     };
 
     let remove_instrument = move |idx: usize| {
         set_data.update(|s| {
+            if s.grimoire.instruments.is_empty() {
+                s.grimoire.instruments = vec![String::new(), String::new(), String::new()];
+            }
             if idx < s.grimoire.instruments.len() {
                 s.grimoire.instruments.remove(idx);
             }
@@ -86,6 +103,9 @@ pub fn PageGrimoire() -> impl IntoView {
 
     let update_instrument = move |idx: usize, val: String| {
         set_data.update(|s| {
+            if s.grimoire.instruments.is_empty() {
+                s.grimoire.instruments = vec![String::new(), String::new(), String::new()];
+            }
             while s.grimoire.instruments.len() <= idx {
                 s.grimoire.instruments.push(String::new());
             }
