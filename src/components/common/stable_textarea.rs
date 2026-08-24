@@ -23,7 +23,7 @@ pub fn StableTextArea(
             if let Some(elem) = textarea_ref.get() {
                 elem.set_value(&val);
             }
-            last_synced_value.set(val);
+            let _ = last_synced_value.try_set(val);
         }
     });
 
@@ -32,16 +32,16 @@ pub fn StableTextArea(
             node_ref=textarea_ref
             class=class
             placeholder=placeholder
-            on:focus=move |_| is_focused.set(true)
+            on:focus=move |_| { let _ = is_focused.try_set(true); }
             on:blur=move |_| {
+                let _ = is_focused.try_set(false);
                 if let Some(elem) = textarea_ref.get() {
                     let current_val = elem.value();
                     if current_val != last_synced_value.get_untracked() {
-                        last_synced_value.set(current_val.clone());
+                        let _ = last_synced_value.try_set(current_val.clone());
                         on_change.call(current_val);
                     }
                 }
-                is_focused.set(false);
             }
         ></textarea>
     }
@@ -67,7 +67,7 @@ pub fn StableTextInput(
             if let Some(elem) = input_ref.get() {
                 elem.set_value(&val);
             }
-            last_synced_value.set(val);
+            let _ = last_synced_value.try_set(val);
         }
     });
 
@@ -77,17 +77,52 @@ pub fn StableTextInput(
             node_ref=input_ref
             class=class
             placeholder=placeholder
-            on:focus=move |_| is_focused.set(true)
+            on:focus=move |_| { let _ = is_focused.try_set(true); }
             on:blur=move |_| {
+                let _ = is_focused.try_set(false);
                 if let Some(elem) = input_ref.get() {
                     let current_val = elem.value();
                     if current_val != last_synced_value.get_untracked() {
-                        last_synced_value.set(current_val.clone());
+                        let _ = last_synced_value.try_set(current_val.clone());
                         on_change.call(current_val);
                     }
                 }
-                is_focused.set(false);
             }
         />
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_stable_inputs_instantiation_and_reactive_lifecycle() {
+        let runtime = create_runtime();
+        let (val_sig, set_val_sig) = create_signal("Texto Inicial".to_string());
+        let (_changed, set_changed) = create_signal(String::new());
+
+        let on_change = Callback::new(move |val| {
+            set_changed.set(val);
+        });
+
+        let _textarea_view = StableTextArea(StableTextAreaProps {
+            value: val_sig.into(),
+            on_change,
+            placeholder: "Digite...",
+            class: "custom-area",
+        });
+
+        let _input_view = StableTextInput(StableTextInputProps {
+            value: val_sig.into(),
+            on_change,
+            placeholder: "Digite...",
+            class: "custom-input",
+        });
+
+        set_val_sig.set("Texto Modificado".to_string());
+        assert_eq!(val_sig.get(), "Texto Modificado");
+
+        runtime.dispose();
     }
 }

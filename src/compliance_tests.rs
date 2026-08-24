@@ -207,4 +207,23 @@ mod compliance_tests {
         );
     }
 
+
+    #[test]
+    fn test_stable_inputs_use_safe_try_set_for_local_signals() {
+        let path = Path::new("src/components/common/stable_textarea.rs");
+        if let Ok(content) = fs::read_to_string(path) {
+            for (line_idx, line) in content.lines().enumerate() {
+                let trimmed = line.trim();
+                if (trimmed.contains("is_focused.set(") || trimmed.contains("last_synced_value.set("))
+                    && !trimmed.starts_with("//")
+                {
+                    panic!(
+                        "Linha {}: Uso de '.set(' em sinal local de input estável. Use '.try_set(' para evitar avisos de Signal Disposed ao desmontar/re-renderizar.",
+                        line_idx + 1
+                    );
+                }
+            }
+        }
+    }
+
 }
