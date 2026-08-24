@@ -1,50 +1,61 @@
 #!/bin/bash
 set -e
 
-# Navega até a raiz do projeto
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$PROJECT_ROOT"
+# Navega para o diretório raiz do projeto
+cd "$(dirname "$0")/.."
 
-# Garante que as ferramentas do Cargo (~/.cargo/bin) estejam no PATH
-export PATH="$HOME/.cargo/bin:$PATH"
+echo "========================================================================"
+echo "  MTA Sheet - Build Release Otimizado para Linux [Binário Standalone]"
+echo "========================================================================"
+echo ""
 
-echo "========================================================"
-echo "  MTA Sheet - Compilação Standalone (Executável Único)"
-echo "========================================================"
-
-# Carrega variáveis de ambiente caso exista .env
+# 1. Carrega variáveis de ambiente se existir
 if [ -f .env ]; then
-    set -a
-    source .env
-    set +a
+    export $(grep -v '^#' .env | xargs)
 fi
 
-echo "[1/3] Preparando diretórios e assets..."
+# 2. Cria diretórios essenciais
+echo "[1/4] Preparando diretórios e assets..."
+mkdir -p uploads
 mkdir -p target/site/pkg
 mkdir -p styles
-mkdir -p uploads
 
-echo "[2/3] Compilando Frontend WASM + Backend com Assets Embutidos..."
-
-if command -v cargo-leptos &> /dev/null; then
-    cargo leptos build --release
-else
-    echo "  -> [AVISO] 'cargo-leptos' não encontrado no PATH."
-    echo "  -> Compilando diretamente via Cargo nativo com --release..."
-    cargo build --release --features ssr
+# 3. Verifica target wasm32-unknown-unknown
+echo "[2/4] Verificando target wasm32-unknown-unknown..."
+if ! rustup target list | grep -q "wasm32-unknown-unknown (installed)"; then
+    echo "  -> Instalando target wasm32-unknown-unknown..."
+    rustup target add wasm32-unknown-unknown
 fi
 
-echo "[3/3] Empacotando executável único..."
+if ! command -v wasm-bindgen &> /dev/null; then
+    echo "  -> Instalando wasm-bindgen-cli..."
+    cargo install wasm-bindgen-cli --version 0.2.93 --locked
+fi
+
+# 4. Compilação
+echo "[3/4] Compilando Frontend WASM e Backend com Assets Embutidos..."
+echo "  -> [1/3] Compilando Frontend WASM Release..."
+cargo build --target wasm32-unknown-unknown --release --no-default-features --features hydrate
+
+echo "  -> [2/3] Gerando bindings JS e empacotando assets em pkg/..."
+wasm-bindgen --target web --out-dir target/site/pkg --out-name mta_sheet target/wasm32-unknown-unknown/release/mta_sheet.wasm --no-typescript
+cp style.css target/site/pkg/mta_sheet.css
+
+echo "  -> [3/3] Compilando Servidor Backend SSR com Assets Embutidos..."
+cargo build --release --no-default-features --features ssr
+
+# 5. Empacotamento
+echo "[4/4] Empacotando executável único..."
 
 SERVER_BIN=""
-if [ -f "target/server/release/mta_sheet_server" ]; then
-    SERVER_BIN="target/server/release/mta_sheet_server"
-elif [ -f "target/server/release/mta_sheet" ]; then
-    SERVER_BIN="target/server/release/mta_sheet"
-elif [ -f "target/release/mta_sheet_server" ]; then
+if [ -f "target/release/mta_sheet_server" ]; then
     SERVER_BIN="target/release/mta_sheet_server"
 elif [ -f "target/release/mta_sheet" ]; then
     SERVER_BIN="target/release/mta_sheet"
+elif [ -f "target/server/release/mta_sheet_server" ]; then
+    SERVER_BIN="target/server/release/mta_sheet_server"
+elif [ -f "target/server/release/mta_sheet" ]; then
+    SERVER_BIN="target/server/release/mta_sheet"
 fi
 
 if [ -z "$SERVER_BIN" ]; then
@@ -52,21 +63,15 @@ if [ -z "$SERVER_BIN" ]; then
     exit 1
 fi
 
-# Copia para o executável único na raiz
 cp "$SERVER_BIN" "./mta_sheet"
 chmod +x "./mta_sheet"
 
 SIZE=$(du -h "./mta_sheet" | cut -f1)
 
 echo ""
-echo "========================================================"
-echo "  ✅ Executável Único Gerado com Sucesso!"
-echo "========================================================"
-echo "  📍 Arquivo : $PROJECT_ROOT/mta_sheet"
-echo "  📦 Tamanho : $SIZE"
-echo "========================================================"
-echo ""
-echo "Este arquivo é 100% autocontido (WASM, JS, CSS e estilos embutidos)."
-echo "Você pode copiar APENAS o arquivo 'mta_sheet' para qualquer máquina Linux e rodar com:"
-echo "  ./mta_sheet"
-echo ""
+echo "========================================================================"
+echo "  Executável Standalone para Linux Gerado com Sucesso!"
+echo "========================================================================"
+echo "  Localização : $(pwd)/mta_sheet"
+echo "  Tamanho     : $SIZE"
+echo "========================================================================"
