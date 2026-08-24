@@ -623,6 +623,16 @@ impl GrimoireRoteItem {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct CharacterNotesData {
+    #[serde(default)]
+    pub session_notes: String,
+    #[serde(default)]
+    pub campaign_journal: String,
+    #[serde(default)]
+    pub attachment_image_url: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct GrimoireData {
     #[serde(default)]
     pub paradigm: String,
@@ -685,6 +695,8 @@ pub struct CharacterData {
     // Page 5: Grimoire
     #[serde(default)]
     pub grimoire: GrimoireData,
+    #[serde(default)]
+    pub notes_data: CharacterNotesData,
 }
 
 impl CharacterData {
@@ -710,6 +722,7 @@ impl CharacterData {
             description_data: CharacterDescriptionData::default(),
             visuals: CharacterVisualsData::default(),
             grimoire: GrimoireData::default(),
+            notes_data: CharacterNotesData::default(),
         };
         sheet.sanitize();
         sheet
@@ -737,6 +750,7 @@ impl CharacterData {
             description_data: CharacterDescriptionData::default(),
             visuals: CharacterVisualsData::default(),
             grimoire: GrimoireData::default(),
+            notes_data: CharacterNotesData::default(),
         };
         sheet.labels.insert("Type".to_string(), "Familiar".to_string());
         sheet.labels.insert("Concept".to_string(), "".to_string());

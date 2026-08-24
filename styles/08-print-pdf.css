@@ -62,6 +62,7 @@
     .add-grimoire-item-btn,
     .remove-grimoire-btn,
     .add-rote-card-btn,
+    .btn-remove-note-image,
     .remove-rote-card-btn,
     .rote-collapse-btn,
     .add-grimoire-pill-btn,
@@ -114,7 +115,8 @@
         margin-bottom: 0.3rem !important;
         padding: 0.4rem 0.6rem !important;
     }
-    .page-grimoire {
+    .page-grimoire,
+    .page-notes {
         gap: 0.35rem !important;
     }
     .page-grimoire .group-box {

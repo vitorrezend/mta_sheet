@@ -1,7 +1,7 @@
 use super::models::{
     keys, ArmorItem, AttributeValue, ChantryEntry, CharacterData, CharacterDescriptionData,
-    CharacterHistoryData, CharacterVisualsData, DotOrigin, ExpandedBackgroundsData, FlawItem, MeritItem,
-    PossessionsData, WeaponItem, WonderItem, GrimoireData, RoteSphereRequirement,
+    CharacterHistoryData, CharacterNotesData, CharacterVisualsData, DotOrigin, ExpandedBackgroundsData,
+    FlawItem, MeritItem, PossessionsData, WeaponItem, WonderItem, GrimoireData, RoteSphereRequirement,
 };
 
 impl CharacterData {
@@ -274,6 +274,12 @@ impl CharacterData {
         if let Some(grim) = val.get("grimoire") {
             if let Ok(g) = serde_json::from_value::<GrimoireData>(grim.clone()) {
                 char_data.grimoire = g;
+            }
+        }
+
+        if let Some(notes) = val.get("notes_data") {
+            if let Ok(n) = serde_json::from_value::<CharacterNotesData>(notes.clone()) {
+                char_data.notes_data = n;
             }
         }
 

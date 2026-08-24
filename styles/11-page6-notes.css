@@ -1,0 +1,203 @@
+/* ==========================================================================
+   11: PÁGINA 6 — NOTAS (ANOTAÇÕES DA SESSÃO, DIÁRIO DE CAMPANHA & ANEXOS)
+   ========================================================================== */
+
+.page-notes-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ─── Box 1: Anotações da Sessão ─────────────────────────────────────── */
+.notes-session-box {
+    margin-top: 1.5rem !important;
+    padding: 1.6rem 1rem 1rem 1rem !important;
+    position: relative;
+}
+
+/* ─── Box 2: Diário de Campanha ──────────────────────────────────────── */
+.notes-journal-box {
+    margin-top: 1.5rem !important;
+    padding: 1.6rem 1rem 1rem 1rem !important;
+    position: relative;
+}
+
+/* ─── Box 3: Anexos Visuais & Mapas (Até 10MB) ───────────────────────── */
+.notes-visual-box {
+    margin-top: 1.5rem !important;
+    padding: 1.6rem 1rem 1rem 1rem !important;
+    position: relative;
+}
+
+.notes-box-header-info {
+    margin-top: 0.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.notes-box-sub {
+    font-size: 0.65rem;
+    color: #64748b;
+    font-style: italic;
+}
+
+.notes-fullpage-textarea {
+    width: 100%;
+    min-height: 180px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fbfbfe;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--primary-color, #1e293b);
+    padding: 10px 12px;
+    font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.notes-fullpage-textarea:focus {
+    outline: none;
+    border-color: #7c3aed;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+/* Container de Anexo Visual */
+.notes-visual-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.8rem;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.notes-visual-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid #e2e8f0;
+    padding-bottom: 0.4rem;
+}
+
+.notes-visual-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.notes-visual-badge {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.notes-visual-desc {
+    font-size: 0.62rem;
+    color: #64748b;
+    font-style: italic;
+}
+
+.btn-remove-note-image {
+    background: transparent;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-remove-note-image:hover {
+    background: #ef4444;
+    color: #ffffff;
+    border-color: #ef4444;
+}
+
+.notes-image-preview-area {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.notes-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 2.2rem 1rem;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.notes-dropzone:hover {
+    border-color: #7c3aed;
+    background: #faf5ff;
+}
+
+.notes-dropzone-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.3rem;
+    opacity: 0.8;
+}
+
+.notes-dropzone-text {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 0.2rem;
+}
+
+.notes-dropzone-hint {
+    font-size: 0.65rem;
+    color: #64748b;
+}
+
+.notes-attached-image-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px;
+    max-height: 440px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.notes-attached-img {
+    max-width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+    border-radius: 6px;
+    transition: transform 0.2s ease;
+}
+
+.notes-attached-img:hover {
+    transform: scale(1.015);
+}
+
+.notes-image-error-msg {
+    color: #dc2626;
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin: 0.3rem 0 0 0;
+}

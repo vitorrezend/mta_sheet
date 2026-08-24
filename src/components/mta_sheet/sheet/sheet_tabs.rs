@@ -7,6 +7,7 @@ pub enum SheetPageTab {
     Expanded,
     HistoryVisuals,
     Grimoire,
+    Notes,
 }
 
 #[component]
@@ -99,6 +100,17 @@ pub fn SheetTabs(
                             <span class="sheet-tab-icon">"📖"</span>
                             <span class="sheet-tab-title">"Grimório"</span>
                             <span class="sheet-tab-page-tag">"Pág. 5"</span>
+                        </button>
+
+                        <button 
+                            class="sheet-tab-btn"
+                            class:active=move || active_tab.get() == SheetPageTab::Notes
+                            on:click=move |_| set_active_tab.set(SheetPageTab::Notes)
+                            title="Página 6: Anotações da Crônica, Diário de Campanha e Documentos Visuais"
+                        >
+                            <span class="sheet-tab-icon">"📝"</span>
+                            <span class="sheet-tab-title">"Notas"</span>
+                            <span class="sheet-tab-page-tag">"Pág. 6"</span>
                         </button>
                     }.into_view()
                 }}

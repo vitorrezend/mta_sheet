@@ -620,6 +620,28 @@ mod tests {
         assert_eq!(recovered.get_total_health_boxes(), 8);
     }
 
+
+    #[test]
+    fn test_page6_notes_serialization_and_recovery() {
+        let mut char_data = CharacterData::new("notes1".to_string(), "Mago Estudioso".to_string());
+        char_data.notes_data.session_notes = "Sessão 01: Encontro com o Hermético no Café Arcano.".to_string();
+        char_data.notes_data.campaign_journal = "Dia 14: Deciframos o pergaminho enochiano da Capela do Sol.".to_string();
+        char_data.notes_data.attachment_image_url = "/api/media/notes1/notes/mapa.png".to_string();
+
+        let json = serde_json::to_string(&char_data).unwrap();
+        let recovered: CharacterData = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(recovered.notes_data.session_notes, "Sessão 01: Encontro com o Hermético no Café Arcano.");
+        assert_eq!(recovered.notes_data.campaign_journal, "Dia 14: Deciframos o pergaminho enochiano da Capela do Sol.");
+        assert_eq!(recovered.notes_data.attachment_image_url, "/api/media/notes1/notes/mapa.png");
+
+        // Resilient recovery from legacy JSON
+        let legacy_json = r#"{"id":"legacy_notes","name":"Mago Sem Notas"}"#;
+        let recovered_legacy = CharacterData::from_raw_json_resilient("legacy_notes", legacy_json).unwrap();
+        assert_eq!(recovered_legacy.notes_data.session_notes, "");
+        assert_eq!(recovered_legacy.notes_data.attachment_image_url, "");
+    }
+
     #[test]
     fn test_page5_grimoire_serialization_and_recovery() {
         let mut char_data = CharacterData::new("grim1".to_string(), "Mago Alquimista".to_string());

@@ -7,6 +7,7 @@ use crate::components::mta_sheet::page2::PageMagicCombat;
 use crate::components::mta_sheet::page3::PageExpandedBackgroundsPossessions;
 use crate::components::mta_sheet::page4::PageHistoryDescriptionVisuals;
 use crate::components::mta_sheet::page5::PageGrimoire;
+use crate::components::mta_sheet::page6::PageNotes;
 use crate::components::mta_sheet::sheet::{
     ActiveDotOriginContext, CostBreakdownModal, SaveStatus, SheetPageTab, SheetTabs, SheetTopBar,
 };
@@ -346,6 +347,13 @@ pub fn CharacterSheet() -> impl IntoView {
                                     class:tab-hidden=move || active_tab.get() != SheetPageTab::Grimoire
                                 >
                                     <PageGrimoire />
+                                </div>
+
+                                <div 
+                                    class="sheet-page-tab-pane page-notes"
+                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::Notes
+                                >
+                                    <PageNotes />
                                 </div>
                             </Sheet>
                         }.into_view()
