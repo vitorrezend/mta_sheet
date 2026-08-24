@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::components::{ValueField, StableTextArea};
+use crate::components::{Callback, ValueField, StableTextArea};
 use crate::state::{CharacterData, DotOrigin, WeaponItem, MeritItem, FlawItem};
 use crate::components::character_sheet::ActiveDotOriginContext;
 use super::advantages::GodsLineInput;

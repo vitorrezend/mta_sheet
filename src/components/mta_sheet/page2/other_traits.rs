@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::components::ValueField;
+use crate::components::{Callback, ValueField};
 use crate::state::{CharacterData, DotOrigin};
 
 const OTHER_TRAITS_KEY: &str = "other_traits";

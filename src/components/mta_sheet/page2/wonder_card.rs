@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::components::{ValueField, StableTextArea, StableTextInput};
+use crate::components::{Callback, ValueField, StableTextArea, StableTextInput};
 use crate::state::{CharacterData, DotOrigin, WonderItem};
 #[allow(unused_imports)]
 use crate::state::save_uploaded_media;
@@ -235,42 +235,46 @@ pub fn WonderCard(
             </div>
 
             // Bloco de Imagem do Item (Upload de até 10MB ou Link URL)
-            {move || {
-                let url = current_image_url.get();
-                let is_visible = show_image_field.get() || !url.is_empty();
-                if is_visible {
-                    view! {
-                        <div class="wonder-image-section">
-                            <div class="wonder-image-controls-grid">
-                                <label class="wonder-file-upload-label" title="Upload de imagem local (até 10MB)">
-                                    "📁 Escolher Imagem (até 10MB)"
-                                    <input 
-                                        type="file" 
-                                        accept="image/*" 
-                                        class="wonder-hidden-file-input"
-                                        on:change=move |ev| on_image_file_change(idx, ev)
-                                    />
-                                </label>
-                                <StableTextInput 
-                                    class="wonder-image-url-input"
-                                    placeholder="Ou cole a URL da imagem (https://...)"
-                                    value=current_image_url
-                                    on_change=Callback::new(move |val| update_wonder_image(idx, val))
-                                />
-                            </div>
-                            {if !url.trim().is_empty() {
-                                let img_url = url.clone();
-                                let img_modal_url = url.clone();
-                                view! {
-                                    <div class="wonder-image-preview-wrapper">
-                                        <img 
-                                            src=img_url 
-                                            alt="Imagem da Maravilha (Clique para ampliar)"
-                                            class="wonder-image-preview"
-                                            loading="lazy"
-                                            title="Clique para abrir e dar zoom na imagem"
-                                            on:click=move |_| on_image_click.call(img_modal_url.clone())
+            {
+                let on_image_click = on_image_click.clone();
+                move || {
+                    let on_image_click = on_image_click.clone();
+                    let url = current_image_url.get();
+                    let is_visible = show_image_field.get() || !url.is_empty();
+                    if is_visible {
+                        view! {
+                            <div class="wonder-image-section">
+                                <div class="wonder-image-controls-grid">
+                                    <label class="wonder-file-upload-label" title="Upload de imagem local (até 10MB)">
+                                        "📁 Escolher Imagem (até 10MB)"
+                                        <input 
+                                            type="file" 
+                                            accept="image/*" 
+                                            class="wonder-hidden-file-input"
+                                            on:change=move |ev| on_image_file_change(idx, ev)
                                         />
+                                    </label>
+                                    <StableTextInput 
+                                        class="wonder-image-url-input"
+                                        placeholder="Ou cole a URL da imagem (https://...)"
+                                        value=current_image_url
+                                        on_change=Callback::new(move |val| update_wonder_image(idx, val))
+                                    />
+                                </div>
+                                {if !url.trim().is_empty() {
+                                    let img_url = url.clone();
+                                    let img_modal_url = url.clone();
+                                    let on_image_click = on_image_click.clone();
+                                    view! {
+                                        <div class="wonder-image-preview-wrapper">
+                                            <img 
+                                                src=img_url 
+                                                alt="Imagem da Maravilha (Clique para ampliar)"
+                                                class="wonder-image-preview"
+                                                loading="lazy"
+                                                title="Clique para abrir e dar zoom na imagem"
+                                                on:click=move |_| on_image_click.call(img_modal_url.clone())
+                                            />
                                         <button 
                                             type="button" 
                                             class="wonder-remove-image-btn" 

@@ -1,6 +1,6 @@
 use leptos::*;
 use std::collections::HashSet;
-use crate::components::{StableTextArea, StableTextInput};
+use crate::components::{Callback, StableTextArea, StableTextInput};
 use crate::state::{CharacterData, GrimoireRoteItem, RoteSphereRequirement};
 
 #[component]

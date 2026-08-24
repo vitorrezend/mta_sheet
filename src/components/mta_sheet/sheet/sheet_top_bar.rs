@@ -1,6 +1,7 @@
 use leptos::*;
 use leptos_router::A;
 use wasm_bindgen::JsCast;
+use crate::components::Callback;
 use crate::state::{CharacterData, CostSummary, DotOrigin};
 
 #[derive(Clone, PartialEq, Debug)]
@@ -32,7 +33,7 @@ pub fn SheetTopBar(
         let target = event_target::<web_sys::HtmlInputElement>(&ev);
         if let Some(file_list) = target.files() {
             if let Some(file) = file_list.get(0) {
-                let on_import = on_import_json;
+                let on_import = on_import_json.clone();
                 let file_reader = web_sys::FileReader::new().ok();
                 if let Some(fr) = file_reader {
                     let fr_clone = fr.clone();

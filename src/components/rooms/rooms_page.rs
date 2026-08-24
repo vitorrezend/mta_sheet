@@ -82,8 +82,11 @@ pub fn RoomsPage() -> impl IntoView {
         });
     };
 
-    let on_create_room = store_value(on_create_room);
-    let on_join_code = store_value(on_join_code);
+    let on_create_room = crate::components::SafeCallback::new(on_create_room);
+    let on_join_code = crate::components::SafeCallback::new(on_join_code);
+
+    let on_create_room_submit = on_create_room.clone();
+    let on_join_code_submit = on_join_code.clone();
 
     view! {
         <link rel="stylesheet" href="/style.css"/>
@@ -117,12 +120,15 @@ pub fn RoomsPage() -> impl IntoView {
                         <A href="/login" class="prompt-login-btn">"Entrar ou Criar Conta"</A>
                     </div>
                 }.into_view(),
-                Some(_) => view! {
+                Some(_) => {
+                    let on_create_cb = on_create_room_submit.clone();
+                    let on_join_cb = on_join_code_submit.clone();
+                    view! {
                     <div class="rooms-actions-grid">
                         // Create Room Card
                         <section class="room-action-card">
                             <h3>"👑 Criar Nova Crônica (Narrador)"</h3>
-                            <form on:submit=move |ev| on_create_room.with_value(|f| f(ev)) class="room-form">
+                            <form on:submit=move |ev| on_create_cb.call(ev) class="room-form">
                                 <input
                                     type="text"
                                     placeholder="Nome da Crônica (ex: Cabala dos Eus)"
@@ -149,7 +155,7 @@ pub fn RoomsPage() -> impl IntoView {
                         // Join Room Card
                         <section class="room-action-card">
                             <h3>"🔑 Entrar por Código"</h3>
-                            <form on:submit=move |ev| on_join_code.with_value(|f| f(ev)) class="room-form">
+                            <form on:submit=move |ev| on_join_cb.call(ev) class="room-form">
                                 <input
                                     type="text"
                                     placeholder="Código da Sala (ex: MTA-74A)"
@@ -216,7 +222,8 @@ pub fn RoomsPage() -> impl IntoView {
                             })}
                         </Suspense>
                     </section>
-                }.into_view(),
+                }.into_view()
+            },
             }}
         </div>
     }

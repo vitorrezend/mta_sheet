@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::components::StableTextInput;
+use crate::components::{Callback, StableTextInput};
 use crate::state::{CharacterData, ChantryEntry};
 
 #[component]

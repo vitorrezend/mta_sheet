@@ -8,7 +8,10 @@ pub mod rooms;
 pub mod views;
 
 // Re-export common UI components
-pub use common::{LabelColumn, LabelField, Navbar, Sheet, StableTextArea, StableTextInput, ValueField};
+pub use common::{
+    Callback, LabelColumn, LabelField, Navbar, SafeCallback, Sheet, StableTextArea,
+    StableTextInput, ValueField,
+};
 
 // Re-export MTA sheet components
 pub use mta_sheet::{

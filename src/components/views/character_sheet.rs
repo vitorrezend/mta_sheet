@@ -1,7 +1,7 @@
 use leptos::*;
 use leptos_router::*;
 use crate::state::{get_sheet, update_sheet, CharacterData, DotOrigin};
-use crate::components::common::Sheet;
+use crate::components::{Callback, Sheet};
 use crate::components::mta_sheet::page1::{Abilities, AdvantagesMta, Attributes, InfoHeader, Spheres};
 use crate::components::mta_sheet::page2::PageMagicCombat;
 use crate::components::mta_sheet::page3::PageExpandedBackgroundsPossessions;

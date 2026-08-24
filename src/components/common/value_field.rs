@@ -1,6 +1,7 @@
 use leptos::*;
 use std::rc::Rc;
 use crate::state::DotOrigin;
+use super::callback::Callback;
 
 #[component]
 pub fn ValueField(
@@ -118,51 +119,56 @@ pub fn ValueField(
                         </button>
                     }
                 })}
-                {move || if editing_label.get() {
-                    view! {
-                        <input 
-                            type="text" 
-                            class="label-edit-input"
-                            placeholder="..."
-                            maxlength="32"
-                            prop:value=local_label
-                            on:input=move |ev| set_local_label.set(event_target_value(&ev))
-                            on:blur=move |_| {
-                                let val = local_label.get();
-                                if !val.trim().is_empty() {
-                                    if let Some(cb) = on_label_change {
-                                        cb.call(val);
-                                    }
-                                    set_editing_label.set(false);
-                                }
-                            }
-                            on:keydown=move |ev| {
-                                if ev.key() == "Enter" {
+                {
+                    let on_label_change = on_label_change.clone();
+                    move || if editing_label.get() {
+                        let on_label_blur = on_label_change.clone();
+                        let on_label_enter = on_label_change.clone();
+                        view! {
+                            <input 
+                                type="text" 
+                                class="label-edit-input"
+                                placeholder="..."
+                                maxlength="32"
+                                prop:value=local_label
+                                on:input=move |ev| set_local_label.set(event_target_value(&ev))
+                                on:blur=move |_| {
                                     let val = local_label.get();
                                     if !val.trim().is_empty() {
-                                        if let Some(cb) = on_label_change {
+                                        if let Some(cb) = on_label_blur.as_ref() {
                                             cb.call(val);
                                         }
                                         set_editing_label.set(false);
                                     }
                                 }
-                            }
-                            on:mount=move |el: web_sys::HtmlInputElement| { 
-                                let _ = el.focus(); 
-                            }
-                        />
-                    }.into_view()
-                } else {
-                    view! {
-                        <span 
-                            class="attribute-label"
-                            class:affinity-active=move || is_starred.map(|s| s.get()).unwrap_or(false)
-                            on:dblclick=move |_| if is_editable { set_editing_label.set(true) }
-                        >
-                            {display_label}
-                        </span>
-                    }.into_view()
-                }}
+                                on:keydown=move |ev| {
+                                    if ev.key() == "Enter" {
+                                        let val = local_label.get();
+                                        if !val.trim().is_empty() {
+                                            if let Some(cb) = on_label_enter.as_ref() {
+                                                cb.call(val);
+                                            }
+                                            set_editing_label.set(false);
+                                        }
+                                    }
+                                }
+                                on:mount=move |el: web_sys::HtmlInputElement| { 
+                                    let _ = el.focus(); 
+                                }
+                            />
+                        }.into_view()
+                    } else {
+                        view! {
+                            <span 
+                                class="attribute-label"
+                                class:affinity-active=move || is_starred.map(|s| s.get()).unwrap_or(false)
+                                on:dblclick=move |_| if is_editable { set_editing_label.set(true) }
+                            >
+                                {display_label}
+                            </span>
+                        }.into_view()
+                    }
+                }
                 <span class="tooltip-text">{tooltip_label}</span>
             </div>
 
@@ -183,7 +189,7 @@ pub fn ValueField(
             </div>
 
             <div class="dots-container">
-                {move || (1..=max_level).map(|i| {
+                {(1..=max_level).map(|i| {
                     let dot_idx = (i - 1) as usize;
                     let is_filled = move || level.get() >= i;
                     let dot_color = move || {
@@ -205,23 +211,30 @@ pub fn ValueField(
 
                     let is_popover_open = move || open_popover_idx.get() == Some(dot_idx);
 
+                    let on_dot_change_for_right_click = on_dot_origin_change.clone();
                     let on_right_click = move |ev: ev::MouseEvent| {
                         ev.prevent_default();
-                        if level.get() >= i && on_dot_origin_change.is_some() {
+                        if level.get() >= i && on_dot_change_for_right_click.is_some() {
                             set_open_popover_idx.update(|cur| {
                                 *cur = if *cur == Some(dot_idx) { None } else { Some(dot_idx) };
                             });
                         }
                     };
 
+                    let on_dot_change_for_popover = on_dot_origin_change.clone();
                     let set_origin_to = move |origin: DotOrigin| {
-                        if let Some(cb) = on_dot_origin_change {
+                        if let Some(cb) = on_dot_change_for_popover.as_ref() {
                             cb.call((dot_idx, origin));
                         }
                         set_open_popover_idx.set(None);
                     };
 
                     let on_click_level = on_level_change_click.clone();
+
+                    let set_origin_base = set_origin_to.clone();
+                    let set_origin_bonus = set_origin_to.clone();
+                    let set_origin_xp = set_origin_to.clone();
+                    let set_origin_temp = set_origin_to;
 
                     view! {
                         <div class="dot-wrapper">
@@ -247,34 +260,38 @@ pub fn ValueField(
                             ></span>
 
                             {move || if is_popover_open() {
+                                let set_base = set_origin_base.clone();
+                                let set_bonus = set_origin_bonus.clone();
+                                let set_xp = set_origin_xp.clone();
+                                let set_temp = set_origin_temp.clone();
                                 view! {
                                     <div class="dot-origin-popover" on:click=move |ev| ev.stop_propagation()>
                                         <div class="popover-title">"Origem do Ponto:"</div>
                                         <div class="popover-options">
                                             <button 
                                                 class="popover-btn btn-base" 
-                                                on:click=move |_| set_origin_to(DotOrigin::Base)
+                                                on:click=move |_| set_base(DotOrigin::Base)
                                                 title="Criação Base"
                                             >
                                                 <span class="popover-dot dot-base"></span> "Base"
                                             </button>
                                             <button 
                                                 class="popover-btn btn-bonus" 
-                                                on:click=move |_| set_origin_to(DotOrigin::Bonus)
+                                                on:click=move |_| set_bonus(DotOrigin::Bonus)
                                                 title="Pontos de Bônus (Freebies)"
                                             >
                                                 <span class="popover-dot dot-bonus"></span> "Bônus"
                                             </button>
                                             <button 
                                                 class="popover-btn btn-xp" 
-                                                on:click=move |_| set_origin_to(DotOrigin::Experience)
+                                                on:click=move |_| set_xp(DotOrigin::Experience)
                                                 title="Experiência (XP)"
                                             >
                                                 <span class="popover-dot dot-xp"></span> "XP"
                                             </button>
                                             <button 
                                                 class="popover-btn btn-temp" 
-                                                on:click=move |_| set_origin_to(DotOrigin::Temporary)
+                                                on:click=move |_| set_temp(DotOrigin::Temporary)
                                                 title="Buff / Magia / Wonder"
                                             >
                                                 <span class="popover-dot dot-temp"></span> "Buff"

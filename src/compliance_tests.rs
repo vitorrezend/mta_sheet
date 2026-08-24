@@ -360,4 +360,28 @@ mod compliance_tests {
             "❌ 'output-name' deve estar explicitamente configurado como 'mta_sheet' em [package.metadata.leptos] para evitar geração de links vazios (/pkg/.js)."
         );
     }
+
+    #[test]
+    fn test_safe_callback_survives_runtime_disposal() {
+        use crate::components::common::callback::Callback;
+        use std::cell::Cell;
+        use std::rc::Rc;
+
+        let result = Rc::new(Cell::new(0));
+        let result_clone = result.clone();
+
+        let cb: Callback<i32> = {
+            let runtime = leptos::create_runtime();
+            let cb = Callback::new(move |val| {
+                result_clone.set(val * 2);
+            });
+            runtime.dispose();
+            cb
+        };
+
+        // Mesmo apos o descarte completo do runtime reativo do Leptos,
+        // o SafeCallback NUNCA entra em panic com 'could not get stored value'.
+        cb.call(21);
+        assert_eq!(result.get(), 42);
+    }
 }

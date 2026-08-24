@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::components::StableTextArea;
+use crate::components::{Callback, StableTextArea};
 use crate::state::CharacterData;
 
 #[component]

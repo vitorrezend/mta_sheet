@@ -1,4 +1,5 @@
 use leptos::*;
+use crate::components::Callback;
 use crate::state::{CharacterData, WonderItem};
 use super::wonder_card::WonderCard;
 use super::image_modal::ImageModal;

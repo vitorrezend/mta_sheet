@@ -1,5 +1,6 @@
 use leptos::*;
 use leptos::html::{Input, Textarea};
+use super::callback::Callback;
 
 /// Componente de Textarea Inteligente com Bloqueio de Foco.
 /// Previne travamentos e saltos de cursor ao isolar a digitação do usuário
@@ -108,7 +109,7 @@ mod tests {
 
         let _textarea_view = StableTextArea(StableTextAreaProps {
             value: val_sig.into(),
-            on_change,
+            on_change: on_change.clone(),
             placeholder: "Digite...",
             class: "custom-area",
         });

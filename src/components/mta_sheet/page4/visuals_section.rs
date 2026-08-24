@@ -1,6 +1,7 @@
 use leptos::*;
 use wasm_bindgen::JsCast;
 use web_sys::{FileReader, HtmlInputElement, ProgressEvent};
+use crate::components::Callback;
 use crate::components::page2::ImageModal;
 use crate::state::CharacterData;
 

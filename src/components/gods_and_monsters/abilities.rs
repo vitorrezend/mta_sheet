@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::components::ValueField;
+use crate::components::{Callback, ValueField};
 use crate::state::{CharacterData, DotOrigin};
 use crate::components::character_sheet::ActiveDotOriginContext;
 

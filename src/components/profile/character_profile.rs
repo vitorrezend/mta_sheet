@@ -1,6 +1,7 @@
 use leptos::*;
 use wasm_bindgen::JsCast;
 use web_sys::{Event, FileReader, HtmlInputElement, ProgressEvent};
+use crate::components::Callback;
 use crate::state::CharacterData;
 
 const MAX_FILE_SIZE_BYTES: f64 = 10.0 * 1024.0 * 1024.0; // 10MB

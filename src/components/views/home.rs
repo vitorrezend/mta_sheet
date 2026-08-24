@@ -2,7 +2,7 @@ use wasm_bindgen::JsCast;
 use leptos::*;
 use leptos_router::*;
 use crate::state::{get_sheets, get_public_sheets, set_sheet_visibility, create_sheet, delete_sheet, import_sheet, CharacterSummary};
-use crate::components::Navbar;
+use crate::components::{Callback, Navbar};
 use crate::AuthContext;
 
 #[component]
@@ -162,86 +162,90 @@ pub fn Home() -> impl IntoView {
                 </div>
             })}
 
-            {move || if user.get().is_none() {
-                view! {
-                    <div class="visitor-banner">
-                        <div class="visitor-banner-content">
-                            <span class="visitor-banner-icon">"🔮"</span>
-                            <div class="visitor-banner-text">
-                                <h3>"Modo Visitante"</h3>
-                                <p>"Suas fichas agora são 100% privadas. Conecte-se para criar, editar e acessar suas fichas salvas com segurança."</p>
+            {
+                let on_home_file_import = on_home_file_import.clone();
+                move || if user.get().is_none() {
+                    view! {
+                        <div class="visitor-banner">
+                            <div class="visitor-banner-content">
+                                <span class="visitor-banner-icon">"🔮"</span>
+                                <div class="visitor-banner-text">
+                                    <h3>"Modo Visitante"</h3>
+                                    <p>"Suas fichas agora são 100% privadas. Conecte-se para criar, editar e acessar suas fichas salvas com segurança."</p>
+                                </div>
                             </div>
+                            <A href="/login" class="visitor-login-btn">"Entrar / Cadastrar"</A>
                         </div>
-                        <A href="/login" class="visitor-login-btn">"Entrar / Cadastrar"</A>
-                    </div>
-                }.into_view()
-            } else {
-                view! {
-                    <section class="create-section">
-                        <h2>"Criar Nova Ficha"</h2>
-                        
-                        <div class="sheet-type-selector">
-                            <button
-                                type="button"
-                                class="type-pill-btn"
-                                class:active=move || selected_sheet_type.get() == "mage"
-                                on:click=move |_| set_selected_sheet_type.set("mage".to_string())
-                            >
-                                "🧙‍♂️ Mago: A Ascensão (4 Págs)"
-                            </button>
-                            <button
-                                type="button"
-                                class="type-pill-btn"
-                                class:active=move || selected_sheet_type.get() == "gods_and_monsters"
-                                on:click=move |_| set_selected_sheet_type.set("gods_and_monsters".to_string())
-                            >
-                                "🐉 Gods & Monsters (2 Págs)"
-                            </button>
-                        </div>
-
-                        <form on:submit=move |ev| on_create(ev) class="create-form">
-                            <input
-                                type="text"
-                                placeholder=move || if selected_sheet_type.get() == "gods_and_monsters" {
-                                    "🐉 Nome do Familiar / Monstro (ex: Quimera de Hermes)"
-                                } else {
-                                    "🧙‍♂️ Nome do Personagem (ex: Hermes Trismegisto)"
-                                }
-                                on:input=move |ev| set_name.set(event_target_value(&ev))
-                                prop:value=name
-                                class="name-input"
-                                disabled=is_creating
-                            />
-
-                            <div class="create-actions-group">
-                                <input 
-                                    type="file" 
-                                    accept=".json,application/json" 
-                                    node_ref=import_home_input_ref 
-                                    style="display: none;" 
-                                    on:change=move |ev| on_home_file_import.call(ev) 
-                                />
-                                <button type="submit" class="create-btn" disabled=move || is_creating.get() || is_importing.get()>
-                                    {move || if is_creating.get() { "✨ Criando..." } else { "+ Criar Ficha" }}
-                                </button>
-                                <button 
-                                    type="button" 
-                                    class="import-json-home-btn" 
-                                    disabled=move || is_creating.get() || is_importing.get()
-                                    on:click=move |_| {
-                                        if let Some(input) = import_home_input_ref.get() {
-                                            input.click();
-                                        }
-                                    }
-                                    title="Importar uma ficha salva em arquivo .json"
+                    }.into_view()
+                } else {
+                    let on_home_import_cb = on_home_file_import.clone();
+                    view! {
+                        <section class="create-section">
+                            <h2>"Criar Nova Ficha"</h2>
+                            
+                            <div class="sheet-type-selector">
+                                <button
+                                    type="button"
+                                    class="type-pill-btn"
+                                    class:active=move || selected_sheet_type.get() == "mage"
+                                    on:click=move |_| set_selected_sheet_type.set("mage".to_string())
                                 >
-                                    {move || if is_importing.get() { "📥 Importando..." } else { "📥 Importar JSON" }}
+                                    "🧙‍♂️ Mago: A Ascensão (4 Págs)"
+                                </button>
+                                <button
+                                    type="button"
+                                    class="type-pill-btn"
+                                    class:active=move || selected_sheet_type.get() == "gods_and_monsters"
+                                    on:click=move |_| set_selected_sheet_type.set("gods_and_monsters".to_string())
+                                >
+                                    "🐉 Gods & Monsters (2 Págs)"
                                 </button>
                             </div>
-                        </form>
-                    </section>
-                }.into_view()
-            }}
+
+                            <form on:submit=move |ev| on_create(ev) class="create-form">
+                                <input
+                                    type="text"
+                                    placeholder=move || if selected_sheet_type.get() == "gods_and_monsters" {
+                                        "🐉 Nome do Familiar / Monstro (ex: Quimera de Hermes)"
+                                    } else {
+                                        "🧙‍♂️ Nome do Personagem (ex: Hermes Trismegisto)"
+                                    }
+                                    on:input=move |ev| set_name.set(event_target_value(&ev))
+                                    prop:value=name
+                                    class="name-input"
+                                    disabled=is_creating
+                                />
+
+                                <div class="create-actions-group">
+                                    <input 
+                                        type="file" 
+                                        accept=".json,application/json" 
+                                        node_ref=import_home_input_ref 
+                                        style="display: none;" 
+                                        on:change=move |ev| on_home_import_cb.call(ev) 
+                                    />
+                                    <button type="submit" class="create-btn" disabled=move || is_creating.get() || is_importing.get()>
+                                        {move || if is_creating.get() { "✨ Criando..." } else { "+ Criar Ficha" }}
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        class="import-json-home-btn" 
+                                        disabled=move || is_creating.get() || is_importing.get()
+                                        on:click=move |_| {
+                                            if let Some(input) = import_home_input_ref.get() {
+                                                input.click();
+                                            }
+                                        }
+                                        title="Importar uma ficha salva em arquivo .json"
+                                    >
+                                        {move || if is_importing.get() { "📥 Importando..." } else { "📥 Importar JSON" }}
+                                    </button>
+                                </div>
+                            </form>
+                        </section>
+                    }.into_view()
+                }
+            }
 
             <div class="home-tabs-container">
                 {move || if user.get().is_some() {
