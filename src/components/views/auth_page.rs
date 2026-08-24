@@ -47,7 +47,7 @@ pub fn AuthPage() -> impl IntoView {
                     if let Some(auth_ctx) = auth {
                         auth_ctx.set_user.set(Some(user_info));
                     }
-                    navigate("/rooms", Default::default());
+                    navigate("/", Default::default());
                 }
                 Err(e) => {
                     set_error_msg.set(Some(e.to_string()));
