@@ -1,6 +1,7 @@
 use leptos::*;
 use leptos_router::A;
-use crate::state::{CostSummary, DotOrigin};
+use wasm_bindgen::JsCast;
+use crate::state::{CharacterData, CostSummary, DotOrigin};
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum SaveStatus {
@@ -22,9 +23,55 @@ pub fn SheetTopBar(
     on_toggle_privacy: Callback<()>,
     on_back_click: Callback<ev::MouseEvent>,
     do_manual_save: Callback<ev::MouseEvent>,
+    on_export_json: Callback<()>,
+    on_import_json: Callback<CharacterData>,
 ) -> impl IntoView {
+    let import_input_ref = create_node_ref::<html::Input>();
+
+    let on_file_change = move |ev: ev::Event| {
+        let target = event_target::<web_sys::HtmlInputElement>(&ev);
+        if let Some(file_list) = target.files() {
+            if let Some(file) = file_list.get(0) {
+                let on_import = on_import_json;
+                let file_reader = web_sys::FileReader::new().ok();
+                if let Some(fr) = file_reader {
+                    let fr_clone = fr.clone();
+                    let onload = wasm_bindgen::closure::Closure::wrap(Box::new(move |_: web_sys::ProgressEvent| {
+                        if let Ok(result) = fr_clone.result() {
+                            if let Some(text) = result.as_string() {
+                                match crate::components::common::parse_and_sanitize_sheet_json(&text) {
+                                    Ok(parsed_data) => {
+                                        on_import.call(parsed_data);
+                                    }
+                                    Err(err) => {
+                                        if let Some(w) = web_sys::window() {
+                                            let _ = w.alert_with_message(&format!("Erro ao importar arquivo JSON: {}", err));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }) as Box<dyn FnMut(_)>);
+
+                    fr.set_onload(Some(onload.as_ref().unchecked_ref()));
+                    onload.forget();
+                    let _ = fr.read_as_text(&file);
+                }
+            }
+        }
+        target.set_value("");
+    };
+
     view! {
         <header class="sheet-top-bar">
+            <input 
+                type="file" 
+                accept=".json,application/json" 
+                node_ref=import_input_ref 
+                style="display: none;" 
+                on:change=on_file_change 
+            />
+
             <div class="top-bar-left">
                 <a href="/" class="back-link" on:click=move |ev| on_back_click.call(ev)>"← Início"</a>
                 <A href="/logs" class="back-link logs-nav-link">"📊 Logs"</A>
@@ -116,8 +163,31 @@ pub fn SheetTopBar(
                         },
                     }}
                     <button class="manual-save-btn" on:click=move |ev| do_manual_save.call(ev) title="Salvar imediatamente">
-                        "Salvar"
+                        "💾 Salvar"
                     </button>
+
+                    <button 
+                        type="button" 
+                        class="json-top-btn json-import-btn"
+                        on:click=move |_| {
+                            if let Some(input) = import_input_ref.get() {
+                                input.click();
+                            }
+                        }
+                        title="Importar dados de um arquivo .json"
+                    >
+                        "📥 JSON"
+                    </button>
+
+                    <button 
+                        type="button" 
+                        class="json-top-btn json-export-btn"
+                        on:click=move |_| on_export_json.call(())
+                        title="Exportar e baixar esta ficha em arquivo .json"
+                    >
+                        "📤 JSON"
+                    </button>
+
                     <button 
                         type="button" 
                         class=move || if is_public.get() { "privacy-toggle-top-btn btn-public" } else { "privacy-toggle-top-btn btn-private" }
@@ -126,6 +196,7 @@ pub fn SheetTopBar(
                     >
                         {move || if is_public.get() { "🌐 Pública" } else { "🔒 Privada" }}
                     </button>
+
                     <button 
                         type="button" 
                         class="export-pdf-btn" 
@@ -134,7 +205,7 @@ pub fn SheetTopBar(
                                 let _ = w.print();
                             }
                         } 
-                        title="Exportar Ficha em PDF Oficial (4 Páginas A4)"
+                        title="Exportar Ficha em PDF Oficial (A4)"
                     >
                         "🖨️ PDF"
                     </button>

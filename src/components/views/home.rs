@@ -1,6 +1,7 @@
+use wasm_bindgen::JsCast;
 use leptos::*;
 use leptos_router::*;
-use crate::state::{get_sheets, get_public_sheets, set_sheet_visibility, create_sheet, delete_sheet, CharacterSummary};
+use crate::state::{get_sheets, get_public_sheets, set_sheet_visibility, create_sheet, delete_sheet, import_sheet, CharacterSummary};
 use crate::components::Navbar;
 use crate::AuthContext;
 
@@ -27,6 +28,54 @@ pub fn Home() -> impl IntoView {
     let (sheet_to_delete, set_sheet_to_delete) = create_signal(Option::<CharacterSummary>::None);
     let (is_creating, set_is_creating) = create_signal(false);
     let (selected_sheet_type, set_selected_sheet_type) = create_signal("mage".to_string());
+    let (is_importing, set_is_importing) = create_signal(false);
+    let import_home_input_ref = create_node_ref::<html::Input>();
+    let navigate = use_navigate();
+
+    let on_home_file_import = move |ev: ev::Event| {
+        let target = event_target::<web_sys::HtmlInputElement>(&ev);
+        if let Some(file_list) = target.files() {
+            if let Some(file) = file_list.get(0) {
+                let file_reader = web_sys::FileReader::new().ok();
+                if let Some(fr) = file_reader {
+                    let fr_clone = fr.clone();
+                    let nav = navigate.clone();
+                    set_is_importing.set(true);
+                    let onload = wasm_bindgen::closure::Closure::wrap(Box::new(move |_: web_sys::ProgressEvent| {
+                        if let Ok(result) = fr_clone.result() {
+                            if let Some(text) = result.as_string() {
+                                match crate::components::common::parse_and_sanitize_sheet_json(&text) {
+                                    Ok(sanitized) => {
+                                        let nav_clone = nav.clone();
+                                        spawn_local(async move {
+                                            match import_sheet(sanitized).await {
+                                                Ok(new_id) => {
+                                                    nav_clone(&format!("/sheet/{}", new_id), Default::default());
+                                                }
+                                                Err(e) => {
+                                                    set_is_importing.set(false);
+                                                    set_error_msg.set(Some(format!("Erro ao importar ficha: {}", e)));
+                                                }
+                                            }
+                                        });
+                                    }
+                                    Err(err) => {
+                                        set_is_importing.set(false);
+                                        set_error_msg.set(Some(format!("Arquivo JSON inválido: {}", err)));
+                                    }
+                                }
+                            }
+                        }
+                    }) as Box<dyn FnMut(_)>);
+
+                    fr.set_onload(Some(onload.as_ref().unchecked_ref()));
+                    onload.forget();
+                    let _ = fr.read_as_text(&file);
+                }
+            }
+        }
+        target.set_value("");
+    };
 
     let on_create = move |ev: ev::SubmitEvent| {
         ev.prevent_default();
@@ -101,6 +150,13 @@ pub fn Home() -> impl IntoView {
         <link rel="stylesheet" href="/style.css"/>
         <Navbar />
         <div class="home-container">
+            <input 
+                type="file" 
+                accept=".json,application/json" 
+                node_ref=import_home_input_ref 
+                style="display: none;" 
+                on:change=on_home_file_import 
+            />
             <header class="home-header">
                 <h1>"MTA Character Manager"</h1>
                 <p>"Gerencie suas fichas de Mago: A Ascensão e Gods & Monsters com total privacidade"</p>
@@ -163,9 +219,25 @@ pub fn Home() -> impl IntoView {
                                 class="name-input"
                                 disabled=is_creating
                             />
-                            <button type="submit" class="create-btn" disabled=is_creating>
-                                {move || if is_creating.get() { "✨ Criando..." } else { "+ Criar Ficha" }}
-                            </button>
+
+                            <div class="create-actions-group">
+                                <button type="submit" class="create-btn" disabled=move || is_creating.get() || is_importing.get()>
+                                    {move || if is_creating.get() { "✨ Criando..." } else { "+ Criar Ficha" }}
+                                </button>
+                                <button 
+                                    type="button" 
+                                    class="import-json-home-btn" 
+                                    disabled=move || is_creating.get() || is_importing.get()
+                                    on:click=move |_| {
+                                        if let Some(input) = import_home_input_ref.get() {
+                                            input.click();
+                                        }
+                                    }
+                                    title="Importar uma ficha salva em arquivo .json"
+                                >
+                                    {move || if is_importing.get() { "📥 Importando..." } else { "📥 Importar JSON" }}
+                                </button>
+                            </div>
                         </form>
                     </section>
                 }.into_view()
