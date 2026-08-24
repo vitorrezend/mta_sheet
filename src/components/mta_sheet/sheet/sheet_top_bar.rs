@@ -64,14 +64,6 @@ pub fn SheetTopBar(
 
     view! {
         <header class="sheet-top-bar">
-            <input 
-                type="file" 
-                accept=".json,application/json" 
-                node_ref=import_input_ref 
-                style="display: none;" 
-                on:change=on_file_change 
-            />
-
             <div class="top-bar-left">
                 <a href="/" class="back-link" on:click=move |ev| on_back_click.call(ev)>"← Início"</a>
                 <A href="/logs" class="back-link logs-nav-link">"📊 Logs"</A>
@@ -131,6 +123,13 @@ pub fn SheetTopBar(
             </div>
 
             <div class="top-bar-right">
+                <input 
+                    type="file" 
+                    accept=".json,application/json" 
+                    node_ref=import_input_ref 
+                    style="display: none;" 
+                    on:change=on_file_change 
+                />
                 <div class="save-status-container">
                     {move || match save_status.get() {
                         SaveStatus::Idle => view! { <span class="status-badge status-idle"></span> }.into_view(),

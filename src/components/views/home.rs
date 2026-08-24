@@ -32,7 +32,7 @@ pub fn Home() -> impl IntoView {
     let import_home_input_ref = create_node_ref::<html::Input>();
     let navigate = use_navigate();
 
-    let on_home_file_import = move |ev: ev::Event| {
+    let on_home_file_import = Callback::new(move |ev: ev::Event| {
         let target = event_target::<web_sys::HtmlInputElement>(&ev);
         if let Some(file_list) = target.files() {
             if let Some(file) = file_list.get(0) {
@@ -75,7 +75,7 @@ pub fn Home() -> impl IntoView {
             }
         }
         target.set_value("");
-    };
+    });
 
     let on_create = move |ev: ev::SubmitEvent| {
         ev.prevent_default();
@@ -150,13 +150,6 @@ pub fn Home() -> impl IntoView {
         <link rel="stylesheet" href="/style.css"/>
         <Navbar />
         <div class="home-container">
-            <input 
-                type="file" 
-                accept=".json,application/json" 
-                node_ref=import_home_input_ref 
-                style="display: none;" 
-                on:change=on_home_file_import 
-            />
             <header class="home-header">
                 <h1>"MTA Character Manager"</h1>
                 <p>"Gerencie suas fichas de Mago: A Ascensão e Gods & Monsters com total privacidade"</p>
@@ -221,6 +214,13 @@ pub fn Home() -> impl IntoView {
                             />
 
                             <div class="create-actions-group">
+                                <input 
+                                    type="file" 
+                                    accept=".json,application/json" 
+                                    node_ref=import_home_input_ref 
+                                    style="display: none;" 
+                                    on:change=move |ev| on_home_file_import.call(ev) 
+                                />
                                 <button type="submit" class="create-btn" disabled=move || is_creating.get() || is_importing.get()>
                                     {move || if is_creating.get() { "✨ Criando..." } else { "+ Criar Ficha" }}
                                 </button>
