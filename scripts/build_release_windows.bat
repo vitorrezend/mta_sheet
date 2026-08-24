@@ -1,6 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
+:: Navega para a raiz do projeto
 cd /d "%~dp0.."
 
 echo ========================================================================
@@ -26,10 +27,21 @@ if %ERRORLEVEL% NEQ 0 (
     rustup target add wasm32-unknown-unknown
 )
 
+set NEED_INSTALL_BINDGEN=0
 where wasm-bindgen >nul 2>nul
 if %ERRORLEVEL% NEQ 0 (
-    echo   -^> Instalando wasm-bindgen-cli...
-    cargo install wasm-bindgen-cli --version 0.2.93 --locked
+    set NEED_INSTALL_BINDGEN=1
+) else (
+    wasm-bindgen --version 2>nul | findstr /C:"0.2.121" >nul
+    if !ERRORLEVEL! NEQ 0 (
+        echo   -^> wasm-bindgen desatualizado detectado. Atualizando para versao 0.2.121...
+        set NEED_INSTALL_BINDGEN=1
+    )
+)
+
+if "!NEED_INSTALL_BINDGEN!"=="1" (
+    echo   -^> Instalando wasm-bindgen-cli versao 0.2.121...
+    cargo install wasm-bindgen-cli --version 0.2.121 --locked
 )
 
 echo [3/4] Compilando Frontend WASM e Backend com Assets Embutidos...
@@ -45,6 +57,12 @@ if %ERRORLEVEL% NEQ 0 (
 
 echo   -^> [2/3] Gerando bindings JS e empacotando assets em pkg/...
 wasm-bindgen --target web --out-dir target\site\pkg --out-name mta_sheet target\wasm32-unknown-unknown\release\mta_sheet.wasm --no-typescript
+if %ERRORLEVEL% NEQ 0 (
+    echo [ERRO CRITICO] O wasm-bindgen falhou ao processar os bindings.
+    pause
+    exit /b %ERRORLEVEL%
+)
+
 copy /Y style.css target\site\pkg\mta_sheet.css >nul
 
 echo   -^> [3/3] Compilando Servidor Backend SSR com Assets Embutidos...
@@ -95,7 +113,7 @@ echo   [+] Zero Dependencias Externas: Nao requer Node.js, nem Python, nem DLLs 
 echo   [+] Banco SQLite Local: Cria e gerencia automaticamente mta_sheet.db.
 echo.
 echo Como executar:
-echo   1. De duplo clique em 'mta_sheet.exe' ou use 'scripts\run_project_release.bat'.
+echo   1. De duplo clique em 'mta_sheet.exe' ou use 'scripts\run_release.bat'.
 echo   2. Acesse: http://localhost:3000
 echo.
 
@@ -106,4 +124,3 @@ if /i "!RUN_NOW!"=="s" (
     .\mta_sheet.exe
 )
 
-pause

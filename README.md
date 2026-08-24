@@ -20,8 +20,7 @@ O sistema é 100% autocontido, com renderização no servidor (SSR), hidrataçã
 - [Configuração de Banco de Dados (Já Pré-Configurado)](#-configuração-de-banco-de-dados-já-pré-configurado)
 - [Como Compilar e Gerar Executáveis](#-como-compilar-e-gerar-executáveis)
   - [1. Compilar para Linux (Executável Único)](#1-compilar-para-linux-executável-único)
-  - [2. Cross-Compilar para Windows no Linux (.exe Standalone)](#2-cross-compilar-para-windows-no-linux-exe-standalone)
-  - [3. Compilar Nativamente no Windows](#3-compilar-nativamente-no-windows)
+  - [2. Compilar para Windows (.exe Standalone)](#2-compilar-para-windows-exe-standalone)
 - [Ambiente de Desenvolvimento (Modo Watch / Hot-Reload)](#-ambiente-de-desenvolvimento-modo-watch--hot-reload)
 - [Estrutura do Projeto](#-estrutura-do-projeto)
 - [Testes Automatizados e Resiliência](#-testes-automatizados-e-resiliência)
@@ -34,7 +33,7 @@ O sistema é 100% autocontido, com renderização no servidor (SSR), hidrataçã
 1. **Página 1 (Principal)**:
    - Atributos (Físicos, Sociais, Mentais) e Habilidades (Talentos, Perícias, Conhecimentos).
    - Vantagens: Esferas com **Seletor de Esfera de Afinidade (⭐ Estrela Dourada)**.
-   - **Força de Vontade Flexível**: Evolução além do 5º ponto com Pontos de Bônus (1 pt) ou XP (Nível $	imes$ 1), menu de contexto no botão direito e pílulas de extrato.
+   - **Força de Vontade Flexível**: Evolução além do 5º ponto com Pontos de Bônus (1 pt) ou XP (Nível × 1), menu de contexto no botão direito e pílulas de extrato.
    - Vitalidade com cascata de dano WoD (Contusivo, Letal, Agravado).
 2. **Página 2 (Magia & Combate)**:
    - Qualidades & Defeitos (com cálculo de pontos de bônus e XP).
@@ -56,6 +55,7 @@ O sistema é 100% autocontido, com renderização no servidor (SSR), hidrataçã
 ### 🐾 Outros Recursos
 - **Ficha Especial Gods & Monsters (2 Páginas)**: Para companheiros, familiares, construtos, fadas, vampiros e ciborgues.
 - **Salas de Jogo em Tempo Real (Mesas de Crônica)**: Criação de salas com chat de dados e sincronização de fichas.
+- **Exportação e Importação JSON**: Backup completo de fichas com integridade e validação de schema.
 - **Exportação para PDF Vetorial Oficial**: Botão de impressão com CSS vetorial A4 para exportar todas as páginas diagramadas.
 - **Auto-Save Inteligente**: Salvamento automático com debounce de 1.2s e salvamento imediato ao trocar de página.
 
@@ -67,7 +67,11 @@ O sistema é 100% autocontido, com renderização no servidor (SSR), hidrataçã
 1. Copie o arquivo [`mta_sheet.exe`](./mta_sheet.exe) para qualquer pasta no seu computador.
 2. Dê **dois cliques no arquivo** (ou execute via Prompt de Comando / PowerShell):
    ```cmd
-   mta_sheet.exe
+   .\mta_sheet.exe
+   ```
+   *Ou execute através do script utilitário:*
+   ```cmd
+   .\scripts\run_release.bat
    ```
 3. Abra seu navegador em: **`http://localhost:3000`**.
 
@@ -78,6 +82,10 @@ O sistema é 100% autocontido, com renderização no servidor (SSR), hidrataçã
    ```bash
    chmod +x ./mta_sheet
    ./mta_sheet
+   ```
+   *Ou execute através do script utilitário:*
+   ```bash
+   ./scripts/run_release.sh
    ```
 2. Abra seu navegador em: **`http://localhost:3000`**.
 
@@ -111,7 +119,7 @@ AUTH_SECRET=seu_segredo_super_seguro
 ### Pré-requisitos de Compilação
 - **Rust (versão 1.80+)**: [https://rustup.rs/](https://rustup.rs/)
 - **Target WebAssembly**: `rustup target add wasm32-unknown-unknown`
-- **cargo-leptos**: `cargo install cargo-leptos`
+- **wasm-bindgen-cli** e **cargo-leptos**: `cargo install wasm-bindgen-cli --version 0.2.121 cargo-leptos`
 
 ---
 
@@ -120,35 +128,20 @@ AUTH_SECRET=seu_segredo_super_seguro
 Gera um binário compilado nativamente para Linux com todos os assets (HTML, WASM, CSS, JS) embutidos:
 
 ```bash
-./build_release.sh
+./scripts/build_release.sh
 ```
 *Gera o arquivo `./mta_sheet` na raiz.*
 
 ---
 
-### 2. Cross-Compilar para Windows no Linux (`.exe` Standalone)
+### 2. Compilar para Windows (.exe Standalone)
 
-Permite que você compile diretamente do seu terminal Linux um executável nativo `.exe` de **apenas 7,7 MB** para Windows x64:
-
-```bash
-./build_release_windows.sh
-```
-
-**Como funciona:**
-- Utiliza `cargo-zigbuild` + target `x86_64-pc-windows-gnu`.
-- Otimizações extremas habilitadas: Link-Time Optimization (`lto = true`), Otimização de Tamanho (`opt-level = 'z'`), Remoção de Símbolos (`strip = true`) e Unidades Únicas (`codegen-units = 1`).
-- *Gera o arquivo `./mta_sheet.exe` na raiz.*
-
----
-
-### 3. Compilar Nativamente no Windows
-
-Se você estiver em uma máquina Windows com a toolchain Rust instalada:
+Gera um executável standalone otimizado para Windows com todos os assets embutidos:
 
 ```cmd
-cargo leptos build --release
+.\scripts\build_release.bat
 ```
-O executável será gerado em `target/server/release/mta_sheet.exe`.
+*Gera o arquivo `.\mta_sheet.exe` na raiz.*
 
 ---
 
@@ -158,14 +151,14 @@ Para programar com recompilação automática ao salvar arquivos:
 
 ### No Linux:
 ```bash
-./scripts/run_project_dev.sh
+./scripts/dev.sh
 # ou diretamente:
 cargo leptos watch
 ```
 
 ### No Windows:
 ```cmd
-scriptsun_project.bat
+.\scripts\dev.bat
 # ou diretamente:
 cargo leptos watch
 ```
@@ -180,7 +173,7 @@ O servidor iniciará em `http://127.0.0.1:3000` com recarga automática de abas 
 mta_sheet/
 ├── src/
 │   ├── components/
-│   │   ├── common/             # Componentes reutilizáveis (ValueField, StableTextArea, Navbar)
+│   │   ├── common/             # Componentes reutilizáveis (ValueField, StableTextArea, Navbar, Export/Import)
 │   │   ├── gods_and_monsters/  # Ficha de 2 páginas Gods & Monsters
 │   │   ├── mta_sheet/          # Ficha Oficial M20 (Páginas 1 a 6)
 │   │   │   ├── page1/          # Atributos, Habilidades, Esferas, Vontade, Vitalidade
@@ -198,9 +191,11 @@ mta_sheet/
 │   ├── compliance_tests.rs     # Testes estáticos de conformidade anti-panic
 │   └── state/                  # Modelos, regras de custo M20, sanitização e Server Functions
 ├── styles/                     # CSS Modular dividido em 11 domínios estéticos
-├── scripts/                    # Scripts utilitários de build e execução
-├── build_release.sh            # Script de build standalone Linux
-├── build_release_windows.sh    # Script de cross-compilação standalone Windows (.exe)
+├── scripts/                    # Scripts utilitários de build, dev e commit (Windows e Linux)
+│   ├── dev.bat / dev.sh                    # Inicia ambiente de desenvolvimento com hot-reload
+│   ├── build_release.bat / build_release.sh# Gera binário release standalone otimizado
+│   ├── run_release.bat / run_release.sh    # Executa o binário release com configurações
+│   └── commit.bat / commit.ps1             # Automação de commit assistido e push
 └── Cargo.toml                  # Configurações do Rust, dependências e profiles
 ```
 
@@ -208,7 +203,7 @@ mta_sheet/
 
 ## 🧪 Testes Automatizados e Resiliência
 
-O projeto possui **31 testes automatizados** cobrindo:
+O projeto possui **testes automatizados** cobrindo:
 - **Regras Oficiais M20**: Cálculos de custos de Pontos de Bônus e Pontos de Experiência (Arete, Esferas, Atributos, Habilidades, Maravilhas, Qualidades/Defeitos).
 - **Fuzzing & Sanitização Resiliente**: Tolerância a falhas e recuperação automática de JSONs corrompidos ou legados.
 - **Segurança de Mídia**: Validação de Magic Bytes contra injeção de arquivos maliciosos em uploads de imagens.

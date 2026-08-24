@@ -1,19 +1,18 @@
 @echo off
-chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 :: Navega para a raiz do projeto
 cd /d "%~dp0.."
 
 echo =======================================================
-echo   🧙 MTA Sheet - Executando em Modo Release (Windows)
+echo   MTA Sheet - Executando em Modo Release (Windows)
 echo =======================================================
 echo.
 
 if not exist "mta_sheet.exe" (
     echo [AVISO] O executavel mta_sheet.exe nao foi encontrado na raiz.
     echo [INFO] Iniciando build de release primeiro...
-    call "scripts\build_release_windows.bat"
+    call "%~dp0build_release_windows.bat"
     if not exist "mta_sheet.exe" (
         echo [ERRO] Executavel nao disponivel.
         pause
