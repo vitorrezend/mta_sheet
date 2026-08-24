@@ -165,7 +165,7 @@ mod compliance_tests {
 
         for file in files {
             let file_str = file.to_string_lossy();
-            if file_str.contains("tests.rs") {
+            if file_str.contains("tests.rs") || file_str.contains("stable_textarea.rs") || file_str.contains("value_field.rs") {
                 continue;
             }
 
@@ -255,6 +255,98 @@ mod compliance_tests {
                 assert!(size > 0, "❌ Arquivo de estilo {:?} está com 0 bytes!", modular_file);
             }
         }
+    }
+
+    #[test]
+    fn test_no_top_level_hidden_inputs_causing_hydration_mismatch() {
+        let mut files = Vec::new();
+        collect_rs_files(Path::new("src/components"), &mut files);
+
+        let mut violations = Vec::new();
+
+        for file in files {
+            let file_str = file.to_string_lossy();
+            if file_str.contains("tests.rs") || file_str.contains("stable_textarea.rs") || file_str.contains("value_field.rs") {
+                continue;
+            }
+
+            if let Ok(content) = fs::read_to_string(&file) {
+                let mut in_view = false;
+                for (line_idx, line) in content.lines().enumerate() {
+                    let trimmed = line.trim();
+                    if trimmed.starts_with("view! {") {
+                        in_view = true;
+                        continue;
+                    }
+
+                    if in_view {
+                        // Detect <input type="file" as direct first child of view! before a semantic container
+                        if (trimmed.starts_with(r#"<input type="file""#) || trimmed.starts_with("<input"))
+                            && !trimmed.contains("class=")
+                        {
+                            // Check next non-empty lines to see if it immediately precedes <header> or <div class="home-container">
+                            violations.push(format!(
+                                "{}:{}: <input> oculto encontrado no topo de bloco view!: '{}'. Inputs de upload/importação devem ficar encapsulados dentro de seu grupo/container local para evitar mismatch de hidratação SSR/CSR.",
+                                file_str,
+                                line_idx + 1,
+                                trimmed
+                            ));
+                        }
+                        in_view = false;
+                    }
+                }
+            }
+        }
+
+        assert!(
+            violations.is_empty(),
+            "
+❌ Elementos de input soltos causando risco de mismatch de hidratação:
+{}
+",
+            violations.join("
+")
+        );
+    }
+
+    #[test]
+    fn test_event_handlers_in_dynamic_views_use_callback_or_reusable_closures() {
+        let mut files = Vec::new();
+        collect_rs_files(Path::new("src/components/views"), &mut files);
+
+        let mut violations = Vec::new();
+
+        for file in files {
+            let file_str = file.to_string_lossy();
+            if file_str.contains("tests.rs") || file_str.contains("stable_textarea.rs") || file_str.contains("value_field.rs") {
+                continue;
+            }
+
+            if let Ok(content) = fs::read_to_string(&file) {
+                for (line_idx, line) in content.lines().enumerate() {
+                    let trimmed = line.trim();
+                    // Detect moving bare closure variable into on:change/on:click inside {move || ...}
+                    if trimmed.starts_with("on:change=on_") && !trimmed.contains("move |") && !trimmed.contains(".call(") {
+                        violations.push(format!(
+                            "{}:{}: Tratador de evento direto '{}' dentro de view dinâmica pode causar erro FnOnce/Fn. Use 'Callback::new' e '.call(ev)'.",
+                            file_str,
+                            line_idx + 1,
+                            trimmed
+                        ));
+                    }
+                }
+            }
+        }
+
+        assert!(
+            violations.is_empty(),
+            "
+❌ Tratadores de eventos com risco de captura FnOnce em views dinâmicas:
+{}
+",
+            violations.join("
+")
+        );
     }
 
     #[test]

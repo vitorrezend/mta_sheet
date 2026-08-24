@@ -66,7 +66,7 @@ pub fn SheetTopBar(
         <header class="sheet-top-bar">
             <div class="top-bar-left">
                 <a href="/" class="back-link" on:click=move |ev| on_back_click.call(ev)>"← Início"</a>
-                <A href="/logs" class="back-link logs-nav-link">"📊 Logs"</A>
+                <a href="/logs" class="back-link logs-nav-link">"📊 Logs"</a>
             </div>
 
             <div class="top-bar-center">
@@ -211,5 +211,56 @@ pub fn SheetTopBar(
                 </div>
             </div>
         </header>
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sheet_top_bar_rendering_and_stable_root_structure() {
+        let runtime = create_runtime();
+
+        let (active_origin, set_active_origin) = create_signal(DotOrigin::Base);
+        let costs = create_memo(|_| CostSummary::default());
+        let (_show_breakdown, set_show_breakdown) = create_signal(false);
+        let (save_status, _set_save_status) = create_signal(SaveStatus::Idle);
+        let (is_public, _set_is_public) = create_signal(false);
+
+        let on_toggle_privacy = Callback::new(|_| ());
+        let on_back_click = Callback::new(|_| ());
+        let do_manual_save = Callback::new(|_| ());
+        let on_export_json = Callback::new(|_| ());
+        let on_import_json = Callback::new(|_| ());
+
+        let view = view! {
+            <SheetTopBar
+                active_origin=active_origin
+                set_active_origin=set_active_origin
+                costs=costs
+                set_show_breakdown=set_show_breakdown
+                save_status=save_status
+                is_public=is_public.into()
+                on_toggle_privacy=on_toggle_privacy
+                on_back_click=on_back_click
+                do_manual_save=do_manual_save
+                on_export_json=on_export_json
+                on_import_json=on_import_json
+            />
+        };
+
+        let html = view.into_view().render_to_string();
+
+        assert!(
+            html.contains("header") && html.contains("sheet-top-bar"),
+            "TopBar deve renderizar header com classe sheet-top-bar"
+        );
+
+        assert!(html.contains("json-export-btn"), "Botao exportar JSON deve estar presente");
+        assert!(html.contains("json-import-btn"), "Botao importar JSON deve estar presente");
+
+        runtime.dispose();
     }
 }
