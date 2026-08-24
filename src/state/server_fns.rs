@@ -402,6 +402,68 @@ async fn verify_sheet_write_permission(pool: &sqlx::SqlitePool, sheet_id: &str) 
     Ok(())
 }
 
+#[server(endpoint = "import_sheet")]
+pub async fn import_sheet(data: CharacterData) -> Result<String, ServerFnError> {
+    #[cfg(feature = "ssr")]
+    {
+        use sqlx::SqlitePool;
+        use uuid::Uuid;
+
+        let pool = use_context::<SqlitePool>().ok_or_else(|| {
+            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in import_sheet", None);
+            ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
+        })?;
+
+        let start = std::time::Instant::now();
+        let new_id = Uuid::new_v4().to_string();
+        let mut imported_data = data;
+        imported_data.id = new_id.clone();
+
+        let raw_name = imported_data.name.trim().to_string();
+        let final_name = if raw_name.is_empty() {
+            "Ficha Importada".to_string()
+        } else {
+            raw_name
+        };
+
+        let s_type = imported_data.sheet_type.clone();
+
+        let data_json = serde_json::to_string(&imported_data).map_err(|e: serde_json::Error| {
+            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Serialization error importing sheet", Some(&e.to_string()));
+            ServerFnError::new(format!("Falha ao serializar dados importados: {}", e))
+        })?;
+
+        let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
+
+        sqlx::query("INSERT INTO character_sheets (id, user_id, name, data, sheet_type) VALUES (?, ?, ?, ?, ?)")
+            .bind(&new_id)
+            .bind(auth_user_id)
+            .bind(&final_name)
+            .bind(data_json)
+            .bind(&s_type)
+            .execute(&pool)
+            .await
+            .map_err(|e: sqlx::Error| {
+                crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to insert imported sheet {}", new_id), Some(&e.to_string()));
+                ServerFnError::new(format!("Falha ao salvar ficha importada no banco: {}", e))
+            })?;
+
+        crate::logging::server::write_log(
+            crate::logging::LogCategory::UserActions,
+            "INFO",
+            &format!("IMPORT SHEET: Ficha importada com sucesso id='{}', tipo='{}', nome='{}' em {}ms", new_id, s_type, final_name, start.elapsed().as_millis()),
+            None,
+        );
+
+        Ok(new_id)
+    }
+    #[cfg(not(feature = "ssr"))]
+    {
+        let _ = data;
+        Err(ServerFnError::new("Disponível apenas no servidor"))
+    }
+}
+
 #[server(endpoint = "create_sheet")]
 pub async fn create_sheet(name: String, sheet_type: Option<String>) -> Result<String, ServerFnError> {
     let clean_name = name.trim().to_string();

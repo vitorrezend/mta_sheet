@@ -241,6 +241,39 @@ pub fn CharacterSheet() -> impl IntoView {
     let costs = create_memo(move |_| data.with(|d| d.calculate_costs()));
     let is_public = Signal::derive(move || data.with(|d| d.is_public));
 
+    let on_export_json = Callback::new(move |_| {
+        if let Some(current_data) = data.try_get_untracked() {
+            crate::components::common::export_character_json(&current_data);
+        }
+    });
+
+    let on_import_json = Callback::new(move |mut imported_data: CharacterData| {
+        let current_id = get_id_untracked();
+        imported_data.id = current_id.clone();
+        set_data.set(imported_data.clone());
+        let _ = set_is_dirty.try_set(true);
+        let _ = set_save_status.try_set(SaveStatus::Saving);
+        spawn_local(async move {
+            if !current_id.is_empty() {
+                match update_sheet(current_id.clone(), imported_data).await {
+                    Ok(_) => {
+                        let _ = set_is_dirty.try_set(false);
+                        let _ = set_save_status.try_set(SaveStatus::Saved(get_current_time_str()));
+                        crate::logging::log_client(
+                            "user_actions",
+                            "INFO",
+                            "Ficha importada de arquivo JSON e salva no banco",
+                            Some(&format!("id={}", current_id)),
+                        );
+                    }
+                    Err(e) => {
+                        let _ = set_save_status.try_set(SaveStatus::Error(e.to_string()));
+                    }
+                }
+            }
+        });
+    });
+
     let on_toggle_privacy = Callback::new(move |_| {
         let current_id = get_id_untracked();
         let current_pub = data.with_untracked(|d| d.is_public);
@@ -269,6 +302,8 @@ pub fn CharacterSheet() -> impl IntoView {
                 on_toggle_privacy=on_toggle_privacy
                 on_back_click=on_back_click
                 do_manual_save=do_manual_save
+                on_export_json=on_export_json
+                on_import_json=on_import_json
             />
 
             // Modal de Extrato de Custos
