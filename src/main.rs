@@ -59,7 +59,21 @@ async fn pkg_handler(
             .into_response();
     }
 
-    (http::StatusCode::NOT_FOUND, "Arquivo pkg não encontrado").into_response()
+    // 3. Fallback especial para CSS caso o build WASM ainda não tenha rodado
+    if path == "mta_sheet.css" || path == "style.css" {
+        if let Ok(css) = tokio::fs::read_to_string("style.css").await {
+            return ([(http::header::CONTENT_TYPE, "text/css")], css).into_response();
+        } else {
+            return ([(http::header::CONTENT_TYPE, "text/css")], EMBEDDED_STYLE_CSS.to_string()).into_response();
+        }
+    }
+
+    (
+        http::StatusCode::NOT_FOUND,
+        [(http::header::CONTENT_TYPE, "text/plain; charset=utf-8")],
+        "Arquivo pkg não encontrado",
+    )
+        .into_response()
 }
 
 #[cfg(feature = "ssr")]
@@ -136,9 +150,18 @@ async fn main() {
     use leptos_axum::{generate_route_list, LeptosRoutes};
     use mta_sheet::database;
     use tower_http::services::ServeDir;
+    use dotenvy::dotenv;
+
+    let _ = dotenv();
+
+    let manifest_path = if std::path::Path::new("Cargo.toml").exists() {
+        Some("Cargo.toml")
+    } else {
+        None
+    };
 
     // Obtém configuração do Leptos com fallback seguro caso Cargo.toml não exista
-    let conf = match get_configuration(None).await {
+    let conf = match get_configuration(manifest_path).await {
         Ok(c) => c,
         Err(_) => {
             let mut opt = LeptosOptions::default();
@@ -149,8 +172,17 @@ async fn main() {
             leptos::leptos_config::ConfFile { leptos_options: opt }
         }
     };
-
     let mut leptos_options = conf.leptos_options;
+
+    if leptos_options.output_name.is_empty() {
+        leptos_options.output_name = "mta_sheet".into();
+    }
+    if leptos_options.site_pkg_dir.is_empty() {
+        leptos_options.site_pkg_dir = "pkg".into();
+    }
+    if leptos_options.site_root.is_empty() {
+        leptos_options.site_root = "target/site".into();
+    }
 
     // Permite sobrescrever o endereço por variável de ambiente
     if let Ok(addr_str) = std::env::var("LEPTOS_SITE_ADDR") {

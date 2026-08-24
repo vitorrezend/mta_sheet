@@ -36,6 +36,7 @@ uploads/
 
 # --- Environment & Secret Variables ---
 .env
+.env*
 .env.*
 !.env.example
 

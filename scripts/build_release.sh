@@ -37,8 +37,12 @@ fi
 echo "[3/3] Empacotando executável único..."
 
 SERVER_BIN=""
-if [ -f "target/server/release/mta_sheet" ]; then
+if [ -f "target/server/release/mta_sheet_server" ]; then
+    SERVER_BIN="target/server/release/mta_sheet_server"
+elif [ -f "target/server/release/mta_sheet" ]; then
     SERVER_BIN="target/server/release/mta_sheet"
+elif [ -f "target/release/mta_sheet_server" ]; then
+    SERVER_BIN="target/release/mta_sheet_server"
 elif [ -f "target/release/mta_sheet" ]; then
     SERVER_BIN="target/release/mta_sheet"
 fi

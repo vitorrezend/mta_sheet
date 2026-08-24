@@ -5,10 +5,20 @@ use std::str::FromStr;
 
 #[cfg(feature = "ssr")]
 pub async fn get_db() -> SqlitePool {
-    use dotenvy::dotenv;
-    let _ = dotenv();
-
     let mut database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "mta_sheet.db".to_string());
+
+    let db_path = if database_url.starts_with("sqlite:") {
+        &database_url[7..]
+    } else {
+        &database_url
+    };
+
+    // Ensure parent directory exists
+    if let Some(parent) = std::path::Path::new(db_path).parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent).ok();
+        }
+    }
 
     if !database_url.starts_with("sqlite:") {
         database_url = format!("sqlite:{}", database_url);

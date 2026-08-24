@@ -226,4 +226,46 @@ mod compliance_tests {
         }
     }
 
+    #[test]
+    fn test_modular_style_assets_exist_and_non_empty() {
+        let style_css = Path::new("style.css");
+        assert!(style_css.exists(), "❌ Arquivo 'style.css' obrigatório não encontrado na raiz!");
+
+        let content = fs::read_to_string(style_css).expect("Falha ao ler style.css");
+        assert!(!content.trim().is_empty(), "❌ 'style.css' não pode estar vazio!");
+
+        // Verifica que todos os arquivos referenciados em @import url('/styles/...') existem
+        for line in content.lines() {
+            let trimmed = line.trim();
+            if trimmed.starts_with("@import url('/styles/") || trimmed.starts_with("@import url(\"/styles/") {
+                let filename = trimmed
+                    .replace("@import url('/styles/", "")
+                    .replace("@import url(\"/styles/", "")
+                    .replace("');", "")
+                    .replace("\");", "");
+                
+                let modular_file = Path::new("styles").join(&filename);
+                assert!(
+                    modular_file.exists(),
+                    "❌ Arquivo de estilo modular referenciado em style.css não encontrado: {:?}",
+                    modular_file
+                );
+
+                let size = fs::metadata(&modular_file).map(|m| m.len()).unwrap_or(0);
+                assert!(size > 0, "❌ Arquivo de estilo {:?} está com 0 bytes!", modular_file);
+            }
+        }
+    }
+
+    #[test]
+    fn test_no_empty_leptos_output_name_configured() {
+        let cargo_toml = Path::new("Cargo.toml");
+        assert!(cargo_toml.exists(), "Cargo.toml deve existir na raiz!");
+
+        let content = fs::read_to_string(cargo_toml).expect("Falha ao ler Cargo.toml");
+        assert!(
+            content.contains("output-name = \"mta_sheet\"") || content.contains("output_name = \"mta_sheet\""),
+            "❌ 'output-name' deve estar explicitamente configurado como 'mta_sheet' em [package.metadata.leptos] para evitar geração de links vazios (/pkg/.js)."
+        );
+    }
 }
