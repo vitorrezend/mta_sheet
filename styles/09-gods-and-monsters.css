@@ -1,0 +1,553 @@
+/* ==========================================================================
+   09: GODS & MONSTERS — ESTILIZAÇÃO CANÔNICA (FAMILIAR & BYGONE COMPANION)
+   ========================================================================== */
+
+/* ─── Seletor de Arquétipos na Home ─────────────────────────────────────── */
+.sheet-type-selector {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    justify-content: center;
+}
+
+.type-pill-btn {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted, #94a3b8);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 0.5rem 1.1rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.type-pill-btn:hover {
+    background: rgba(212, 175, 55, 0.15);
+    color: #e2e8f0;
+    border-color: rgba(212, 175, 55, 0.4);
+}
+
+.type-pill-btn.active {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.3) 0%, rgba(184, 134, 11, 0.2) 100%);
+    color: #ffd700;
+    border-color: #d4af37;
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+}
+
+.type-badge-gm {
+    background: rgba(212, 175, 55, 0.15) !important;
+    color: #ffd700 !important;
+    border: 1px solid rgba(212, 175, 55, 0.4) !important;
+}
+
+.type-badge-mage {
+    background: rgba(147, 51, 234, 0.15) !important;
+    color: #c084fc !important;
+    border: 1px solid rgba(147, 51, 234, 0.4) !important;
+}
+
+.card-gm-badge-footer {
+    padding: 0.5rem 0;
+    border-top: 1px dashed rgba(212, 175, 55, 0.2);
+    margin-top: 0.5rem;
+}
+
+.gm-creature-desc {
+    font-size: 0.75rem;
+    color: #d4af37;
+    font-style: italic;
+}
+
+/* ─── Banner de Título Gods & Monsters ──────────────────────────────────── */
+.gods-header-container {
+    width: 100%;
+    margin-bottom: 0.8rem;
+}
+
+.gods-title-banner {
+    text-align: center;
+    padding: 0.4rem 0 0.6rem;
+    border-bottom: 2px solid #d4af37;
+    margin-bottom: 0.8rem;
+    position: relative;
+}
+
+.gods-main-title {
+    font-family: 'Cinzel', 'Trajan Pro', 'Georgia', serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: 4px;
+    color: #92400e;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.gods-header-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+}
+
+/* ─── Grid Principal de Vantagens (3 Colunas Canônicas) ─────────────────── */
+.gods-advantages-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 1.25rem !important;
+    width: 100% !important;
+    align-items: start !important;
+    box-sizing: border-box !important;
+}
+
+.gods-advantages-grid .advantage-column {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.8rem !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* ─── Caixas de Seção Transparentes & Nítidas (Sem Fundo Cinza) ────────── */
+.gods-section-box {
+    background: transparent !important;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 0.65rem 0.6rem;
+    box-shadow: none !important;
+    box-sizing: border-box;
+}
+
+/* ─── Linhas de Entrada de Texto (Underline Estilo PDF) ─────────────────── */
+.gods-lines-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.gods-line-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.gods-line-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #cbd5e1;
+    color: #1e293b;
+    font-size: 0.82rem;
+    padding: 0.2rem 0.25rem;
+    font-family: inherit;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+}
+
+.gods-line-input:focus {
+    outline: none;
+    border-bottom-color: var(--primary-color);
+}
+
+.gods-line-input::placeholder {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.gods-line-row .remove-btn {
+    opacity: 0;
+    margin-left: 4px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    transition: all 0.15s ease;
+}
+
+.gods-line-row:hover .remove-btn {
+    opacity: 0.7;
+}
+
+.gods-line-row .remove-btn:hover {
+    opacity: 1 !important;
+    transform: scale(1.2);
+}
+
+/* ─── Caixas Quadradas (Gnose, Vontade, Paradoxo, Essência) ─────────────── */
+.gods-square {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 13px;
+    height: 13px;
+    border: 1.5px solid #475569;
+    border-radius: 2px;
+    cursor: pointer;
+    background-color: #ffffff;
+    font-size: 9px;
+    font-weight: 900;
+    color: #1e293b;
+    line-height: 1;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+    user-select: none;
+}
+
+.gods-square:hover {
+    border-color: #92400e;
+    transform: scale(1.18);
+}
+
+.gods-square.box-active {
+    background-color: #1e293b;
+    color: #ffffff;
+    border-color: #0f172a;
+}
+
+.gods-square.paradox-active {
+    background-color: #dc2626;
+    color: #ffffff;
+    border-color: #991b1b;
+}
+
+.gods-square.essence-active {
+    background-color: #d97706;
+    color: #ffffff;
+    border-color: #92400e;
+}
+
+.gods-dots-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    margin: 0.2rem 0;
+}
+
+.gods-temp-boxes-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    margin: 0.2rem 0;
+}
+
+/* ─── Grid de Gnose Alinhado (Pares Colunares 1-para-1) ────────────────── */
+.gods-gnosis-grid {
+    display: grid !important;
+    grid-template-columns: repeat(10, 1fr) !important;
+    gap: 3px;
+    align-items: center;
+    justify-items: center;
+    margin-top: 0.25rem;
+    width: 100%;
+}
+
+.gnosis-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.filled-gnosis {
+    background-color: #16a34a !important;
+    border-color: #15803d !important;
+}
+
+/* ─── Grids de Paradoxo (20) e Essência (50) ────────────────────────────── */
+.gods-paradox-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 3px;
+    justify-items: center;
+    margin-top: 0.25rem;
+}
+
+.essence-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.2rem;
+}
+
+.essence-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.bruised-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.bruised-btn {
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 0.9rem !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+}
+
+.remove-bruised {
+    border-color: #ef4444 !important;
+    color: #ef4444 !important;
+}
+
+.remove-bruised:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.clear-essence-btn {
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    color: #64748b;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 1px 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s ease;
+}
+
+.clear-essence-btn:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.essence-spent-counter {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #92400e;
+}
+
+.gods-essence-50-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 3px;
+    justify-items: center;
+    margin-top: 0.25rem;
+}
+
+/* ─── Caixa de Experiência ──────────────────────────────────────────────── */
+.gods-xp-textarea {
+    width: 100%;
+    min-height: 80px;
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    color: #1e293b;
+    padding: 0.4rem;
+    font-family: inherit;
+    font-size: 0.82rem;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.gods-xp-textarea:focus {
+    outline: none;
+    border-color: #92400e;
+}
+
+/* ─── Página 2: Layout e Componentes Sem Overflow ─────────────────────── */
+.gods-page-2 {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.gods-page2-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) !important;
+    gap: 1rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    align-items: start !important;
+}
+
+.gods-page2-left-col,
+.gods-page2-right-col {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Merits & Flaws */
+.gods-merits-flaws-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.merits-col,
+.flaws-col {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.table-subhead {
+    display: flex !important;
+    justify-content: space-between !important;
+    padding: 0.15rem 0.3rem !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    color: #95a5a6 !important;
+    border-bottom: 1px solid #eee !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    margin-bottom: 0.25rem !important;
+    box-sizing: border-box !important;
+}
+
+.merit-flaw-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-bottom: 0.2rem !important;
+    box-sizing: border-box !important;
+}
+
+.merit-name-input,
+.flaw-name-input {
+    flex: 1 1 0% !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    color: #1e293b !important;
+    font-size: 0.8rem !important;
+    padding: 0.15rem 0.25rem !important;
+    font-family: inherit !important;
+    box-sizing: border-box !important;
+}
+
+.merit-name-input:focus,
+.flaw-name-input:focus {
+    outline: none !important;
+    border-bottom-color: var(--primary-color) !important;
+}
+
+.merit-val-input,
+.flaw-val-input {
+    flex: 0 0 32px !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    background: transparent !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 3px !important;
+    color: var(--primary-color) !important;
+    text-align: center !important;
+    font-weight: 700 !important;
+    font-size: 0.8rem !important;
+    padding: 0.1rem 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Textareas da Página 2 */
+.gods-large-textarea {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 60px !important;
+    background: transparent !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 4px !important;
+    color: #1e293b !important;
+    padding: 0.4rem !important;
+    font-family: inherit !important;
+    font-size: 0.8rem !important;
+    resize: vertical !important;
+    box-sizing: border-box !important;
+}
+
+.gods-large-textarea:focus {
+    outline: none !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* Tabela de Combate */
+.gods-combat-table {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.25rem !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.combat-table-head {
+    display: grid !important;
+    grid-template-columns: minmax(0, 2.2fr) minmax(0, 0.7fr) minmax(0, 1.1fr) minmax(0, 0.9fr) minmax(0, 0.7fr) minmax(0, 0.7fr) !important;
+    gap: 3px !important;
+    padding: 0.2rem 0.25rem !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    color: #95a5a6 !important;
+    border-bottom: 1px solid #eee !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.combat-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 2.2fr) minmax(0, 0.7fr) minmax(0, 1.1fr) minmax(0, 0.9fr) minmax(0, 0.7fr) minmax(0, 0.7fr) !important;
+    gap: 3px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.combat-row input {
+    width: 100% !important;
+    min-width: 0 !important;
+    background: transparent !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 3px !important;
+    color: #1e293b !important;
+    font-size: 0.78rem !important;
+    padding: 0.15rem 0.25rem !important;
+    font-family: inherit !important;
+    box-sizing: border-box !important;
+}
+
+.combat-row input:focus {
+    outline: none !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* ─── Responsividade ────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .gods-advantages-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .gods-page2-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .gods-header-grid {
+        grid-template-columns: 1fr !important;
+    }
+}

@@ -1,0 +1,997 @@
+/* ==========================================================================
+   05: PÁGINA 2 — MAGIA & COMBATE (QUALIDADES, DEFEITOS, MARAVILHAS, COMBATE)
+   ========================================================================== */
+
+/* ==========================================================================
+   Aba 2: Perfil do Personagem (Dimensões A4)
+   ========================================================================== */
+.profile-page-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    flex: 1;
+}
+
+.profile-header-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0.8rem;
+    border-bottom: 2px solid #0f172a;
+    margin-bottom: 0.2rem;
+}
+
+.profile-header-title-box {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.profile-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #0f172a;
+    font-family: serif, 'Times New Roman', Georgia;
+}
+
+.profile-subtitle {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-style: italic;
+}
+
+.profile-grid-container {
+    display: grid;
+    grid-template-columns: 200mm; /* Adaptável dentro da folha A4 */
+    grid-template-columns: 240px 1fr;
+    gap: 1rem;
+    align-items: stretch;
+}
+
+@media (max-width: 768px) {
+    .profile-grid-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.profile-portrait-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-text-column {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.profile-full-row {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 220px;
+}
+
+/* Box de Foto do Personagem */
+.profile-portrait-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.portrait-dropzone {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    min-height: 240px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+}
+
+.portrait-dropzone.is-dragging {
+    border-color: #6366f1;
+    background: #eef2ff;
+}
+
+.portrait-dropzone.has-photo {
+    border-style: solid;
+    border-color: #94a3b8;
+    background: #1e293b;
+}
+
+/* Fundo padrão quadriculado para suporte a transparência PNG */
+.portrait-checkerboard-bg {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    background-image: 
+        linear-gradient(45deg, #e2e8f0 25%, transparent 25%), 
+        linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #e2e8f0 75%), 
+        linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+}
+
+.portrait-preview-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.portrait-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.portrait-actions-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.4) 70%, transparent 100%);
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    padding: 10px 6px 8px 6px;
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+}
+
+.portrait-preview-wrapper:hover .portrait-actions-overlay {
+    opacity: 1;
+}
+
+.portrait-btn {
+    padding: 5px 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+}
+
+.portrait-btn-change {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+.portrait-btn-change:hover {
+    background: #2563eb;
+}
+
+.portrait-btn-remove {
+    background: rgba(239, 68, 68, 0.85);
+    color: #ffffff;
+}
+
+.portrait-btn-remove:hover {
+    background: #dc2626;
+}
+
+.portrait-upload-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.upload-icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.6rem;
+}
+
+.upload-icon {
+    font-size: 1.5rem;
+}
+
+.upload-text-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.upload-primary-text {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.upload-secondary-text {
+    font-size: 0.68rem;
+    color: #64748b;
+}
+
+.upload-limit-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #6366f1;
+    background: #e0e7ff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    align-self: center;
+    margin-top: 4px;
+}
+
+.hidden-file-input {
+    display: none;
+}
+
+.portrait-error-banner {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.portrait-hint-text {
+    font-size: 0.66rem;
+    color: #94a3b8;
+    text-align: center;
+    line-height: 1.3;
+}
+
+/* Blocos de História & Anotações */
+.profile-text-box {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.text-length-badge {
+    font-size: 0.68rem;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.profile-textarea-container {
+    flex: 1;
+    display: flex;
+    min-height: 180px;
+}
+
+.profile-textarea {
+    width: 100%;
+    height: 100%;
+    min-height: 180px;
+    padding: 0.65rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #1e293b;
+    background: #fafafa;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    resize: vertical;
+    box-sizing: border-box;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.profile-textarea:focus {
+    background: #ffffff;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+.profile-textarea::placeholder {
+    color: #94a3b8;
+    font-style: italic;
+    font-size: 0.8rem;
+}
+
+.notes-box {
+    margin-top: 0.2rem;
+}
+
+.notes-textarea {
+    min-height: 160px;
+}
+
+
+/* ==========================================================================
+   Página 2: Magia & Combate (Layout A4)
+   ========================================================================== */
+.page2-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    box-sizing: border-box;
+    flex: 1;
+}
+
+.page2-header-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.8rem;
+    border-bottom: 2px solid #0f172a;
+    margin-bottom: 0.2rem;
+}
+
+.page2-header-title-box {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.page2-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #0f172a;
+    font-family: serif, 'Times New Roman', Georgia;
+}
+
+.page2-subtitle {
+    font-size: 0.72rem;
+    color: #64748b;
+    font-style: italic;
+}
+
+/* 1. Qualidades & Defeitos (Merits & Flaws - Padronizado com Página 1) */
+.merits-flaws-block {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 1.25rem;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .merits-flaws-block {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+.merit-flaw-item-wrapper {
+    width: 100%;
+}
+
+.merit-flaw-item-wrapper .dots-container {
+    gap: 2.5px;
+}
+
+.merit-flaw-item-wrapper .dot {
+    width: 11px;
+    height: 11px;
+}
+
+.empty-column-hint {
+    padding: 12px;
+    text-align: center;
+    font-size: 0.74rem;
+    color: #94a3b8;
+    font-style: italic;
+    background: #f8fafc;
+    border-radius: 4px;
+    border: 1px dashed #e2e8f0;
+}
+
+/* 2. Outras Características (Other Traits) */
+.other-traits-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 0.6rem 0.75rem;
+    box-sizing: border-box;
+}
+
+.add-trait-header-btn {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    background: #e2e8f0;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.add-trait-header-btn:hover {
+    background: #cbd5e1;
+}
+
+.other-traits-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+}
+
+@media (max-width: 768px) {
+    .other-traits-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.traits-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.trait-field-wrapper {
+    width: 100%;
+}
+
+/* 3. Magia (Wonders & Rotes) */
+.magic-section-box {
+    position: relative;
+    margin-top: 1.2rem;
+    padding: 1.2rem 0.8rem 0.8rem 0.8rem;
+    background: var(--paper-bg);
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.magic-section-box > .group-title {
+    white-space: nowrap;
+    z-index: 2;
+    background-color: var(--paper-bg);
+    padding: 0 10px;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+}
+
+.wonders-grid-2x2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    align-items: start;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+    .wonders-grid-2x2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+.wonders-footer-actions {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.wonder-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 0.65rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+}
+
+.wonder-card-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+}
+
+.wonder-remove-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    opacity: 0.6;
+    transition: all 0.15s ease;
+}
+
+.wonder-remove-btn:hover {
+    opacity: 1;
+    background: #fee2e2;
+}
+
+.wonder-img-toggle-btn {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    cursor: pointer;
+    font-size: 0.82rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.wonder-img-toggle-btn:hover, .wonder-img-toggle-btn.active {
+    background: #e0e7ff;
+    border-color: #6366f1;
+}
+
+.wonder-image-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    padding: 6px;
+}
+
+.wonder-image-controls-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.wonder-file-upload-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #334155;
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.wonder-file-upload-label:hover {
+    background: #cbd5e1;
+    color: #0f172a;
+}
+
+.wonder-hidden-file-input {
+    display: none;
+}
+
+.wonder-image-url-input {
+    width: 100%;
+    font-size: 0.72rem;
+    padding: 3px 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: #ffffff;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.wonder-image-url-input:focus {
+    border-color: #6366f1;
+}
+
+.wonder-image-preview-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 4px;
+    background: #0f172a;
+}
+
+.wonder-image-preview {
+    max-width: 100%;
+    max-height: 120px;
+    object-fit: contain;
+    border-radius: 3px;
+}
+
+.wonder-remove-image-btn {
+    background: transparent;
+    border: 1px solid #f87171;
+    color: #fca5a5;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.wonder-remove-image-btn:hover {
+    background: #fee2e2;
+    color: #b91c1c;
+    border-color: #ef4444;
+}
+
+.wonder-stat-row-block {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 2px 0;
+}
+
+.wonder-stat-row-block .value-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 6px;
+}
+
+.wonder-stat-row-block .trait-label {
+    display: flex;
+    align-items: baseline;
+    min-width: 78px;
+    flex-shrink: 0;
+}
+
+.wonder-stat-row-block .trait-name {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #334155;
+    white-space: nowrap;
+    text-transform: uppercase;
+}
+
+.wonder-stat-row-block .dots-container {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 2.2px;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.wonder-stat-row-block .dot {
+    width: 9.5px;
+    height: 9.5px;
+    min-width: 9.5px;
+    min-height: 9.5px;
+    flex-shrink: 0;
+}
+
+.wonder-quintessence-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 5px 8px;
+    border-radius: 4px;
+}
+
+.wonder-quint-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wonder-quint-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.quint-step-btn {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    color: #334155;
+    cursor: pointer;
+    line-height: 1.2;
+    transition: all 0.15s ease;
+}
+
+.quint-step-btn:hover:not(:disabled) {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+}
+
+.quint-step-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.quint-max-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #0f172a;
+    font-family: monospace;
+}
+
+.wonder-squares-grid-10 {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 4px;
+    width: 100%;
+    max-width: 240px;
+    box-sizing: border-box;
+    justify-items: center;
+    align-items: center;
+    padding: 3px 0;
+}
+
+.wonder-square {
+    width: 13px;
+    height: 13px;
+    min-width: 13px;
+    min-height: 13px;
+    border: 1.5px solid var(--primary-color);
+    cursor: pointer;
+    display: inline-block;
+    box-sizing: border-box;
+    border-radius: 2px;
+    transition: all 0.15s ease;
+}
+
+.wonder-square.filled {
+    background-color: var(--primary-color);
+}
+
+.wonder-desc-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.wonder-desc-textarea {
+    width: 100%;
+    min-height: 42px;
+    padding: 4px 6px;
+    font-size: 0.74rem;
+    font-family: inherit;
+    color: #1e293b;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    resize: vertical;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.rotes-textarea-wrapper {
+    flex: 1;
+    display: flex;
+    min-height: 200px;
+}
+
+.rotes-textarea {
+    width: 100%;
+    height: 100%;
+    min-height: 240px;
+    padding: 0.6rem;
+    font-family: inherit;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: #1e293b;
+    background: #fafafa;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    resize: vertical;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.rotes-textarea:focus {
+    background: #ffffff;
+    border-color: #6366f1;
+}
+
+/* 4. Combate (Weapons & Armor) */
+.combat-section-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 0.6rem 0.75rem;
+    box-sizing: border-box;
+}
+
+.combat-grid {
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 1rem;
+    align-items: stretch;
+}
+
+@media (max-width: 820px) {
+    .combat-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.weapons-table-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.weapons-table-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.weapons-table-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    letter-spacing: 0.5px;
+}
+
+.weapons-table-container {
+    overflow-x: auto;
+    width: 100%;
+}
+
+.weapons-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.72rem;
+}
+
+.weapons-table th {
+    background: #f1f5f9;
+    padding: 4px 6px;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    font-weight: 700;
+    text-align: center;
+}
+
+.weapons-table th.th-weapon {
+    text-align: left;
+}
+
+.weapons-table th.th-act {
+    width: 20px;
+}
+
+.weapons-table td {
+    padding: 2px;
+    border: 1px solid #e2e8f0;
+}
+
+.table-cell-input {
+    width: 100%;
+    padding: 3px 4px;
+    font-size: 0.72rem;
+    border: none;
+    background: transparent;
+    color: #1e293b;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.table-cell-input:focus {
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px #6366f1;
+}
+
+.armor-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.5rem;
+}
+
+.armor-box-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex: 1;
+}
+
+.armor-field-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+}
+
+.armor-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.armor-input {
+    padding: 3px 6px;
+    font-size: 0.74rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #1e293b;
+    outline: none;
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.armor-desc-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.armor-desc-textarea {
+    width: 100%;
+    min-height: 50px;
+    flex: 1;
+    padding: 4px 6px;
+    font-size: 0.74rem;
+    font-family: inherit;
+    color: #1e293b;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    resize: vertical;
+    box-sizing: border-box;
+    outline: none;
+}
+

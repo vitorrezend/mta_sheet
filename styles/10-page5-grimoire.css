@@ -1,0 +1,879 @@
+/* ==========================================================================
+   10: PÁGINA 5 — GRIMÓRIO (PARADIGMA, PRÁTICAS, INSTRUMENTOS E ROTINAS MÁGICAS)
+   ========================================================================== */
+
+.page-grimoire-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ─── Box 1: Fundamentos Mágicos (Paradigma, Práticas & Instrumentos) ─── */
+.grimoire-foundations-box {
+    margin-top: 1.5rem !important;
+    padding: 1.6rem 1rem 1rem 1rem !important;
+    position: relative;
+}
+
+/* Hero Banner do Paradigma Central */
+.grimoire-paradigm-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(79, 70, 229, 0.03) 100%);
+    border: 1px solid #ddd6fe;
+    border-left: 4px solid #7c3aed;
+    border-radius: 8px;
+    padding: 0.75rem 0.9rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.05);
+}
+
+.paradigm-header-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.paradigm-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.paradigm-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.paradigm-main-title {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #5b21b6;
+    letter-spacing: 0.04em;
+}
+
+.paradigm-sub-title {
+    font-size: 0.62rem;
+    color: #64748b;
+    font-style: italic;
+}
+
+.grimoire-paradigm-input {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    background: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary-color, #1e293b);
+    padding: 6px 10px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.grimoire-paradigm-input:focus {
+    outline: none;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+    background: #ffffff;
+}
+
+/* Duas Colunas: Práticas & Instrumentos */
+.grimoire-2col-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.grimoire-list-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem;
+    box-sizing: border-box;
+}
+
+.grimoire-col-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1.5px solid #e2e8f0;
+    padding-bottom: 0.4rem;
+}
+
+.col-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.col-header-icon {
+    font-size: 0.8rem;
+    color: #7c3aed;
+}
+
+.grimoire-col-header .column-title {
+    margin: 0;
+    border: none;
+    padding: 0;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #334155;
+    letter-spacing: 0.03em;
+}
+
+.add-grimoire-pill-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    border-radius: 9999px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: all 0.15s ease;
+}
+
+.add-grimoire-pill-btn:hover {
+    background: #7c3aed;
+    color: #ffffff;
+    border-color: #7c3aed;
+    transform: scale(1.04);
+    box-shadow: 0 2px 5px rgba(124, 58, 237, 0.25);
+}
+
+.grimoire-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.grimoire-list-item-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    padding: 3px 6px;
+    transition: all 0.15s ease;
+}
+
+.grimoire-list-item-row:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.grimoire-item-tag {
+    font-size: 0.58rem;
+    font-weight: 800;
+    color: #94a3b8;
+    background: #f1f5f9;
+    padding: 2px 4px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.grimoire-item-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 0.78rem;
+    color: var(--primary-color, #1e293b);
+    padding: 2px 4px;
+    font-family: inherit;
+    width: 100%;
+}
+
+.grimoire-item-input:focus {
+    outline: none;
+}
+
+.remove-grimoire-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.remove-grimoire-btn:hover {
+    color: #ffffff;
+    background: #ef4444;
+    transform: scale(1.1);
+}
+
+
+/* ─── Box 2: Cards de Rotinas Mágicas (Rotes) ────────────────────────── */
+.grimoire-rotes-box {
+    margin-top: 1.5rem !important;
+    padding: 1.6rem 1rem 1rem 1rem !important;
+    position: relative;
+}
+
+.rotes-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.35rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1.5px solid #e2e8f0;
+}
+
+.rotes-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.rotes-main-badge {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.rotes-hint {
+    font-size: 0.65rem;
+    color: #64748b;
+    font-style: italic;
+}
+
+.add-rote-card-btn {
+    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 5px 14px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.25);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.add-rote-card-btn:hover {
+    background: linear-gradient(135deg, #6d28d9 0%, #4338ca 100%);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+    transform: translateY(-1px);
+}
+
+.rotes-cards-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    width: 100%;
+}
+
+.empty-rotes-banner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1rem;
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.empty-rotes-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.7;
+}
+
+.empty-rotes-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #334155;
+    margin: 0 0 0.25rem 0;
+}
+
+.empty-rotes-desc {
+    font-size: 0.72rem;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Card Individual de Rotina */
+.rote-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-left: 4px solid #7c3aed;
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.rote-card:hover {
+    border-color: #94a3b8;
+    border-left-color: #6d28d9;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+}
+
+.rote-card.collapsed {
+    padding: 0.6rem 0.9rem;
+    gap: 0.4rem;
+    background: #fafafa;
+}
+
+.rote-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 0.45rem;
+}
+
+.rote-card.collapsed .rote-card-header {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.rote-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.rote-collapse-btn {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    color: #64748b;
+    font-size: 0.65rem;
+    padding: 3px 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.rote-collapse-btn:hover {
+    background: #7c3aed;
+    color: #ffffff;
+    border-color: #7c3aed;
+}
+
+.rote-number-tag {
+    font-size: 0.65rem;
+    font-weight: 800;
+    background: #f5f3ff;
+    color: #7c3aed;
+    border: 1px solid #ddd6fe;
+    padding: 2px 7px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+}
+
+.rote-name-input {
+    flex: 1;
+    border: none;
+    border-bottom: 1.5px solid transparent;
+    background: transparent;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--primary-color, #1e293b);
+    font-family: inherit;
+    padding: 2px 6px;
+    transition: all 0.2s ease;
+}
+
+.rote-name-input:focus {
+    outline: none;
+    border-bottom-color: #7c3aed;
+    background: rgba(124, 58, 237, 0.04);
+    border-radius: 4px;
+}
+
+.rote-header-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.remove-rote-card-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.remove-rote-card-btn:hover {
+    color: #ffffff;
+    background: #ef4444;
+}
+
+/* Preview Recolhido */
+.rote-collapsed-preview {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    padding-left: 2rem;
+}
+
+.preview-pills-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.preview-pill {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    line-height: 1.2;
+}
+
+.preview-spheres {
+    background: #f5f3ff;
+    color: #7c3aed;
+    border: 1px solid #ddd6fe;
+}
+
+.preview-ability {
+    background: #fdf4ff;
+    color: #a21caf;
+    border: 1px solid #f5d0fe;
+}
+
+.preview-practice {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+}
+
+.preview-focus {
+    background: #fefce8;
+    color: #ca8a04;
+    border: 1px solid #fef08a;
+}
+
+.preview-diff-tag {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    font-weight: 800;
+}
+
+/* Corpo Expandido */
+.rote-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+/* ─── Matriz de Dificuldade M20 ───────────────────────────────────────── */
+.rote-diff-matrix {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 6px 10px;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.diff-matrix-title {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: #475569;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.diff-pills-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.diff-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 9999px;
+    line-height: 1.2;
+    transition: transform 0.15s ease;
+}
+
+.diff-pill:hover {
+    transform: scale(1.04);
+}
+
+.diff-icon {
+    font-size: 0.65rem;
+    line-height: 1;
+}
+
+.diff-type {
+    font-weight: 600;
+}
+
+.diff-value {
+    font-weight: 800;
+}
+
+.diff-calc {
+    font-size: 0.58rem;
+    opacity: 0.75;
+}
+
+.diff-coincidental {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.diff-vulgar {
+    background: #fefce8;
+    color: #a16207;
+    border: 1px solid #fef08a;
+}
+
+.diff-witness {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+/* ─── Grid 2x2 Organizado para Metadados da Rotina ────────────────────── */
+.rote-meta-2col-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.rote-meta-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.rote-meta-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.rote-meta-label {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.meta-icon {
+    font-size: 0.75rem;
+}
+
+.rote-meta-input {
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    background: #f8fafc;
+    font-size: 0.78rem;
+    color: var(--primary-color, #1e293b);
+    padding: 5px 8px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.rote-meta-input:focus {
+    outline: none;
+    border-color: #7c3aed;
+    background: #ffffff;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12);
+}
+
+/* ─── Bloco Interativo de Esferas Utilizadas ─────────────────────────── */
+.rote-spheres-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    background: #faf5ff;
+    border: 1px solid #ddd6fe;
+    border-radius: 6px;
+    padding: 0.55rem 0.7rem;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.rote-sphere-tags-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    min-height: 26px;
+}
+
+.rote-sphere-pill-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #ffffff;
+    border: 1px solid #7c3aed;
+    color: #6d28d9;
+    border-radius: 9999px;
+    padding: 2px 7px 2px 8px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.12);
+    transition: all 0.15s ease;
+}
+
+.rote-sphere-pill-tag:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(124, 58, 237, 0.2);
+}
+
+.sphere-pill-icon {
+    font-size: 0.7rem;
+}
+
+.sphere-pill-name {
+    font-weight: 700;
+}
+
+.sphere-pill-lvl {
+    background: #7c3aed;
+    color: #ffffff;
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.58rem;
+    margin-left: 2px;
+}
+
+.sphere-pill-remove-btn {
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.sphere-pill-remove-btn:hover {
+    color: #ffffff;
+    background: #ef4444;
+}
+
+.add-sphere-inline-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 2px;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.sphere-select-dropdown {
+    flex: 1.5;
+    min-width: 115px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #334155;
+    padding: 3px 6px;
+    font-family: inherit;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.sphere-select-dropdown:focus {
+    border-color: #7c3aed;
+}
+
+.sphere-level-dropdown {
+    flex: 1;
+    min-width: 75px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #334155;
+    padding: 3px 6px;
+    font-family: inherit;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.sphere-level-dropdown:focus {
+    border-color: #7c3aed;
+}
+
+.btn-add-sphere-tag {
+    background: #7c3aed;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.btn-add-sphere-tag:hover {
+    background: #6d28d9;
+    transform: scale(1.03);
+}
+
+.no-spheres-hint {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* Descrição Narrativa */
+.rote-desc-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.rote-desc-label {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.desc-icon {
+    font-size: 0.75rem;
+}
+
+.rote-desc-textarea {
+    width: 100%;
+    min-height: 65px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    background: #fbfbfe;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--primary-color, #1e293b);
+    padding: 8px 10px;
+    font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.rote-desc-textarea:focus {
+    outline: none;
+    border-color: #7c3aed;
+    background: #ffffff;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12);
+}
+
+
+/* ─── Box 3: Anotações Gerais do Grimório ─────────────────────────────── */
+.grimoire-notes-box {
+    margin-top: 1.5rem !important;
+    padding: 1.6rem 1rem 1rem 1rem !important;
+    position: relative;
+}
+
+.grimoire-notes-textarea {
+    width: 100%;
+    min-height: 130px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fbfbfe;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--primary-color, #1e293b);
+    padding: 10px 12px;
+    font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.grimoire-notes-textarea:focus {
+    outline: none;
+    border-color: #7c3aed;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}

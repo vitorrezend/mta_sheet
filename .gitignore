@@ -1,26 +1,53 @@
-# Rust compile artifacts
-/target
-/dist
+# ==============================================================================
+# MTA SHEET - GITIGNORE
+# ==============================================================================
 
-# Backup files
+# --- Rust & WebAssembly Build Artifacts ---
+/target/
+/mta_sheet
+/dist/
+/pkg/
+*.wasm
+*.pdb
+
+# --- Backup and Temporary Files ---
 **/*.rs.bk
-
-# IDEs and editors
-.vscode/
-.idea/
 *.swp
-*.log
+*.swo
+*~
+*.bak
 
-# Databases
+# --- Logs & Runtime Output ---
+*.log
+logs/
+/logs/
+
+# --- SQLite Databases & Journals ---
 *.db
 *.db-journal
 *.db-shm
 *.db-wal
+*.sqlite
+*.sqlite3
 
-# Environment files
+# --- User Uploaded Media ---
+uploads/
+/uploads/
+
+# --- Environment & Secret Variables ---
 .env
 .env*
+.env.*
 !.env.example
 
-# System files
+# --- IDEs and Text Editors ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.gemini/
+
+# --- Operating System Files ---
 .DS_Store
+Thumbs.db
+Desktop.ini

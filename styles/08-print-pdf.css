@@ -1,0 +1,206 @@
+/* ==========================================================================
+   08: EXPORTAÇÃO EM PDF OFICIAL (4 PÁGINAS A4 VETORIAIS @media print)
+   ========================================================================== */
+
+/* ==========================================================================
+   EXPORTAÇÃO EM PDF OFICIAL (4 PÁGINAS A4 VETORIAIS)
+   ========================================================================== */
+@page {
+    size: A4 portrait;
+    margin: 5mm 8mm;
+}
+
+@media print {
+    /* 1. Reset e Base */
+    html, body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .app-layout, .main-container, .sheet-view-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .sheet-container, .sheet-wrapper, .sheet {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        background: #ffffff !important;
+    }
+
+    /* 2. Ocultar todos os controles de interface e navegação */
+    .main-navbar,
+    .sheet-top-bar,
+    .sheet-tabs-container,
+    .btn-add-chantry,
+    .btn-delete-row,
+    .btn-remove-visual,
+    .btn-add-item,
+    .btn-delete-custom,
+    .btn-add-wonder,
+    .wonder-file-btn,
+    .wonder-remove-btn,
+    .visual-dropzone,
+    .points-popover-menu,
+    .cost-breakdown-modal,
+    .alert-box,
+    .modal-overlay,
+    .image-modal-backdrop,
+    .image-lightbox-backdrop,
+    .btn-delete-placeholder,
+    .add-grimoire-item-btn,
+    .remove-grimoire-btn,
+    .add-rote-card-btn,
+    .btn-remove-note-image,
+    .remove-rote-card-btn,
+    .rote-collapse-btn,
+    .add-grimoire-pill-btn,
+    .rote-collapsed-preview,
+    .add-sphere-inline-control,
+    .sphere-pill-remove-btn {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    /* 3. Forçar TODAS as 4 páginas a aparecerem em sequência no PDF */
+    .sheet-page-tab-pane,
+    .sheet-page-tab-pane.tab-hidden {
+        display: flex !important;
+        flex-direction: column !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        break-after: page !important;
+        page-break-after: always !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* A última página não deve forçar uma 5ª página em branco */
+    .sheet-page-tab-pane:last-child,
+    .sheet-page-tab-pane.tab-hidden:last-child {
+        break-after: auto !important;
+        page-break-after: auto !important;
+    }
+
+    /* 4. Compactação harmônica para enquadramento A4 */
+    .page-main {
+        gap: 0.35rem !important;
+    }
+    .page-main .group-box {
+        margin-bottom: 0.2rem !important;
+        padding: 0.35rem 0.5rem !important;
+    }
+    .page-magic-combat {
+        gap: 0.4rem !important;
+    }
+    .page-expanded {
+        gap: 0.4rem !important;
+    }
+    .page-history-visuals {
+        gap: 0.4rem !important;
+    }
+    .page-history-visuals .group-box {
+        margin-bottom: 0.3rem !important;
+        padding: 0.4rem 0.6rem !important;
+    }
+    .page-grimoire,
+    .page-notes {
+        gap: 0.35rem !important;
+    }
+    .page-grimoire .group-box {
+        margin-bottom: 0.25rem !important;
+        padding: 0.35rem 0.5rem !important;
+    }
+    .rote-card {
+        padding: 0.4rem 0.5rem !important;
+        break-inside: avoid !important;
+    }
+    .rote-card.collapsed .rote-card-body {
+        display: flex !important;
+    }
+
+    /* 5. Textareas e Inputs sem caixas de rolagem */
+    textarea {
+        resize: none !important;
+        overflow: hidden !important;
+        border-color: #cbd5e1 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    input {
+        border-color: #cbd5e1 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* 6. Preservar as cores das bolinhas no PDF */
+    .dot-circle {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .dot-base {
+        background-color: #1e293b !important;
+    }
+
+    .dot-bonus {
+        background-color: #7c3aed !important;
+    }
+
+    .dot-xp {
+        background-color: #059669 !important;
+    }
+
+    .dot-temp {
+        background-color: #d97706 !important;
+    }
+
+    /* 7. Evitar quebras de caixas no meio da folha */
+    .group-box,
+    .attribute-column,
+    .ability-column,
+    .sphere-column,
+    .advantage-column,
+    .expanded-bg-item,
+    .possessions-col,
+    .chantry-box,
+    .history-item,
+    .narrative-item,
+    .visual-card {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
+
+
+@media print {
+    .affinity-star-btn:not(.active) {
+        display: none !important;
+    }
+    .affinity-star-btn.active {
+        display: inline-flex !important;
+    }
+    .affinity-star-icon.active {
+        color: #d97706 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .spheres-header-bar {
+        display: none !important;
+    }
+}
