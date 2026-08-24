@@ -76,7 +76,6 @@ reload-port = 3001
 bin-features = ["ssr"]
 bin-target = "mta_sheet_server"
 lib-features = ["hydrate"]
-wasm-opt = false
 
 [profile.release]
 opt-level = 'z'

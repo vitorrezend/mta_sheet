@@ -31,12 +31,13 @@ pub fn AuthPage() -> impl IntoView {
             return;
         }
 
+        let is_reg = is_register.get_untracked();
         set_is_submitting.set(true);
         set_error_msg.set(None);
         let navigate = navigate.clone();
 
         spawn_local(async move {
-            let res = if is_register.get() {
+            let res = if is_reg {
                 register(user_val, pass_val).await
             } else {
                 login(user_val, pass_val).await
@@ -99,7 +100,7 @@ pub fn AuthPage() -> impl IntoView {
                             class="form-input"
                             prop:value=username
                             on:input=move |ev| set_username.set(event_target_value(&ev))
-                            disabled=is_submitting
+                            disabled=move || is_submitting.get()
                             required
                         />
                     </div>
@@ -112,7 +113,7 @@ pub fn AuthPage() -> impl IntoView {
                             class="form-input"
                             prop:value=password
                             on:input=move |ev| set_password.set(event_target_value(&ev))
-                            disabled=is_submitting
+                            disabled=move || is_submitting.get()
                             required
                         />
                     </div>
@@ -126,13 +127,13 @@ pub fn AuthPage() -> impl IntoView {
                                 class="form-input"
                                 prop:value=confirm_password
                                 on:input=move |ev| set_confirm_password.set(event_target_value(&ev))
-                                disabled=is_submitting
+                                disabled=move || is_submitting.get()
                                 required
                             />
                         </div>
                     })}
 
-                    <button type="submit" class="auth-submit-btn" disabled=is_submitting>
+                    <button type="submit" class="auth-submit-btn" disabled=move || is_submitting.get()>
                         {move || if is_submitting.get() {
                             "Processando..."
                         } else if is_register.get() {
