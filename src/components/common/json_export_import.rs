@@ -19,8 +19,8 @@ pub fn export_character_json(data: &CharacterData) {
                 let blob_parts = js_sys::Array::new();
                 blob_parts.push(&wasm_bindgen::JsValue::from_str(&json_str));
 
-                let mut blob_props = web_sys::BlobPropertyBag::new();
-                blob_props.type_("application/json;charset=utf-8");
+                let blob_props = web_sys::BlobPropertyBag::new();
+                blob_props.set_type("application/json;charset=utf-8");
 
                 if let Ok(blob) = web_sys::Blob::new_with_str_sequence_and_options(&blob_parts, &blob_props) {
                     if let Ok(url) = web_sys::Url::create_object_url_with_blob(&blob) {
