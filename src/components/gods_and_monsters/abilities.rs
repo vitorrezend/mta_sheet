@@ -45,10 +45,12 @@ pub fn GodsAndMonstersAbilities() -> impl IntoView {
     };
 
     let remove_custom = move |category: &'static str, name: String| {
-        set_data.update(|s| {
-            if let Some(list) = s.custom_lists.get_mut(category) {
-                list.retain(|n| n != &name);
-            }
+        request_animation_frame(move || {
+            set_data.update(|s| {
+                if let Some(list) = s.custom_lists.get_mut(category) {
+                    list.retain(|n| n != &name);
+                }
+            });
         });
     };
 
@@ -138,21 +140,33 @@ pub fn GodsAndMonstersAbilities() -> impl IntoView {
                 <div class="attribute-column">
                     <h3 class="column-title">"Talents"</h3>
                     {TALENTS.iter().map(|&n| render_field(n.to_string(), false, "Talents")).collect_view()}
-                    {move || data.with(|d| d.custom_lists.get("Talents").cloned().unwrap_or_default()).into_iter().map(|n| render_field(n, true, "Talents")).collect_view()}
+                    <For
+                        each=move || data.with(|d| d.custom_lists.get("Talents").cloned().unwrap_or_default())
+                        key=|n| n.clone()
+                        children=move |n| render_field(n, true, "Talents")
+                    />
                     <button class="add-field-btn" on:click=move |_| add_custom("Talents")>"+"</button>
                 </div>
                 
                 <div class="attribute-column">
                     <h3 class="column-title">"Skills"</h3>
                     {SKILLS.iter().map(|&n| render_field(n.to_string(), false, "Skills")).collect_view()}
-                    {move || data.with(|d| d.custom_lists.get("Skills").cloned().unwrap_or_default()).into_iter().map(|n| render_field(n, true, "Skills")).collect_view()}
+                    <For
+                        each=move || data.with(|d| d.custom_lists.get("Skills").cloned().unwrap_or_default())
+                        key=|n| n.clone()
+                        children=move |n| render_field(n, true, "Skills")
+                    />
                     <button class="add-field-btn" on:click=move |_| add_custom("Skills")>"+"</button>
                 </div>
 
                 <div class="attribute-column">
                     <h3 class="column-title">"Knowledges"</h3>
                     {KNOWLEDGES.iter().map(|&n| render_field(n.to_string(), false, "Knowledges")).collect_view()}
-                    {move || data.with(|d| d.custom_lists.get("Knowledges").cloned().unwrap_or_default()).into_iter().map(|n| render_field(n, true, "Knowledges")).collect_view()}
+                    <For
+                        each=move || data.with(|d| d.custom_lists.get("Knowledges").cloned().unwrap_or_default())
+                        key=|n| n.clone()
+                        children=move |n| render_field(n, true, "Knowledges")
+                    />
                     <button class="add-field-btn" on:click=move |_| add_custom("Knowledges")>"+"</button>
                 </div>
             </div>

@@ -48,10 +48,12 @@ pub fn Abilities() -> impl IntoView {
 
     // Função para remover campo
     let remove_custom = move |category: &'static str, name: String| {
-        set_data.update(|s| {
-            if let Some(list) = s.custom_lists.get_mut(category) {
-                list.retain(|n| n != &name);
-            }
+        request_animation_frame(move || {
+            set_data.update(|s| {
+                if let Some(list) = s.custom_lists.get_mut(category) {
+                    list.retain(|n| n != &name);
+                }
+            });
         });
     };
 
@@ -146,7 +148,11 @@ pub fn Abilities() -> impl IntoView {
                     on_add=Callback::new(move |_| add_custom("Talentos"))
                 >
                     {TALENTOS.iter().map(|&n| render_field(n.to_string(), false, "Talentos")).collect_view()}
-                    {move || data.with(|d| d.custom_lists.get("Talentos").cloned().unwrap_or_default()).into_iter().map(|n| render_field(n, true, "Talentos")).collect_view()}
+                    <For
+                        each=move || data.with(|d| d.custom_lists.get("Talentos").cloned().unwrap_or_default())
+                        key=|n| n.clone()
+                        children=move |n| render_field(n, true, "Talentos")
+                    />
                 </AbilityColumn>
                 
                 <AbilityColumn 
@@ -154,7 +160,11 @@ pub fn Abilities() -> impl IntoView {
                     on_add=Callback::new(move |_| add_custom("Perícias"))
                 >
                     {PERICIAS.iter().map(|&n| render_field(n.to_string(), false, "Perícias")).collect_view()}
-                    {move || data.with(|d| d.custom_lists.get("Perícias").cloned().unwrap_or_default()).into_iter().map(|n| render_field(n, true, "Perícias")).collect_view()}
+                    <For
+                        each=move || data.with(|d| d.custom_lists.get("Perícias").cloned().unwrap_or_default())
+                        key=|n| n.clone()
+                        children=move |n| render_field(n, true, "Perícias")
+                    />
                 </AbilityColumn>
 
                 <AbilityColumn 
@@ -162,7 +172,11 @@ pub fn Abilities() -> impl IntoView {
                     on_add=Callback::new(move |_| add_custom("Conhecimentos"))
                 >
                     {CONHECIMENTOS.iter().map(|&n| render_field(n.to_string(), false, "Conhecimentos")).collect_view()}
-                    {move || data.with(|d| d.custom_lists.get("Conhecimentos").cloned().unwrap_or_default()).into_iter().map(|n| render_field(n, true, "Conhecimentos")).collect_view()}
+                    <For
+                        each=move || data.with(|d| d.custom_lists.get("Conhecimentos").cloned().unwrap_or_default())
+                        key=|n| n.clone()
+                        children=move |n| render_field(n, true, "Conhecimentos")
+                    />
                 </AbilityColumn>
             </div>
         </div>

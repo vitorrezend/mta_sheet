@@ -46,6 +46,22 @@ pub fn LogsPage() -> impl IntoView {
                     <button 
                         type="button" 
                         class="log-tab-btn" 
+                        class:active=move || selected_category.get().as_deref() == Some("access")
+                        on:click=move |_| set_selected_category.set(Some("access".to_string()))
+                    >
+                        "🛡️ Acessos (Bot vs Humano)"
+                    </button>
+                    <button 
+                        type="button" 
+                        class="log-tab-btn" 
+                        class:active=move || selected_category.get().as_deref() == Some("requests")
+                        on:click=move |_| set_selected_category.set(Some("requests".to_string()))
+                    >
+                        "🌐 Requisições"
+                    </button>
+                    <button 
+                        type="button" 
+                        class="log-tab-btn" 
                         class:active=move || selected_category.get().as_deref() == Some("database")
                         on:click=move |_| set_selected_category.set(Some("database".to_string()))
                     >
@@ -61,14 +77,6 @@ pub fn LogsPage() -> impl IntoView {
                     </button>
                     <button 
                         type="button" 
-                        class="log-tab-btn" 
-                        class:active=move || selected_category.get().as_deref() == Some("requests")
-                        on:click=move |_| set_selected_category.set(Some("requests".to_string()))
-                    >
-                        "🌐 Requisições"
-                    </button>
-                    <button 
-                        type="button" 
                         class="log-tab-btn tab-error" 
                         class:active=move || selected_category.get().as_deref() == Some("errors")
                         on:click=move |_| set_selected_category.set(Some("errors".to_string()))
@@ -81,7 +89,7 @@ pub fn LogsPage() -> impl IntoView {
                     <input 
                         type="text" 
                         class="logs-search-input" 
-                        placeholder="Filtrar logs por texto ou ID..." 
+                        placeholder="Filtrar logs por texto, IP ou tipo..." 
                         prop:value=search_query
                         on:input=move |ev| set_search_query.set(event_target_value(&ev))
                     />
@@ -106,10 +114,10 @@ pub fn LogsPage() -> impl IntoView {
                                             <thead>
                                                 <tr>
                                                     <th class="th-time">"Timestamp"</th>
-                                                    <th class="th-cat">"Categoria"</th>
+                                                    <th class="th-cat">"Categoria / Tipo"</th>
                                                     <th class="th-lvl">"Nível"</th>
-                                                    <th class="th-msg">"Mensagem"</th>
-                                                    <th class="th-details">"Detalhes / Métricas"</th>
+                                                    <th class="th-msg">"Mensagem / Rota"</th>
+                                                    <th class="th-details">"Detalhes do Cliente & Auditoria"</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -119,7 +127,27 @@ pub fn LogsPage() -> impl IntoView {
                                                         "WARN" => "lvl-warn",
                                                         _ => "lvl-info",
                                                     };
+                                                    let is_access = entry.category == "access";
+                                                    let details_text = entry.details.clone().unwrap_or_default();
+                                                    
+                                                    let client_badge = if is_access {
+                                                        if details_text.contains("type:human") {
+                                                            Some(("badge-human", "🟢 HUMANO"))
+                                                        } else if details_text.contains("type:crawler") {
+                                                            Some(("badge-crawler", "🤖 CRAWLER"))
+                                                        } else if details_text.contains("type:bot") {
+                                                            Some(("badge-bot", "🔴 MÁQUINA / BOT"))
+                                                        } else if details_text.contains("type:suspicious") {
+                                                            Some(("badge-suspicious", "⚠️ SUSPEITO"))
+                                                        } else {
+                                                            None
+                                                        }
+                                                    } else {
+                                                        None
+                                                    };
+
                                                     let cat_badge_class = match entry.category.as_str() {
+                                                        "access" => "cat-access",
                                                         "database" => "cat-database",
                                                         "user_actions" => "cat-user-actions",
                                                         "requests" => "cat-requests",
@@ -130,9 +158,17 @@ pub fn LogsPage() -> impl IntoView {
                                                         <tr class="log-row">
                                                             <td class="log-cell-time font-mono">{entry.timestamp}</td>
                                                             <td>
-                                                                <span class=format!("log-cat-badge {}", cat_badge_class)>
-                                                                    {entry.category}
-                                                                </span>
+                                                                {if let Some((b_class, b_label)) = client_badge {
+                                                                    view! {
+                                                                        <span class=b_class>{b_label}</span>
+                                                                    }.into_view()
+                                                                } else {
+                                                                    view! {
+                                                                        <span class=format!("log-cat-badge {}", cat_badge_class)>
+                                                                            {entry.category}
+                                                                        </span>
+                                                                    }.into_view()
+                                                                }}
                                                             </td>
                                                             <td>
                                                                 <span class=format!("log-lvl-badge {}", lvl_class)>
@@ -152,12 +188,34 @@ pub fn LogsPage() -> impl IntoView {
                                 }.into_view()
                             }
                         }
-                        Err(e) => view! {
-                            <div class="error-container">
-                                <p class="error-title">"Erro ao ler arquivos de log"</p>
-                                <p class="error-detail">{e.to_string()}</p>
-                            </div>
-                        }.into_view()
+                        Err(e) => {
+                            let err_msg = e.to_string();
+                            let is_unauthorized = err_msg.contains("Acesso negado") || err_msg.contains("administrador");
+                            view! {
+                                <div class="error-container">
+                                    {if is_unauthorized {
+                                        view! {
+                                            <div class="unauthorized-box" style="text-align: center; padding: 2.5rem 1.5rem; background: white; border-radius: 8px; border: 1px solid #fee2e2;">
+                                                <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">"🔒"</div>
+                                                <h2 style="color: #991b1b; margin-bottom: 0.5rem; font-size: 1.25rem;">"Acesso Restrito a Administradores"</h2>
+                                                <p style="color: #64748b; margin-bottom: 1.5rem; font-size: 0.9rem;">"Você precisa estar autenticado como Administrador para visualizar os logs de auditoria do sistema."</p>
+                                                <div style="display: flex; gap: 0.75rem; justify-content: center;">
+                                                    <a href="/login" style="padding: 0.5rem 1.2rem; background: #2563eb; color: white; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85rem;">"🔑 Fazer Login"</a>
+                                                    <a href="/" style="padding: 0.5rem 1.2rem; background: #f1f5f9; color: #475569; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85rem;">"← Voltar ao Início"</a>
+                                                </div>
+                                            </div>
+                                        }.into_view()
+                                    } else {
+                                        view! {
+                                            <div>
+                                                <p class="error-title">"Erro ao ler arquivos de log"</p>
+                                                <p class="error-detail">{err_msg}</p>
+                                            </div>
+                                        }.into_view()
+                                    }}
+                                </div>
+                            }.into_view()
+                        }
                     })}
                 </Suspense>
             </div>

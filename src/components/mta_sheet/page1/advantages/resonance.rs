@@ -23,12 +23,14 @@ pub fn Resonance() -> impl IntoView {
     };
 
     let remove_item = move |id: String| {
-        set_data.update(|s| {
-            if let Some(list) = s.custom_lists.get_mut(category) {
-                list.retain(|n| n != &id);
-            }
-            s.labels.remove(&id);
-            s.attributes.remove(&id);
+        request_animation_frame(move || {
+            set_data.update(|s| {
+                if let Some(list) = s.custom_lists.get_mut(category) {
+                    list.retain(|n| n != &id);
+                }
+                s.labels.remove(&id);
+                s.attributes.remove(&id);
+            });
         });
     };
 
@@ -114,7 +116,11 @@ pub fn Resonance() -> impl IntoView {
     view! {
         <div class="resonance-column">
             <h3 class="column-title">"RESSONÂNCIA"</h3>
-            {move || list.get().into_iter().map(render_item).collect_view()}
+            <For
+                each=move || list.get()
+                key=|id| id.clone()
+                children=render_item
+            />
             <button class="add-field-btn" on:click=add_item>"+"</button>
         </div>
     }

@@ -1782,9 +1782,58 @@ body {
     color: #b91c1c;
 }
 
+.cat-access {
+    background: #ecfdf5;
+    color: #047857;
+}
+
 .cat-default {
     background: #f1f5f9;
     color: #475569;
+}
+
+.badge-human {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.72rem;
+    display: inline-block;
+}
+
+.badge-crawler {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #7dd3fc;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.72rem;
+    display: inline-block;
+}
+
+.badge-bot {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.72rem;
+    display: inline-block;
+}
+
+.badge-suspicious {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.72rem;
+    display: inline-block;
 }
 
 .log-lvl-badge {

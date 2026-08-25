@@ -1,0 +1,12 @@
+﻿target/
+.git/
+.gitignore
+.env
+mta_sheet.db*
+uploads/
+logs/
+*.exe
+dist/
+node_modules/
+.vscode/
+.idea/

@@ -1,0 +1,29 @@
+﻿services:
+  mta_sheet:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mta_sheet:latest
+    container_name: mta_sheet_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=sqlite:/app/data/mta_sheet.db?mode=rwc
+      - LEPTOS_SITE_ADDR=0.0.0.0:3000
+      - RUST_LOG=info
+    volumes:
+      - mta_data:/app/data
+      - mta_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  mta_data:
+    name: mta_sheet_data
+  mta_uploads:
+    name: mta_sheet_uploads

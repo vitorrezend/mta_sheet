@@ -48,12 +48,18 @@ pub async fn get_db() -> SqlitePool {
             id TEXT PRIMARY KEY,
             username TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
+            is_admin INTEGER NOT NULL DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )"
     )
     .execute(&pool)
     .await
     .expect("Failed to create users table");
+
+    // Migration suave para bancos já existentes
+    let _ = sqlx::query("ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0")
+        .execute(&pool)
+        .await;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS sessions (

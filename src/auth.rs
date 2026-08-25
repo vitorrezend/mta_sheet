@@ -5,6 +5,7 @@ use leptos::*;
 pub struct UserInfo {
     pub id: String,
     pub username: String,
+    pub is_admin: bool,
 }
 
 #[cfg(feature = "ssr")]
@@ -37,9 +38,13 @@ pub async fn extract_session_token() -> Option<String> {
 #[cfg(feature = "ssr")]
 pub fn set_session_cookie(token: &str, max_age_secs: i64) {
     if let Some(res_options) = use_context::<leptos_axum::ResponseOptions>() {
+        let is_prod = std::env::var("LEPTOS_ENV").map(|e| e.to_lowercase() == "production" || e.to_lowercase() == "prod").unwrap_or(false)
+            || std::env::var("ENABLE_SECURE_COOKIE").map(|e| e == "1" || e.to_lowercase() == "true").unwrap_or(false);
+
+        let secure_flag = if is_prod { "; Secure" } else { "" };
         let cookie_str = format!(
-            "session_token={}; Path=/; SameSite=Lax; HttpOnly; Max-Age={}",
-            token, max_age_secs
+            "session_token={}; Path=/; SameSite=Lax; HttpOnly{}; Max-Age={}",
+            token, secure_flag, max_age_secs
         );
         if let Ok(header_val) = http::HeaderValue::from_str(&cookie_str) {
             res_options.insert_header(http::header::SET_COOKIE, header_val);
@@ -73,6 +78,54 @@ pub async fn get_auth_user_id() -> Result<Option<String>, ServerFnError> {
     Ok(row.map(|r| r.get("user_id")))
 }
 
+#[cfg(feature = "ssr")]
+pub fn is_username_in_admin_env(username: &str) -> bool {
+    let env_val = std::env::var("ADMIN_USERNAMES")
+        .or_else(|_| std::env::var("ADMIN_USERNAME"))
+        .unwrap_or_default();
+
+    if env_val.trim().is_empty() {
+        return false;
+    }
+
+    env_val
+        .split(',')
+        .map(|s| s.trim())
+        .any(|admin| !admin.is_empty() && admin.eq_ignore_ascii_case(username))
+}
+
+#[cfg(feature = "ssr")]
+pub async fn is_current_user_admin() -> Result<bool, ServerFnError> {
+    use sqlx::{SqlitePool, Row};
+    let token = match extract_session_token().await {
+        Some(t) if !t.is_empty() => t,
+        _ => return Ok(false),
+    };
+
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        ServerFnError::new("Conexão com o banco de dados indisponível")
+    })?;
+
+    let row = sqlx::query(
+        "SELECT u.username, u.is_admin FROM sessions s 
+         JOIN users u ON s.user_id = u.id 
+         WHERE s.id = ? AND s.expires_at > CURRENT_TIMESTAMP"
+    )
+    .bind(token)
+    .fetch_optional(&pool)
+    .await
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    if let Some(r) = row {
+        let is_admin_col: i64 = r.try_get("is_admin").unwrap_or(0);
+        let username: String = r.get("username");
+        let is_admin = is_admin_col == 1 || is_username_in_admin_env(&username);
+        Ok(is_admin)
+    } else {
+        Ok(false)
+    }
+}
+
 #[server(endpoint = "get_current_user")]
 pub async fn get_current_user() -> Result<Option<UserInfo>, ServerFnError> {
     use sqlx::{SqlitePool, Row};
@@ -86,7 +139,7 @@ pub async fn get_current_user() -> Result<Option<UserInfo>, ServerFnError> {
     })?;
 
     let row = sqlx::query(
-        "SELECT u.id, u.username FROM sessions s 
+        "SELECT u.id, u.username, u.is_admin FROM sessions s 
          JOIN users u ON s.user_id = u.id 
          WHERE s.id = ? AND s.expires_at > CURRENT_TIMESTAMP"
     )
@@ -95,10 +148,20 @@ pub async fn get_current_user() -> Result<Option<UserInfo>, ServerFnError> {
     .await
     .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    Ok(row.map(|r| UserInfo {
-        id: r.get("id"),
-        username: r.get("username"),
-    }))
+    if let Some(r) = row {
+        let id: String = r.get("id");
+        let username: String = r.get("username");
+        let is_admin_col: i64 = r.try_get("is_admin").unwrap_or(0);
+        let is_admin = is_admin_col == 1 || is_username_in_admin_env(&username);
+
+        Ok(Some(UserInfo {
+            id,
+            username,
+            is_admin,
+        }))
+    } else {
+        Ok(None)
+    }
 }
 
 #[server(endpoint = "register")]
@@ -111,21 +174,31 @@ pub async fn register(username: String, password: String) -> Result<UserInfo, Se
         return Err(ServerFnError::new("A senha deve ter no mínimo 4 caracteres"));
     }
 
-    use sqlx::SqlitePool;
+    use sqlx::{SqlitePool, Row};
     use uuid::Uuid;
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
+
+    // Verifica se é o primeiro usuário do sistema ou se está na lista ADMIN_USERNAMES
+    let user_count_row = sqlx::query("SELECT COUNT(*) as count FROM users")
+        .fetch_one(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let user_count: i64 = user_count_row.get("count");
+    let is_first_user = user_count == 0;
+    let is_admin = is_first_user || is_username_in_admin_env(&clean_user);
 
     let password_hash = bcrypt::hash(&password, bcrypt::DEFAULT_COST)
         .map_err(|e| ServerFnError::new(format!("Erro ao processar senha: {}", e)))?;
 
     let user_id = Uuid::new_v4().to_string();
 
-    sqlx::query("INSERT INTO users (id, username, password_hash) VALUES (?, ?, ?)")
+    sqlx::query("INSERT INTO users (id, username, password_hash, is_admin) VALUES (?, ?, ?, ?)")
         .bind(&user_id)
         .bind(&clean_user)
         .bind(&password_hash)
+        .bind(if is_admin { 1i64 } else { 0i64 })
         .execute(&pool)
         .await
         .map_err(|e| {
@@ -150,10 +223,11 @@ pub async fn register(username: String, password: String) -> Result<UserInfo, Se
 
     set_session_cookie(&session_token, 30 * 24 * 60 * 60);
 
-    log::info!("Registered new user: {}", clean_user);
+    log::info!("Registered new user: {} (admin: {})", clean_user, is_admin);
     Ok(UserInfo {
         id: user_id,
         username: clean_user,
+        is_admin,
     })
 }
 
@@ -170,7 +244,7 @@ pub async fn login(username: String, password: String) -> Result<UserInfo, Serve
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
 
-    let row = sqlx::query("SELECT id, username, password_hash FROM users WHERE username = ? COLLATE NOCASE")
+    let row = sqlx::query("SELECT id, username, password_hash, is_admin FROM users WHERE username = ? COLLATE NOCASE")
         .bind(&clean_user)
         .fetch_optional(&pool)
         .await
@@ -180,6 +254,8 @@ pub async fn login(username: String, password: String) -> Result<UserInfo, Serve
     let user_id: String = row.get("id");
     let actual_username: String = row.get("username");
     let password_hash: String = row.get("password_hash");
+    let is_admin_col: i64 = row.try_get("is_admin").unwrap_or(0);
+    let is_admin = is_admin_col == 1 || is_username_in_admin_env(&actual_username);
 
     let is_valid = bcrypt::verify(&password, &password_hash)
         .map_err(|_| ServerFnError::new("Erro ao verificar credenciais"))?;
@@ -202,10 +278,11 @@ pub async fn login(username: String, password: String) -> Result<UserInfo, Serve
 
     set_session_cookie(&session_token, 30 * 24 * 60 * 60);
 
-    log::info!("Logged in user: {}", actual_username);
+    log::info!("Logged in user: {} (admin: {})", actual_username, is_admin);
     Ok(UserInfo {
         id: user_id,
         username: actual_username,
+        is_admin,
     })
 }
 
@@ -235,6 +312,7 @@ mod tests {
         let user = UserInfo {
             id: "u-123".to_string(),
             username: "HermesTrismegistus".to_string(),
+            is_admin: false,
         };
 
         let json = serde_json::to_string(&user).expect("serialize");

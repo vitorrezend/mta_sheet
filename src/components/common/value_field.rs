@@ -74,24 +74,40 @@ pub fn ValueField(
         }
     };
 
-    let (editing_label, set_editing_label) = if is_editable {
-        create_signal(label.get_untracked().is_empty())
-    } else {
-        create_signal(false)
-    };
-    let (local_label, set_local_label) = create_signal(label.get_untracked());
+    let on_level_change_click = on_level_change.clone();
+    let on_modifier_input = on_modifier_change.clone();
 
-    // Sincroniza o valor local quando entra em modo de edição
+    // Focus-Lock para o campo de modificador (evita perda de cursor ao digitar)
+    let modifier_ref = create_node_ref::<html::Input>();
+    let is_modifier_focused = create_rw_signal(false);
+    let last_modifier_value = create_rw_signal(String::new());
+
+    create_effect(move |_| {
+        let val = modifier.get();
+        if !is_modifier_focused.get_untracked() {
+            if let Some(elem) = modifier_ref.get() {
+                elem.set_value(&val);
+            }
+            let _ = last_modifier_value.try_set(val);
+        }
+    });
+
+    // Focus-Lock para o campo de nome editável (evita perda de cursor ao digitar)
+    let label_ref = create_node_ref::<html::Input>();
+    let is_label_focused = create_rw_signal(false);
+    let last_label_value = create_rw_signal(String::new());
+
     if is_editable {
         create_effect(move |_| {
-            if editing_label.get() {
-                set_local_label.set(label.get());
+            let val = label.get();
+            if !is_label_focused.get_untracked() {
+                if let Some(elem) = label_ref.get() {
+                    elem.set_value(&val);
+                }
+                let _ = last_label_value.try_set(val);
             }
         });
     }
-
-    let on_level_change_click = on_level_change.clone();
-    let on_modifier_input = on_modifier_change.clone();
 
     view! {
         <div class="attribute-row">
@@ -121,39 +137,35 @@ pub fn ValueField(
                 })}
                 {
                     let on_label_change = on_label_change.clone();
-                    move || if editing_label.get() {
+                    if is_editable {
+                        let on_label_input = on_label_change.clone();
                         let on_label_blur = on_label_change.clone();
-                        let on_label_enter = on_label_change.clone();
                         view! {
                             <input 
                                 type="text" 
+                                node_ref=label_ref
                                 class="label-edit-input"
-                                placeholder="..."
+                                placeholder="Nome..."
                                 maxlength="32"
-                                prop:value=local_label
-                                on:input=move |ev| set_local_label.set(event_target_value(&ev))
-                                on:blur=move |_| {
-                                    let val = local_label.get();
-                                    if !val.trim().is_empty() {
-                                        if let Some(cb) = on_label_blur.as_ref() {
-                                            cb.call(val);
-                                        }
-                                        set_editing_label.set(false);
+                                on:focus=move |_| { let _ = is_label_focused.try_set(true); }
+                                on:input=move |ev| {
+                                    let val = event_target_value(&ev);
+                                    let _ = last_label_value.try_set(val.clone());
+                                    if let Some(cb) = on_label_input.as_ref() {
+                                        cb.call(val);
                                     }
                                 }
-                                on:keydown=move |ev| {
-                                    if ev.key() == "Enter" {
-                                        let val = local_label.get();
-                                        if !val.trim().is_empty() {
-                                            if let Some(cb) = on_label_enter.as_ref() {
+                                on:blur=move |_| {
+                                    let _ = is_label_focused.try_set(false);
+                                    if let Some(elem) = label_ref.get() {
+                                        let val = elem.value();
+                                        if val != last_label_value.get_untracked() {
+                                            let _ = last_label_value.try_set(val.clone());
+                                            if let Some(cb) = on_label_blur.as_ref() {
                                                 cb.call(val);
                                             }
-                                            set_editing_label.set(false);
                                         }
                                     }
-                                }
-                                on:mount=move |el: web_sys::HtmlInputElement| { 
-                                    let _ = el.focus(); 
                                 }
                             />
                         }.into_view()
@@ -162,7 +174,6 @@ pub fn ValueField(
                             <span 
                                 class="attribute-label"
                                 class:affinity-active=move || is_starred.map(|s| s.get()).unwrap_or(false)
-                                on:dblclick=move |_| if is_editable { set_editing_label.set(true) }
                             >
                                 {display_label}
                             </span>
@@ -175,11 +186,32 @@ pub fn ValueField(
             <div class="modifier-container tooltip-container">
                 <input 
                     type="text" 
+                    node_ref=modifier_ref
                     class="field-modifier" 
                     placeholder="..."
                     maxlength="30"
-                    prop:value=modifier
-                    on:input=move |ev| on_modifier_input(event_target_value(&ev))
+                    on:focus=move |_| { let _ = is_modifier_focused.try_set(true); }
+                    on:input={
+                        let on_mod = on_modifier_input.clone();
+                        move |ev| {
+                            let val = event_target_value(&ev);
+                            let _ = last_modifier_value.try_set(val.clone());
+                            on_mod(val);
+                        }
+                    }
+                    on:blur={
+                        let on_mod = on_modifier_input.clone();
+                        move |_| {
+                            let _ = is_modifier_focused.try_set(false);
+                            if let Some(elem) = modifier_ref.get() {
+                                let val = elem.value();
+                                if val != last_modifier_value.get_untracked() {
+                                    let _ = last_modifier_value.try_set(val.clone());
+                                    on_mod(val);
+                                }
+                            }
+                        }
+                    }
                 />
                 <span class="tooltip-text" 
                     class:hidden=move || modifier.get().is_empty()

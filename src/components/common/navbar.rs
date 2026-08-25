@@ -35,7 +35,15 @@ pub fn Navbar() -> impl IntoView {
                 <div class="navbar-links">
                     <A href="/" class="nav-link" exact=true>"📜 Fichas"</A>
                     <A href="/rooms" class="nav-link">"🏰 Salas de Jogo"</A>
-                    <A href="/logs" class="nav-link">"📊 Logs"</A>
+                    {move || {
+                        if user.get().map(|u| u.is_admin).unwrap_or(false) {
+                            view! {
+                                <A href="/logs" class="nav-link">"📊 Logs"</A>
+                            }.into_view()
+                        } else {
+                            view! {}.into_view()
+                        }
+                    }}
                 </div>
 
                 <div class="navbar-auth">

@@ -36,12 +36,14 @@ pub fn MeritsFlaws() -> impl IntoView {
     };
 
     let remove_item = move |category: &'static str, id: String| {
-        set_data.update(|s| {
-            if let Some(list) = s.custom_lists.get_mut(category) {
-                list.retain(|n| n != &id);
-            }
-            s.labels.remove(&id);
-            s.attributes.remove(&id);
+        request_animation_frame(move || {
+            set_data.update(|s| {
+                if let Some(list) = s.custom_lists.get_mut(category) {
+                    list.retain(|n| n != &id);
+                }
+                s.labels.remove(&id);
+                s.attributes.remove(&id);
+            });
         });
     };
 
@@ -133,14 +135,22 @@ pub fn MeritsFlaws() -> impl IntoView {
                 // Coluna 1: Qualidades (Merits)
                 <div class="attribute-column">
                     <h3 class="column-title">"Qualidades"</h3>
-                    {move || merits_list.get().into_iter().map(|id| render_item(keys::CAT_MERITS, id)).collect_view()}
+                    <For
+                        each=move || merits_list.get()
+                        key=|id| id.clone()
+                        children=move |id| render_item(keys::CAT_MERITS, id)
+                    />
                     <button class="add-field-btn" on:click=add_merit title="Adicionar Qualidade">"+"</button>
                 </div>
 
                 // Coluna 2: Defeitos (Flaws)
                 <div class="attribute-column">
                     <h3 class="column-title">"Defeitos"</h3>
-                    {move || flaws_list.get().into_iter().map(|id| render_item(keys::CAT_FLAWS, id)).collect_view()}
+                    <For
+                        each=move || flaws_list.get()
+                        key=|id| id.clone()
+                        children=move |id| render_item(keys::CAT_FLAWS, id)
+                    />
                     <button class="add-field-btn" on:click=add_flaw title="Adicionar Defeito">"+"</button>
                 </div>
             </div>

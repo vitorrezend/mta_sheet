@@ -100,11 +100,13 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
     };
 
     let remove_charm = move |key: String| {
-        set_data.update(|s| {
-            if let Some(list) = s.custom_lists.get_mut("Charms") {
-                list.retain(|k| k != &key);
-            }
-            s.labels.remove(&key);
+        request_animation_frame(move || {
+            set_data.update(|s| {
+                if let Some(list) = s.custom_lists.get_mut("Charms") {
+                    list.retain(|k| k != &key);
+                }
+                s.labels.remove(&key);
+            });
         });
     };
 
@@ -118,11 +120,13 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
     };
 
     let remove_gift = move |key: String| {
-        set_data.update(|s| {
-            if let Some(list) = s.custom_lists.get_mut("Gifts") {
-                list.retain(|k| k != &key);
-            }
-            s.labels.remove(&key);
+        request_animation_frame(move || {
+            set_data.update(|s| {
+                if let Some(list) = s.custom_lists.get_mut("Gifts") {
+                    list.retain(|k| k != &key);
+                }
+                s.labels.remove(&key);
+            });
         });
     };
 
@@ -136,12 +140,14 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
     };
 
     let remove_bg = move |key_id: String| {
-        set_data.update(|s| {
-            if let Some(list) = s.custom_lists.get_mut("Gods_Backgrounds") {
-                list.retain(|k| k != &key_id);
-            }
-            s.attributes.remove(&key_id);
-            s.labels.remove(&format!("label_{}", key_id));
+        request_animation_frame(move || {
+            set_data.update(|s| {
+                if let Some(list) = s.custom_lists.get_mut("Gods_Backgrounds") {
+                    list.retain(|k| k != &key_id);
+                }
+                s.attributes.remove(&key_id);
+                s.labels.remove(&format!("label_{}", key_id));
+            });
         });
     };
 
@@ -199,11 +205,13 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
     };
 
     let remove_special_adv = move |key: String| {
-        set_data.update(|s| {
-            if let Some(list) = s.custom_lists.get_mut("Special_Advantages") {
-                list.retain(|k| k != &key);
-            }
-            s.labels.remove(&key);
+        request_animation_frame(move || {
+            set_data.update(|s| {
+                if let Some(list) = s.custom_lists.get_mut("Special_Advantages") {
+                    list.retain(|k| k != &key);
+                }
+                s.labels.remove(&key);
+            });
         });
     };
 
@@ -218,17 +226,21 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                         <h3 class="column-title">"Charms"</h3>
                         <div class="gods-lines-list">
                             {(0..6).map(|i| view! { <GodsLineInput key=format!("charm_{}", i) placeholder="Charm..." /> }).collect_view()}
-                            {move || data.with(|d| d.custom_lists.get("Charms").cloned().unwrap_or_default()).into_iter().map(|k| {
-                                let k_remove = k.clone();
-                                view! {
-                                    <GodsLineInput 
-                                        key=k.clone() 
-                                        placeholder="Charm..." 
-                                        is_custom=true 
-                                        on_remove=Callback::new(move |_| remove_charm(k_remove.clone())) 
-                                    />
+                            <For
+                                each=move || data.with(|d| d.custom_lists.get("Charms").cloned().unwrap_or_default())
+                                key=|k| k.clone()
+                                children=move |k| {
+                                    let k_remove = k.clone();
+                                    view! {
+                                        <GodsLineInput 
+                                            key=k.clone() 
+                                            placeholder="Charm..." 
+                                            is_custom=true 
+                                            on_remove=Callback::new(move |_| remove_charm(k_remove.clone())) 
+                                        />
+                                    }
                                 }
-                            }).collect_view()}
+                            />
                             <button type="button" class="add-field-btn" on:click=move |_| add_charm() title="Adicionar Encanto">+</button>
                         </div>
                     </div>
@@ -237,17 +249,21 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                         <h3 class="column-title">"Gifts"</h3>
                         <div class="gods-lines-list">
                             {(0..6).map(|i| view! { <GodsLineInput key=format!("gift_{}", i) placeholder="Gift..." /> }).collect_view()}
-                            {move || data.with(|d| d.custom_lists.get("Gifts").cloned().unwrap_or_default()).into_iter().map(|k| {
-                                let k_remove = k.clone();
-                                view! {
-                                    <GodsLineInput 
-                                        key=k.clone() 
-                                        placeholder="Gift..." 
-                                        is_custom=true 
-                                        on_remove=Callback::new(move |_| remove_gift(k_remove.clone())) 
-                                    />
+                            <For
+                                each=move || data.with(|d| d.custom_lists.get("Gifts").cloned().unwrap_or_default())
+                                key=|k| k.clone()
+                                children=move |k| {
+                                    let k_remove = k.clone();
+                                    view! {
+                                        <GodsLineInput 
+                                            key=k.clone() 
+                                            placeholder="Gift..." 
+                                            is_custom=true 
+                                            on_remove=Callback::new(move |_| remove_gift(k_remove.clone())) 
+                                        />
+                                    }
                                 }
-                            }).collect_view()}
+                            />
                             <button type="button" class="add-field-btn" on:click=move |_| add_gift() title="Adicionar Dom">+</button>
                         </div>
                     </div>
@@ -288,17 +304,21 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                         <h3 class="column-title">"Special Advantages"</h3>
                         <div class="gods-lines-list">
                             {(0..6).map(|i| view! { <GodsLineInput key=format!("special_adv_{}", i) placeholder="Special Advantage..." /> }).collect_view()}
-                            {move || data.with(|d| d.custom_lists.get("Special_Advantages").cloned().unwrap_or_default()).into_iter().map(|k| {
-                                let k_remove = k.clone();
-                                view! {
-                                    <GodsLineInput 
-                                        key=k.clone() 
-                                        placeholder="Special Advantage..." 
-                                        is_custom=true 
-                                        on_remove=Callback::new(move |_| remove_special_adv(k_remove.clone())) 
-                                    />
+                            <For
+                                each=move || data.with(|d| d.custom_lists.get("Special_Advantages").cloned().unwrap_or_default())
+                                key=|k| k.clone()
+                                children=move |k| {
+                                    let k_remove = k.clone();
+                                    view! {
+                                        <GodsLineInput 
+                                            key=k.clone() 
+                                            placeholder="Special Advantage..." 
+                                            is_custom=true 
+                                            on_remove=Callback::new(move |_| remove_special_adv(k_remove.clone())) 
+                                        />
+                                    }
                                 }
-                            }).collect_view()}
+                            />
                             <button type="button" class="add-field-btn" on:click=move |_| add_special_adv() title="Adicionar Vantagem Especial">+</button>
                         </div>
                     </div>
@@ -397,9 +417,11 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                         <h3 class="column-title">"Backgrounds"</h3>
                         <div class="gods-bg-list">
                             {(0..6).map(|i| render_bg_field(i)).collect_view()}
-                            {move || data.with(|d| d.custom_lists.get("Gods_Backgrounds").cloned().unwrap_or_default()).into_iter().map(|k| {
-                                render_custom_bg_field(k)
-                            }).collect_view()}
+                            <For
+                                each=move || data.with(|d| d.custom_lists.get("Gods_Backgrounds").cloned().unwrap_or_default())
+                                key=|k| k.clone()
+                                children=render_custom_bg_field
+                            />
                             <button type="button" class="add-field-btn" on:click=move |_| add_bg() title="Adicionar Antecedente">+</button>
                         </div>
                     </div>
