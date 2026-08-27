@@ -49,6 +49,8 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
 
+if exist "target\site\pkg\mta_sheet_bg.wasm" if not exist "target\site\pkg\mta_sheet.wasm" copy /Y "target\site\pkg\mta_sheet_bg.wasm" "target\site\pkg\mta_sheet.wasm" >nul
+if exist "target\site\pkg\mta_sheet.wasm" if not exist "target\site\pkg\mta_sheet_bg.wasm" copy /Y "target\site\pkg\mta_sheet.wasm" "target\site\pkg\mta_sheet_bg.wasm" >nul
 copy /Y style.css target\site\pkg\mta_sheet.css >nul
 
 echo   -^> [3/3] Compilando Servidor Backend SSR Release...

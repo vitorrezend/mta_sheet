@@ -36,50 +36,75 @@ fn get_cache_control_css() -> &'static str {
 async fn pkg_handler(
     axum::extract::Path(path): axum::extract::Path<String>,
 ) -> impl IntoResponse {
-    let disk_path = format!("target/site/pkg/{}", path);
     let cache_hdr = get_cache_control_static().to_string();
 
     // 1. Tenta servir do disco local primeiro para garantir arquivos sempre atualizados em dev/build
-    if let Ok(bytes) = tokio::fs::read(&disk_path).await {
-        let mime = if path.ends_with(".wasm") {
-            "application/wasm".to_string()
-        } else if path.ends_with(".js") {
-            "text/javascript".to_string()
-        } else if path.ends_with(".css") {
-            "text/css".to_string()
-        } else {
-            mime_guess::from_path(&path).first_or_octet_stream().to_string()
-        };
-        return (
-            [
-                (http::header::CONTENT_TYPE, mime),
-                (http::header::CACHE_CONTROL, cache_hdr),
-            ],
-            bytes,
-        )
-            .into_response();
+    let mut candidate_disk_paths = vec![
+        format!("target/site/pkg/{}", path),
+        format!("target/site/{}", path),
+    ];
+
+    if path == "mta_sheet_bg.wasm" {
+        candidate_disk_paths.push("target/site/pkg/mta_sheet.wasm".to_string());
+        candidate_disk_paths.push("target/front/wasm32-unknown-unknown/debug/mta_sheet.wasm".to_string());
+        candidate_disk_paths.push("target/wasm32-unknown-unknown/release/mta_sheet.wasm".to_string());
+    } else if path == "mta_sheet.wasm" {
+        candidate_disk_paths.push("target/site/pkg/mta_sheet_bg.wasm".to_string());
+        candidate_disk_paths.push("target/front/wasm32-unknown-unknown/debug/mta_sheet.wasm".to_string());
+        candidate_disk_paths.push("target/wasm32-unknown-unknown/release/mta_sheet.wasm".to_string());
     }
 
-    let key = format!("pkg/{}", path);
-    // 2. Fallback para o binário embutido
-    if let Some(file) = SiteAssets::get(&key) {
-        let mime = if path.ends_with(".wasm") {
-            "application/wasm".to_string()
-        } else if path.ends_with(".js") {
-            "text/javascript".to_string()
-        } else if path.ends_with(".css") {
-            "text/css".to_string()
-        } else {
-            mime_guess::from_path(&path).first_or_octet_stream().to_string()
-        };
-        return (
-            [
-                (http::header::CONTENT_TYPE, mime),
-                (http::header::CACHE_CONTROL, cache_hdr),
-            ],
-            file.data.into_owned(),
-        )
-            .into_response();
+    for disk_path in candidate_disk_paths {
+        if let Ok(bytes) = tokio::fs::read(&disk_path).await {
+            let mime = if path.ends_with(".wasm") || disk_path.ends_with(".wasm") {
+                "application/wasm".to_string()
+            } else if path.ends_with(".js") {
+                "text/javascript".to_string()
+            } else if path.ends_with(".css") {
+                "text/css".to_string()
+            } else {
+                mime_guess::from_path(&path).first_or_octet_stream().to_string()
+            };
+            return (
+                [
+                    (http::header::CONTENT_TYPE, mime),
+                    (http::header::CACHE_CONTROL, cache_hdr),
+                ],
+                bytes,
+            )
+                .into_response();
+        }
+    }
+
+    // 2. Fallback para o binário embutido (SiteAssets)
+    let candidate_keys = if path == "mta_sheet_bg.wasm" {
+        vec!["pkg/mta_sheet_bg.wasm".to_string(), "pkg/mta_sheet.wasm".to_string()]
+    } else if path == "mta_sheet.wasm" {
+        vec!["pkg/mta_sheet.wasm".to_string(), "pkg/mta_sheet_bg.wasm".to_string()]
+    } else {
+        vec![format!("pkg/{}", path), path.clone()]
+    };
+
+    for key in candidate_keys {
+        if let Some(file) = SiteAssets::get(&key) {
+            let mime = if path.ends_with(".wasm") || key.ends_with(".wasm") {
+                "application/wasm".to_string()
+            } else if path.ends_with(".js") {
+                "text/javascript".to_string()
+            } else if path.ends_with(".css") {
+                "text/css".to_string()
+            } else {
+                mime_guess::from_path(&path).first_or_octet_stream().to_string()
+            };
+            return (
+                [
+                    (http::header::CONTENT_TYPE, mime),
+                    (http::header::CACHE_CONTROL, cache_hdr),
+                ],
+                file.data.into_owned(),
+            )
+                .into_response();
+        }
     }
 
     // 3. Fallback especial para CSS caso o build WASM ainda não tenha rodado
