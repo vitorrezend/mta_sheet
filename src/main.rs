@@ -402,6 +402,30 @@ async fn upload_image_handler(
 }
 
 #[cfg(feature = "ssr")]
+async fn room_events_sse_handler(
+    axum::extract::Path(room_id): axum::extract::Path<String>,
+) -> impl IntoResponse {
+    use axum::response::sse::{Event, KeepAlive, Sse};
+    use futures_util::stream::StreamExt;
+    use tokio_stream::wrappers::BroadcastStream;
+
+    let sender = mta_sheet::rooms::get_or_create_room_channel(&room_id);
+    let rx = sender.subscribe();
+
+    let stream = BroadcastStream::new(rx).filter_map(|msg| async move {
+        match msg {
+            Ok(event) => {
+                let json = serde_json::to_string(&event).unwrap_or_default();
+                Some(Ok::<_, std::convert::Infallible>(Event::default().data(json)))
+            }
+            Err(_) => None,
+        }
+    });
+
+    Sse::new(stream).keep_alive(KeepAlive::default())
+}
+
+#[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
     use axum::Router;
@@ -500,6 +524,7 @@ async fn main() {
         .route("/api/form_register", axum::routing::post(form_register_handler))
         .route("/api/upload_image", axum::routing::post(upload_image_handler))
         .route("/api/export_json/:id", axum::routing::get(export_json_handler))
+        .route("/api/room_events/:id", axum::routing::get(room_events_sse_handler))
         .route("/pkg/*path", axum::routing::get(pkg_handler))
         .route("/assets/*path", axum::routing::get(assets_handler))
         .route("/styles/*path", axum::routing::get(styles_handler))

@@ -1,4 +1,4 @@
-﻿#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct InitiativeEntryTest {
     pub id: String,
     pub name: String,
@@ -123,3 +123,38 @@ fn test_inactive_participants_placed_at_end() {
     assert_eq!(list[2].name, "Inativo");
     assert_eq!(list[2].final_total, None);
 }
+
+#[test]
+fn test_room_broadcast_event_serialization() {
+    use mta_sheet::rooms::{RoomBroadcastEvent, RoomInitiativeData, InitiativeEntry};
+
+    let event = RoomBroadcastEvent {
+        event_type: "DICE_ROLLED".to_string(),
+        initiative: RoomInitiativeData {
+            round: 2,
+            is_open: true,
+            entries: vec![
+                InitiativeEntry {
+                    id: "c1".to_string(),
+                    name: "Hermes".to_string(),
+                    is_npc: false,
+                    is_active: true,
+                    base_dex: 3,
+                    base_wits: 3,
+                    base_total: 6,
+                    health_penalty: 0,
+                    rolled_die: Some(8),
+                    final_total: Some(14),
+                },
+            ],
+        },
+        play_sound: true,
+    };
+
+    let json = serde_json::to_string(&event).expect("serialize RoomBroadcastEvent");
+    let deserialized: RoomBroadcastEvent = serde_json::from_str(&json).expect("deserialize RoomBroadcastEvent");
+    assert_eq!(event, deserialized);
+    assert!(deserialized.play_sound);
+    assert_eq!(deserialized.initiative.round, 2);
+}
+

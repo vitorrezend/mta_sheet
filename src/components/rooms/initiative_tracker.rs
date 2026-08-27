@@ -1,5 +1,5 @@
-use leptos::*;
-use crate::rooms::{RoomSheetSummary, RoomInitiativeData, InitiativeEntry, update_room_initiative};
+﻿use leptos::*;
+use crate::rooms::{RoomSheetSummary, RoomInitiativeData, InitiativeEntry, RoomBroadcastEvent, update_room_initiative};
 use crate::components::common::play_dice_roll_sound;
 
 #[component]
@@ -17,19 +17,18 @@ pub fn InitiativeDrawer(
     let (new_npc_base, set_new_npc_base) = create_signal(6i32);
     let (is_rolling, set_is_rolling) = create_signal(false);
 
-    // Sincroniza dados da sala vindos do servidor (incluindo inimigos criados pelo GM e rolagens)
+    // 1. Sincronização inicial via dados da sala (caso chegue via SSR / Resource)
     create_effect(move |_| {
         let server_init = initiative.get();
         let current_sheets = sheets.get();
 
         entries.update(|list| {
             if !server_init.entries.is_empty() {
-                // Sincroniza estado compartilhado do servidor
                 round.set(server_init.round);
                 *list = server_init.entries.clone();
             }
 
-            // Garante que novas fichas que entraram na mesa apareçam na lista
+            // Garante que fichas de jogadores presentes na sala apareçam na iniciativa
             for s in &current_sheets {
                 if !list.iter().any(|e| e.id == s.id) {
                     list.push(InitiativeEntry {
@@ -47,7 +46,7 @@ pub fn InitiativeDrawer(
                 }
             }
 
-            // Atualiza bases de atributos caso a ficha tenha mudado
+            // Atualiza penalidade de vida e base caso a ficha tenha mudado
             for s in &current_sheets {
                 if let Some(existing) = list.iter_mut().find(|e| e.id == s.id) {
                     existing.base_dex = s.dexterity;
@@ -59,8 +58,47 @@ pub fn InitiativeDrawer(
         });
     });
 
+    // 2. Conexão Server-Sent Events (SSE) em tempo real para sincronização instantânea (< 30ms)
+    #[cfg(target_arch = "wasm32")]
+    {
+        use wasm_bindgen::closure::Closure;
+        use wasm_bindgen::JsCast;
+
+        create_effect(move |_| {
+            let r_id = room_id.get();
+            if r_id.is_empty() {
+                return;
+            }
+
+            if let Ok(es) = web_sys::EventSource::new(&format!("/api/room_events/{}", r_id)) {
+                let entries_sig = entries;
+                let round_sig = round;
+
+                let onmessage_cb = Closure::<dyn FnMut(web_sys::MessageEvent)>::new(move |e: web_sys::MessageEvent| {
+                    if let Some(text) = e.data().as_string() {
+                        if let Ok(event) = serde_json::from_str::<RoomBroadcastEvent>(&text) {
+                            round_sig.set(event.initiative.round);
+                            entries_sig.set(event.initiative.entries);
+                            if event.play_sound {
+                                play_dice_roll_sound();
+                            }
+                        }
+                    }
+                });
+
+                es.set_onmessage(Some(onmessage_cb.as_ref().unchecked_ref()));
+                onmessage_cb.forget(); // Mantém viva a closure durante a vida útil do EventSource
+
+                let es_clone = es.clone();
+                on_cleanup(move || {
+                    es_clone.close();
+                });
+            }
+        });
+    }
+
     // Função auxiliar para persistir o estado de iniciativa no servidor quando o GM age
-    let sync_to_server = move || {
+    let sync_to_server = move |play_sound: bool| {
         if !is_gm.get() {
             return;
         }
@@ -75,7 +113,7 @@ pub fn InitiativeDrawer(
         };
 
         spawn_local(async move {
-            let _ = update_room_initiative(r_id, payload).await;
+            let _ = update_room_initiative(r_id, payload, play_sound).await;
         });
     };
 
@@ -134,7 +172,7 @@ pub fn InitiativeDrawer(
             });
         }
 
-        sync_to_server();
+        sync_to_server(true);
         set_is_rolling.set(false);
     };
 
@@ -149,7 +187,7 @@ pub fn InitiativeDrawer(
                 e.final_total = None;
             }
         });
-        sync_to_server();
+        sync_to_server(false);
     };
 
     let add_npc = move |ev: leptos::ev::SubmitEvent| {
@@ -182,7 +220,7 @@ pub fn InitiativeDrawer(
 
         set_new_npc_name.set(String::new());
         set_new_npc_base.set(6);
-        sync_to_server();
+        sync_to_server(false);
     };
 
     let remove_npc = move |id: String| {
@@ -192,7 +230,7 @@ pub fn InitiativeDrawer(
         entries.update(|list| {
             list.retain(|e| e.id != id);
         });
-        sync_to_server();
+        sync_to_server(false);
     };
 
     let clear_all_npcs = move |_| {
@@ -207,7 +245,7 @@ pub fn InitiativeDrawer(
             }
         });
         round.set(1);
-        sync_to_server();
+        sync_to_server(false);
     };
 
     view! {
@@ -304,7 +342,7 @@ pub fn InitiativeDrawer(
                                                                         e.is_active = checked;
                                                                     }
                                                                 });
-                                                                sync_to_server();
+                                                                sync_to_server(false);
                                                             }
                                                         />
                                                     }.into_view()

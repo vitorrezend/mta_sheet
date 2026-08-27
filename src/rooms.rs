@@ -90,6 +90,13 @@ pub struct RoomInitiativeData {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
+pub struct RoomBroadcastEvent {
+    pub event_type: String, // "INITIATIVE_UPDATE" | "DICE_ROLLED" | "DRAWER_TOGGLED"
+    pub initiative: RoomInitiativeData,
+    pub play_sound: bool,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
 pub struct RoomDetails {
     pub id: String,
     pub name: String,
@@ -105,6 +112,35 @@ pub struct RoomDetails {
     pub initiative: RoomInitiativeData,
     pub members: Vec<RoomMemberInfo>,
     pub sheets: Vec<RoomSheetSummary>,
+}
+
+#[cfg(feature = "ssr")]
+use std::sync::{Arc, Mutex, LazyLock};
+#[cfg(feature = "ssr")]
+use std::collections::HashMap;
+#[cfg(feature = "ssr")]
+use tokio::sync::broadcast;
+
+#[cfg(feature = "ssr")]
+static ROOM_CHANNELS: LazyLock<Arc<Mutex<HashMap<String, broadcast::Sender<RoomBroadcastEvent>>>>> =
+    LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
+
+#[cfg(feature = "ssr")]
+pub fn get_or_create_room_channel(room_id: &str) -> broadcast::Sender<RoomBroadcastEvent> {
+    let mut channels = ROOM_CHANNELS.lock().expect("lock room channels");
+    if let Some(sender) = channels.get(room_id) {
+        sender.clone()
+    } else {
+        let (sender, _) = broadcast::channel(100);
+        channels.insert(room_id.to_string(), sender.clone());
+        sender
+    }
+}
+
+#[cfg(feature = "ssr")]
+pub fn broadcast_to_room(room_id: &str, event: RoomBroadcastEvent) {
+    let sender = get_or_create_room_channel(room_id);
+    let _ = sender.send(event);
 }
 
 #[cfg(feature = "ssr")]
@@ -634,7 +670,7 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
 }
 
 #[server(endpoint = "update_room_initiative")]
-pub async fn update_room_initiative(room_id: String, initiative: RoomInitiativeData) -> Result<(), ServerFnError> {
+pub async fn update_room_initiative(room_id: String, initiative: RoomInitiativeData, play_sound: bool) -> Result<(), ServerFnError> {
     use sqlx::SqlitePool;
     use crate::auth::get_auth_user_id;
 
@@ -665,6 +701,12 @@ pub async fn update_room_initiative(room_id: String, initiative: RoomInitiativeD
         .execute(&pool)
         .await
         .map_err(|e| ServerFnError::new(format!("Erro ao atualizar iniciativa: {}", e)))?;
+
+    broadcast_to_room(&room_id, RoomBroadcastEvent {
+        event_type: if play_sound { "DICE_ROLLED".to_string() } else { "INITIATIVE_UPDATE".to_string() },
+        initiative,
+        play_sound,
+    });
 
     Ok(())
 }
