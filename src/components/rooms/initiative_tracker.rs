@@ -1,24 +1,13 @@
 ﻿use leptos::*;
-use crate::rooms::RoomSheetSummary;
+use crate::rooms::{RoomSheetSummary, RoomInitiativeData, InitiativeEntry, update_room_initiative};
 use crate::components::common::play_dice_roll_sound;
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct InitiativeEntry {
-    pub id: String,
-    pub name: String,
-    pub is_npc: bool,
-    pub is_active: bool,
-    pub base_dex: i32,
-    pub base_wits: i32,
-    pub base_total: i32,
-    pub rolled_die: Option<i32>,
-    pub final_total: Option<i32>,
-}
 
 #[component]
 pub fn InitiativeDrawer(
     is_open: ReadSignal<bool>,
     set_is_open: WriteSignal<bool>,
+    room_id: Signal<String>,
+    initiative: Signal<RoomInitiativeData>,
     sheets: Signal<Vec<RoomSheetSummary>>,
     is_gm: Signal<bool>,
 ) -> impl IntoView {
@@ -28,11 +17,19 @@ pub fn InitiativeDrawer(
     let (new_npc_base, set_new_npc_base) = create_signal(6i32);
     let (is_rolling, set_is_rolling) = create_signal(false);
 
-    // Sincroniza fichas da sala na tabela mantendo o estado de rolagens e NPCs existentes
+    // Sincroniza dados da sala vindos do servidor (incluindo inimigos criados pelo GM e rolagens)
     create_effect(move |_| {
+        let server_init = initiative.get();
         let current_sheets = sheets.get();
+
         entries.update(|list| {
-            // Adiciona novas fichas que ainda não estão na lista
+            if !server_init.entries.is_empty() {
+                // Sincroniza estado compartilhado do servidor
+                round.set(server_init.round);
+                *list = server_init.entries.clone();
+            }
+
+            // Garante que novas fichas que entraram na mesa apareçam na lista
             for s in &current_sheets {
                 if !list.iter().any(|e| e.id == s.id) {
                     list.push(InitiativeEntry {
@@ -48,7 +45,8 @@ pub fn InitiativeDrawer(
                     });
                 }
             }
-            // Atualiza bases de fichas existentes caso tenham mudado
+
+            // Atualiza bases de atributos caso a ficha tenha mudado
             for s in &current_sheets {
                 if let Some(existing) = list.iter_mut().find(|e| e.id == s.id) {
                     existing.base_dex = s.dexterity;
@@ -58,6 +56,26 @@ pub fn InitiativeDrawer(
             }
         });
     });
+
+    // Função auxiliar para persistir o estado de iniciativa no servidor quando o GM age
+    let sync_to_server = move || {
+        if !is_gm.get() {
+            return;
+        }
+        let r_id = room_id.get();
+        if r_id.is_empty() {
+            return;
+        }
+        let payload = RoomInitiativeData {
+            round: round.get(),
+            is_open: is_open.get(),
+            entries: entries.get(),
+        };
+
+        spawn_local(async move {
+            let _ = update_room_initiative(r_id, payload).await;
+        });
+    };
 
     // Função de rolagem de iniciativa (WoD: Base + 1d10)
     let roll_initiative = move |_| {
@@ -114,6 +132,7 @@ pub fn InitiativeDrawer(
             });
         }
 
+        sync_to_server();
         set_is_rolling.set(false);
     };
 
@@ -128,6 +147,7 @@ pub fn InitiativeDrawer(
                 e.final_total = None;
             }
         });
+        sync_to_server();
     };
 
     let add_npc = move |ev: leptos::ev::SubmitEvent| {
@@ -159,6 +179,7 @@ pub fn InitiativeDrawer(
 
         set_new_npc_name.set(String::new());
         set_new_npc_base.set(6);
+        sync_to_server();
     };
 
     let remove_npc = move |id: String| {
@@ -168,6 +189,7 @@ pub fn InitiativeDrawer(
         entries.update(|list| {
             list.retain(|e| e.id != id);
         });
+        sync_to_server();
     };
 
     let clear_all_npcs = move |_| {
@@ -182,6 +204,7 @@ pub fn InitiativeDrawer(
             }
         });
         round.set(1);
+        sync_to_server();
     };
 
     view! {
@@ -243,7 +266,7 @@ pub fn InitiativeDrawer(
                                     return view! {
                                         <tr>
                                             <td colspan="6" class="initiative-empty">
-                                                "Nenhum personagem vinculado à sala ainda."
+                                                "Nenhum participante na iniciativa ainda."
                                             </td>
                                         </tr>
                                     }.into_view();
@@ -278,6 +301,7 @@ pub fn InitiativeDrawer(
                                                                         e.is_active = checked;
                                                                     }
                                                                 });
+                                                                sync_to_server();
                                                             }
                                                         />
                                                     }.into_view()

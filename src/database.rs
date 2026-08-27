@@ -168,6 +168,7 @@ pub async fn get_db() -> SqlitePool {
     let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN is_hidden_in_room INTEGER NOT NULL DEFAULT 0").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN chantry_data TEXT DEFAULT ''").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN chronicle_notes TEXT DEFAULT ''").execute(&pool).await;
+    let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN initiative_data TEXT DEFAULT ''").execute(&pool).await;
 
     // Índices de alta performance para evitar Full Table Scans no SQLite
     let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_user_id ON character_sheets (user_id)").execute(&pool).await;

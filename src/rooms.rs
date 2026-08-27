@@ -64,6 +64,26 @@ fn default_initiative_attr() -> i32 { 1 }
 fn default_initiative_base() -> i32 { 2 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
+pub struct InitiativeEntry {
+    pub id: String,
+    pub name: String,
+    pub is_npc: bool,
+    pub is_active: bool,
+    pub base_dex: i32,
+    pub base_wits: i32,
+    pub base_total: i32,
+    pub rolled_die: Option<i32>,
+    pub final_total: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
+pub struct RoomInitiativeData {
+    pub round: u32,
+    pub is_open: bool,
+    pub entries: Vec<InitiativeEntry>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
 pub struct RoomDetails {
     pub id: String,
     pub name: String,
@@ -74,6 +94,7 @@ pub struct RoomDetails {
     pub is_gm: bool,
     pub chantry: ChantryPoolData,
     pub chronicle_notes: String,
+    pub initiative: RoomInitiativeData,
     pub members: Vec<RoomMemberInfo>,
     pub sheets: Vec<RoomSheetSummary>,
 }
@@ -246,9 +267,9 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
 
-    // 1. Get room info including chantry and chronicle notes
+    // 1. Get room info including chantry, chronicle notes, and initiative
     let room_row = sqlx::query(
-        "SELECT r.id, r.name, r.code, r.description, r.gm_id, r.chantry_data, r.chronicle_notes, u.username as gm_username 
+        "SELECT r.id, r.name, r.code, r.description, r.gm_id, r.chantry_data, r.chronicle_notes, r.initiative_data, u.username as gm_username 
          FROM rooms r 
          JOIN users u ON r.gm_id = u.id 
          WHERE r.id = ?"
@@ -265,6 +286,12 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
     let chantry_raw: String = room_row.try_get("chantry_data").unwrap_or_default();
     let chantry: ChantryPoolData = serde_json::from_str(&chantry_raw).unwrap_or_default();
     let chronicle_notes: String = room_row.try_get("chronicle_notes").unwrap_or_default();
+    let initiative_raw: String = room_row.try_get("initiative_data").unwrap_or_default();
+    let initiative: RoomInitiativeData = if !initiative_raw.is_empty() {
+        serde_json::from_str(&initiative_raw).unwrap_or_default()
+    } else {
+        RoomInitiativeData::default()
+    };
 
     // 2. Get members
     let member_rows = sqlx::query(
@@ -380,9 +407,46 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         is_gm,
         chantry,
         chronicle_notes,
+        initiative,
         members,
         sheets,
     })
+}
+
+#[server(endpoint = "update_room_initiative")]
+pub async fn update_room_initiative(room_id: String, initiative: RoomInitiativeData) -> Result<(), ServerFnError> {
+    use sqlx::SqlitePool;
+    use crate::auth::get_auth_user_id;
+
+    let user_id = get_auth_user_id().await?.ok_or_else(|| {
+        ServerFnError::new("Você precisa estar logado para alterar a iniciativa da sala")
+    })?;
+
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        ServerFnError::new("Conexão com o banco de dados indisponível")
+    })?;
+
+    let is_gm: bool = sqlx::query_scalar::<_, i64>("SELECT 1 FROM rooms WHERE id = ? AND gm_id = ?")
+        .bind(&room_id)
+        .bind(&user_id)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?
+        .is_some();
+
+    if !is_gm {
+        return Err(ServerFnError::new("Apenas o Narrador pode alterar a iniciativa da sala."));
+    }
+
+    let data_json = serde_json::to_string(&initiative).unwrap_or_default();
+    sqlx::query("UPDATE rooms SET initiative_data = ? WHERE id = ?")
+        .bind(&data_json)
+        .bind(&room_id)
+        .execute(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(format!("Erro ao atualizar iniciativa: {}", e)))?;
+
+    Ok(())
 }
 
 #[server(endpoint = "assign_sheet_to_room")]
@@ -644,6 +708,7 @@ mod tests {
             is_gm: true,
             chantry: chantry.clone(),
             chronicle_notes: "Sessão 1: Encontro na Avenida Paulista".to_string(),
+            initiative: RoomInitiativeData::default(),
             members: vec![],
             sheets: vec![],
         };

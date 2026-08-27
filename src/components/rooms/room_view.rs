@@ -26,7 +26,7 @@ pub fn RoomView() -> impl IntoView {
         let is_active = std::rc::Rc::new(std::cell::Cell::new(true));
         let is_active_cleanup = is_active.clone();
 
-        let interval = gloo_timers::callback::Interval::new(15_000, move || {
+        let interval = gloo_timers::callback::Interval::new(3_000, move || {
             if is_active.get() {
                 room_resource.refetch();
             }
@@ -482,10 +482,16 @@ pub fn RoomView() -> impl IntoView {
                 let is_gm_room = Signal::derive(move || {
                     room_resource.get().and_then(|r| r.ok()).map(|r| r.is_gm).unwrap_or(false)
                 });
+                let room_id_sig = Signal::derive(move || room_id());
+                let initiative_sig = Signal::derive(move || {
+                    room_resource.get().and_then(|r| r.ok()).map(|r| r.initiative).unwrap_or_default()
+                });
                 view! {
                     <InitiativeDrawer
                         is_open=show_initiative
                         set_is_open=set_show_initiative
+                        room_id=room_id_sig
+                        initiative=initiative_sig
                         sheets=sheets_signal
                         is_gm=is_gm_room
                     />
