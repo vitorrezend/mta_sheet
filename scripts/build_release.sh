@@ -29,7 +29,7 @@ fi
 
 echo "[3/4] Compilando Frontend WASM e Backend..."
 echo "  -> [1/3] Compilando Frontend WASM Release..."
-cargo build --target wasm32-unknown-unknown --release --no-default-features --features hydrate
+cargo build --lib --target wasm32-unknown-unknown --release --no-default-features --features hydrate
 
 echo "  -> [2/3] Gerando bindings JS em target/site/pkg..."
 wasm-bindgen --target web --out-dir target/site/pkg --out-name mta_sheet target/wasm32-unknown-unknown/release/mta_sheet.wasm --no-typescript

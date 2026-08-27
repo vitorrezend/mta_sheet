@@ -26,7 +26,7 @@ COPY src ./src
 COPY tests ./tests
 
 # 1. Compila Frontend WASM Release
-RUN cargo build --target wasm32-unknown-unknown --release --no-default-features --features hydrate
+RUN cargo build --lib --target wasm32-unknown-unknown --release --no-default-features --features hydrate
 
 # 2. Gera bindings JS e empacota assets do site
 RUN mkdir -p target/site/pkg && \
@@ -56,7 +56,7 @@ RUN mkdir -p /app/data /app/uploads /app/target/site/pkg /app/styles && \
     chown -R appuser:appgroup /app
 
 # Copia binario compilado e assets estaticos do estagio de build
-COPY --from=builder --chown=appuser:appgroup /app/target/release/mta_sheet_server /app/mta_sheet_server
+COPY --from=builder --chown=appuser:appgroup /app/target/release/mta_sheet /app/mta_sheet
 COPY --from=builder --chown=appuser:appgroup /app/target/site /app/target/site
 COPY --from=builder --chown=appuser:appgroup /app/style.css /app/style.css
 COPY --from=builder --chown=appuser:appgroup /app/styles /app/styles
@@ -77,4 +77,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:3000/ || exit 1
 
 # Comando de inicializacao
-CMD ["/app/mta_sheet_server"]
+CMD ["/app/mta_sheet"]

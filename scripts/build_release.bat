@@ -65,7 +65,7 @@ if exist "target\release\mta_sheet_server.exe" set "SERVER_BIN=target\release\mt
 if "!SERVER_BIN!"=="" if exist "target\release\mta_sheet.exe" set "SERVER_BIN=target\release\mta_sheet.exe"
 
 if "!SERVER_BIN!"=="" (
-    echo [ERRO] O binario mta_sheet_server.exe nao foi encontrado em target\release.
+    echo [ERRO] O binario mta_sheet.exe nao foi encontrado em target\release.
     pause
     exit /b 1
 )
