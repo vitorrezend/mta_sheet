@@ -42,33 +42,33 @@ pub fn Abilities() -> impl IntoView {
     let add_custom = move |category: &'static str| {
         set_data.update(|s| {
             let list = s.custom_lists.entry(category.to_string()).or_default();
-            list.push(format!("Novo_{}_{}", category, list.len()));
+            let category_prefix = match category {
+                "Talentos" => "tal",
+                "Perícias" => "per",
+                "Conhecimentos" => "con",
+                _ => "ab",
+            };
+            list.push(format!("ab_{}_{}", category_prefix, uuid::Uuid::new_v4()));
         });
     };
 
     // Função para remover campo
-    let remove_custom = move |category: &'static str, name: String| {
+    let remove_custom = move |category: &'static str, id: String| {
         request_animation_frame(move || {
             set_data.update(|s| {
                 if let Some(list) = s.custom_lists.get_mut(category) {
-                    list.retain(|n| n != &name);
+                    list.retain(|n| n != &id);
                 }
+                s.labels.remove(&id);
+                s.attributes.remove(&id);
             });
         });
     };
 
     // Função para atualizar o nome de um campo personalizado
-    let update_custom_name = move |category: &'static str, old_name: String, new_name: String| {
+    let update_custom_name = move |_category: &'static str, id: String, new_name: String| {
         set_data.update(|s| {
-            if let Some(list) = s.custom_lists.get_mut(category) {
-                if let Some(pos) = list.iter().position(|n| n == &old_name) {
-                    list[pos] = new_name.clone();
-                }
-            }
-            // Mover os dados da habilidade do nome antigo para o novo
-            if let Some(attr) = s.attributes.remove(&old_name) {
-                s.attributes.insert(new_name, attr);
-            }
+            s.labels.insert(id, new_name);
         });
     };
 
@@ -84,6 +84,22 @@ pub fn Abilities() -> impl IntoView {
         let n_update_dot = name.clone();
         let n_remove = name.clone();
         
+        let label = Signal::derive({
+            let id = n_label.clone();
+            move || data.with(|d| {
+                if is_custom {
+                    d.labels.get(&id).cloned().unwrap_or_else(|| {
+                        if id.starts_with("ab_") {
+                            String::new()
+                        } else {
+                            id.clone()
+                        }
+                    })
+                } else {
+                    id.clone()
+                }
+            })
+        });
         let level = Signal::derive({
             let name = n_level.clone();
             move || data.with(|d| d.get_attribute_level(&name, 0))
@@ -107,7 +123,7 @@ pub fn Abilities() -> impl IntoView {
             let n = n_remove.clone();
             view! {
                 <ValueField 
-                    label=Signal::derive(move || n_label.clone())
+                    label=label
                     level=level
                     modifier=modifier
                     origins=origins
@@ -124,7 +140,7 @@ pub fn Abilities() -> impl IntoView {
         } else {
             view! {
                 <ValueField 
-                    label=Signal::derive(move || n_label.clone())
+                    label=label
                     level=level
                     modifier=modifier
                     origins=origins

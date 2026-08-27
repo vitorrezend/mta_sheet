@@ -138,7 +138,6 @@ pub fn ValueField(
                 {
                     let on_label_change = on_label_change.clone();
                     if is_editable {
-                        let on_label_input = on_label_change.clone();
                         let on_label_blur = on_label_change.clone();
                         view! {
                             <input 
@@ -150,21 +149,16 @@ pub fn ValueField(
                                 on:focus=move |_| { let _ = is_label_focused.try_set(true); }
                                 on:input=move |ev| {
                                     let val = event_target_value(&ev);
-                                    let _ = last_label_value.try_set(val.clone());
-                                    if let Some(cb) = on_label_input.as_ref() {
-                                        cb.call(val);
-                                    }
+                                    let _ = last_label_value.try_set(val);
                                 }
                                 on:blur=move |_| {
                                     let _ = is_label_focused.try_set(false);
                                     if let Some(elem) = label_ref.get() {
                                         let val = elem.value();
-                                        if val != last_label_value.get_untracked() {
-                                            let _ = last_label_value.try_set(val.clone());
-                                            if let Some(cb) = on_label_blur.as_ref() {
-                                                cb.call(val);
-                                            }
+                                        if let Some(cb) = on_label_blur.as_ref() {
+                                            cb.call(val.clone());
                                         }
+                                        let _ = last_label_value.try_set(val);
                                     }
                                 }
                             />
@@ -191,13 +185,9 @@ pub fn ValueField(
                     placeholder="..."
                     maxlength="30"
                     on:focus=move |_| { let _ = is_modifier_focused.try_set(true); }
-                    on:input={
-                        let on_mod = on_modifier_input.clone();
-                        move |ev| {
-                            let val = event_target_value(&ev);
-                            let _ = last_modifier_value.try_set(val.clone());
-                            on_mod(val);
-                        }
+                    on:input=move |ev| {
+                        let val = event_target_value(&ev);
+                        let _ = last_modifier_value.try_set(val);
                     }
                     on:blur={
                         let on_mod = on_modifier_input.clone();
@@ -205,10 +195,8 @@ pub fn ValueField(
                             let _ = is_modifier_focused.try_set(false);
                             if let Some(elem) = modifier_ref.get() {
                                 let val = elem.value();
-                                if val != last_modifier_value.get_untracked() {
-                                    let _ = last_modifier_value.try_set(val.clone());
-                                    on_mod(val);
-                                }
+                                on_mod(val.clone());
+                                let _ = last_modifier_value.try_set(val);
                             }
                         }
                     }

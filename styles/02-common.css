@@ -122,7 +122,8 @@
     border: none;
     border-bottom: 1px dashed #94a3b8;
     background: transparent;
-    width: 105px;
+    width: 72px;
+    max-width: 78px;
     color: var(--primary-color);
     font-family: inherit;
     outline: none;
