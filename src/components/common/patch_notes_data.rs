@@ -19,6 +19,41 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.12.0",
+        date: "2026-08-27",
+        tag: "v0.12.0",
+        title: "Catálogo Relacional de Quiz, Exportação Compacta & Alta Performance de Inputs",
+        highlight: "Banco de dados relacional para questionários de criação, redução de 85% no tamanho do JSON exportado, digitação com Focus-Lock a 60 FPS e chaves imutáveis em habilidades customizadas.",
+        sections: &[
+            PatchSection {
+                category: "Novas Funcionalidades & Arquitetura",
+                icon: "🚀",
+                items: &[
+                    "🏛️ Catálogo Relacional do Quiz (SQLite): Tabelas dedicadas quiz_questions e character_quiz_answers com chaves estrangeiras e ON DELETE CASCADE, eliminando repetição de enunciados.",
+                    "📦 Exportação Compacta de JSON (-85%): Omissão inteligente de slots e campos vazios (skip_serializing_if), gerando arquivos leves (~1.5 KB), elegantes e 100% legíveis.",
+                    "🔄 Compatibilidade Retroativa Total: Deserializador expansivo que reconstrói automaticamente todas as 14 perguntas e enunciados ao importar fichas compactas ou legadas.",
+                ],
+            },
+            PatchSection {
+                category: "Performance & Interface",
+                icon: "⚡",
+                items: &[
+                    "⚡ Digitação com Zero Latência (Focus-Lock): Inputs de texto isolados no DOM a 60 FPS com sincronização no blur, eliminando re-renderizações desnecessárias de 6 páginas ao digitar.",
+                    "🎯 Correção de Foco do Cursor em Habilidades: Chaves de lista imutáveis com UUIDs persistentes, impedindo a perda de foco ao nomear novos talentos, perícias e conhecimentos.",
+                    "📏 Ajuste Visual de Linhas Tracejadas: Largura otimizada para campos dinâmicos de antecedentes e ressonância.",
+                ],
+            },
+            PatchSection {
+                category: "Qualidade & Testes",
+                icon: "🛡️",
+                items: &[
+                    "🛡️ Novas Regras de Análise Estática (Regras 8 e 9): Testes automatizados que bloqueiam preventivamente mutações globais síncronas em on:input e chaves mutáveis em <For>.",
+                    "🧪 77 Testes Automatizados 100% Aprovados: Cobertura total de integridade relacional, cálculo de custos, serialização compacta e hidratação WebAssembly.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.11.0",
         date: "2026-08-27",
         tag: "v0.11.0",
