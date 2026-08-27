@@ -43,11 +43,11 @@ pub fn RoomView() -> impl IntoView {
     let (active_tab, set_active_tab) = create_signal("party");
     let (show_assign_modal, set_show_assign_modal) = create_signal(false);
     let (show_initiative, set_show_initiative) = create_signal(false);
-    let (show_settings_modal, set_show_settings_modal) = create_signal(false);
     let (settings_is_public, set_settings_is_public) = create_signal(false);
     let (settings_new_password, set_settings_new_password) = create_signal(String::new());
     let (settings_remove_password, set_settings_remove_password) = create_signal(false);
     let (is_saving_settings, set_is_saving_settings) = create_signal(false);
+    let (settings_initialized, set_settings_initialized) = create_signal(false);
 
     let (selected_sheet_id, set_selected_sheet_id) = create_signal(String::new());
     let (target_clone_member, set_target_clone_member) = create_signal(Option::<RoomMemberInfo>::None);
@@ -82,6 +82,10 @@ pub fn RoomView() -> impl IntoView {
             if !chronicle_initialized.get() {
                 set_chronicle_text.set(room.chronicle_notes.clone());
                 set_chronicle_initialized.set(true);
+            }
+            if !settings_initialized.get() {
+                set_settings_is_public.set(room.is_public);
+                set_settings_initialized.set(true);
             }
         }
     });
@@ -284,25 +288,6 @@ pub fn RoomView() -> impl IntoView {
                                     >
                                         "⚔️ Iniciativa"
                                     </button>
-                                    {if is_gm {
-                                        let r_pub = is_public;
-                                        view! {
-                                            <button
-                                                class="room-settings-top-btn"
-                                                on:click=move |_| {
-                                                    set_settings_is_public.set(r_pub);
-                                                    set_settings_new_password.set(String::new());
-                                                    set_settings_remove_password.set(false);
-                                                    set_show_settings_modal.set(true);
-                                                }
-                                                title="Configurações de Privacidade e Senha da Sala"
-                                            >
-                                                "⚙️ Configurações"
-                                            </button>
-                                        }.into_view()
-                                    } else {
-                                        view! {}.into_view()
-                                    }}
                                     <button class="add-sheet-to-room-btn" on:click=move |_| set_show_assign_modal.set(true)>"+ Adicionar Ficha"</button>
                                 </div>
                             </header>
@@ -315,6 +300,19 @@ pub fn RoomView() -> impl IntoView {
                                 <button class="room-tab-btn" class:active=move || active_tab.get() == "chantry" on:click=move |_| set_active_tab.set("chantry")>"🏛️ Capela & Recursos"</button>
                                 <button class="room-tab-btn" class:active=move || active_tab.get() == "chronicle" on:click=move |_| set_active_tab.set("chronicle")>"📜 Diário & Mural"</button>
                                 <button class="room-tab-btn" class:active=move || active_tab.get() == "members" on:click=move |_| set_active_tab.set("members")>"🧙 Membros (" {member_count} ")"</button>
+                                {if is_gm {
+                                    view! {
+                                        <button
+                                            class="room-tab-btn"
+                                            class:active=move || active_tab.get() == "settings"
+                                            on:click=move |_| set_active_tab.set("settings")
+                                        >
+                                            "⚙️ Configurações da Mesa"
+                                        </button>
+                                    }.into_view()
+                                } else {
+                                    view! {}.into_view()
+                                }}
                             </nav>
 
                             <div class="room-tab-content">
@@ -387,6 +385,113 @@ pub fn RoomView() -> impl IntoView {
                                                 <button class="save-chantry-btn" on:click=on_save_chronicle>"Salvar Diário"</button>
                                             </div>
                                             <textarea rows="14" class="chronicle-textarea" prop:value=move || chronicle_text.get() on:input=move |e| set_chronicle_text.set(event_target_value(&e))></textarea>
+                                        </section>
+                                    }.into_view()
+                                } else if active_tab.get() == "settings" && is_gm {
+                                    let r_id = room_id();
+                                    let on_save_settings = move |ev: ev::SubmitEvent| {
+                                        ev.prevent_default();
+                                        if r_id.is_empty() { return; }
+                                        let is_pub = settings_is_public.get();
+                                        let pwd_val = settings_new_password.get().trim().to_string();
+                                        let pwd_opt = if pwd_val.is_empty() { None } else { Some(pwd_val) };
+                                        let remove_pwd = settings_remove_password.get();
+
+                                        set_is_saving_settings.set(true);
+                                        let r_id_clone = r_id.clone();
+                                        spawn_local(async move {
+                                            match update_room_settings(r_id_clone, is_pub, pwd_opt, remove_pwd).await {
+                                                Ok(_) => {
+                                                    set_feedback_msg.set(Some("Configurações da crônica salvas com sucesso!".to_string()));
+                                                    set_is_saving_settings.set(false);
+                                                    set_settings_new_password.set(String::new());
+                                                    set_settings_remove_password.set(false);
+                                                    room_resource.refetch();
+                                                }
+                                                Err(e) => {
+                                                    set_error_msg.set(Some(e.to_string()));
+                                                    set_is_saving_settings.set(false);
+                                                }
+                                            }
+                                        });
+                                    };
+
+                                    view! {
+                                        <section class="room-settings-section">
+                                            <div class="section-header">
+                                                <h2>"⚙️ Configurações da Mesa"</h2>
+                                                <p class="section-subtitle">"Gerencie a visibilidade na comunidade e a senha de proteção desta crônica."</p>
+                                            </div>
+
+                                            <div class="settings-card-container">
+                                                <form on:submit=on_save_settings class="room-settings-tab-form">
+                                                    <div class="settings-option-card">
+                                                        <div class="settings-option-info">
+                                                            <strong class="settings-option-title">"🌐 Visibilidade no Mural Público"</strong>
+                                                            <p class="settings-option-desc">
+                                                                "Quando ativado, sua mesa é listada na aba 'Explorar Mesas Públicas' para qualquer jogador poder encontrá-la."
+                                                            </p>
+                                                        </div>
+                                                        <label class="settings-toggle-label">
+                                                            <input
+                                                                type="checkbox"
+                                                                class="room-checkbox-styled"
+                                                                checked=settings_is_public
+                                                                on:change=move |ev| set_settings_is_public.set(event_target_checked(&ev))
+                                                                disabled=is_saving_settings
+                                                            />
+                                                            <span class="toggle-text">
+                                                                {move || if settings_is_public.get() { "Mesa Pública (Visível)" } else { "Mesa Privada (Oculta)" }}
+                                                            </span>
+                                                        </label>
+                                                    </div>
+
+                                                    <div class="settings-option-card">
+                                                        <div class="settings-option-info">
+                                                            <strong class="settings-option-title">"🔒 Senha de Acesso à Mesa"</strong>
+                                                            <p class="settings-option-desc">
+                                                                {if has_password {
+                                                                    "Esta mesa está protegida por senha (criptografia bcrypt). Novos membros precisam inseri-la para entrar."
+                                                                } else {
+                                                                    "Esta mesa não possui senha ativa no momento. Qualquer pessoa com o código ou via lista pública pode ingressar."
+                                                                }}
+                                                            </p>
+                                                        </div>
+                                                        <div class="settings-pwd-inputs">
+                                                            <input
+                                                                type="password"
+                                                                class="room-input settings-tab-pwd-input"
+                                                                placeholder="Digite nova senha para a sala (ou deixe em branco)..."
+                                                                prop:value=settings_new_password
+                                                                on:input=move |ev| set_settings_new_password.set(event_target_value(&ev))
+                                                                disabled=is_saving_settings
+                                                            />
+                                                            {if has_password {
+                                                                view! {
+                                                                    <label class="room-checkbox-label remove-pwd-chk">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            class="room-checkbox"
+                                                                            checked=settings_remove_password
+                                                                            on:change=move |ev| set_settings_remove_password.set(event_target_checked(&ev))
+                                                                            disabled=is_saving_settings
+                                                                        />
+                                                                        <span>"🔓 Remover senha atual da mesa"</span>
+                                                                    </label>
+                                                                }.into_view()
+                                                            } else {
+                                                                view! {}.into_view()
+                                                            }}
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="settings-submit-box">
+                                                        <button type="submit" class="save-chantry-btn settings-save-btn" disabled=is_saving_settings>
+                                                            {move || if is_saving_settings.get() { "Salvando..." } else { "💾 Salvar Configurações da Mesa" }}
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
                                         </section>
                                     }.into_view()
                                 } else {
@@ -511,97 +616,6 @@ pub fn RoomView() -> impl IntoView {
                                 >
                                     {move || if is_cloning.get() { "Clonando..." } else { "Confirmar Entrega" }}
                                 </button>
-                            </div>
-                        </div>
-                    </div>
-                }.into_view()
-            } else { view! {}.into_view() }}
-
-            {move || if show_settings_modal.get() {
-                let r_id = room_id();
-                let on_save_settings = move |ev: ev::SubmitEvent| {
-                    ev.prevent_default();
-                    if r_id.is_empty() { return; }
-                    let is_pub = settings_is_public.get();
-                    let pwd_val = settings_new_password.get().trim().to_string();
-                    let pwd_opt = if pwd_val.is_empty() { None } else { Some(pwd_val) };
-                    let remove_pwd = settings_remove_password.get();
-
-                    set_is_saving_settings.set(true);
-                    let r_id_clone = r_id.clone();
-                    spawn_local(async move {
-                        match update_room_settings(r_id_clone, is_pub, pwd_opt, remove_pwd).await {
-                            Ok(_) => {
-                                set_show_settings_modal.set(false);
-                                set_feedback_msg.set(Some("Configurações da crônica salvas com sucesso!".to_string()));
-                                set_is_saving_settings.set(false);
-                                set_settings_new_password.set(String::new());
-                                set_settings_remove_password.set(false);
-                                room_resource.refetch();
-                            }
-                            Err(e) => {
-                                set_error_msg.set(Some(e.to_string()));
-                                set_is_saving_settings.set(false);
-                            }
-                        }
-                    });
-                };
-
-                view! {
-                    <div class="modal-backdrop" on:click=move |_| set_show_settings_modal.set(false)>
-                        <div class="modal-content" on:click=move |e| e.stop_propagation()>
-                            <div class="modal-header">
-                                <h3>"⚙️ Configurações da Crônica"</h3>
-                                <button class="modal-close-btn" on:click=move |_| set_show_settings_modal.set(false)>"✕"</button>
-                            </div>
-                            <div class="modal-body">
-                                <form on:submit=on_save_settings class="room-settings-form">
-                                    <div class="settings-group">
-                                        <label class="settings-label">"Visibilidade da Mesa:"</label>
-                                        <label class="room-checkbox-label">
-                                            <input
-                                                type="checkbox"
-                                                class="room-checkbox"
-                                                checked=settings_is_public
-                                                on:change=move |ev| set_settings_is_public.set(event_target_checked(&ev))
-                                                disabled=is_saving_settings
-                                            />
-                                            <span>"🌐 Mesa Pública (Exibida no mural público de crônicas)"</span>
-                                        </label>
-                                    </div>
-
-                                    <div class="settings-group" style="margin-top: 1.25rem;">
-                                        <label class="settings-label">"Proteção por Senha:"</label>
-                                        <input
-                                            type="password"
-                                            class="room-input pwd-input"
-                                            placeholder="Definir nova senha (ou deixe em branco)..."
-                                            prop:value=settings_new_password
-                                            on:input=move |ev| set_settings_new_password.set(event_target_value(&ev))
-                                            disabled=is_saving_settings
-                                        />
-
-                                        <label class="room-checkbox-label" style="margin-top: 0.5rem;">
-                                            <input
-                                                type="checkbox"
-                                                class="room-checkbox"
-                                                checked=settings_remove_password
-                                                on:change=move |ev| set_settings_remove_password.set(event_target_checked(&ev))
-                                                disabled=is_saving_settings
-                                            />
-                                            <span>"🔓 Remover senha atual da sala"</span>
-                                        </label>
-                                    </div>
-
-                                    <div class="modal-actions" style="margin-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
-                                        <button type="button" class="btn-secondary" on:click=move |_| set_show_settings_modal.set(false)>
-                                            "Cancelar"
-                                        </button>
-                                        <button type="submit" class="save-chantry-btn" disabled=is_saving_settings>
-                                            {move || if is_saving_settings.get() { "Salvando..." } else { "Salvar Alterações" }}
-                                        </button>
-                                    </div>
-                                </form>
                             </div>
                         </div>
                     </div>

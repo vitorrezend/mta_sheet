@@ -16,6 +16,17 @@ pub fn InitiativeDrawer(
     let (new_npc_name, set_new_npc_name) = create_signal(String::new());
     let (new_npc_base, set_new_npc_base) = create_signal(6i32);
     let (is_rolling, set_is_rolling) = create_signal(false);
+    let (is_sound_muted, set_is_sound_muted) = create_signal(false);
+
+    // Carrega preferência de som do localStorage no navegador
+    #[cfg(target_arch = "wasm32")]
+    {
+        if let Some(storage) = web_sys::window().and_then(|w| w.local_storage().ok()).flatten() {
+            if let Ok(Some(val)) = storage.get_item("mta_mute_dice_sound") {
+                set_is_sound_muted.set(val == "true");
+            }
+        }
+    }
 
     // 1. Sincronização inicial via dados da sala (caso chegue via SSR / Resource)
     create_effect(move |_| {
@@ -79,7 +90,7 @@ pub fn InitiativeDrawer(
                         if let Ok(event) = serde_json::from_str::<RoomBroadcastEvent>(&text) {
                             round_sig.set(event.initiative.round);
                             entries_sig.set(event.initiative.entries);
-                            if event.play_sound {
+                            if event.play_sound && !is_sound_muted.get_untracked() {
                                 play_dice_roll_sound();
                             }
                         }
@@ -123,7 +134,9 @@ pub fn InitiativeDrawer(
             return;
         }
 
-        play_dice_roll_sound();
+        if !is_sound_muted.get_untracked() {
+            play_dice_roll_sound();
+        }
         set_is_rolling.set(true);
 
         #[cfg(target_arch = "wasm32")]
@@ -267,13 +280,31 @@ pub fn InitiativeDrawer(
                         {move || format!("Rodada {}", round.get())}
                     </span>
                 </div>
-                <button
-                    class="initiative-close-btn"
-                    on:click=move |_| set_is_open.set(false)
-                    title="Fechar gaveta"
-                >
-                    "✕"
-                </button>
+                <div class="initiative-header-actions">
+                    <button
+                        class="initiative-mute-btn"
+                        class:muted=is_sound_muted
+                        on:click=move |_| {
+                            set_is_sound_muted.update(|m| {
+                                *m = !*m;
+                                #[cfg(target_arch = "wasm32")]
+                                if let Some(storage) = web_sys::window().and_then(|w| w.local_storage().ok()).flatten() {
+                                    let _ = storage.set_item("mta_mute_dice_sound", if *m { "true" } else { "false" });
+                                }
+                            });
+                        }
+                        title=move || if is_sound_muted.get() { "Som de dados silenciado (Clique para ativar)" } else { "Som de dados ativado (Clique para silenciar)" }
+                    >
+                        {move || if is_sound_muted.get() { "🔇" } else { "🔊" }}
+                    </button>
+                    <button
+                        class="initiative-close-btn"
+                        on:click=move |_| set_is_open.set(false)
+                        title="Fechar gaveta"
+                    >
+                        "✕"
+                    </button>
+                </div>
             </div>
 
             <div class="initiative-body">
