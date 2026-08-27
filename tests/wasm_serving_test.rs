@@ -1,4 +1,12 @@
 ﻿#[cfg(feature = "ssr")]
+use axum::{
+    body::Body,
+    http::{Request, StatusCode},
+};
+#[cfg(feature = "ssr")]
+use tower::ServiceExt;
+
+#[cfg(feature = "ssr")]
 #[tokio::test]
 async fn test_wasm_binary_serving_and_magic_bytes() {
     let wasm_paths = [

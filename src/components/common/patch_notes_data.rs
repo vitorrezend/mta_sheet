@@ -19,6 +19,41 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.13.0",
+        date: "2026-08-27",
+        tag: "v0.13.0",
+        title: "Sincronização em Tempo Real (SSE) na Iniciativa, Salas Públicas & Penalidade WoD",
+        highlight: "Transmissão Server-Sent Events instantânea no Tracker de Iniciativa com áudio sincronizado, cálculo automático de penalidade de dano WoD, salas públicas com senha BCrypt e autenticação SPA com feedback inline.",
+        sections: &[
+            PatchSection {
+                category: "Tempo Real & Iniciativa",
+                icon: "⚡",
+                items: &[
+                    "⚡ Sincronização Broadcast em Tempo Real (SSE): Endpoint /api/room_events/:id com Tokio BroadcastStream para rolagens de iniciativa, inclusão de inimigos e turnos atualizados instantaneamente para todos na mesa.",
+                    "🎲 Áudio Sincronizado de Dados & Mute Individual: Reprodução de efeitos sonoros de rolagem para todos os participantes com botão discreto 🔊/🔇 e persistência no localStorage.",
+                    "🩸 Mecânica WoD de Penalidade de Vitalidade: Aplicação automática da penalidade de ferimentos na iniciativa com piso mínimo de 2 pontos conforme regras oficiais do M20.",
+                ],
+            },
+            PatchSection {
+                category: "Salas & Segurança",
+                icon: "🔒",
+                items: &[
+                    "🛡️ Salas Públicas & Proteção por Senha: Suporte a mesas abertas ou protegidas por senha criptografada via BCrypt com verificação segura.",
+                    "⚙️ Aba de Configurações da Mesa: Painel exclusivo para o Narrador configurar visibilidade pública/privada, alterar senhas e gerenciar parâmetros da sala.",
+                    "🔮 Autenticação 100% SPA: Feedback de login/cadastro inline com alertas animados dentro do card, sem recarregamento ou navegação de página.",
+                ],
+            },
+            PatchSection {
+                category: "Estabilidade & Testes",
+                icon: "🛡️",
+                items: &[
+                    "🌐 Entrega Otimizada de WebAssembly: Roteamento via ServeDir nativo com streaming e cabeçalhos application/wasm sem bloqueio.",
+                    "🧪 85 Testes Automatizados 100% Aprovados: Cobertura completa de SSE, penalidades de dano, senhas BCrypt, integridade WASM e regras arquiteturais.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.12.0",
         date: "2026-08-27",
         tag: "v0.12.0",
