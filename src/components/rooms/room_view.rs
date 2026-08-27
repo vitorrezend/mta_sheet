@@ -7,6 +7,7 @@ use crate::rooms::{
 };
 use crate::state::get_sheets;
 use crate::components::Navbar;
+use crate::components::rooms::InitiativeDrawer;
 
 #[component]
 pub fn RoomView() -> impl IntoView {
@@ -41,6 +42,7 @@ pub fn RoomView() -> impl IntoView {
 
     let (active_tab, set_active_tab) = create_signal("party");
     let (show_assign_modal, set_show_assign_modal) = create_signal(false);
+    let (show_initiative, set_show_initiative) = create_signal(false);
     let (selected_sheet_id, set_selected_sheet_id) = create_signal(String::new());
     let (target_clone_member, set_target_clone_member) = create_signal(Option::<RoomMemberInfo>::None);
     let (selected_clone_sheet_id, set_selected_clone_sheet_id) = create_signal(String::new());
@@ -252,6 +254,13 @@ pub fn RoomView() -> impl IntoView {
                                         <span class="invite-code">{room.code.clone()}</span>
                                         <button class="copy-btn" on:click=on_copy>{move || if copied_code.get() { "✓" } else { "Copiar" }}</button>
                                     </div>
+                                    <button
+                                        class="initiative-top-bar-btn"
+                                        on:click=move |_| set_show_initiative.update(|v| *v = !*v)
+                                        title="Abrir Rastreador de Iniciativa de Combate"
+                                    >
+                                        "⚔️ Iniciativa"
+                                    </button>
                                     <button class="add-sheet-to-room-btn" on:click=move |_| set_show_assign_modal.set(true)>"+ Adicionar Ficha"</button>
                                 </div>
                             </header>
@@ -465,6 +474,23 @@ pub fn RoomView() -> impl IntoView {
                     </div>
                 }.into_view()
             } else { view! {}.into_view() }}
+
+            {
+                let sheets_signal = Signal::derive(move || {
+                    room_resource.get().and_then(|r| r.ok()).map(|r| r.sheets).unwrap_or_default()
+                });
+                let is_gm_room = Signal::derive(move || {
+                    room_resource.get().and_then(|r| r.ok()).map(|r| r.is_gm).unwrap_or(false)
+                });
+                view! {
+                    <InitiativeDrawer
+                        is_open=show_initiative
+                        set_is_open=set_show_initiative
+                        sheets=sheets_signal
+                        is_gm=is_gm_room.get()
+                    />
+                }
+            }
             </div>
         </div>
     }

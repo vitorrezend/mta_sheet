@@ -51,8 +51,17 @@ pub struct RoomSheetSummary {
     pub health_damage_str: String,
     pub is_hidden: bool,
     pub is_owner: bool,
+    #[serde(default = "default_initiative_attr")]
+    pub dexterity: i32,
+    #[serde(default = "default_initiative_attr")]
+    pub wits: i32,
+    #[serde(default = "default_initiative_base")]
+    pub initiative_base: i32,
     pub updated_at: String,
 }
+
+fn default_initiative_attr() -> i32 { 1 }
+fn default_initiative_base() -> i32 { 2 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
 pub struct RoomDetails {
@@ -332,6 +341,10 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
             char_data.get_profile_photo()
         };
 
+        let dexterity = char_data.get_attribute_level("Destreza", 1);
+        let wits = char_data.get_attribute_level("Raciocínio", 1);
+        let initiative_base = dexterity + wits;
+
         RoomSheetSummary {
             id,
             name,
@@ -350,6 +363,9 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
             health_damage_str,
             is_hidden,
             is_owner,
+            dexterity,
+            wits,
+            initiative_base,
             updated_at,
         }
     }).collect();
