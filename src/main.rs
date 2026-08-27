@@ -36,34 +36,38 @@ fn get_cache_control_css() -> &'static str {
 async fn pkg_handler(
     axum::extract::Path(path): axum::extract::Path<String>,
 ) -> impl IntoResponse {
+    let clean_path = path.trim_start_matches('/').trim().to_string();
     let cache_hdr = get_cache_control_static().to_string();
 
     // 1. Tenta servir do disco local primeiro para garantir arquivos sempre atualizados em dev/build
     let mut candidate_disk_paths = vec![
-        format!("target/site/pkg/{}", path),
-        format!("target/site/{}", path),
+        format!("target/site/pkg/{}", clean_path),
+        format!("target/site/{}", clean_path),
     ];
 
-    if path == "mta_sheet_bg.wasm" {
+    if clean_path.ends_with(".wasm") || clean_path == "mta_sheet_bg.wasm" || clean_path == "mta_sheet.wasm" {
         candidate_disk_paths.push("target/site/pkg/mta_sheet.wasm".to_string());
-        candidate_disk_paths.push("target/front/wasm32-unknown-unknown/debug/mta_sheet.wasm".to_string());
-        candidate_disk_paths.push("target/wasm32-unknown-unknown/release/mta_sheet.wasm".to_string());
-    } else if path == "mta_sheet.wasm" {
         candidate_disk_paths.push("target/site/pkg/mta_sheet_bg.wasm".to_string());
+        candidate_disk_paths.push("target/site/mta_sheet.wasm".to_string());
         candidate_disk_paths.push("target/front/wasm32-unknown-unknown/debug/mta_sheet.wasm".to_string());
+        candidate_disk_paths.push("target/front/wasm32-unknown-unknown/release/mta_sheet.wasm".to_string());
         candidate_disk_paths.push("target/wasm32-unknown-unknown/release/mta_sheet.wasm".to_string());
+        candidate_disk_paths.push("target/wasm32-unknown-unknown/debug/mta_sheet.wasm".to_string());
+    } else if clean_path.ends_with(".js") {
+        candidate_disk_paths.push("target/site/pkg/mta_sheet.js".to_string());
+        candidate_disk_paths.push("target/site/mta_sheet.js".to_string());
     }
 
     for disk_path in candidate_disk_paths {
         if let Ok(bytes) = tokio::fs::read(&disk_path).await {
-            let mime = if path.ends_with(".wasm") || disk_path.ends_with(".wasm") {
+            let mime = if clean_path.ends_with(".wasm") || disk_path.ends_with(".wasm") {
                 "application/wasm".to_string()
-            } else if path.ends_with(".js") {
+            } else if clean_path.ends_with(".js") || disk_path.ends_with(".js") {
                 "text/javascript".to_string()
-            } else if path.ends_with(".css") {
+            } else if clean_path.ends_with(".css") || disk_path.ends_with(".css") {
                 "text/css".to_string()
             } else {
-                mime_guess::from_path(&path).first_or_octet_stream().to_string()
+                mime_guess::from_path(&clean_path).first_or_octet_stream().to_string()
             };
             return (
                 [
@@ -77,24 +81,33 @@ async fn pkg_handler(
     }
 
     // 2. Fallback para o binário embutido (SiteAssets)
-    let candidate_keys = if path == "mta_sheet_bg.wasm" {
-        vec!["pkg/mta_sheet_bg.wasm".to_string(), "pkg/mta_sheet.wasm".to_string()]
-    } else if path == "mta_sheet.wasm" {
-        vec!["pkg/mta_sheet.wasm".to_string(), "pkg/mta_sheet_bg.wasm".to_string()]
+    let candidate_keys = if clean_path.ends_with(".wasm") || clean_path == "mta_sheet_bg.wasm" || clean_path == "mta_sheet.wasm" {
+        vec![
+            "pkg/mta_sheet.wasm".to_string(),
+            "pkg/mta_sheet_bg.wasm".to_string(),
+            "mta_sheet.wasm".to_string(),
+            "mta_sheet_bg.wasm".to_string(),
+        ]
+    } else if clean_path.ends_with(".js") {
+        vec![
+            format!("pkg/{}", clean_path),
+            clean_path.clone(),
+            "pkg/mta_sheet.js".to_string(),
+        ]
     } else {
-        vec![format!("pkg/{}", path), path.clone()]
+        vec![format!("pkg/{}", clean_path), clean_path.clone()]
     };
 
     for key in candidate_keys {
         if let Some(file) = SiteAssets::get(&key) {
-            let mime = if path.ends_with(".wasm") || key.ends_with(".wasm") {
+            let mime = if clean_path.ends_with(".wasm") || key.ends_with(".wasm") {
                 "application/wasm".to_string()
-            } else if path.ends_with(".js") {
+            } else if clean_path.ends_with(".js") || key.ends_with(".js") {
                 "text/javascript".to_string()
-            } else if path.ends_with(".css") {
+            } else if clean_path.ends_with(".css") || key.ends_with(".css") {
                 "text/css".to_string()
             } else {
-                mime_guess::from_path(&path).first_or_octet_stream().to_string()
+                mime_guess::from_path(&clean_path).first_or_octet_stream().to_string()
             };
             return (
                 [
@@ -108,7 +121,7 @@ async fn pkg_handler(
     }
 
     // 3. Fallback especial para CSS caso o build WASM ainda não tenha rodado
-    if path == "mta_sheet.css" || path == "style.css" {
+    if clean_path == "mta_sheet.css" || clean_path == "style.css" {
         let css_cache = get_cache_control_css().to_string();
         if let Ok(css) = tokio::fs::read_to_string("style.css").await {
             return (
@@ -141,11 +154,12 @@ async fn pkg_handler(
 async fn assets_handler(
     axum::extract::Path(path): axum::extract::Path<String>,
 ) -> impl IntoResponse {
-    let key = format!("assets/{}", path);
+    let clean_path = path.trim_start_matches('/').trim().to_string();
+    let key = format!("assets/{}", clean_path);
     let cache_hdr = get_cache_control_static().to_string();
 
     if let Some(file) = SiteAssets::get(&key) {
-        let mime = mime_guess::from_path(&path).first_or_octet_stream().to_string();
+        let mime = mime_guess::from_path(&clean_path).first_or_octet_stream().to_string();
         return (
             [
                 (http::header::CONTENT_TYPE, mime),
@@ -156,9 +170,9 @@ async fn assets_handler(
             .into_response();
     }
 
-    let disk_path = format!("target/site/assets/{}", path);
+    let disk_path = format!("target/site/assets/{}", clean_path);
     if let Ok(bytes) = tokio::fs::read(&disk_path).await {
-        let mime = mime_guess::from_path(&path).first_or_octet_stream().to_string();
+        let mime = mime_guess::from_path(&clean_path).first_or_octet_stream().to_string();
         return (
             [
                 (http::header::CONTENT_TYPE, mime),
@@ -176,7 +190,8 @@ async fn assets_handler(
 async fn styles_handler(
     axum::extract::Path(path): axum::extract::Path<String>,
 ) -> impl IntoResponse {
-    let disk_path = format!("styles/{}", path);
+    let clean_path = path.trim_start_matches('/').trim().to_string();
+    let disk_path = format!("styles/{}", clean_path);
     let cache_hdr = get_cache_control_css().to_string();
 
     if let Ok(bytes) = tokio::fs::read(&disk_path).await {
@@ -190,7 +205,7 @@ async fn styles_handler(
             .into_response();
     }
 
-    if let Some(file) = StyleAssets::get(&path) {
+    if let Some(file) = StyleAssets::get(&clean_path) {
         return (
             [
                 (http::header::CONTENT_TYPE, "text/css".to_string()),
