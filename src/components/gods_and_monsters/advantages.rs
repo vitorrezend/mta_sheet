@@ -1,6 +1,6 @@
 use leptos::*;
 use crate::components::page1::advantages::Vitality;
-use crate::components::{ValueField, StableTextArea, Callback};
+use crate::components::{ValueField, StableTextArea, StableTextInput, Callback};
 use crate::state::{CharacterData, DotOrigin};
 use crate::components::character_sheet::ActiveDotOriginContext;
 
@@ -457,20 +457,18 @@ pub fn GodsLineInput(
     let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
     let k_signal = key.clone();
     let val = Signal::derive(move || data.with(|d| d.get_label(&k_signal)));
-    let k_input = key;
+    let k_change = key;
 
     view! {
         <div class="gods-line-row">
-            <input
-                type="text"
+            <StableTextInput
                 class="gods-line-input"
                 placeholder=placeholder
-                prop:value=val
-                on:input=move |ev| {
-                    let v = event_target_value(&ev);
-                    let k = k_input.clone();
+                value=val
+                on_change=Callback::new(move |v| {
+                    let k = k_change.clone();
                     set_data.update(|s| s.set_label(&k, v));
-                }
+                })
             />
             {if let (true, Some(cb)) = (is_custom, on_remove) {
                 view! {

@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::components::{Callback, ValueField, StableTextArea};
+use crate::components::{Callback, ValueField, StableTextArea, StableTextInput};
 use crate::state::{CharacterData, DotOrigin, WeaponItem, MeritItem, FlawItem};
 use crate::components::character_sheet::ActiveDotOriginContext;
 use super::advantages::GodsLineInput;
@@ -165,24 +165,20 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
                                     let m_cost = Signal::derive(move || data.with(|d| d.merits.get(i).map(|m| if m.cost > 0 { m.cost.to_string() } else { "".to_string() }).unwrap_or_default()));
                                     view! {
                                         <div class="merit-flaw-row">
-                                            <input 
-                                                type="text" 
+                                            <StableTextInput 
                                                 class="merit-name-input" 
                                                 placeholder="Merit..."
-                                                prop:value=m_name 
-                                                on:input=move |ev| update_merit(i, Some(event_target_value(&ev)), None) 
+                                                value=m_name 
+                                                on_change=Callback::new(move |val: String| update_merit(i, Some(val), None)) 
                                             />
-                                            <input 
-                                                type="number" 
+                                            <StableTextInput 
                                                 class="merit-val-input" 
-                                                min="0" 
-                                                max="10" 
                                                 placeholder="0"
-                                                prop:value=m_cost 
-                                                on:input=move |ev| {
-                                                    let val = event_target_value(&ev).parse::<i32>().unwrap_or(0);
-                                                    update_merit(i, None, Some(val));
-                                                } 
+                                                value=m_cost 
+                                                on_change=Callback::new(move |val: String| {
+                                                    let v = val.parse::<i32>().unwrap_or(0);
+                                                    update_merit(i, None, Some(v));
+                                                }) 
                                             />
                                         </div>
                                     }
@@ -199,24 +195,20 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
                                     let f_bonus = Signal::derive(move || data.with(|d| d.flaws.get(i).map(|f| if f.bonus > 0 { f.bonus.to_string() } else { "".to_string() }).unwrap_or_default()));
                                     view! {
                                         <div class="merit-flaw-row">
-                                            <input 
-                                                type="text" 
+                                            <StableTextInput 
                                                 class="merit-name-input" 
                                                 placeholder="Flaw..."
-                                                prop:value=f_name 
-                                                on:input=move |ev| update_flaw(i, Some(event_target_value(&ev)), None) 
+                                                value=f_name 
+                                                on_change=Callback::new(move |val: String| update_flaw(i, Some(val), None)) 
                                             />
-                                            <input 
-                                                type="number" 
+                                            <StableTextInput 
                                                 class="merit-val-input" 
-                                                min="0" 
-                                                max="10" 
                                                 placeholder="0"
-                                                prop:value=f_bonus 
-                                                on:input=move |ev| {
-                                                    let val = event_target_value(&ev).parse::<i32>().unwrap_or(0);
-                                                    update_flaw(i, None, Some(val));
-                                                } 
+                                                value=f_bonus 
+                                                on_change=Callback::new(move |val: String| {
+                                                    let v = val.parse::<i32>().unwrap_or(0);
+                                                    update_flaw(i, None, Some(v));
+                                                }) 
                                             />
                                         </div>
                                     }
@@ -280,47 +272,41 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
 
                                 view! {
                                     <div class="combat-row">
-                                        <input 
-                                            type="text" 
+                                        <StableTextInput 
                                             class="col-weapon-name" 
                                             placeholder="Weapon..." 
-                                            prop:value=w_name 
-                                            on:input=move |ev| update_weapon(i, "name", event_target_value(&ev)) 
+                                            value=w_name 
+                                            on_change=Callback::new(move |val| update_weapon(i, "name", val)) 
                                         />
-                                        <input 
-                                            type="text" 
+                                        <StableTextInput 
                                             class="col-weapon-diff" 
                                             placeholder="6" 
-                                            prop:value=w_diff 
-                                            on:input=move |ev| update_weapon(i, "diff", event_target_value(&ev)) 
+                                            value=w_diff 
+                                            on_change=Callback::new(move |val| update_weapon(i, "diff", val)) 
                                         />
-                                        <input 
-                                            type="text" 
+                                        <StableTextInput 
                                             class="col-weapon-dmg" 
                                             placeholder="Str+1" 
-                                            prop:value=w_dmg 
-                                            on:input=move |ev| update_weapon(i, "damage", event_target_value(&ev)) 
+                                            value=w_dmg 
+                                            on_change=Callback::new(move |val| update_weapon(i, "damage", val)) 
                                         />
-                                        <input 
-                                            type="text" 
+                                        <StableTextInput 
                                             class="col-weapon-range" 
                                             placeholder="-" 
-                                            prop:value=w_range 
-                                            on:input=move |ev| update_weapon(i, "range", event_target_value(&ev)) 
+                                            value=w_range 
+                                            on_change=Callback::new(move |val| update_weapon(i, "range", val)) 
                                         />
-                                        <input 
-                                            type="text" 
+                                        <StableTextInput 
                                             class="col-weapon-rate" 
                                             placeholder="-" 
-                                            prop:value=w_rate 
-                                            on:input=move |ev| update_weapon(i, "rate", event_target_value(&ev)) 
+                                            value=w_rate 
+                                            on_change=Callback::new(move |val| update_weapon(i, "rate", val)) 
                                         />
-                                        <input 
-                                            type="text" 
+                                        <StableTextInput 
                                             class="col-weapon-clip" 
                                             placeholder="-" 
-                                            prop:value=w_clip 
-                                            on:input=move |ev| update_weapon(i, "clip", event_target_value(&ev)) 
+                                            value=w_clip 
+                                            on_change=Callback::new(move |val| update_weapon(i, "clip", val)) 
                                         />
                                     </div>
                                 }

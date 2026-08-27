@@ -124,6 +124,37 @@ fn test_no_reactive_anti_patterns_in_components() {
                 }
             }
         }
+
+        // Regra 8: Prevenção de Lag de Digitação & Ausência de Focus-Lock em Entradas de Texto da Ficha
+        // Inputs de texto em componentes da ficha NÃO devem ligar 'on:input' diretamente com mutações síncronas de 'set_data.update'
+        // ou 'event_target_value(&ev)' sem o padrão Focus-Lock (devem usar StableTextInput, StableTextArea, LabelField ou on:blur).
+        let is_standalone_view = file_path.to_string_lossy().contains("views") || file_path.to_string_lossy().contains("rooms");
+        if !is_standalone_view && !file_path.to_string_lossy().contains("stable_") && !file_path.to_string_lossy().contains("patch_notes_data") {
+            let lines: Vec<&str> = content.lines().collect();
+            for (idx, line) in lines.iter().enumerate() {
+                if line.contains("<input") && !line.contains("type=\"checkbox\"") && !line.contains("type=\"file\"") && !line.contains("type=\"radio\"") {
+                    let end = (idx + 15).min(lines.len());
+                    let snippet = lines[idx..end].join("\n");
+                    if snippet.contains("on:input=") && (snippet.contains("set_data.update") || snippet.contains("update_")) && !snippet.contains("is_focused") && !snippet.contains("is_label_focused") && !snippet.contains("is_modifier_focused") {
+                        violations.push(format!(
+                            "[{:?}:L{}] Violação da Regra 8: Tag '<input>' de texto da ficha ligando 'on:input' diretamente com mutação do estado global sem Focus-Lock. Use 'StableTextInput', 'StableTextArea', 'LabelField' ou comite no 'on:blur' para evitar lag de digitação.",
+                            file_path, idx + 1
+                        ));
+                    }
+                }
+            }
+        }
+
+        // Regra 9: Prevenção de Perda de Cursor e Destruição de DOM em Listas Dinâmicas (<For />)
+        // Em listas de custom_lists, o key do <For /> NÃO deve usar o valor editável (ex: 'update_custom_name' renomeando a lista).
+        if content.contains("custom_lists") && content.contains("<For") {
+            if content.contains("update_custom_name") && content.contains("list[pos] = new_name") {
+                violations.push(format!(
+                    "[{:?}] Violação da Regra 9: Lista dinâmica modificando o nome diretamente dentro de custom_lists[pos]. Use IDs únicos imutáveis (ex: uuid) como chave do <For /> e guarde o nome em 'labels' para evitar destruição de DOM e perda de cursor ao digitar.",
+                    file_path
+                ));
+            }
+        }
     }
 
     if !violations.is_empty() {
