@@ -34,9 +34,15 @@ fn get_cache_control_css() -> &'static str {
 
 #[cfg(feature = "ssr")]
 async fn pkg_handler(
-    axum::extract::Path(path): axum::extract::Path<String>,
+    req: axum::extract::Request,
 ) -> impl IntoResponse {
-    let clean_path = path.trim_start_matches('/').trim().to_string();
+    let uri_path = req.uri().path().to_string();
+    let clean_path = uri_path
+        .trim_start_matches('/')
+        .trim_start_matches("pkg")
+        .trim_start_matches('/')
+        .trim()
+        .to_string();
     let cache_hdr = get_cache_control_static().to_string();
 
     // 1. Tenta servir do disco local primeiro para garantir arquivos sempre atualizados em dev/build
@@ -142,19 +148,35 @@ async fn pkg_handler(
         }
     }
 
+    // Se for WASM e não encontrou, retorna 404 vazio com application/wasm para não quebrar parser com texto
+    if clean_path.ends_with(".wasm") {
+        return (
+            http::StatusCode::NOT_FOUND,
+            [(http::header::CONTENT_TYPE, "application/wasm".to_string())],
+            vec![],
+        )
+            .into_response();
+    }
+
     (
         http::StatusCode::NOT_FOUND,
-        [(http::header::CONTENT_TYPE, "text/plain; charset=utf-8")],
-        "Arquivo pkg não encontrado",
+        [(http::header::CONTENT_TYPE, "text/plain; charset=utf-8".to_string())],
+        "Arquivo não encontrado".as_bytes().to_vec(),
     )
         .into_response()
 }
 
 #[cfg(feature = "ssr")]
 async fn assets_handler(
-    axum::extract::Path(path): axum::extract::Path<String>,
+    req: axum::extract::Request,
 ) -> impl IntoResponse {
-    let clean_path = path.trim_start_matches('/').trim().to_string();
+    let uri_path = req.uri().path().to_string();
+    let clean_path = uri_path
+        .trim_start_matches('/')
+        .trim_start_matches("assets")
+        .trim_start_matches('/')
+        .trim()
+        .to_string();
     let key = format!("assets/{}", clean_path);
     let cache_hdr = get_cache_control_static().to_string();
 
@@ -188,9 +210,15 @@ async fn assets_handler(
 
 #[cfg(feature = "ssr")]
 async fn styles_handler(
-    axum::extract::Path(path): axum::extract::Path<String>,
+    req: axum::extract::Request,
 ) -> impl IntoResponse {
-    let clean_path = path.trim_start_matches('/').trim().to_string();
+    let uri_path = req.uri().path().to_string();
+    let clean_path = uri_path
+        .trim_start_matches('/')
+        .trim_start_matches("styles")
+        .trim_start_matches('/')
+        .trim()
+        .to_string();
     let disk_path = format!("styles/{}", clean_path);
     let cache_hdr = get_cache_control_css().to_string();
 
@@ -597,8 +625,11 @@ async fn main() {
         .route("/api/upload_image", axum::routing::post(upload_image_handler))
         .route("/api/export_json/:id", axum::routing::get(export_json_handler))
         .route("/api/room_events/:id", axum::routing::get(room_events_sse_handler))
+        .nest_service("/pkg", ServeDir::new("target/site/pkg").fallback(axum::routing::get(pkg_handler)))
         .route("/pkg/*path", axum::routing::get(pkg_handler))
+        .nest_service("/assets", ServeDir::new("target/site/assets").fallback(axum::routing::get(assets_handler)))
         .route("/assets/*path", axum::routing::get(assets_handler))
+        .nest_service("/styles", ServeDir::new("styles").fallback(axum::routing::get(styles_handler)))
         .route("/styles/*path", axum::routing::get(styles_handler))
         .route("/style.css", axum::routing::get(style_css_handler))
         .route("/favicon.ico", axum::routing::get(|| async { (http::StatusCode::NO_CONTENT, "") }))
