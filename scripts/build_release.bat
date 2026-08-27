@@ -42,6 +42,7 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo   -^> [2/3] Gerando bindings JS e empacotando assets em target\site\pkg...
+if exist "target\site\pkg" del /Q "target\site\pkg\*.*" >nul 2>nul
 wasm-bindgen --target web --out-dir target\site\pkg --out-name mta_sheet target\wasm32-unknown-unknown\release\mta_sheet.wasm --no-typescript
 if %ERRORLEVEL% NEQ 0 (
     echo [ERRO CRITICO] O wasm-bindgen falhou.
@@ -49,8 +50,15 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
 
-if exist "target\site\pkg\mta_sheet_bg.wasm" if not exist "target\site\pkg\mta_sheet.wasm" copy /Y "target\site\pkg\mta_sheet_bg.wasm" "target\site\pkg\mta_sheet.wasm" >nul
-if exist "target\site\pkg\mta_sheet.wasm" if not exist "target\site\pkg\mta_sheet_bg.wasm" copy /Y "target\site\pkg\mta_sheet.wasm" "target\site\pkg\mta_sheet_bg.wasm" >nul
+where wasm-opt >nul 2>nul
+if !ERRORLEVEL! EQU 0 (
+    echo   -^> [wasm-opt] Otimizando bytecode WebAssembly com -Oz...
+    if exist "target\site\pkg\mta_sheet_bg.wasm" wasm-opt -Oz "target\site\pkg\mta_sheet_bg.wasm" -o "target\site\pkg\mta_sheet_bg.wasm"
+    if exist "target\site\pkg\mta_sheet.wasm" wasm-opt -Oz "target\site\pkg\mta_sheet.wasm" -o "target\site\pkg\mta_sheet.wasm"
+)
+
+if exist "target\site\pkg\mta_sheet_bg.wasm" copy /Y "target\site\pkg\mta_sheet_bg.wasm" "target\site\pkg\mta_sheet.wasm" >nul
+if exist "target\site\pkg\mta_sheet.wasm" copy /Y "target\site\pkg\mta_sheet.wasm" "target\site\pkg\mta_sheet_bg.wasm" >nul
 copy /Y style.css target\site\pkg\mta_sheet.css >nul
 
 echo   -^> [3/3] Compilando Servidor Backend SSR Release...
