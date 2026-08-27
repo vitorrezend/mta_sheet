@@ -45,39 +45,38 @@ async fn pkg_handler(
         .to_string();
     let cache_hdr = get_cache_control_static().to_string();
 
-    // 1. Tenta servir do disco local primeiro para garantir arquivos sempre atualizados em dev/build
-    let mut candidate_disk_paths = vec![
+    let alt_name = if clean_path == "mta_sheet_bg.wasm" {
+        "mta_sheet.wasm"
+    } else if clean_path == "mta_sheet.wasm" {
+        "mta_sheet_bg.wasm"
+    } else {
+        &clean_path
+    };
+
+    let candidate_paths = [
         format!("target/site/pkg/{}", clean_path),
+        format!("target/site/pkg/{}", alt_name),
         format!("target/site/{}", clean_path),
+        format!("target/front/wasm32-unknown-unknown/debug/{}", clean_path),
+        format!("target/front/wasm32-unknown-unknown/debug/{}", alt_name),
+        format!("target/wasm32-unknown-unknown/debug/{}", clean_path),
+        format!("target/wasm32-unknown-unknown/release/{}", clean_path),
     ];
 
-    if clean_path.ends_with(".wasm") || clean_path == "mta_sheet_bg.wasm" || clean_path == "mta_sheet.wasm" {
-        candidate_disk_paths.push("target/site/pkg/mta_sheet.wasm".to_string());
-        candidate_disk_paths.push("target/site/pkg/mta_sheet_bg.wasm".to_string());
-        candidate_disk_paths.push("target/site/mta_sheet.wasm".to_string());
-        candidate_disk_paths.push("target/front/wasm32-unknown-unknown/debug/mta_sheet.wasm".to_string());
-        candidate_disk_paths.push("target/front/wasm32-unknown-unknown/release/mta_sheet.wasm".to_string());
-        candidate_disk_paths.push("target/wasm32-unknown-unknown/release/mta_sheet.wasm".to_string());
-        candidate_disk_paths.push("target/wasm32-unknown-unknown/debug/mta_sheet.wasm".to_string());
-    } else if clean_path.ends_with(".js") {
-        candidate_disk_paths.push("target/site/pkg/mta_sheet.js".to_string());
-        candidate_disk_paths.push("target/site/mta_sheet.js".to_string());
-    }
-
-    for disk_path in candidate_disk_paths {
-        if let Ok(bytes) = tokio::fs::read(&disk_path).await {
-            let mime = if clean_path.ends_with(".wasm") || disk_path.ends_with(".wasm") {
-                "application/wasm".to_string()
-            } else if clean_path.ends_with(".js") || disk_path.ends_with(".js") {
-                "text/javascript".to_string()
-            } else if clean_path.ends_with(".css") || disk_path.ends_with(".css") {
-                "text/css".to_string()
+    for path in candidate_paths {
+        if let Ok(bytes) = tokio::fs::read(&path).await {
+            let mime = if path.ends_with(".wasm") {
+                "application/wasm"
+            } else if path.ends_with(".js") {
+                "text/javascript"
+            } else if path.ends_with(".css") {
+                "text/css"
             } else {
-                mime_guess::from_path(&clean_path).first_or_octet_stream().to_string()
+                "application/octet-stream"
             };
             return (
                 [
-                    (http::header::CONTENT_TYPE, mime),
+                    (http::header::CONTENT_TYPE, mime.to_string()),
                     (http::header::CACHE_CONTROL, cache_hdr),
                 ],
                 bytes,
@@ -86,38 +85,28 @@ async fn pkg_handler(
         }
     }
 
-    // 2. Fallback para o binário embutido (SiteAssets)
-    let candidate_keys = if clean_path.ends_with(".wasm") || clean_path == "mta_sheet_bg.wasm" || clean_path == "mta_sheet.wasm" {
-        vec![
-            "pkg/mta_sheet.wasm".to_string(),
-            "pkg/mta_sheet_bg.wasm".to_string(),
-            "mta_sheet.wasm".to_string(),
-            "mta_sheet_bg.wasm".to_string(),
-        ]
-    } else if clean_path.ends_with(".js") {
-        vec![
-            format!("pkg/{}", clean_path),
-            clean_path.clone(),
-            "pkg/mta_sheet.js".to_string(),
-        ]
-    } else {
-        vec![format!("pkg/{}", clean_path), clean_path.clone()]
-    };
+    // 2. Fallback para embutido
+    let candidate_keys = [
+        format!("pkg/{}", clean_path),
+        format!("pkg/{}", alt_name),
+        clean_path.clone(),
+        alt_name.to_string(),
+    ];
 
     for key in candidate_keys {
         if let Some(file) = SiteAssets::get(&key) {
-            let mime = if clean_path.ends_with(".wasm") || key.ends_with(".wasm") {
-                "application/wasm".to_string()
-            } else if clean_path.ends_with(".js") || key.ends_with(".js") {
-                "text/javascript".to_string()
-            } else if clean_path.ends_with(".css") || key.ends_with(".css") {
-                "text/css".to_string()
+            let mime = if key.ends_with(".wasm") {
+                "application/wasm"
+            } else if key.ends_with(".js") {
+                "text/javascript"
+            } else if key.ends_with(".css") {
+                "text/css"
             } else {
-                mime_guess::from_path(&clean_path).first_or_octet_stream().to_string()
+                "application/octet-stream"
             };
             return (
                 [
-                    (http::header::CONTENT_TYPE, mime),
+                    (http::header::CONTENT_TYPE, mime.to_string()),
                     (http::header::CACHE_CONTROL, cache_hdr),
                 ],
                 file.data.into_owned(),
@@ -126,7 +115,7 @@ async fn pkg_handler(
         }
     }
 
-    // 3. Fallback especial para CSS caso o build WASM ainda não tenha rodado
+    // Fallback especial para CSS
     if clean_path == "mta_sheet.css" || clean_path == "style.css" {
         let css_cache = get_cache_control_css().to_string();
         if let Ok(css) = tokio::fs::read_to_string("style.css").await {
@@ -137,25 +126,7 @@ async fn pkg_handler(
                 ],
                 css,
             ).into_response();
-        } else {
-            return (
-                [
-                    (http::header::CONTENT_TYPE, "text/css".to_string()),
-                    (http::header::CACHE_CONTROL, css_cache),
-                ],
-                EMBEDDED_STYLE_CSS.to_string(),
-            ).into_response();
         }
-    }
-
-    // Se for WASM e não encontrou, retorna 404 vazio com application/wasm para não quebrar parser com texto
-    if clean_path.ends_with(".wasm") {
-        return (
-            http::StatusCode::NOT_FOUND,
-            [(http::header::CONTENT_TYPE, "application/wasm".to_string())],
-            vec![],
-        )
-            .into_response();
     }
 
     (
@@ -626,11 +597,8 @@ async fn main() {
         .route("/api/export_json/:id", axum::routing::get(export_json_handler))
         .route("/api/room_events/:id", axum::routing::get(room_events_sse_handler))
         .nest_service("/pkg", ServeDir::new("target/site/pkg").fallback(axum::routing::get(pkg_handler)))
-        .route("/pkg/*path", axum::routing::get(pkg_handler))
         .nest_service("/assets", ServeDir::new("target/site/assets").fallback(axum::routing::get(assets_handler)))
-        .route("/assets/*path", axum::routing::get(assets_handler))
         .nest_service("/styles", ServeDir::new("styles").fallback(axum::routing::get(styles_handler)))
-        .route("/styles/*path", axum::routing::get(styles_handler))
         .route("/style.css", axum::routing::get(style_css_handler))
         .route("/favicon.ico", axum::routing::get(|| async { (http::StatusCode::NO_CONTENT, "") }))
         .nest_service("/uploads", ServeDir::new("uploads"))
