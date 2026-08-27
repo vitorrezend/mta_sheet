@@ -169,33 +169,47 @@
 }
 
 .manual-save-btn {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 0.45rem 0.9rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    background: linear-gradient(135deg, #6c3483 0%, #8e44ad 100%);
+    color: #ffffff;
+    border: 1px solid #a569bd;
+    padding: 0.45rem 1rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(142, 68, 173, 0.35);
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
 .manual-save-btn:hover {
-    background: #34495e;
+    background: linear-gradient(135deg, #7d3c98 0%, #9b59b6 100%);
+    box-shadow: 0 4px 12px rgba(142, 68, 173, 0.45);
     transform: translateY(-1px);
 }
 
+.top-bar-action-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(142, 68, 173, 0.06);
+    padding: 3px 4px;
+    border-radius: 8px;
+    border: 1px solid rgba(155, 89, 182, 0.2);
+}
+
 .export-pdf-btn {
-    background: #047857;
-    color: white;
-    border: none;
-    padding: 0.45rem 0.9rem;
-    border-radius: 4px;
+    background: #ffffff;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+    padding: 0.38rem 0.75rem;
+    border-radius: 6px;
     font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
@@ -203,8 +217,11 @@
 }
 
 .export-pdf-btn:hover {
-    background: #065f46;
+    background: #ecfdf5;
+    border-color: #34d399;
+    color: #065f46;
     transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15);
 }
 
 
@@ -223,12 +240,14 @@
 .sheet-tabs-nav {
     display: flex;
     width: 100%;
-    gap: 3px;
-    background: rgba(15, 23, 42, 0.75);
-    padding: 5px 4px 0 4px;
-    border-radius: 8px 8px 0 0;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+    gap: 4px;
+    background: linear-gradient(180deg, #181524 0%, #12101b 100%);
+    padding: 6px 6px 0 6px;
+    border-radius: 10px 10px 0 0;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.2);
     box-sizing: border-box;
+    border: 1px solid rgba(155, 89, 182, 0.2);
+    border-bottom: none;
 }
 
 .sheet-tab-btn {
@@ -237,15 +256,15 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 6px 3px;
-    font-size: 0.74rem;
-    font-weight: 700;
-    color: #94a3b8;
-    background: rgba(30, 41, 59, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 6px;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #a79cb8;
+    background: rgba(30, 26, 46, 0.6);
+    border: 1px solid rgba(155, 89, 182, 0.2);
     border-bottom: none;
-    border-radius: 6px 6px 0 0;
+    border-radius: 8px 8px 0 0;
     cursor: pointer;
     transition: all 0.2s ease;
     user-select: none;
@@ -253,14 +272,16 @@
 }
 
 .sheet-tab-btn:hover {
-    color: #f8fafc;
-    background: rgba(51, 65, 85, 0.85);
+    color: #f1e7fe;
+    background: rgba(45, 38, 70, 0.8);
+    border-color: rgba(187, 134, 252, 0.4);
 }
 
 .sheet-tab-btn.active {
-    color: #0f172a;
+    color: #1a162b;
     background: var(--paper-bg);
-    border-color: rgba(0, 0, 0, 0.15);
+    border-color: rgba(155, 89, 182, 0.3);
+    font-weight: 700;
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
     position: relative;
 }
@@ -271,37 +292,20 @@
     bottom: -2px;
     left: 0;
     right: 0;
-    height: 3px;
+    height: 4px;
     background: var(--paper-bg);
 }
 
 .sheet-tab-icon {
-    font-size: 0.88rem;
+    font-size: 0.95rem;
     flex-shrink: 0;
     line-height: 1;
 }
 
 .sheet-tab-title {
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     letter-spacing: -0.01em;
-}
-
-.sheet-tab-page-tag {
-    font-size: 0.62rem;
-    padding: 1px 4px;
-    border-radius: 3px;
-    background: rgba(0, 0, 0, 0.07);
-    color: #64748b;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-.sheet-tab-btn.active .sheet-tab-page-tag {
-    background: rgba(124, 58, 237, 0.12);
-    color: #6d28d9;
 }
 
 .sheet-page-tab-pane {
@@ -316,18 +320,16 @@
     display: none !important;
 }
 
-
-
 .json-top-btn {
-    background: #374151;
-    color: #f3f4f6;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    padding: 0.45rem 0.75rem;
-    border-radius: 4px;
+    background: #ffffff;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    padding: 0.38rem 0.75rem;
+    border-radius: 6px;
     font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
@@ -335,28 +337,33 @@
 }
 
 .json-top-btn:hover {
-    background: #4b5563;
-    border-color: rgba(255, 255, 255, 0.3);
+    background: #f8fafc;
+    border-color: #94a3b8;
     transform: translateY(-1px);
-    color: #ffffff;
+    color: #1e293b;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
 .json-import-btn {
-    background: #1e3a8a;
-    border-color: #3b82f6;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
 }
 
 .json-import-btn:hover {
-    background: #2563eb;
+    background: #eff6ff;
+    border-color: #60a5fa;
+    color: #1e40af;
 }
 
 .json-export-btn {
-    background: #581c87;
-    border-color: #a855f7;
+    color: #6b21a8;
+    border-color: #e9d5ff;
 }
 
 .json-export-btn:hover {
-    background: #7e22ce;
+    background: #faf5ff;
+    border-color: #c084fc;
+    color: #581c87;
 }
 
 .create-actions-group {

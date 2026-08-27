@@ -54,8 +54,7 @@ pub fn SheetTabs(
                             title="Página 1: Atributos, Habilidades, Esferas e Vantagens"
                         >
                             <span class="sheet-tab-icon">"📜"</span>
-                            <span class="sheet-tab-title">"Ficha Principal"</span>
-                            <span class="sheet-tab-page-tag">"Pág. 1"</span>
+                            <span class="sheet-tab-title">"Principal"</span>
                         </button>
 
                         <button 
@@ -66,7 +65,6 @@ pub fn SheetTabs(
                         >
                             <span class="sheet-tab-icon">"⚔️"</span>
                             <span class="sheet-tab-title">"Magia & Combate"</span>
-                            <span class="sheet-tab-page-tag">"Pág. 2"</span>
                         </button>
 
                         <button 
@@ -76,8 +74,7 @@ pub fn SheetTabs(
                             title="Página 3: Antecedentes Expandidos, Posses, Focos, Grimório e Capela"
                         >
                             <span class="sheet-tab-icon">"🏛️"</span>
-                            <span class="sheet-tab-title">"Antecedentes & Posses"</span>
-                            <span class="sheet-tab-page-tag">"Pág. 3"</span>
+                            <span class="sheet-tab-title">"Antecedentes"</span>
                         </button>
 
                         <button 
@@ -86,9 +83,8 @@ pub fn SheetTabs(
                             on:click=move |_| set_active_tab.set(SheetPageTab::HistoryVisuals)
                             title="Página 4: História, Objetivos, Descrição Física, Avatar, Cabal e Retrato"
                         >
-                            <span class="sheet-tab-icon">"👤"</span>
-                            <span class="sheet-tab-title">"História & Visual"</span>
-                            <span class="sheet-tab-page-tag">"Pág. 4"</span>
+                            <span class="sheet-tab-icon">"📖"</span>
+                            <span class="sheet-tab-title">"História"</span>
                         </button>
 
                         <button 
@@ -97,9 +93,8 @@ pub fn SheetTabs(
                             on:click=move |_| set_active_tab.set(SheetPageTab::Grimoire)
                             title="Página 5: Grimório, Práticas, Instrumentos e Rotinas Mágicas (Rotes)"
                         >
-                            <span class="sheet-tab-icon">"📖"</span>
+                            <span class="sheet-tab-icon">"🔮"</span>
                             <span class="sheet-tab-title">"Grimório"</span>
-                            <span class="sheet-tab-page-tag">"Pág. 5"</span>
                         </button>
 
                         <button 
@@ -110,7 +105,6 @@ pub fn SheetTabs(
                         >
                             <span class="sheet-tab-icon">"📝"</span>
                             <span class="sheet-tab-title">"Notas"</span>
-                            <span class="sheet-tab-page-tag">"Pág. 6"</span>
                         </button>
                     }.into_view()
                 }}

@@ -47,27 +47,36 @@
     flex: 1 1 0%;
     min-width: 6px;
     width: 100%;
-    height: 16px;
+    height: 18px;
     border: none;
-    border-bottom: 1px dotted #cbd5e1;
+    border-bottom: 1px dotted #e2e8f0;
     text-align: left;
     font-size: 0.65rem;
     background: transparent;
     color: var(--primary-color);
     font-family: inherit;
-    transition: all 0.2s;
-    margin: 0 2px;
-    padding: 0 2px;
+    transition: all 0.2s ease;
+    margin: 0 4px;
+    padding: 0 4px;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
     box-sizing: border-box;
+    border-radius: 3px;
 }
 
 .field-modifier:focus {
     outline: none;
-    border-bottom: 1px solid var(--primary-color);
-    background-color: rgba(0,0,0,0.02);
+    border: 1px solid #8e44ad;
+    background-color: rgba(142, 68, 173, 0.05);
+}
+
+.field-modifier:not(:placeholder-shown) {
+    background: rgba(142, 68, 173, 0.06);
+    border: 1px solid rgba(155, 89, 182, 0.22);
+    color: #581c87;
+    font-weight: 500;
+    font-style: italic;
 }
 
 /* Camada Terciária: Bolinhas (Dots) */

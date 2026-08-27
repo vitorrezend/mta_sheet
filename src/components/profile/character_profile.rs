@@ -4,7 +4,7 @@ use web_sys::{Event, FileReader, HtmlInputElement, ProgressEvent};
 use crate::components::Callback;
 use crate::state::CharacterData;
 
-const MAX_FILE_SIZE_BYTES: f64 = 10.0 * 1024.0 * 1024.0; // 10MB
+const MAX_FILE_SIZE_BYTES: f64 = 5.0 * 1024.0 * 1024.0; // 5MB
 
 #[component]
 pub fn CharacterProfile() -> impl IntoView {
@@ -22,7 +22,7 @@ pub fn CharacterProfile() -> impl IntoView {
 
     let handle_file = move |file: web_sys::File| {
         if file.size() > MAX_FILE_SIZE_BYTES {
-            set_upload_error.set(Some("O arquivo selecionado excede o limite máximo de 10MB.".to_string()));
+            set_upload_error.set(Some("O arquivo selecionado excede o limite máximo de 5MB.".to_string()));
             return;
         }
 
@@ -33,41 +33,34 @@ pub fn CharacterProfile() -> impl IntoView {
         }
 
         set_upload_error.set(None);
-        let file_name = file.name();
-        let sheet_id = data.with_untracked(|d| d.id.clone());
-
-        if let Ok(reader) = FileReader::new() {
-            let reader_clone = reader.clone();
-            let set_data_clone = set_data.clone();
-            let onload = wasm_bindgen::closure::Closure::wrap(Box::new(move |_e: ProgressEvent| {
-                if let Ok(result) = reader_clone.result() {
-                    if let Some(data_url) = result.as_string() {
-                        let s_id = sheet_id.clone();
-                        let f_name = file_name.clone();
-                        let set_d = set_data_clone.clone();
-
-                        spawn_local(async move {
-                            match crate::state::save_uploaded_media(s_id, "profile".to_string(), f_name, data_url).await {
-                                Ok(uploaded_url) => {
-                                    set_d.update(|s| s.set_profile_photo(uploaded_url));
-                                }
-                                Err(e) => {
-                                    crate::logging::log_client(
-                                        "errors",
-                                        "ERROR",
-                                        "Falha ao enviar foto de perfil para o servidor",
-                                        Some(&e.to_string()),
-                                    );
+        #[cfg(target_arch = "wasm32")]
+        {
+            let set_d = set_data.clone();
+            let set_err = set_upload_error.clone();
+            
+            if let Ok(form_data) = web_sys::FormData::new() {
+                let _ = form_data.append_with_blob_and_filename("file", &file, &file.name());
+                
+                spawn_local(async move {
+                    if let Ok(req) = gloo_net::http::Request::post("/api/upload_image").body(form_data) {
+                        if let Ok(resp) = req.send().await {
+                            if resp.ok() {
+                                if let Ok(json) = resp.json::<serde_json::Value>().await {
+                                    if let Some(url) = json.get("url").and_then(|u| u.as_str()) {
+                                        set_d.update(|s| s.set_profile_photo(url.to_string()));
+                                        return;
+                                    }
                                 }
                             }
-                        });
+                        }
                     }
-                }
-            }) as Box<dyn FnMut(ProgressEvent)>);
-
-            reader.set_onload(Some(onload.as_ref().unchecked_ref()));
-            onload.forget();
-            let _ = reader.read_as_data_url(&file);
+                    let _ = set_err.try_set(Some("Falha no upload da imagem".to_string()));
+                });
+            }
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let _ = file;
         }
     };
 
@@ -129,7 +122,7 @@ pub fn CharacterProfile() -> impl IntoView {
                     <div class="group-box profile-portrait-box">
                         <div class="group-box-header">
                             <span class="group-box-title">"RETRATO / FOTO"</span>
-                            <span class="group-box-badge">"JPG / PNG até 10MB"</span>
+                            <span class="group-box-badge">"JPG / PNG até 5MB"</span>
                         </div>
 
                         <div 
@@ -182,7 +175,7 @@ pub fn CharacterProfile() -> impl IntoView {
                                             <div class="upload-text-group">
                                                 <span class="upload-primary-text">"Clique para enviar ou arraste a foto"</span>
                                                 <span class="upload-secondary-text">"Formatos: PNG (com transparência), JPG, WEBP"</span>
-                                                <span class="upload-limit-badge">"Tamanho Máximo: 10MB"</span>
+                                                <span class="upload-limit-badge">"Tamanho Máximo: 5MB"</span>
                                             </div>
                                             <input 
                                                 type="file" 

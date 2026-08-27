@@ -2,17 +2,18 @@ use leptos::*;
 use leptos_router::*;
 use crate::auth::logout;
 use crate::AuthContext;
+use crate::components::common::patch_notes_data::CURRENT_VERSION;
+use crate::components::common::patch_notes_modal::PatchNotesModal;
 
 #[component]
 pub fn Navbar() -> impl IntoView {
     let auth = use_context::<AuthContext>();
-    let user = auth.map(|a| a.user).unwrap_or_else(|| create_signal(None).0);
-    let set_user = auth.map(|a| a.set_user).unwrap_or_else(|| create_signal(None).1);
+    let user = auth.map(|a| a.user).unwrap_or_else(|| Signal::derive(|| None));
+    let (show_patch_notes, set_show_patch_notes) = create_signal(false);
 
     let on_logout = move |_| {
         spawn_local(async move {
             let _ = logout().await;
-            set_user.set(None);
             #[cfg(target_arch = "wasm32")]
             {
                 if let Some(window) = web_sys::window() {
@@ -30,20 +31,27 @@ pub fn Navbar() -> impl IntoView {
                         <span class="brand-icon">"🔮"</span>
                         <span class="brand-title">"MTA Sheet"</span>
                     </A>
+                    <button
+                        type="button"
+                        class="version-pill-badge"
+                        on:click=move |_| set_show_patch_notes.set(true)
+                        title="Ver Notas de Atualização & Versões"
+                    >
+                        <span class="version-pill-sparkle">"✨"</span>
+                        <span>{format!("v{}", CURRENT_VERSION)}</span>
+                    </button>
                 </div>
 
                 <div class="navbar-links">
                     <A href="/" class="nav-link" exact=true>"📜 Fichas"</A>
                     <A href="/rooms" class="nav-link">"🏰 Salas de Jogo"</A>
-                    {move || {
-                        if user.get().map(|u| u.is_admin).unwrap_or(false) {
-                            view! {
-                                <A href="/logs" class="nav-link">"📊 Logs"</A>
-                            }.into_view()
+                    {move || user.get().and_then(|u| {
+                        if u.is_admin {
+                            Some(view! { <A href="/logs" class="nav-link">"📊 Logs"</A> })
                         } else {
-                            view! {}.into_view()
+                            None
                         }
-                    }}
+                    })}
                 </div>
 
                 <div class="navbar-auth">
@@ -61,5 +69,10 @@ pub fn Navbar() -> impl IntoView {
                 </div>
             </div>
         </nav>
+        <PatchNotesModal
+            is_open=show_patch_notes
+            on_close=crate::components::common::SafeCallback::new(move |_| set_show_patch_notes.set(false))
+        />
     }
 }
+

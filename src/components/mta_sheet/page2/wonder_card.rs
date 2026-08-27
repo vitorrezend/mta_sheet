@@ -84,7 +84,7 @@ pub fn WonderCard(
                                     spawn_local(async move {
                                         match save_uploaded_media(s_id, "wonders".to_string(), f_name, data_url).await {
                                             Ok(uploaded_url) => {
-                                                set_d.update(|s| {
+                                                let _ = set_d.try_update(|s| {
                                                     while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
                                                     s.wonders[idx].image_url = uploaded_url;
                                                 });

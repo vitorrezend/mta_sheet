@@ -79,44 +79,38 @@ pub fn VisualsSection() -> impl IntoView {
             return;
         }
         set_sketch_error.set(None);
-        let file_name = file.name();
-        let sheet_id = data.with_untracked(|d| d.id.clone());
+        #[cfg(target_arch = "wasm32")]
+        {
+            let set_d = set_data.clone();
+            let set_err = set_sketch_error.clone();
 
-        if let Ok(reader) = FileReader::new() {
-            let reader_clone = reader.clone();
-            let set_data_clone = set_data.clone();
-            let onload = wasm_bindgen::closure::Closure::wrap(Box::new(move |_e: ProgressEvent| {
-                if let Ok(result) = reader_clone.result() {
-                    if let Some(data_url) = result.as_string() {
-                        let s_id = sheet_id.clone();
-                        let f_name = file_name.clone();
-                        let set_d = set_data_clone.clone();
+            if let Ok(form_data) = web_sys::FormData::new() {
+                let _ = form_data.append_with_blob_and_filename("file", &file, &file.name());
 
-                        spawn_local(async move {
-                            match crate::state::save_uploaded_media(s_id, "profile".to_string(), f_name, data_url).await {
-                                Ok(uploaded_url) => {
-                                    set_d.update(|s| {
-                                        s.visuals.character_sketch_url = uploaded_url.clone();
-                                        s.set_profile_photo(uploaded_url);
-                                    });
-                                }
-                                Err(e) => {
-                                    crate::logging::log_client(
-                                        "errors",
-                                        "ERROR",
-                                        "Falha ao enviar retrato do personagem para o servidor",
-                                        Some(&e.to_string()),
-                                    );
+                spawn_local(async move {
+                    if let Ok(req) = gloo_net::http::Request::post("/api/upload_image").body(form_data) {
+                        if let Ok(resp) = req.send().await {
+                            if resp.ok() {
+                                if let Ok(json) = resp.json::<serde_json::Value>().await {
+                                    if let Some(url) = json.get("url").and_then(|u| u.as_str()) {
+                                        let u_clone = url.to_string();
+                                        set_d.update(|s| {
+                                            s.visuals.character_sketch_url = u_clone.clone();
+                                            s.set_profile_photo(u_clone);
+                                        });
+                                        return;
+                                    }
                                 }
                             }
-                        });
+                        }
                     }
-                }
-            }) as Box<dyn FnMut(ProgressEvent)>);
-
-            reader.set_onload(Some(onload.as_ref().unchecked_ref()));
-            onload.forget();
-            let _ = reader.read_as_data_url(&file);
+                    let _ = set_err.try_set(Some("Falha no upload do retrato".to_string()));
+                });
+            }
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let _ = file;
         }
     };
 

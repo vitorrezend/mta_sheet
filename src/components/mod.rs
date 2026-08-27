@@ -9,8 +9,8 @@ pub mod views;
 
 // Re-export common UI components
 pub use common::{
-    Callback, LabelColumn, LabelField, Navbar, SafeCallback, Sheet, StableTextArea,
-    StableTextInput, ValueField,
+    Callback, LabelColumn, LabelField, Navbar, PatchNotesModal, SafeCallback, Sheet,
+    StableTextArea, StableTextInput, ValueField,
 };
 
 // Re-export MTA sheet components

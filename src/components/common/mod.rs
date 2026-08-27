@@ -16,3 +16,8 @@ pub use sheet::Sheet;
 
 pub mod json_export_import;
 pub use json_export_import::*;
+
+pub mod patch_notes_data;
+pub mod patch_notes_modal;
+pub use patch_notes_modal::PatchNotesModal;
+

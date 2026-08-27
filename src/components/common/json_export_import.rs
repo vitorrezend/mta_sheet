@@ -6,16 +6,29 @@ pub fn export_character_json(data: &CharacterData) {
     {
         use wasm_bindgen::JsCast;
 
-        let json_str = match serde_json::to_string_pretty(data) {
-            Ok(s) => s,
-            Err(err) => {
-                log::error!("Erro ao serializar ficha para JSON: {:?}", err);
-                return;
-            }
-        };
-
         if let Some(window) = web_sys::window() {
             if let Some(document) = window.document() {
+                if !data.id.is_empty() {
+                    // Download nativo direto via streaming HTTP do backend
+                    if let Ok(element) = document.create_element("a") {
+                        if let Ok(a) = element.dyn_into::<web_sys::HtmlAnchorElement>() {
+                            a.set_href(&format!("/api/export_json/{}", data.id));
+                            a.set_download("");
+                            a.click();
+                            log::info!("Download nativo da ficha disparado: /api/export_json/{}", data.id);
+                            return;
+                        }
+                    }
+                }
+
+                let json_str = match serde_json::to_string_pretty(data) {
+                    Ok(s) => s,
+                    Err(err) => {
+                        log::error!("Erro ao serializar ficha para JSON: {:?}", err);
+                        return;
+                    }
+                };
+
                 let blob_parts = js_sys::Array::new();
                 blob_parts.push(&wasm_bindgen::JsValue::from_str(&json_str));
 

@@ -23,6 +23,16 @@ pub struct RoomMemberInfo {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
+pub struct ChantryPoolData {
+    pub quintessence_pool: i32,
+    pub max_quintessence: i32,
+    pub node_rating: i32,
+    pub library_rating: i32,
+    pub location_name: String,
+    pub notes: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
 pub struct RoomSheetSummary {
     pub id: String,
     pub name: String,
@@ -34,6 +44,13 @@ pub struct RoomSheetSummary {
     pub willpower_current: i32,
     pub quintessence: i32,
     pub paradox: i32,
+    pub photo_url: String,
+    pub health_label: String,
+    pub health_penalty: String,
+    pub health_badge_class: String,
+    pub health_damage_str: String,
+    pub is_hidden: bool,
+    pub is_owner: bool,
     pub updated_at: String,
 }
 
@@ -46,6 +63,8 @@ pub struct RoomDetails {
     pub gm_id: String,
     pub gm_username: String,
     pub is_gm: bool,
+    pub chantry: ChantryPoolData,
+    pub chronicle_notes: String,
     pub members: Vec<RoomMemberInfo>,
     pub sheets: Vec<RoomSheetSummary>,
 }
@@ -218,9 +237,9 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
 
-    // 1. Get room info
+    // 1. Get room info including chantry and chronicle notes
     let room_row = sqlx::query(
-        "SELECT r.id, r.name, r.code, r.description, r.gm_id, u.username as gm_username 
+        "SELECT r.id, r.name, r.code, r.description, r.gm_id, r.chantry_data, r.chronicle_notes, u.username as gm_username 
          FROM rooms r 
          JOIN users u ON r.gm_id = u.id 
          WHERE r.id = ?"
@@ -233,6 +252,10 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
 
     let gm_id: String = room_row.get("gm_id");
     let is_gm = !current_user_id.is_empty() && current_user_id == gm_id;
+
+    let chantry_raw: String = room_row.try_get("chantry_data").unwrap_or_default();
+    let chantry: ChantryPoolData = serde_json::from_str(&chantry_raw).unwrap_or_default();
+    let chronicle_notes: String = room_row.try_get("chronicle_notes").unwrap_or_default();
 
     // 2. Get members
     let member_rows = sqlx::query(
@@ -254,17 +277,27 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         joined_at: r.get("joined_at"),
     }).collect();
 
-    // 3. Get sheets
-    let sheet_rows = sqlx::query(
-        "SELECT id, name, data, updated_at FROM character_sheets WHERE room_id = ? ORDER BY updated_at DESC"
-    )
-    .bind(&room_id)
-    .fetch_all(&pool)
-    .await
-    .map_err(|e| ServerFnError::new(e.to_string()))?;
+    // 3. Get sheets (GM sees all, players only see non-hidden sheets or their own)
+    let sheet_query = if is_gm {
+        "SELECT id, user_id, name, data, is_hidden_in_room, updated_at FROM character_sheets WHERE room_id = ? ORDER BY updated_at DESC"
+    } else {
+        "SELECT id, user_id, name, data, is_hidden_in_room, updated_at FROM character_sheets WHERE room_id = ? AND (is_hidden_in_room = 0 OR user_id = ?) ORDER BY updated_at DESC"
+    };
+
+    let mut q = sqlx::query(sheet_query).bind(&room_id);
+    if !is_gm {
+        q = q.bind(&current_user_id);
+    }
+
+    let sheet_rows = q.fetch_all(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let sheets = sheet_rows.into_iter().map(|r| {
         let id: String = r.get("id");
+        let sheet_user_id: Option<String> = r.get("user_id");
+        let is_owner = !current_user_id.is_empty() && sheet_user_id.as_deref() == Some(&current_user_id);
+        let is_hidden: bool = r.try_get::<i64, _>("is_hidden_in_room").map(|v| v == 1).unwrap_or(false);
         let name: String = r.get("name");
         let data_json: String = r.get("data");
         let updated_at: String = r.get("updated_at");
@@ -272,6 +305,32 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         let char_data: CharacterData = serde_json::from_str(&data_json).unwrap_or_default();
         let (wp_total, wp_cur) = char_data.get_willpower();
         let (quint, paradox, _) = char_data.get_quintessence_paradox();
+
+        // Calculate health status
+        let (agg, lethal, bashing) = char_data.get_health_counts();
+        let total_dmg = agg + lethal + bashing;
+        let (health_label, health_penalty, health_badge_class) = match total_dmg {
+            0 => ("Íntegro", "0", "health-full"),
+            1 => ("Escoriado", "-0", "health-bruised"),
+            2 => ("Ferido", "-1", "health-hurt"),
+            3 => ("Gravemente Ferido", "-1", "health-injured"),
+            4 => ("Espancado", "-2", "health-wounded"),
+            5 => ("Estropiado", "-2", "health-mauled"),
+            6 => ("Aleijado", "-5", "health-crippled"),
+            _ => ("Incapacitado", "☠️", "health-incapacitated"),
+        };
+
+        let mut dmg_parts = Vec::new();
+        if agg > 0 { dmg_parts.push(format!("{} Agravado", agg)); }
+        if lethal > 0 { dmg_parts.push(format!("{} Letal", lethal)); }
+        if bashing > 0 { dmg_parts.push(format!("{} Contundente", bashing)); }
+        let health_damage_str = if dmg_parts.is_empty() { "Sem dano".to_string() } else { dmg_parts.join(", ") };
+
+        let photo_url = if !char_data.visuals.character_sketch_url.is_empty() {
+            char_data.visuals.character_sketch_url.clone()
+        } else {
+            char_data.get_profile_photo()
+        };
 
         RoomSheetSummary {
             id,
@@ -284,6 +343,13 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
             willpower_current: wp_cur,
             quintessence: quint,
             paradox,
+            photo_url,
+            health_label: health_label.to_string(),
+            health_penalty: health_penalty.to_string(),
+            health_badge_class: health_badge_class.to_string(),
+            health_damage_str,
+            is_hidden,
+            is_owner,
             updated_at,
         }
     }).collect();
@@ -296,6 +362,8 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         gm_id,
         gm_username: room_row.get("gm_username"),
         is_gm,
+        chantry,
+        chronicle_notes,
         members,
         sheets,
     })
@@ -334,6 +402,179 @@ pub async fn remove_sheet_from_room(sheet_id: String) -> Result<(), ServerFnErro
     Ok(())
 }
 
+#[server(endpoint = "toggle_sheet_room_visibility")]
+pub async fn toggle_sheet_room_visibility(sheet_id: String, is_hidden: bool) -> Result<(), ServerFnError> {
+    use sqlx::{SqlitePool, Row};
+    use crate::auth::get_auth_user_id;
+
+    let user_id = get_auth_user_id().await?.ok_or_else(|| {
+        ServerFnError::new("Você precisa estar logado para alterar a visibilidade")
+    })?;
+
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        ServerFnError::new("Conexão com o banco de dados indisponível")
+    })?;
+
+    // Check if user is GM of the room or owner of the sheet
+    let row = sqlx::query(
+        "SELECT cs.user_id, r.gm_id FROM character_sheets cs 
+         LEFT JOIN rooms r ON cs.room_id = r.id 
+         WHERE cs.id = ?"
+    )
+    .bind(&sheet_id)
+    .fetch_optional(&pool)
+    .await
+    .map_err(|e| ServerFnError::new(e.to_string()))?
+    .ok_or_else(|| ServerFnError::new("Ficha não encontrada"))?;
+
+    let sheet_owner: Option<String> = row.get("user_id");
+    let room_gm: Option<String> = row.get("gm_id");
+
+    if sheet_owner.as_deref() != Some(&user_id) && room_gm.as_deref() != Some(&user_id) {
+        return Err(ServerFnError::new("Você não tem permissão para alterar a visibilidade desta ficha"));
+    }
+
+    let val: i64 = if is_hidden { 1 } else { 0 };
+    sqlx::query("UPDATE character_sheets SET is_hidden_in_room = ? WHERE id = ?")
+        .bind(val)
+        .bind(&sheet_id)
+        .execute(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(format!("Erro ao alterar visibilidade: {}", e)))?;
+
+    Ok(())
+}
+
+#[server(endpoint = "update_room_chantry")]
+pub async fn update_room_chantry(room_id: String, chantry: ChantryPoolData) -> Result<(), ServerFnError> {
+    use sqlx::SqlitePool;
+    use crate::auth::get_auth_user_id;
+
+    let _user_id = get_auth_user_id().await?.ok_or_else(|| {
+        ServerFnError::new("Você precisa estar logado para atualizar os recursos da capela")
+    })?;
+
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        ServerFnError::new("Conexão com o banco de dados indisponível")
+    })?;
+
+    let json_data = serde_json::to_string(&chantry).unwrap_or_default();
+
+    sqlx::query("UPDATE rooms SET chantry_data = ? WHERE id = ?")
+        .bind(&json_data)
+        .bind(&room_id)
+        .execute(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(format!("Erro ao atualizar capela: {}", e)))?;
+
+    Ok(())
+}
+
+#[server(endpoint = "update_room_chronicle_notes")]
+pub async fn update_room_chronicle_notes(room_id: String, notes: String) -> Result<(), ServerFnError> {
+    use sqlx::SqlitePool;
+    use crate::auth::get_auth_user_id;
+
+    let _user_id = get_auth_user_id().await?.ok_or_else(|| {
+        ServerFnError::new("Você precisa estar logado para editar o diário da crônica")
+    })?;
+
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        ServerFnError::new("Conexão com o banco de dados indisponível")
+    })?;
+
+    sqlx::query("UPDATE rooms SET chronicle_notes = ? WHERE id = ?")
+        .bind(&notes)
+        .bind(&room_id)
+        .execute(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(format!("Erro ao atualizar diário da crônica: {}", e)))?;
+
+    Ok(())
+}
+
+#[server(endpoint = "clone_and_assign_sheet_to_member")]
+pub async fn clone_and_assign_sheet_to_member(
+    room_id: String,
+    sheet_id: String,
+    target_user_id: String,
+) -> Result<String, ServerFnError> {
+    use sqlx::{SqlitePool, Row};
+    use crate::auth::get_auth_user_id;
+
+    let caller_user_id = get_auth_user_id().await?.ok_or_else(|| {
+        ServerFnError::new("Você precisa estar logado para realizar esta ação")
+    })?;
+
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        ServerFnError::new("Conexão com o banco de dados indisponível")
+    })?;
+
+    // 1. Valida se o chamador é o Narrador da sala
+    let is_gm_row = sqlx::query("SELECT gm_id FROM rooms WHERE id = ?")
+        .bind(&room_id)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(format!("Erro ao verificar sala: {}", e)))?;
+
+    let gm_row = is_gm_row.ok_or_else(|| ServerFnError::new("Sala não encontrada"))?;
+    let room_gm_id: String = gm_row.get("gm_id");
+
+    if room_gm_id != caller_user_id {
+        return Err(ServerFnError::new("Apenas o Narrador da sala pode clonar e entregar fichas para membros"));
+    }
+
+    // 2. Valida se o target_user_id é membro desta sala
+    let is_member = sqlx::query("SELECT 1 FROM room_members WHERE room_id = ? AND user_id = ?")
+        .bind(&room_id)
+        .bind(&target_user_id)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(format!("Erro ao verificar membro: {}", e)))?;
+
+    if is_member.is_none() && target_user_id != room_gm_id {
+        return Err(ServerFnError::new("O jogador selecionado não é membro desta sala"));
+    }
+
+    // 3. Busca a ficha original do Narrador
+    let sheet_row = sqlx::query("SELECT name, data, sheet_type, photo_url FROM characters WHERE id = ? AND user_id = ?")
+        .bind(&sheet_id)
+        .bind(&caller_user_id)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(format!("Erro ao buscar ficha original: {}", e)))?;
+
+    let sheet_data = sheet_row.ok_or_else(|| ServerFnError::new("Ficha original não encontrada no seu inventário"))?;
+    let sheet_name: String = sheet_data.get("name");
+    let sheet_json: String = sheet_data.get("data");
+    let sheet_type: String = sheet_data.get("sheet_type");
+    let photo_url: Option<String> = sheet_data.get("photo_url");
+
+    // 4. Cria nova ficha com novo UUID pertencente ao jogador
+    let new_sheet_id = uuid::Uuid::new_v4().to_string();
+
+    sqlx::query("INSERT INTO characters (id, user_id, name, data, sheet_type, photo_url, is_public, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 0, datetime('now'), datetime('now'))")
+        .bind(&new_sheet_id)
+        .bind(&target_user_id)
+        .bind(&sheet_name)
+        .bind(&sheet_json)
+        .bind(&sheet_type)
+        .bind(&photo_url)
+        .execute(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(format!("Erro ao criar ficha clonada: {}", e)))?;
+
+    // 5. Vincula a nova ficha à sala automaticamente
+    sqlx::query("INSERT OR IGNORE INTO room_sheets (room_id, sheet_id, is_hidden, created_at) VALUES (?, ?, 0, datetime('now'))")
+        .bind(&room_id)
+        .bind(&new_sheet_id)
+        .execute(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(format!("Erro ao vincular ficha à mesa: {}", e)))?;
+
+    Ok(new_sheet_id)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -364,5 +605,49 @@ mod tests {
         let json = serde_json::to_string(&summary).expect("serialize");
         let deserialized: RoomSummary = serde_json::from_str(&json).expect("deserialize");
         assert_eq!(summary, deserialized);
+    }
+
+    #[test]
+    fn test_chantry_pool_and_room_details_serialization() {
+        let chantry = ChantryPoolData {
+            quintessence_pool: 15,
+            max_quintessence: 30,
+            node_rating: 3,
+            library_rating: 2,
+            location_name: "Mansão Horizon".to_string(),
+            notes: "Guardiões autômatos no jardim".to_string(),
+        };
+
+        let details = RoomDetails {
+            id: "room-123".to_string(),
+            name: "Cabala de São Paulo".to_string(),
+            code: "MTA-SP01".to_string(),
+            description: "Crônica urbana".to_string(),
+            gm_id: "gm-1".to_string(),
+            gm_username: "Mestre".to_string(),
+            is_gm: true,
+            chantry: chantry.clone(),
+            chronicle_notes: "Sessão 1: Encontro na Avenida Paulista".to_string(),
+            members: vec![],
+            sheets: vec![],
+        };
+
+        let json = serde_json::to_string(&details).expect("serialize");
+        let deserialized: RoomDetails = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(details, deserialized);
+    }
+
+    #[test]
+    fn test_room_member_info_serialization() {
+        let member = RoomMemberInfo {
+            user_id: "42".to_string(),
+            username: "Hermes".to_string(),
+            role: "player".to_string(),
+            joined_at: "2026-08-27 00:00:00".to_string(),
+        };
+
+        let json = serde_json::to_string(&member).expect("serialize");
+        let deserialized: RoomMemberInfo = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(member, deserialized);
     }
 }

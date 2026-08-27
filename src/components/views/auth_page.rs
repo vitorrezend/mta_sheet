@@ -1,7 +1,6 @@
 use leptos::*;
 use leptos_router::*;
 use crate::auth::{login, register};
-use crate::AuthContext;
 
 #[component]
 pub fn AuthPage() -> impl IntoView {
@@ -11,8 +10,7 @@ pub fn AuthPage() -> impl IntoView {
     let (confirm_password, set_confirm_password) = create_signal(String::new());
     let (error_msg, set_error_msg) = create_signal(Option::<String>::None);
     let (is_submitting, set_is_submitting) = create_signal(false);
-
-    let auth = use_context::<AuthContext>();
+    #[cfg(not(target_arch = "wasm32"))]
     let navigate = use_navigate();
 
     let on_submit = move |ev: ev::SubmitEvent| {
@@ -34,6 +32,7 @@ pub fn AuthPage() -> impl IntoView {
         let is_reg = is_register.get_untracked();
         set_is_submitting.set(true);
         set_error_msg.set(None);
+        #[cfg(not(target_arch = "wasm32"))]
         let navigate = navigate.clone();
 
         spawn_local(async move {
@@ -44,10 +43,15 @@ pub fn AuthPage() -> impl IntoView {
             };
 
             match res {
-                Ok(user_info) => {
-                    if let Some(auth_ctx) = auth {
-                        auth_ctx.set_user.set(Some(user_info));
+                Ok(_) => {
+                    #[cfg(target_arch = "wasm32")]
+                    {
+                        if let Some(window) = web_sys::window() {
+                            let _ = window.location().set_href("/");
+                            return;
+                        }
                     }
+                    #[cfg(not(target_arch = "wasm32"))]
                     navigate("/", Default::default());
                 }
                 Err(e) => {
@@ -59,7 +63,6 @@ pub fn AuthPage() -> impl IntoView {
     };
 
     view! {
-        <link rel="stylesheet" href="/style.css"/>
         <div class="auth-page-container">
             <div class="auth-card">
                 <div class="auth-header">
@@ -91,11 +94,17 @@ pub fn AuthPage() -> impl IntoView {
                     </div>
                 })}
 
-                <form on:submit=on_submit class="auth-form">
+                <form 
+                    action=move || if is_register.get() { "/api/form_register" } else { "/api/form_login" }
+                    method="POST"
+                    on:submit=on_submit 
+                    class="auth-form"
+                >
                     <div class="form-group">
                         <label class="form-label">"Usuário"</label>
                         <input
                             type="text"
+                            name="username"
                             placeholder="Seu nome de usuário"
                             class="form-input"
                             prop:value=username
@@ -109,6 +118,7 @@ pub fn AuthPage() -> impl IntoView {
                         <label class="form-label">"Senha"</label>
                         <input
                             type="password"
+                            name="password"
                             placeholder="Sua senha"
                             class="form-input"
                             prop:value=password
@@ -123,6 +133,7 @@ pub fn AuthPage() -> impl IntoView {
                             <label class="form-label">"Confirmar Senha"</label>
                             <input
                                 type="password"
+                                name="confirm_password"
                                 placeholder="Confirme sua senha"
                                 class="form-input"
                                 prop:value=confirm_password

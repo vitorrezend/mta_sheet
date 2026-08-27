@@ -2,17 +2,19 @@ use wasm_bindgen::JsCast;
 use leptos::*;
 use leptos_router::*;
 use crate::state::{get_sheets, get_public_sheets, set_sheet_visibility, create_sheet, delete_sheet, import_sheet, CharacterSummary};
-use crate::components::{Callback, Navbar};
+use crate::components::{Callback, Navbar, PatchNotesModal};
+use crate::components::common::patch_notes_data::CURRENT_VERSION;
 use crate::AuthContext;
+
 
 #[component]
 pub fn Home() -> impl IntoView {
     let auth = use_context::<AuthContext>();
-    let user = auth.map(|a| a.user).unwrap_or_else(|| create_signal(None).0);
+    let user = auth.map(|a| a.user).unwrap_or_else(|| Signal::derive(|| None));
 
     let (home_tab, set_home_tab) = create_signal("my_sheets");
-    let sheets = create_resource(|| (), |_| async move { get_sheets().await });
-    let public_sheets = create_resource(
+    let sheets = create_local_resource(|| (), |_| async move { get_sheets().await });
+    let public_sheets = create_local_resource(
         move || home_tab.get(),
         |tab| async move {
             if tab == "public_sheets" {
@@ -28,6 +30,7 @@ pub fn Home() -> impl IntoView {
     let (sheet_to_delete, set_sheet_to_delete) = create_signal(Option::<CharacterSummary>::None);
     let (is_creating, set_is_creating) = create_signal(false);
     let (selected_sheet_type, set_selected_sheet_type) = create_signal("mage".to_string());
+    let (show_patch_notes, set_show_patch_notes) = create_signal(false);
     let (is_importing, set_is_importing) = create_signal(false);
     let import_home_input_ref = create_node_ref::<html::Input>();
     let navigate = use_navigate();
@@ -76,6 +79,7 @@ pub fn Home() -> impl IntoView {
         }
         target.set_value("");
     });
+    let on_home_import_cb = on_home_file_import.clone();
 
     let on_create = move |ev: ev::SubmitEvent| {
         ev.prevent_default();
@@ -147,10 +151,10 @@ pub fn Home() -> impl IntoView {
     };
 
     view! {
-        <link rel="stylesheet" href="/style.css"/>
-        <Navbar />
-        <div class="home-container">
-            <header class="home-header">
+        <div class="home-page">
+            <Navbar />
+            <div class="home-container">
+                <header class="home-header">
                 <h1>"MTA Character Manager"</h1>
                 <p>"Gerencie suas fichas de Mago: A Ascensão e Gods & Monsters com total privacidade"</p>
             </header>
@@ -163,22 +167,10 @@ pub fn Home() -> impl IntoView {
             })}
 
             {
-                let on_home_file_import = on_home_file_import.clone();
-                move || if user.get().is_none() {
-                    view! {
-                        <div class="visitor-banner">
-                            <div class="visitor-banner-content">
-                                <span class="visitor-banner-icon">"🔮"</span>
-                                <div class="visitor-banner-text">
-                                    <h3>"Modo Visitante"</h3>
-                                    <p>"Suas fichas agora são 100% privadas. Conecte-se para criar, editar e acessar suas fichas salvas com segurança."</p>
-                                </div>
-                            </div>
-                            <A href="/login" class="visitor-login-btn">"Entrar / Cadastrar"</A>
-                        </div>
-                    }.into_view()
-                } else {
-                    let on_home_import_cb = on_home_file_import.clone();
+                let on_home_import_cb = on_home_import_cb.clone();
+                move || match user.get() {
+                Some(_) => {
+                    let on_import = on_home_import_cb.clone();
                     view! {
                         <section class="create-section">
                             <h2>"Criar Nova Ficha"</h2>
@@ -190,7 +182,7 @@ pub fn Home() -> impl IntoView {
                                     class:active=move || selected_sheet_type.get() == "mage"
                                     on:click=move |_| set_selected_sheet_type.set("mage".to_string())
                                 >
-                                    "🧙‍♂️ Mago: A Ascensão (4 Págs)"
+                                    "🧙‍♂️ Mago: A Ascensão (6 Págs)"
                                 </button>
                                 <button
                                     type="button"
@@ -222,7 +214,10 @@ pub fn Home() -> impl IntoView {
                                         accept=".json,application/json" 
                                         node_ref=import_home_input_ref 
                                         style="display: none;" 
-                                        on:change=move |ev| on_home_import_cb.call(ev) 
+                                        on:change={
+                                            let cb = on_import.clone();
+                                            move |ev| cb.call(ev)
+                                        }
                                     />
                                     <button type="submit" class="create-btn" disabled=move || is_creating.get() || is_importing.get()>
                                         {move || if is_creating.get() { "✨ Criando..." } else { "+ Criar Ficha" }}
@@ -244,12 +239,24 @@ pub fn Home() -> impl IntoView {
                             </form>
                         </section>
                     }.into_view()
-                }
-            }
+                },
+                None => view! {
+                    <div class="visitor-banner">
+                        <div class="visitor-banner-content">
+                            <span class="visitor-banner-icon">"🔮"</span>
+                            <div class="visitor-banner-text">
+                                <h3>"Modo Visitante"</h3>
+                                <p>"Suas fichas agora são 100% privadas. Conecte-se para criar, editar e acessar suas fichas salvas com segurança."</p>
+                            </div>
+                        </div>
+                        <A href="/login" class="visitor-login-btn">"Entrar / Cadastrar"</A>
+                    </div>
+                }.into_view(),
+            }}
 
             <div class="home-tabs-container">
                 {move || if user.get().is_some() {
-                    view! {
+                    Some(view! {
                         <button
                             class="home-tab-btn"
                             class:active=move || home_tab.get() == "my_sheets"
@@ -257,9 +264,9 @@ pub fn Home() -> impl IntoView {
                         >
                             "📜 Minhas Fichas"
                         </button>
-                    }.into_view()
+                    })
                 } else {
-                    ().into_view()
+                    None
                 }}
                 <button
                     class="home-tab-btn"
@@ -272,36 +279,30 @@ pub fn Home() -> impl IntoView {
 
             <section class="list-section">
                 {move || match home_tab.get() {
-                    "public_sheets" => view! {
-                        <Suspense fallback=move || view! { <p class="loading-msg">"Carregando fichas públicas..."</p> }>
-                            {move || public_sheets.get().map(|res| match res {
-                                Ok(data) if data.is_empty() => view! {
-                                    <p class="empty-msg">"Nenhuma ficha pública encontrada na comunidade no momento."</p>
-                                }.into_view(),
-                                Ok(data) => render_character_grid(data, set_sheet_to_delete, toggle_privacy),
-                                Err(e) => view! {
-                                    <div class="alert-box alert-error">
-                                        <p>"Erro ao carregar fichas públicas: " {e.to_string()}</p>
-                                    </div>
-                                }.into_view(),
-                            })}
-                        </Suspense>
-                    }.into_view(),
-                    _ => view! {
-                        <Suspense fallback=move || view! { <p class="loading-msg">"Carregando suas fichas..."</p> }>
-                            {move || sheets.get().map(|res| match res {
-                                Ok(data) if data.is_empty() => view! { 
-                                    <p class="empty-msg">"Nenhuma ficha privada encontrada. Crie uma nova ficha acima!"</p> 
-                                }.into_view(),
-                                Ok(data) => render_character_grid(data, set_sheet_to_delete, toggle_privacy),
-                                Err(e) => view! { 
-                                    <div class="alert-box alert-error">
-                                        <p>"Erro ao carregar fichas: " {e.to_string()}</p>
-                                    </div> 
-                                }.into_view(),
-                            })}
-                        </Suspense>
-                    }.into_view(),
+                    "public_sheets" => match public_sheets.get() {
+                        None => view! { <p class="loading-msg">"Carregando fichas públicas..."</p> }.into_view(),
+                        Some(Ok(data)) if data.is_empty() => view! {
+                            <p class="empty-msg">"Nenhuma ficha pública encontrada na comunidade no momento."</p>
+                        }.into_view(),
+                        Some(Ok(data)) => render_character_grid(data, set_sheet_to_delete, toggle_privacy),
+                        Some(Err(e)) => view! {
+                            <div class="alert-box alert-error">
+                                <p>"Erro ao carregar fichas públicas: " {e.to_string()}</p>
+                            </div>
+                        }.into_view(),
+                    },
+                    _ => match sheets.get() {
+                        None => view! { <p class="loading-msg">"Carregando suas fichas..."</p> }.into_view(),
+                        Some(Ok(data)) if data.is_empty() => view! { 
+                            <p class="empty-msg">"Nenhuma ficha privada encontrada. Crie uma nova ficha acima!"</p> 
+                        }.into_view(),
+                        Some(Ok(data)) => render_character_grid(data, set_sheet_to_delete, toggle_privacy),
+                        Some(Err(e)) => view! { 
+                            <div class="alert-box alert-error">
+                                <p>"Erro ao carregar fichas: " {e.to_string()}</p>
+                            </div> 
+                        }.into_view(),
+                    },
                 }}
             </section>
 
@@ -322,6 +323,25 @@ pub fn Home() -> impl IntoView {
                     </div>
                 </div>
             })}
+
+            <footer class="home-footer">
+                <span class="home-footer-text">"MTA Sheet © 2026 — Mago: A Ascensão (M20) & Deuses e Monstros"</span>
+                <button
+                    type="button"
+                    class="version-pill-badge"
+                    on:click=move |_| set_show_patch_notes.set(true)
+                    title="Ver Notas de Atualização & Versões"
+                >
+                    <span class="version-pill-sparkle">"✨"</span>
+                    <span>{format!("v{}", CURRENT_VERSION)}</span>
+                    <span>"— Notas de Atualização"</span>
+                </button>
+            </footer>
+            </div>
+            <PatchNotesModal
+                is_open=show_patch_notes
+                on_close=Callback::new(move |_| set_show_patch_notes.set(false))
+            />
         </div>
     }
 }

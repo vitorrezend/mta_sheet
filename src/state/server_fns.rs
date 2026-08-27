@@ -428,12 +428,29 @@ pub async fn import_sheet(data: CharacterData) -> Result<String, ServerFnError> 
 
         let s_type = imported_data.sheet_type.clone();
 
+        let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
+
+        // Limite de cota de 50 fichas por conta
+        if let Some(ref uid) = auth_user_id {
+            let count = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM character_sheets WHERE user_id = ?")
+                .bind(uid)
+                .fetch_one(&pool)
+                .await
+                .unwrap_or(0);
+            if count >= 50 {
+                return Err(ServerFnError::new("Limite de 50 fichas por conta atingido. Exclua fichas antigas para importar novas."));
+            }
+        }
+
         let data_json = serde_json::to_string(&imported_data).map_err(|e: serde_json::Error| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Serialization error importing sheet", Some(&e.to_string()));
             ServerFnError::new(format!("Falha ao serializar dados importados: {}", e))
         })?;
 
-        let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
+        // Validação de limite de 5MB por JSON
+        if data_json.len() > 5 * 1024 * 1024 {
+            return Err(ServerFnError::new("O arquivo JSON excede o limite máximo permitido de 5 MB"));
+        }
 
         sqlx::query("INSERT INTO character_sheets (id, user_id, name, data, sheet_type) VALUES (?, ?, ?, ?, ?)")
             .bind(&new_id)
@@ -478,6 +495,20 @@ pub async fn create_sheet(name: String, sheet_type: Option<String>) -> Result<St
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
     })?;
 
+    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
+
+    // Limite de cota de 50 fichas por conta
+    if let Some(ref uid) = auth_user_id {
+        let count = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM character_sheets WHERE user_id = ?")
+            .bind(uid)
+            .fetch_one(&pool)
+            .await
+            .unwrap_or(0);
+        if count >= 50 {
+            return Err(ServerFnError::new("Limite de 50 fichas por conta atingido. Exclua fichas antigas para criar novas."));
+        }
+    }
+
     let start = std::time::Instant::now();
     let id = Uuid::new_v4().to_string();
     let initial_data = if s_type == "gods_and_monsters" {
@@ -490,8 +521,6 @@ pub async fn create_sheet(name: String, sheet_type: Option<String>) -> Result<St
         crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Serialization error creating sheet", Some(&e.to_string()));
         ServerFnError::new(format!("Falha ao serializar dados iniciais: {}", e))
     })?;
-
-    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
 
     sqlx::query("INSERT INTO character_sheets (id, user_id, name, data, sheet_type) VALUES (?, ?, ?, ?, ?)")
         .bind(&id)
@@ -539,6 +568,11 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
         crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Serialization error updating sheet {}", id), Some(&e.to_string()));
         ServerFnError::new(format!("Falha ao serializar dados da ficha: {}", e))
     })?;
+
+    // Limite máximo de 5MB por ficha no banco
+    if data_json.len() > 5 * 1024 * 1024 {
+        return Err(ServerFnError::new("O tamanho dos dados da ficha excede o limite máximo permitido de 5 MB"));
+    }
 
     let payload_kb = (data_json.len() as f64) / 1024.0;
     let is_public_int = if data.is_public { 1 } else { 0 };
@@ -685,8 +719,9 @@ pub async fn save_uploaded_media(
     let bytes = base64::engine::general_purpose::STANDARD.decode(base64_payload.trim())
         .map_err(|e| ServerFnError::new(format!("Base64 inválido: {}", e)))?;
 
-    if bytes.len() > 10 * 1024 * 1024 {
-        return Err(ServerFnError::new("A imagem excede o limite máximo de 10MB"));
+    // Limite estrito de 5MB por imagem
+    if bytes.len() > 5 * 1024 * 1024 {
+        return Err(ServerFnError::new("A imagem excede o limite máximo de 5MB"));
     }
 
     // Strict Magic Bytes Validation

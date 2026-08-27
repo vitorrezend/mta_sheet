@@ -2,6 +2,7 @@ use super::models::{
     keys, ArmorItem, AttributeValue, ChantryEntry, CharacterData, CharacterDescriptionData,
     CharacterHistoryData, CharacterNotesData, CharacterVisualsData, DotOrigin, ExpandedBackgroundsData,
     FlawItem, MeritItem, PossessionsData, WeaponItem, WonderItem, GrimoireData, RoteSphereRequirement,
+    CharacterQuizData, default_quiz_questions,
 };
 
 impl CharacterData {
@@ -9,6 +10,20 @@ impl CharacterData {
     pub fn sanitize(&mut self) {
         if self.name.trim().is_empty() {
             self.name = "Sem Nome".to_string();
+        }
+
+        // Garante que o questionário tenha as 14 perguntas padrão organizadas por categoria
+        if self.quiz_data.entries.len() < 14 {
+            let defaults = default_quiz_questions();
+            let mut new_entries = defaults.clone();
+            for old in &self.quiz_data.entries {
+                if let Some(pos) = new_entries.iter().position(|e| e.id == old.id) {
+                    new_entries[pos].answer = old.answer.clone();
+                } else if let Some(first_empty) = new_entries.iter().position(|e| e.answer.is_empty()) {
+                    new_entries[first_empty].answer = old.answer.clone();
+                }
+            }
+            self.quiz_data.entries = new_entries;
         }
 
         // Ensure Arete is at least 1 and at most 10
@@ -280,6 +295,13 @@ impl CharacterData {
         if let Some(notes) = val.get("notes_data") {
             if let Ok(n) = serde_json::from_value::<CharacterNotesData>(notes.clone()) {
                 char_data.notes_data = n;
+            }
+        }
+
+        // Annex Quiz Data Recovery
+        if let Some(quiz) = val.get("quiz_data") {
+            if let Ok(q) = serde_json::from_value::<CharacterQuizData>(quiz.clone()) {
+                char_data.quiz_data = q;
             }
         }
 

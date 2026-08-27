@@ -281,6 +281,34 @@ pub mod server {
         }
     }
 
+    pub fn cleanup_old_logs(max_days: i64) {
+        let categories = [
+            LogCategory::Requests,
+            LogCategory::Database,
+            LogCategory::UserActions,
+            LogCategory::Errors,
+            LogCategory::Access,
+        ];
+        let cutoff = Local::now() - chrono::Duration::days(max_days);
+        let cutoff_str = cutoff.format("%Y-%m-%d").to_string();
+
+        for cat in &categories {
+            let dir = get_log_dir(cat);
+            if let Ok(entries) = fs::read_dir(&dir) {
+                for entry in entries.flatten() {
+                    let file_name = entry.file_name().to_string_lossy().to_string();
+                    if file_name.ends_with(".log") {
+                        if let Some(date_part) = file_name.strip_suffix(".log").and_then(|s| s.split('_').last()) {
+                            if date_part < cutoff_str.as_str() {
+                                let _ = fs::remove_file(entry.path());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     pub fn write_log(category: LogCategory, level: &str, message: &str, details: Option<&str>) {
         ensure_log_dirs();
         let now = Local::now();

@@ -19,6 +19,7 @@ pub fn SheetTopBar(
     set_active_origin: WriteSignal<DotOrigin>,
     costs: Memo<CostSummary>,
     set_show_breakdown: WriteSignal<bool>,
+    set_show_quiz: WriteSignal<bool>,
     save_status: ReadSignal<SaveStatus>,
     is_public: Signal<bool>,
     on_toggle_privacy: Callback<()>,
@@ -114,11 +115,21 @@ pub fn SheetTopBar(
                     </div>
 
                     <button 
-                        class="cost-breakdown-toggle-btn"
+                        type="button" 
+                        class="cost-breakdown-btn"
                         on:click=move |_| set_show_breakdown.set(true)
-                        title="Abrir Extrato Completo de Custos e Gastos"
+                        title="Ver extrato detalhado de gastos de Pontos de Bônus e XP"
                     >
                         "📊 Extrato"
+                    </button>
+
+                    <button 
+                        type="button" 
+                        class="cost-breakdown-btn dossier-btn"
+                        on:click=move |_| set_show_quiz.set(true)
+                        title="Abrir Dossiê do Personagem (Questionário de Criação)"
+                    >
+                        "📂 Dossiê"
                     </button>
                 </div>
             </div>
@@ -163,30 +174,46 @@ pub fn SheetTopBar(
                         },
                     }}
                     <button class="manual-save-btn" on:click=move |ev| do_manual_save.call(ev) title="Salvar imediatamente">
-                        "💾 Salvar"
+                        <span class="btn-icon">"💾"</span>
+                        <span>"Salvar"</span>
                     </button>
 
-                    <button 
-                        type="button" 
-                        class="json-top-btn json-import-btn"
-                        on:click=move |_| {
-                            if let Some(input) = import_input_ref.get() {
-                                input.click();
+                    <div class="top-bar-action-group">
+                        <button 
+                            type="button" 
+                            class="json-top-btn json-import-btn"
+                            on:click=move |_| {
+                                if let Some(input) = import_input_ref.get() {
+                                    input.click();
+                                }
                             }
-                        }
-                        title="Importar dados de um arquivo .json"
-                    >
-                        "📥 JSON"
-                    </button>
+                            title="Importar dados de um arquivo .json"
+                        >
+                            "📥 Importar"
+                        </button>
 
-                    <button 
-                        type="button" 
-                        class="json-top-btn json-export-btn"
-                        on:click=move |_| on_export_json.call(())
-                        title="Exportar e baixar esta ficha em arquivo .json"
-                    >
-                        "📤 JSON"
-                    </button>
+                        <button 
+                            type="button" 
+                            class="json-top-btn json-export-btn"
+                            on:click=move |_| on_export_json.call(())
+                            title="Exportar e baixar esta ficha em arquivo .json"
+                        >
+                            "📤 Exportar"
+                        </button>
+
+                        <button 
+                            type="button" 
+                            class="export-pdf-btn" 
+                            on:click=move |_| {
+                                if let Some(w) = web_sys::window() {
+                                    let _ = w.print();
+                                }
+                            } 
+                            title="Exportar Ficha em PDF Oficial (A4)"
+                        >
+                            "🖨️ PDF"
+                        </button>
+                    </div>
 
                     <button 
                         type="button" 
@@ -195,19 +222,6 @@ pub fn SheetTopBar(
                         title=move || if is_public.get() { "Ficha Pública na comunidade. Clique para tornar Privada." } else { "Ficha Privada. Clique para tornar Pública na comunidade." }
                     >
                         {move || if is_public.get() { "🌐 Pública" } else { "🔒 Privada" }}
-                    </button>
-
-                    <button 
-                        type="button" 
-                        class="export-pdf-btn" 
-                        on:click=move |_| {
-                            if let Some(w) = web_sys::window() {
-                                let _ = w.print();
-                            }
-                        } 
-                        title="Exportar Ficha em PDF Oficial (A4)"
-                    >
-                        "🖨️ PDF"
                     </button>
                 </div>
             </div>
@@ -227,6 +241,7 @@ mod tests {
         let (active_origin, set_active_origin) = create_signal(DotOrigin::Base);
         let costs = create_memo(|_| CostSummary::default());
         let (_show_breakdown, set_show_breakdown) = create_signal(false);
+        let (_show_quiz, set_show_quiz) = create_signal(false);
         let (save_status, _set_save_status) = create_signal(SaveStatus::Idle);
         let (is_public, _set_is_public) = create_signal(false);
 
@@ -242,6 +257,7 @@ mod tests {
                 set_active_origin=set_active_origin
                 costs=costs
                 set_show_breakdown=set_show_breakdown
+                set_show_quiz=set_show_quiz
                 save_status=save_status
                 is_public=is_public.into()
                 on_toggle_privacy=on_toggle_privacy

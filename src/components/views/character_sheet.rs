@@ -9,7 +9,7 @@ use crate::components::mta_sheet::page4::PageHistoryDescriptionVisuals;
 use crate::components::mta_sheet::page5::PageGrimoire;
 use crate::components::mta_sheet::page6::PageNotes;
 use crate::components::mta_sheet::sheet::{
-    ActiveDotOriginContext, CostBreakdownModal, SaveStatus, SheetPageTab, SheetTabs, SheetTopBar,
+    ActiveDotOriginContext, CostBreakdownModal, QuizModal, SaveStatus, SheetPageTab, SheetTabs, SheetTopBar,
 };
 
 fn get_current_time_str() -> &'static str {
@@ -287,9 +287,9 @@ pub fn CharacterSheet() -> impl IntoView {
     });
 
     let is_gods_and_monsters = create_memo(move |_| data.with(|d| d.is_gods_and_monsters()));
+    let (show_quiz_modal, set_show_quiz_modal) = create_signal(false);
 
     view! {
-        <link rel="stylesheet" href="/style.css"/>
         <div class="sheet-page-container">
             // Barra Superior e Seletor de Modos
             <SheetTopBar 
@@ -297,6 +297,7 @@ pub fn CharacterSheet() -> impl IntoView {
                 set_active_origin=set_active_origin
                 costs=costs
                 set_show_breakdown=set_show_breakdown
+                set_show_quiz=set_show_quiz_modal
                 save_status=save_status
                 is_public=is_public
                 on_toggle_privacy=on_toggle_privacy
@@ -311,6 +312,14 @@ pub fn CharacterSheet() -> impl IntoView {
                 costs=costs
                 show_breakdown=show_breakdown
                 set_show_breakdown=set_show_breakdown
+                set_data=set_data
+            />
+
+            // Modal de Dossiê e Questionário de Criação (Anexo)
+            <QuizModal 
+                show_quiz=show_quiz_modal
+                set_show_quiz=set_show_quiz_modal
+                data=data
                 set_data=set_data
             />
 

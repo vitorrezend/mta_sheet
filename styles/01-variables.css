@@ -1207,12 +1207,23 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .room-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+}
+
+.clickable-room-card {
+    cursor: pointer;
+    user-select: none;
+}
+
+.clickable-room-card:hover {
+    border-color: #bb86fc;
+    box-shadow: 0 10px 25px -3px rgba(142, 68, 173, 0.2);
+    transform: translateY(-3px);
 }
 
 .gm-card {
@@ -1577,9 +1588,241 @@ body {
     color: #1e293b;
 }
 
-.member-role {
+.gift-sheet-btn {
+    background: rgba(142, 68, 173, 0.1);
+    border: 1px solid rgba(155, 89, 182, 0.3);
+    border-radius: 12px;
+    padding: 3px 9px;
     font-size: 0.75rem;
+    color: #6b21a8;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-left: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.gift-sheet-btn:hover {
+    background: #8e44ad;
+    color: #ffffff;
+    border-color: #8e44ad;
+    box-shadow: 0 2px 8px rgba(142, 68, 173, 0.35);
+    transform: translateY(-1px);
+}
+
+.sheets-selection-list {
+    max-height: 260px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 1rem 0;
+    padding: 2px;
+}
+
+.sheet-item {
+    padding: 0.65rem 0.9rem;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    background: #ffffff;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.18s ease;
+}
+
+.sheet-item:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateX(2px);
+}
+
+.sheet-item.active {
+    background: #f5f3ff;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 1px #8b5cf6;
+}
+
+.sheet-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sheet-item-meta {
+    font-size: 0.78rem;
     color: #64748b;
+}
+
+.selected-check {
+    color: #7c3aed;
+    font-weight: 700;
+    font-size: 0.82rem;
+    background: #ede9fe;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.room-tabs-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.5rem;
+    overflow-x: auto;
+}
+
+.room-tab-btn {
+    background: transparent;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.room-tab-btn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.room-tab-btn.active {
+    background: #4f46e5;
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.25);
+}
+
+.party-health-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.health-full { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.health-bruised { background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+.health-hurt { background: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
+.health-injured { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.health-wounded { background: #fecdd3; color: #9f1239; border: 1px solid #fda4af; }
+.health-mauled { background: #f43f5e; color: #ffffff; }
+.health-crippled { background: #be123c; color: #ffffff; }
+.health-incapacitated { background: #18181b; color: #ef4444; border: 1px solid #ef4444; }
+
+.visibility-toggle-btn {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.visibility-toggle-btn:hover {
+    background: #e2e8f0;
+}
+
+.party-card-hidden {
+    border: 2px dashed #9333ea;
+    background: #faf5ff;
+}
+
+.tag-hidden-npc {
+    background: #f3e8ff;
+    color: #7e22ce;
+    border: 1px solid #d8b4fe;
+}
+
+.chantry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.chantry-card {
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.chantry-card-full {
+    grid-column: 1 / -1;
+}
+
+.pool-numbers {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #4f46e5;
+    margin: 0.5rem 0;
+}
+
+.pool-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.pool-actions button {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 0.4rem 1rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.pool-actions button:hover {
+    background: #e2e8f0;
+}
+
+.save-chantry-btn {
+    background: #4f46e5;
+    color: #ffffff;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.save-chantry-btn:hover {
+    background: #4338ca;
+}
+
+.chantry-textarea, .chronicle-textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    box-sizing: border-box;
+}
+
+.sheet-item {
+    padding: 0.6rem;
+    border-bottom: 1px solid #e2e8f0;
+    cursor: pointer;
+}
+
+.sheet-item:hover {
+    background: #f8fafc;
 }
 
 /* Fallback styles for when the full build doesn't run */

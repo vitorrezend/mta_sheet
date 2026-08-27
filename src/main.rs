@@ -15,10 +15,30 @@ struct StyleAssets;
 const EMBEDDED_STYLE_CSS: &str = include_str!("../style.css");
 
 #[cfg(feature = "ssr")]
+fn get_cache_control_static() -> &'static str {
+    if cfg!(debug_assertions) {
+        "no-cache, no-store, must-revalidate"
+    } else {
+        "public, max-age=86400, stale-while-revalidate=3600"
+    }
+}
+
+#[cfg(feature = "ssr")]
+fn get_cache_control_css() -> &'static str {
+    if cfg!(debug_assertions) {
+        "no-cache, no-store, must-revalidate"
+    } else {
+        "public, max-age=3600, must-revalidate"
+    }
+}
+
+#[cfg(feature = "ssr")]
 async fn pkg_handler(
     axum::extract::Path(path): axum::extract::Path<String>,
 ) -> impl IntoResponse {
     let disk_path = format!("target/site/pkg/{}", path);
+    let cache_hdr = get_cache_control_static().to_string();
+
     // 1. Tenta servir do disco local primeiro para garantir arquivos sempre atualizados em dev/build
     if let Ok(bytes) = tokio::fs::read(&disk_path).await {
         let mime = if path.ends_with(".wasm") {
@@ -33,7 +53,7 @@ async fn pkg_handler(
         return (
             [
                 (http::header::CONTENT_TYPE, mime),
-                (http::header::CACHE_CONTROL, "no-cache, no-store, must-revalidate".to_string()),
+                (http::header::CACHE_CONTROL, cache_hdr),
             ],
             bytes,
         )
@@ -55,7 +75,7 @@ async fn pkg_handler(
         return (
             [
                 (http::header::CONTENT_TYPE, mime),
-                (http::header::CACHE_CONTROL, "no-cache, no-store, must-revalidate".to_string()),
+                (http::header::CACHE_CONTROL, cache_hdr),
             ],
             file.data.into_owned(),
         )
@@ -64,11 +84,12 @@ async fn pkg_handler(
 
     // 3. Fallback especial para CSS caso o build WASM ainda não tenha rodado
     if path == "mta_sheet.css" || path == "style.css" {
+        let css_cache = get_cache_control_css().to_string();
         if let Ok(css) = tokio::fs::read_to_string("style.css").await {
             return (
                 [
                     (http::header::CONTENT_TYPE, "text/css".to_string()),
-                    (http::header::CACHE_CONTROL, "no-cache, no-store, must-revalidate".to_string()),
+                    (http::header::CACHE_CONTROL, css_cache),
                 ],
                 css,
             ).into_response();
@@ -76,7 +97,7 @@ async fn pkg_handler(
             return (
                 [
                     (http::header::CONTENT_TYPE, "text/css".to_string()),
-                    (http::header::CACHE_CONTROL, "no-cache, no-store, must-revalidate".to_string()),
+                    (http::header::CACHE_CONTROL, css_cache),
                 ],
                 EMBEDDED_STYLE_CSS.to_string(),
             ).into_response();
@@ -96,10 +117,15 @@ async fn assets_handler(
     axum::extract::Path(path): axum::extract::Path<String>,
 ) -> impl IntoResponse {
     let key = format!("assets/{}", path);
+    let cache_hdr = get_cache_control_static().to_string();
+
     if let Some(file) = SiteAssets::get(&key) {
         let mime = mime_guess::from_path(&path).first_or_octet_stream().to_string();
         return (
-            [(http::header::CONTENT_TYPE, mime)],
+            [
+                (http::header::CONTENT_TYPE, mime),
+                (http::header::CACHE_CONTROL, cache_hdr),
+            ],
             file.data.into_owned(),
         )
             .into_response();
@@ -109,7 +135,10 @@ async fn assets_handler(
     if let Ok(bytes) = tokio::fs::read(&disk_path).await {
         let mime = mime_guess::from_path(&path).first_or_octet_stream().to_string();
         return (
-            [(http::header::CONTENT_TYPE, mime)],
+            [
+                (http::header::CONTENT_TYPE, mime),
+                (http::header::CACHE_CONTROL, cache_hdr),
+            ],
             bytes,
         )
             .into_response();
@@ -123,11 +152,13 @@ async fn styles_handler(
     axum::extract::Path(path): axum::extract::Path<String>,
 ) -> impl IntoResponse {
     let disk_path = format!("styles/{}", path);
+    let cache_hdr = get_cache_control_css().to_string();
+
     if let Ok(bytes) = tokio::fs::read(&disk_path).await {
         return (
             [
                 (http::header::CONTENT_TYPE, "text/css".to_string()),
-                (http::header::CACHE_CONTROL, "no-cache, no-store, must-revalidate".to_string()),
+                (http::header::CACHE_CONTROL, cache_hdr),
             ],
             bytes,
         )
@@ -138,7 +169,7 @@ async fn styles_handler(
         return (
             [
                 (http::header::CONTENT_TYPE, "text/css".to_string()),
-                (http::header::CACHE_CONTROL, "no-cache, no-store, must-revalidate".to_string()),
+                (http::header::CACHE_CONTROL, cache_hdr),
             ],
             file.data.into_owned(),
         )
@@ -150,11 +181,12 @@ async fn styles_handler(
 
 #[cfg(feature = "ssr")]
 async fn style_css_handler() -> impl IntoResponse {
+    let cache_hdr = get_cache_control_css().to_string();
     if let Ok(css) = tokio::fs::read_to_string("style.css").await {
         (
             [
                 (http::header::CONTENT_TYPE, "text/css".to_string()),
-                (http::header::CACHE_CONTROL, "no-cache, no-store, must-revalidate".to_string()),
+                (http::header::CACHE_CONTROL, cache_hdr),
             ],
             css,
         )
@@ -163,12 +195,210 @@ async fn style_css_handler() -> impl IntoResponse {
         (
             [
                 (http::header::CONTENT_TYPE, "text/css".to_string()),
-                (http::header::CACHE_CONTROL, "no-cache, no-store, must-revalidate".to_string()),
+                (http::header::CACHE_CONTROL, cache_hdr),
             ],
             EMBEDDED_STYLE_CSS.to_string(),
         )
             .into_response()
     }
+}
+
+#[cfg(feature = "ssr")]
+#[derive(serde::Deserialize)]
+struct FormAuthPayload {
+    username: String,
+    password: String,
+    #[serde(default)]
+    confirm_password: Option<String>,
+}
+
+#[cfg(feature = "ssr")]
+async fn form_login_handler(
+    axum::extract::Form(payload): axum::extract::Form<FormAuthPayload>,
+) -> impl IntoResponse {
+    let clean_user = payload.username.trim().to_string();
+    if clean_user.is_empty() || payload.password.is_empty() {
+        return (http::StatusCode::BAD_REQUEST, "Usuário e senha são obrigatórios").into_response();
+    }
+
+    let pool = mta_sheet::database::get_db().await;
+    use sqlx::Row;
+
+    let row = match sqlx::query("SELECT id, username, password_hash FROM users WHERE username = ? COLLATE NOCASE")
+        .bind(&clean_user)
+        .fetch_optional(&pool)
+        .await
+    {
+        Ok(Some(r)) => r,
+        _ => return (http::StatusCode::UNAUTHORIZED, "Usuário ou senha incorretos").into_response(),
+    };
+
+    let user_id: String = row.get("id");
+    let password_hash: String = row.get("password_hash");
+
+    if bcrypt::verify(&payload.password, &password_hash).unwrap_or(false) {
+        let session_token = uuid::Uuid::new_v4().to_string();
+        let _ = sqlx::query("INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, datetime('now', '+30 days'))")
+            .bind(&session_token)
+            .bind(&user_id)
+            .execute(&pool)
+            .await;
+
+        let cookie_str = format!("session_token={}; Path=/; SameSite=Lax; HttpOnly; Max-Age=2592000", session_token);
+        (
+            [
+                (http::header::SET_COOKIE, cookie_str),
+                (http::header::LOCATION, "/".to_string()),
+            ],
+            http::StatusCode::SEE_OTHER,
+        )
+            .into_response()
+    } else {
+        (http::StatusCode::UNAUTHORIZED, "Usuário ou senha incorretos").into_response()
+    }
+}
+
+#[cfg(feature = "ssr")]
+async fn form_register_handler(
+    axum::extract::Form(payload): axum::extract::Form<FormAuthPayload>,
+) -> impl IntoResponse {
+    let clean_user = payload.username.trim().to_string();
+    if clean_user.len() < 3 || payload.password.len() < 4 {
+        return (http::StatusCode::BAD_REQUEST, "Usuário (mínimo 3 caracteres) ou senha (mínimo 4 caracteres) inválidos").into_response();
+    }
+
+    if let Some(confirm) = payload.confirm_password {
+        if !confirm.is_empty() && confirm != payload.password {
+            return (http::StatusCode::BAD_REQUEST, "As senhas não conferem").into_response();
+        }
+    }
+
+    let pool = mta_sheet::database::get_db().await;
+    use sqlx::Row;
+
+    let user_count: i64 = sqlx::query("SELECT COUNT(*) as count FROM users")
+        .fetch_one(&pool)
+        .await
+        .map(|r| r.get("count"))
+        .unwrap_or(0);
+
+    let is_admin = user_count == 0 || mta_sheet::auth::is_username_in_admin_env(&clean_user);
+
+    let password_hash = match bcrypt::hash(&payload.password, bcrypt::DEFAULT_COST) {
+        Ok(h) => h,
+        Err(_) => return (http::StatusCode::INTERNAL_SERVER_ERROR, "Erro ao criptografar senha").into_response(),
+    };
+
+    let user_id = uuid::Uuid::new_v4().to_string();
+    let insert_res = sqlx::query("INSERT INTO users (id, username, password_hash, is_admin) VALUES (?, ?, ?, ?)")
+        .bind(&user_id)
+        .bind(&clean_user)
+        .bind(&password_hash)
+        .bind(if is_admin { 1i64 } else { 0i64 })
+        .execute(&pool)
+        .await;
+
+    if let Err(_) = insert_res {
+        return (http::StatusCode::CONFLICT, "Este nome de usuário já está em uso").into_response();
+    }
+
+    let session_token = uuid::Uuid::new_v4().to_string();
+    let _ = sqlx::query("INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, datetime('now', '+30 days'))")
+        .bind(&session_token)
+        .bind(&user_id)
+        .execute(&pool)
+        .await;
+
+    let cookie_str = format!("session_token={}; Path=/; SameSite=Lax; HttpOnly; Max-Age=2592000", session_token);
+    (
+        [
+            (http::header::SET_COOKIE, cookie_str),
+            (http::header::LOCATION, "/".to_string()),
+        ],
+        http::StatusCode::SEE_OTHER,
+    )
+        .into_response()
+}
+
+#[cfg(feature = "ssr")]
+async fn export_json_handler(
+    axum::extract::Path(id): axum::extract::Path<String>,
+) -> impl IntoResponse {
+    let pool = mta_sheet::database::get_db().await;
+    use sqlx::Row;
+
+    let row = match sqlx::query("SELECT name, data FROM character_sheets WHERE id = ?")
+        .bind(&id)
+        .fetch_optional(&pool)
+        .await
+    {
+        Ok(Some(r)) => r,
+        _ => return (http::StatusCode::NOT_FOUND, "Ficha não encontrada").into_response(),
+    };
+
+    let name: String = row.get("name");
+    let data_str: String = row.get("data");
+
+    let safe_name = if name.trim().is_empty() {
+        "ficha_mta".to_string()
+    } else {
+        name.trim().replace(|c: char| !c.is_alphanumeric() && c != '_' && c != '-', "_")
+    };
+
+    let filename = format!("{}_mta_sheet.json", safe_name);
+    let disposition = format!("attachment; filename=\"{}\"", filename);
+
+    (
+        [
+            (http::header::CONTENT_TYPE, "application/json; charset=utf-8".to_string()),
+            (http::header::CONTENT_DISPOSITION, disposition),
+            (http::header::CACHE_CONTROL, "no-cache".to_string()),
+        ],
+        data_str,
+    )
+        .into_response()
+}
+
+#[cfg(feature = "ssr")]
+async fn upload_image_handler(
+    mut multipart: axum::extract::Multipart,
+) -> impl IntoResponse {
+    let mut file_bytes = Vec::new();
+
+    while let Ok(Some(field)) = multipart.next_field().await {
+        if let Ok(bytes) = field.bytes().await {
+            file_bytes = bytes.to_vec();
+            break;
+        }
+    }
+
+    if file_bytes.is_empty() {
+        return (http::StatusCode::BAD_REQUEST, [(http::header::CONTENT_TYPE, "application/json")], serde_json::json!({"error": "Nenhum arquivo enviado"}).to_string()).into_response();
+    }
+
+    if file_bytes.len() > 5 * 1024 * 1024 {
+        return (http::StatusCode::PAYLOAD_TOO_LARGE, [(http::header::CONTENT_TYPE, "application/json")], serde_json::json!({"error": "Imagem excede 5MB"}).to_string()).into_response();
+    }
+
+    let (_mime_type, ext) = match mta_sheet::state::validate_image_magic_bytes(&file_bytes) {
+        Ok(res) => res,
+        Err(e) => return (http::StatusCode::BAD_REQUEST, [(http::header::CONTENT_TYPE, "application/json")], serde_json::json!({"error": e.to_string()}).to_string()).into_response(),
+    };
+
+    let file_id = uuid::Uuid::new_v4().to_string();
+    let file_path = format!("uploads/{}.{}", file_id, ext);
+    let public_url = format!("/uploads/{}.{}", file_id, ext);
+
+    if let Err(e) = tokio::fs::write(&file_path, &file_bytes).await {
+        return (http::StatusCode::INTERNAL_SERVER_ERROR, [(http::header::CONTENT_TYPE, "application/json")], serde_json::json!({"error": format!("Falha ao salvar: {}", e)}).to_string()).into_response();
+    }
+
+    (
+        http::StatusCode::OK,
+        [(http::header::CONTENT_TYPE, "application/json")],
+        serde_json::json!({ "url": public_url }).to_string(),
+    )
+        .into_response()
 }
 
 #[cfg(feature = "ssr")]
@@ -227,8 +457,9 @@ async fn main() {
     let db_for_server_fn = db.clone();
     let db_for_routes = db.clone();
 
-    // Garante que o diretório de uploads exista
+    // Garante que o diretório de uploads exista e limpa logs antigos (>30 dias)
     let _ = tokio::fs::create_dir_all("uploads").await;
+    mta_sheet::logging::server::cleanup_old_logs(30);
 
     // Monta o roteador da aplicação
     let app = Router::new()
@@ -265,10 +496,15 @@ async fn main() {
                 }
             }),
         )
+        .route("/api/form_login", axum::routing::post(form_login_handler))
+        .route("/api/form_register", axum::routing::post(form_register_handler))
+        .route("/api/upload_image", axum::routing::post(upload_image_handler))
+        .route("/api/export_json/:id", axum::routing::get(export_json_handler))
         .route("/pkg/*path", axum::routing::get(pkg_handler))
         .route("/assets/*path", axum::routing::get(assets_handler))
         .route("/styles/*path", axum::routing::get(styles_handler))
         .route("/style.css", axum::routing::get(style_css_handler))
+        .route("/favicon.ico", axum::routing::get(|| async { (http::StatusCode::NO_CONTENT, "") }))
         .nest_service("/uploads", ServeDir::new("uploads"))
         .leptos_routes_with_context(
             &leptos_options,

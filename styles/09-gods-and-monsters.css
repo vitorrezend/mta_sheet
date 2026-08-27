@@ -5,34 +5,46 @@
 /* ─── Seletor de Arquétipos na Home ─────────────────────────────────────── */
 .sheet-type-selector {
     display: flex;
-    gap: 0.75rem;
+    gap: 8px;
     margin-bottom: 1.25rem;
     justify-content: center;
+    background: #f1f5f9;
+    padding: 5px;
+    border-radius: 30px;
+    border: 1px solid #e2e8f0;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .type-pill-btn {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text-muted, #94a3b8);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    padding: 0.5rem 1.1rem;
-    border-radius: 9999px;
+    background: transparent;
+    color: #475569;
+    border: 1px solid transparent;
+    padding: 0.5rem 1.25rem;
+    border-radius: 25px;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
 }
 
-.type-pill-btn:hover {
-    background: rgba(212, 175, 55, 0.15);
-    color: #e2e8f0;
-    border-color: rgba(212, 175, 55, 0.4);
+.type-pill-btn:hover:not(.active) {
+    background: #ffffff;
+    color: #1e293b;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .type-pill-btn.active {
-    background: linear-gradient(135deg, rgba(212, 175, 55, 0.3) 0%, rgba(184, 134, 11, 0.2) 100%);
-    color: #ffd700;
-    border-color: #d4af37;
-    box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+    background: linear-gradient(135deg, #6c3483 0%, #8e44ad 100%);
+    color: #ffffff;
+    border: 1px solid #a569bd;
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(142, 68, 173, 0.35);
 }
 
 .type-badge-gm {

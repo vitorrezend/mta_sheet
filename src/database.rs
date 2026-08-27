@@ -137,6 +137,22 @@ pub async fn get_db() -> SqlitePool {
     let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN room_id TEXT REFERENCES rooms(id) ON DELETE SET NULL").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN sheet_type TEXT NOT NULL DEFAULT 'mage'").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN is_public INTEGER NOT NULL DEFAULT 0").execute(&pool).await;
+    let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN is_hidden_in_room INTEGER NOT NULL DEFAULT 0").execute(&pool).await;
+    let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN chantry_data TEXT DEFAULT ''").execute(&pool).await;
+    let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN chronicle_notes TEXT DEFAULT ''").execute(&pool).await;
+
+    // Índices de alta performance para evitar Full Table Scans no SQLite
+    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_user_id ON character_sheets (user_id)").execute(&pool).await;
+    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_public ON character_sheets (is_public)").execute(&pool).await;
+    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_room_id ON character_sheets (room_id)").execute(&pool).await;
+    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_updated_at ON character_sheets (updated_at DESC)").execute(&pool).await;
+    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id)").execute(&pool).await;
+    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions (expires_at)").execute(&pool).await;
+    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_rooms_code ON rooms (code)").execute(&pool).await;
+    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_room_members_user_id ON room_members (user_id)").execute(&pool).await;
+
+    // Limpeza de sessões expiradas na inicialização
+    let _ = sqlx::query("DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP").execute(&pool).await;
 
     // Automatic extraction of legacy base64 images from JSON to static uploads and media_assets
     migrate_and_extract_base64_images(&pool).await;
