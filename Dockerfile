@@ -56,7 +56,7 @@ RUN mkdir -p /app/data /app/uploads /app/target/site/pkg /app/styles && \
     chown -R appuser:appgroup /app
 
 # Copia binario compilado e assets estaticos do estagio de build
-COPY --from=builder --chown=appuser:appgroup /app/target/release/mta_sheet /app/mta_sheet
+COPY --from=builder --chown=appuser:appgroup /app/target/release/mta_sheet_server /app/mta_sheet
 COPY --from=builder --chown=appuser:appgroup /app/target/site /app/target/site
 COPY --from=builder --chown=appuser:appgroup /app/style.css /app/style.css
 COPY --from=builder --chown=appuser:appgroup /app/styles /app/styles

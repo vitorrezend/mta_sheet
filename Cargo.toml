@@ -15,7 +15,7 @@ unexpected_cfgs = { level = "allow" }
 crate-type = ["cdylib", "rlib"]
 
 [[bin]]
-name = "mta_sheet"
+name = "mta_sheet_server"
 path = "src/main.rs"
 
 [dependencies]
@@ -76,6 +76,7 @@ site-addr = "0.0.0.0:3000"
 reload-port = 3001
 bin-features = ["ssr"]
 bin-package = "mta_sheet"
+bin-target = "mta_sheet_server"
 lib-features = ["hydrate"]
 lib-package = "mta_sheet"
 wasm-opt = false
