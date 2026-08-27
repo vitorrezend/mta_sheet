@@ -218,7 +218,11 @@ async fn form_login_handler(
 ) -> impl IntoResponse {
     let clean_user = payload.username.trim().to_string();
     if clean_user.is_empty() || payload.password.is_empty() {
-        return (http::StatusCode::BAD_REQUEST, "Usuário e senha são obrigatórios").into_response();
+        return (
+            [(http::header::LOCATION, "/login?error=Usu%C3%A1rio+e+senha+s%C3%A3o+obrigat%C3%B3rios".to_string())],
+            http::StatusCode::SEE_OTHER,
+        )
+            .into_response();
     }
 
     let pool = mta_sheet::database::get_db().await;
@@ -230,7 +234,13 @@ async fn form_login_handler(
         .await
     {
         Ok(Some(r)) => r,
-        _ => return (http::StatusCode::UNAUTHORIZED, "Usuário ou senha incorretos").into_response(),
+        _ => {
+            return (
+                [(http::header::LOCATION, "/login?error=Usu%C3%A1rio+ou+senha+incorretos".to_string())],
+                http::StatusCode::SEE_OTHER,
+            )
+                .into_response();
+        }
     };
 
     let user_id: String = row.get("id");
@@ -254,7 +264,11 @@ async fn form_login_handler(
         )
             .into_response()
     } else {
-        (http::StatusCode::UNAUTHORIZED, "Usuário ou senha incorretos").into_response()
+        (
+            [(http::header::LOCATION, "/login?error=Usu%C3%A1rio+ou+senha+incorretos".to_string())],
+            http::StatusCode::SEE_OTHER,
+        )
+            .into_response()
     }
 }
 
@@ -264,12 +278,20 @@ async fn form_register_handler(
 ) -> impl IntoResponse {
     let clean_user = payload.username.trim().to_string();
     if clean_user.len() < 3 || payload.password.len() < 4 {
-        return (http::StatusCode::BAD_REQUEST, "Usuário (mínimo 3 caracteres) ou senha (mínimo 4 caracteres) inválidos").into_response();
+        return (
+            [(http::header::LOCATION, "/login?tab=register&error=Usu%C3%A1rio+(m%C3%ADnimo+3+caracteres)+ou+senha+(m%C3%ADnimo+4+caracteres)+inv%C3%A1lidos".to_string())],
+            http::StatusCode::SEE_OTHER,
+        )
+            .into_response();
     }
 
     if let Some(confirm) = payload.confirm_password {
         if !confirm.is_empty() && confirm != payload.password {
-            return (http::StatusCode::BAD_REQUEST, "As senhas não conferem").into_response();
+            return (
+                [(http::header::LOCATION, "/login?tab=register&error=As+senhas+n%C3%A3o+conferem".to_string())],
+                http::StatusCode::SEE_OTHER,
+            )
+                .into_response();
         }
     }
 
@@ -286,7 +308,13 @@ async fn form_register_handler(
 
     let password_hash = match bcrypt::hash(&payload.password, bcrypt::DEFAULT_COST) {
         Ok(h) => h,
-        Err(_) => return (http::StatusCode::INTERNAL_SERVER_ERROR, "Erro ao criptografar senha").into_response(),
+        Err(_) => {
+            return (
+                [(http::header::LOCATION, "/login?tab=register&error=Erro+ao+criptografar+senha".to_string())],
+                http::StatusCode::SEE_OTHER,
+            )
+                .into_response();
+        }
     };
 
     let user_id = uuid::Uuid::new_v4().to_string();
@@ -299,7 +327,11 @@ async fn form_register_handler(
         .await;
 
     if let Err(_) = insert_res {
-        return (http::StatusCode::CONFLICT, "Este nome de usuário já está em uso").into_response();
+        return (
+            [(http::header::LOCATION, "/login?tab=register&error=Este+nome+de+usu%C3%A1rio+j%C3%A1+est%C3%A1+em+uso".to_string())],
+            http::StatusCode::SEE_OTHER,
+        )
+            .into_response();
     }
 
     let session_token = uuid::Uuid::new_v4().to_string();

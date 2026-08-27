@@ -4,11 +4,16 @@ use crate::auth::{login, register};
 
 #[component]
 pub fn AuthPage() -> impl IntoView {
-    let (is_register, set_is_register) = create_signal(false);
-    let (username, set_username) = create_signal(String::new());
+    let query = use_query_map();
+    let initial_tab_register = query.with(|q| q.get("tab").map(|t| t == "register").unwrap_or(false));
+    let initial_error = query.with(|q| q.get("error").cloned());
+    let initial_user = query.with(|q| q.get("user").cloned().unwrap_or_default());
+
+    let (is_register, set_is_register) = create_signal(initial_tab_register);
+    let (username, set_username) = create_signal(initial_user);
     let (password, set_password) = create_signal(String::new());
     let (confirm_password, set_confirm_password) = create_signal(String::new());
-    let (error_msg, set_error_msg) = create_signal(Option::<String>::None);
+    let (error_msg, set_error_msg) = create_signal(initial_error);
     let (is_submitting, set_is_submitting) = create_signal(false);
     #[cfg(not(target_arch = "wasm32"))]
     let navigate = use_navigate();
@@ -20,7 +25,7 @@ pub fn AuthPage() -> impl IntoView {
         let confirm_val = confirm_password.get();
 
         if user_val.is_empty() || pass_val.is_empty() {
-            set_error_msg.set(Some("Preencha todos os campos".to_string()));
+            set_error_msg.set(Some("Preencha todos os campos obrigatórios".to_string()));
             return;
         }
 
@@ -55,7 +60,13 @@ pub fn AuthPage() -> impl IntoView {
                     navigate("/", Default::default());
                 }
                 Err(e) => {
-                    set_error_msg.set(Some(e.to_string()));
+                    let mut msg = e.to_string();
+                    if msg.contains("error trying to connect") || msg.contains("database") {
+                        msg = "Falha temporária ao conectar ao banco de dados".to_string();
+                    } else if msg.starts_with("error: ") {
+                        msg = msg.trim_start_matches("error: ").to_string();
+                    }
+                    set_error_msg.set(Some(msg));
                     set_is_submitting.set(false);
                 }
             }
