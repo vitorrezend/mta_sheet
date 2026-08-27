@@ -239,13 +239,122 @@ where
     }
 }
 
+pub fn is_empty_str(s: &str) -> bool {
+    s.trim().is_empty()
+}
+
+pub fn is_zero_i32(n: &i32) -> bool {
+    *n == 0
+}
+
+pub fn is_false_bool(b: &bool) -> bool {
+    !*b
+}
+
+pub fn is_default_origins(v: &Vec<DotOrigin>) -> bool {
+    v.is_empty() || v.iter().all(|&o| o == DotOrigin::Base)
+}
+
+pub fn is_empty_vec<T>(v: &Vec<T>) -> bool {
+    v.is_empty()
+}
+
+pub fn is_empty_map<K, V>(m: &HashMap<K, V>) -> bool {
+    m.is_empty()
+}
+
+pub fn is_all_empty_merits(v: &Vec<MeritItem>) -> bool {
+    v.is_empty() || v.iter().all(|m| m.name.trim().is_empty() && m.cost == 0)
+}
+
+pub fn is_all_empty_flaws(v: &Vec<FlawItem>) -> bool {
+    v.is_empty() || v.iter().all(|f| f.name.trim().is_empty() && f.bonus == 0)
+}
+
+pub fn is_all_empty_wonders(v: &Vec<WonderItem>) -> bool {
+    v.is_empty() || v.iter().all(|w| w.name.trim().is_empty() && w.description.trim().is_empty() && w.quintessence_current == 0 && w.points.level == 0 && w.arete.level == 0)
+}
+
+pub fn is_all_empty_weapons(v: &Vec<WeaponItem>) -> bool {
+    v.is_empty() || v.iter().all(|w| w.name.trim().is_empty())
+}
+
+pub fn is_all_empty_chantry(v: &Vec<ChantryEntry>) -> bool {
+    v.is_empty() || v.iter().all(|c| c.location.trim().is_empty() && c.description.trim().is_empty())
+}
+
+pub fn serialize_compact_merits<S>(merits: &Vec<MeritItem>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    use serde::ser::SerializeSeq;
+    let filled: Vec<&MeritItem> = merits.iter().filter(|m| !m.name.trim().is_empty() || m.cost > 0).collect();
+    let mut seq = serializer.serialize_seq(Some(filled.len()))?;
+    for m in filled {
+        seq.serialize_element(m)?;
+    }
+    seq.end()
+}
+
+pub fn serialize_compact_flaws<S>(flaws: &Vec<FlawItem>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    use serde::ser::SerializeSeq;
+    let filled: Vec<&FlawItem> = flaws.iter().filter(|f| !f.name.trim().is_empty() || f.bonus > 0).collect();
+    let mut seq = serializer.serialize_seq(Some(filled.len()))?;
+    for f in filled {
+        seq.serialize_element(f)?;
+    }
+    seq.end()
+}
+
+pub fn serialize_compact_weapons<S>(weapons: &Vec<WeaponItem>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    use serde::ser::SerializeSeq;
+    let filled: Vec<&WeaponItem> = weapons.iter().filter(|w| !w.name.trim().is_empty()).collect();
+    let mut seq = serializer.serialize_seq(Some(filled.len()))?;
+    for w in filled {
+        seq.serialize_element(w)?;
+    }
+    seq.end()
+}
+
+pub fn serialize_compact_wonders<S>(wonders: &Vec<WonderItem>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    use serde::ser::SerializeSeq;
+    let filled: Vec<&WonderItem> = wonders.iter().filter(|w| !w.name.trim().is_empty() || !w.description.trim().is_empty() || w.quintessence_current > 0 || w.points.level > 0 || w.arete.level > 0).collect();
+    let mut seq = serializer.serialize_seq(Some(filled.len()))?;
+    for w in filled {
+        seq.serialize_element(w)?;
+    }
+    seq.end()
+}
+
+pub fn serialize_compact_chantry<S>(chantry: &Vec<ChantryEntry>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    use serde::ser::SerializeSeq;
+    let filled: Vec<&ChantryEntry> = chantry.iter().filter(|c| !c.location.trim().is_empty() || !c.description.trim().is_empty()).collect();
+    let mut seq = serializer.serialize_seq(Some(filled.len()))?;
+    for c in filled {
+        seq.serialize_element(c)?;
+    }
+    seq.end()
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct AttributeValue {
     #[serde(default, deserialize_with = "deserialize_flexible_i32")]
     pub level: i32,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub modifier: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_default_origins")]
     pub dot_origins: Vec<DotOrigin>,
 }
 
@@ -346,15 +455,21 @@ pub struct CostSummary {
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct MeritItem {
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub name: String,
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub merit_type: String,
+    #[serde(default, skip_serializing_if = "is_zero_i32")]
     pub cost: i32,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct FlawItem {
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub name: String,
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub flaw_type: String,
+    #[serde(default, skip_serializing_if = "is_zero_i32")]
     pub bonus: i32,
 }
 
@@ -362,9 +477,9 @@ pub struct FlawItem {
 pub struct WonderItem {
     #[serde(default = "default_wonder_id")]
     pub id: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub name: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub image_url: String,
     #[serde(default, deserialize_with = "deserialize_flexible_attribute_value")]
     pub points: AttributeValue,
@@ -372,9 +487,9 @@ pub struct WonderItem {
     pub arete: AttributeValue,
     #[serde(default = "default_wonder_quint_max", deserialize_with = "deserialize_flexible_i32")]
     pub quintessence_max: i32,
-    #[serde(default, alias = "quintessence", deserialize_with = "deserialize_flexible_i32")]
+    #[serde(default, alias = "quintessence", deserialize_with = "deserialize_flexible_i32", skip_serializing_if = "is_zero_i32")]
     pub quintessence_current: i32,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub description: String,
 }
 
@@ -403,21 +518,36 @@ impl Default for WonderItem {
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct WeaponItem {
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub name: String,
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub diff: String,
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub damage: String,
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub range: String,
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub rate: String,
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub clip: String,
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub conceal: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct ArmorItem {
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub class_name: String,
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub rating: String,
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub penalty: String,
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub description: String,
+}
+
+pub fn is_default_armor(a: &ArmorItem) -> bool {
+    *a == ArmorItem::default()
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
@@ -451,100 +581,120 @@ fn default_willpower() -> i32 { 5 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct ExpandedBackgroundsData {
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub allies: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub contacts: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub fame: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub influence: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub library: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub node: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub resources: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub retainers: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub sanctum: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub other_title: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub other_text: String,
+}
+
+pub fn is_default_expanded_backgrounds(b: &ExpandedBackgroundsData) -> bool {
+    *b == ExpandedBackgroundsData::default()
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct PossessionsData {
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub gear_carried: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub equipment_owned: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub foci: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub familiar: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub grimoire: String,
+}
+
+pub fn is_default_possessions(p: &PossessionsData) -> bool {
+    *p == PossessionsData::default()
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct ChantryEntry {
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub location: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub description: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct CharacterHistoryData {
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub history: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub goals_destiny: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub seekings: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub quiets: String,
+}
+
+pub fn is_default_history(h: &CharacterHistoryData) -> bool {
+    *h == CharacterHistoryData::default()
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct CharacterDescriptionData {
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub age: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub apparent_age: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub date_of_birth: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub age_of_awakening: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub hair: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub eyes: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub race: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub nationality: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub height: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub weight: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub sex: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub physical_description: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub avatar_nature: String,
+}
+
+pub fn is_default_description(d: &CharacterDescriptionData) -> bool {
+    *d == CharacterDescriptionData::default()
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct CharacterVisualsData {
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub cabal_chart_url: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub character_sketch_url: String,
+}
+
+pub fn is_default_visuals(v: &CharacterVisualsData) -> bool {
+    *v == CharacterVisualsData::default()
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
@@ -624,22 +774,28 @@ impl GrimoireRoteItem {
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct CharacterNotesData {
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub session_notes: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub campaign_journal: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub attachment_image_url: String,
+}
+
+pub fn is_default_notes(n: &CharacterNotesData) -> bool {
+    *n == CharacterNotesData::default()
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct QuizQuestionEntry {
     pub id: String,
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub title: String,
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub prompt: String,
     #[serde(default)]
     pub answer: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub category: String, // "character" ou "player"
 }
 
@@ -749,9 +905,66 @@ pub fn default_quiz_questions() -> Vec<QuizQuestionEntry> {
     ]
 }
 
+pub fn deserialize_quiz_entries<'de, D>(deserializer: D) -> Result<Vec<QuizQuestionEntry>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    struct PartialQuizEntry {
+        id: String,
+        #[serde(default)]
+        title: Option<String>,
+        #[serde(default)]
+        prompt: Option<String>,
+        #[serde(default)]
+        answer: String,
+        #[serde(default)]
+        category: Option<String>,
+    }
+
+    let parsed_entries = Vec::<PartialQuizEntry>::deserialize(deserializer)?;
+    let mut default_entries = default_quiz_questions();
+
+    for parsed in parsed_entries {
+        if let Some(existing) = default_entries.iter_mut().find(|e| e.id == parsed.id) {
+            existing.answer = parsed.answer;
+            if let Some(t) = parsed.title { if !t.is_empty() { existing.title = t; } }
+            if let Some(p) = parsed.prompt { if !p.is_empty() { existing.prompt = p; } }
+            if let Some(c) = parsed.category { if !c.is_empty() { existing.category = c; } }
+        } else {
+            default_entries.push(QuizQuestionEntry {
+                id: parsed.id,
+                title: parsed.title.unwrap_or_default(),
+                prompt: parsed.prompt.unwrap_or_default(),
+                answer: parsed.answer,
+                category: parsed.category.unwrap_or_else(|| "custom".to_string()),
+            });
+        }
+    }
+
+    Ok(default_entries)
+}
+
+pub fn serialize_compact_quiz_entries<S>(entries: &Vec<QuizQuestionEntry>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    use serde::ser::SerializeSeq;
+    let answered: Vec<&QuizQuestionEntry> = entries.iter().filter(|e| !e.answer.trim().is_empty()).collect();
+    let mut seq = serializer.serialize_seq(Some(answered.len()))?;
+    for entry in answered {
+        seq.serialize_element(entry)?;
+    }
+    seq.end()
+}
+
+pub fn is_default_quiz(q: &CharacterQuizData) -> bool {
+    q.entries.iter().all(|e| e.answer.trim().is_empty())
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct CharacterQuizData {
-    #[serde(default = "default_quiz_questions")]
+    #[serde(default = "default_quiz_questions", deserialize_with = "deserialize_quiz_entries", serialize_with = "serialize_compact_quiz_entries")]
     pub entries: Vec<QuizQuestionEntry>,
 }
 
@@ -765,16 +978,20 @@ impl Default for CharacterQuizData {
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct GrimoireData {
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub paradigm: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_vec")]
     pub practices: Vec<String>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_vec")]
     pub instruments: Vec<String>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_vec")]
     pub rotes: Vec<GrimoireRoteItem>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub general_notes: String,
+}
+
+pub fn is_default_grimoire(g: &GrimoireData) -> bool {
+    *g == GrimoireData::default()
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
@@ -784,53 +1001,53 @@ pub struct CharacterData {
     pub name: String,
     #[serde(default = "default_sheet_type")]
     pub sheet_type: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_false_bool")]
     pub is_public: bool,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_map")]
     pub attributes: HashMap<String, AttributeValue>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_map")]
     pub labels: HashMap<String, String>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_map")]
     pub custom_lists: HashMap<String, Vec<String>>,
     
     // Page 2: Magic & Combat
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_all_empty_merits", serialize_with = "serialize_compact_merits")]
     pub merits: Vec<MeritItem>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_all_empty_flaws", serialize_with = "serialize_compact_flaws")]
     pub flaws: Vec<FlawItem>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_all_empty_wonders", serialize_with = "serialize_compact_wonders")]
     pub wonders: Vec<WonderItem>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_empty_str")]
     pub rotes: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_all_empty_weapons", serialize_with = "serialize_compact_weapons")]
     pub weapons: Vec<WeaponItem>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_default_armor")]
     pub armor: ArmorItem,
 
     // Page 3: Expanded Backgrounds, Possessions & Chantry
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_default_expanded_backgrounds")]
     pub expanded_backgrounds: ExpandedBackgroundsData,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_default_possessions")]
     pub possessions: PossessionsData,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_all_empty_chantry", serialize_with = "serialize_compact_chantry")]
     pub chantry: Vec<ChantryEntry>,
 
     // Page 4: History, Description & Visuals
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_default_history")]
     pub history_data: CharacterHistoryData,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_default_description")]
     pub description_data: CharacterDescriptionData,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_default_visuals")]
     pub visuals: CharacterVisualsData,
 
     // Page 5: Grimoire
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_default_grimoire")]
     pub grimoire: GrimoireData,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_default_notes")]
     pub notes_data: CharacterNotesData,
 
     // Annex: Character Creation Questionnaire / Dossier
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_default_quiz")]
     pub quiz_data: CharacterQuizData,
 }
 

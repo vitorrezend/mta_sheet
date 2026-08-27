@@ -132,6 +132,34 @@ pub async fn get_db() -> SqlitePool {
     .await
     .expect("Failed to create media_assets table");
 
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS quiz_questions (
+            id TEXT PRIMARY KEY,
+            splat TEXT NOT NULL DEFAULT 'mage',
+            category TEXT NOT NULL DEFAULT 'character',
+            title TEXT NOT NULL,
+            prompt TEXT NOT NULL,
+            sort_order INTEGER NOT NULL DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to create quiz_questions table");
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS character_quiz_answers (
+            character_id TEXT NOT NULL REFERENCES character_sheets(id) ON DELETE CASCADE,
+            question_id TEXT NOT NULL REFERENCES quiz_questions(id) ON DELETE CASCADE,
+            answer TEXT NOT NULL DEFAULT '',
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (character_id, question_id)
+        )"
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to create character_quiz_answers table");
+
     // Graceful migrations for existing databases
     let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN user_id TEXT REFERENCES users(id) ON DELETE SET NULL").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN room_id TEXT REFERENCES rooms(id) ON DELETE SET NULL").execute(&pool).await;
@@ -150,6 +178,8 @@ pub async fn get_db() -> SqlitePool {
     let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions (expires_at)").execute(&pool).await;
     let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_rooms_code ON rooms (code)").execute(&pool).await;
     let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_room_members_user_id ON room_members (user_id)").execute(&pool).await;
+    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_quiz_questions_splat ON quiz_questions (splat, sort_order)").execute(&pool).await;
+    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_character_quiz_answers_char ON character_quiz_answers (character_id)").execute(&pool).await;
 
     // Limpeza de sessões expiradas na inicialização
     let _ = sqlx::query("DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP").execute(&pool).await;
@@ -159,6 +189,10 @@ pub async fn get_db() -> SqlitePool {
 
     // Automatic re-hydration of uploads from database backup if missing on disk
     rehydrate_media_assets_if_needed(&pool).await;
+
+    // Seed das perguntas clássicas e migração de respostas existentes
+    seed_quiz_questions(&pool).await;
+    migrate_existing_quiz_answers(&pool).await;
 
     pool
 }
@@ -315,6 +349,62 @@ async fn rehydrate_media_assets_if_needed(pool: &SqlitePool) {
                 }
                 let _ = tokio::fs::write(path, data_blob).await;
                 log::info!("Re-hydrated media asset from database: {}", file_path);
+            }
+        }
+    }
+}
+
+#[cfg(feature = "ssr")]
+async fn seed_quiz_questions(pool: &SqlitePool) {
+    let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM quiz_questions")
+        .fetch_one(pool)
+        .await
+        .unwrap_or(0);
+
+    if count == 0 {
+        let questions = crate::state::models::default_quiz_questions();
+        for (i, q) in questions.iter().enumerate() {
+            let _ = sqlx::query(
+                "INSERT INTO quiz_questions (id, splat, category, title, prompt, sort_order) VALUES (?, ?, ?, ?, ?, ?)"
+            )
+            .bind(&q.id)
+            .bind("mage")
+            .bind(&q.category)
+            .bind(&q.title)
+            .bind(&q.prompt)
+            .bind(i as i64)
+            .execute(pool)
+            .await;
+        }
+        log::info!("Seeded {} standard Mage quiz questions into quiz_questions table", questions.len());
+    }
+}
+
+#[cfg(feature = "ssr")]
+async fn migrate_existing_quiz_answers(pool: &SqlitePool) {
+    use sqlx::Row;
+    let rows = match sqlx::query("SELECT id, data FROM character_sheets").fetch_all(pool).await {
+        Ok(r) => r,
+        Err(_) => return,
+    };
+
+    for row in rows {
+        let sheet_id: String = row.get("id");
+        let data_json: String = row.get("data");
+
+        if let Ok(char_data) = serde_json::from_str::<crate::state::CharacterData>(&data_json) {
+            for entry in char_data.quiz_data.entries {
+                let clean_ans = entry.answer.trim();
+                if !clean_ans.is_empty() {
+                    let _ = sqlx::query(
+                        "INSERT OR IGNORE INTO character_quiz_answers (character_id, question_id, answer) VALUES (?, ?, ?)"
+                    )
+                    .bind(&sheet_id)
+                    .bind(&entry.id)
+                    .bind(clean_ans)
+                    .execute(pool)
+                    .await;
+                }
             }
         }
     }

@@ -12,15 +12,15 @@ impl CharacterData {
             self.name = "Sem Nome".to_string();
         }
 
-        // Garante que o questionário tenha as 14 perguntas padrão organizadas por categoria
-        if self.quiz_data.entries.len() < 14 {
-            let defaults = default_quiz_questions();
+        // Garante que o questionário tenha todas as perguntas padrão organizadas por categoria
+        let defaults = default_quiz_questions();
+        if self.quiz_data.entries.len() < defaults.len() {
             let mut new_entries = defaults.clone();
             for old in &self.quiz_data.entries {
                 if let Some(pos) = new_entries.iter().position(|e| e.id == old.id) {
                     new_entries[pos].answer = old.answer.clone();
-                } else if let Some(first_empty) = new_entries.iter().position(|e| e.answer.is_empty()) {
-                    new_entries[first_empty].answer = old.answer.clone();
+                } else {
+                    new_entries.push(old.clone());
                 }
             }
             self.quiz_data.entries = new_entries;

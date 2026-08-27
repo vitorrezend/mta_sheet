@@ -1,5 +1,5 @@
 use leptos::*;
-use super::models::{CharacterData, CharacterSummary};
+use super::models::{CharacterData, CharacterSummary, QuizQuestionEntry};
 
 // ==========================================
 // Server Functions with Robust Error Handling
@@ -311,6 +311,22 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
     }
     data.is_public = is_public;
     data.sanitize();
+
+    // Carrega respostas relacionais salvas na tabela character_quiz_answers
+    if let Ok(quiz_rows) = sqlx::query("SELECT question_id, answer FROM character_quiz_answers WHERE character_id = ?")
+        .bind(&id)
+        .fetch_all(&pool)
+        .await
+    {
+        for r in quiz_rows {
+            let q_id: String = r.get("question_id");
+            let ans: String = r.get("answer");
+            if let Some(entry) = data.quiz_data.entries.iter_mut().find(|e| e.id == q_id) {
+                entry.answer = ans;
+            }
+        }
+    }
+
     crate::logging::server::write_log(
         crate::logging::LogCategory::Database,
         "INFO",
@@ -594,6 +610,28 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
         return Err(ServerFnError::new(format!("Ficha com ID '{}' não encontrada para atualização", id)));
     }
 
+    // Sincroniza respostas relacionais na tabela character_quiz_answers
+    for entry in &data.quiz_data.entries {
+        let clean_ans = entry.answer.trim();
+        if clean_ans.is_empty() {
+            let _ = sqlx::query("DELETE FROM character_quiz_answers WHERE character_id = ? AND question_id = ?")
+                .bind(&id)
+                .bind(&entry.id)
+                .execute(&pool)
+                .await;
+        } else {
+            let _ = sqlx::query(
+                "INSERT INTO character_quiz_answers (character_id, question_id, answer, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                 ON CONFLICT(character_id, question_id) DO UPDATE SET answer = excluded.answer, updated_at = CURRENT_TIMESTAMP"
+            )
+            .bind(&id)
+            .bind(&entry.id)
+            .bind(clean_ans)
+            .execute(&pool)
+            .await;
+        }
+    }
+
     crate::logging::server::write_log(
         crate::logging::LogCategory::Database,
         "INFO",
@@ -602,6 +640,38 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
     );
 
     Ok(())
+}
+
+#[server(endpoint = "get_quiz_questions")]
+pub async fn get_quiz_questions(sheet_type: Option<String>) -> Result<Vec<QuizQuestionEntry>, ServerFnError> {
+    use sqlx::{SqlitePool, Row};
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        ServerFnError::new("Conexão com o banco indisponível")
+    })?;
+
+    let splat = sheet_type.unwrap_or_else(|| "mage".to_string());
+    let rows = sqlx::query("SELECT id, title, prompt, category FROM quiz_questions WHERE splat = ? ORDER BY sort_order ASC")
+        .bind(&splat)
+        .fetch_all(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(format!("Erro ao buscar perguntas do quiz: {}", e)))?;
+
+    if rows.is_empty() {
+        return Ok(crate::state::models::default_quiz_questions());
+    }
+
+    let mut list = Vec::with_capacity(rows.len());
+    for r in rows {
+        list.push(QuizQuestionEntry {
+            id: r.get("id"),
+            title: r.get("title"),
+            prompt: r.get("prompt"),
+            answer: String::new(),
+            category: r.get("category"),
+        });
+    }
+
+    Ok(list)
 }
 
 #[server(endpoint = "set_sheet_visibility")]
