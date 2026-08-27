@@ -169,6 +169,8 @@ pub async fn get_db() -> SqlitePool {
     let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN chantry_data TEXT DEFAULT ''").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN chronicle_notes TEXT DEFAULT ''").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN initiative_data TEXT DEFAULT ''").execute(&pool).await;
+    let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN is_public INTEGER NOT NULL DEFAULT 0").execute(&pool).await;
+    let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN password_hash TEXT DEFAULT ''").execute(&pool).await;
 
     // Índices de alta performance para evitar Full Table Scans no SQLite
     let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_user_id ON character_sheets (user_id)").execute(&pool).await;
@@ -178,6 +180,7 @@ pub async fn get_db() -> SqlitePool {
     let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id)").execute(&pool).await;
     let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions (expires_at)").execute(&pool).await;
     let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_rooms_code ON rooms (code)").execute(&pool).await;
+    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_rooms_public ON rooms (is_public)").execute(&pool).await;
     let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_room_members_user_id ON room_members (user_id)").execute(&pool).await;
     let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_quiz_questions_splat ON quiz_questions (splat, sort_order)").execute(&pool).await;
     let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_character_quiz_answers_char ON character_quiz_answers (character_id)").execute(&pool).await;

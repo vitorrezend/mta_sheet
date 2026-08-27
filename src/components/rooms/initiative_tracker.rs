@@ -1,4 +1,4 @@
-﻿use leptos::*;
+use leptos::*;
 use crate::rooms::{RoomSheetSummary, RoomInitiativeData, InitiativeEntry, update_room_initiative};
 use crate::components::common::play_dice_roll_sound;
 
@@ -40,6 +40,7 @@ pub fn InitiativeDrawer(
                         base_dex: s.dexterity,
                         base_wits: s.wits,
                         base_total: s.initiative_base,
+                        health_penalty: s.health_penalty_val,
                         rolled_die: None,
                         final_total: None,
                     });
@@ -52,6 +53,7 @@ pub fn InitiativeDrawer(
                     existing.base_dex = s.dexterity;
                     existing.base_wits = s.wits;
                     existing.base_total = s.initiative_base;
+                    existing.health_penalty = s.health_penalty_val;
                 }
             }
         });
@@ -172,6 +174,7 @@ pub fn InitiativeDrawer(
                 base_dex: 0,
                 base_wits: 0,
                 base_total: base,
+                health_penalty: 0,
                 rolled_die: None,
                 final_total: None,
             });
@@ -326,6 +329,8 @@ pub fn InitiativeDrawer(
                                             <td class="col-base">
                                                 {if entry.is_npc {
                                                     format!("{}", entry.base_total)
+                                                } else if entry.health_penalty > 0 {
+                                                    format!("{} ({}+{} -{})", entry.base_total, entry.base_dex, entry.base_wits, entry.health_penalty)
                                                 } else {
                                                     format!("{} ({}+{})", entry.base_total, entry.base_dex, entry.base_wits)
                                                 }}

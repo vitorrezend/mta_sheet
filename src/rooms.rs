@@ -9,6 +9,8 @@ pub struct RoomSummary {
     pub description: String,
     pub gm_username: String,
     pub is_gm: bool,
+    pub is_public: bool,
+    pub has_password: bool,
     pub member_count: i64,
     pub sheet_count: i64,
     pub created_at: String,
@@ -57,6 +59,8 @@ pub struct RoomSheetSummary {
     pub wits: i32,
     #[serde(default = "default_initiative_base")]
     pub initiative_base: i32,
+    #[serde(default)]
+    pub health_penalty_val: i32,
     pub updated_at: String,
 }
 
@@ -72,6 +76,8 @@ pub struct InitiativeEntry {
     pub base_dex: i32,
     pub base_wits: i32,
     pub base_total: i32,
+    #[serde(default)]
+    pub health_penalty: i32,
     pub rolled_die: Option<i32>,
     pub final_total: Option<i32>,
 }
@@ -92,6 +98,8 @@ pub struct RoomDetails {
     pub gm_id: String,
     pub gm_username: String,
     pub is_gm: bool,
+    pub is_public: bool,
+    pub has_password: bool,
     pub chantry: ChantryPoolData,
     pub chronicle_notes: String,
     pub initiative: RoomInitiativeData,
@@ -125,7 +133,8 @@ pub async fn get_user_rooms() -> Result<Vec<RoomSummary>, ServerFnError> {
 
     let query = "
         SELECT 
-            r.id, r.name, r.code, r.description, r.created_at,
+            r.id, r.name, r.code, r.description, r.created_at, r.is_public,
+            (r.password_hash IS NOT NULL AND r.password_hash != '') as has_password,
             u.username as gm_username,
             (r.gm_id = ?) as is_gm,
             (SELECT COUNT(*) FROM room_members rm WHERE rm.room_id = r.id) as member_count,
@@ -153,6 +162,57 @@ pub async fn get_user_rooms() -> Result<Vec<RoomSummary>, ServerFnError> {
         description: row.get("description"),
         gm_username: row.get("gm_username"),
         is_gm: row.get("is_gm"),
+        is_public: row.try_get::<i64, _>("is_public").map(|v| v == 1).unwrap_or(false),
+        has_password: row.get("has_password"),
+        member_count: row.get("member_count"),
+        sheet_count: row.get("sheet_count"),
+        created_at: row.get("created_at"),
+    }).collect();
+
+    Ok(summaries)
+}
+
+#[server(endpoint = "get_public_rooms")]
+pub async fn get_public_rooms() -> Result<Vec<RoomSummary>, ServerFnError> {
+    use sqlx::{SqlitePool, Row};
+    use crate::auth::get_auth_user_id;
+
+    let current_user_id = get_auth_user_id().await?.unwrap_or_default();
+
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        ServerFnError::new("Conexão com o banco de dados indisponível")
+    })?;
+
+    let query = "
+        SELECT 
+            r.id, r.name, r.code, r.description, r.created_at, r.is_public,
+            (r.password_hash IS NOT NULL AND r.password_hash != '') as has_password,
+            u.username as gm_username,
+            (r.gm_id = ?) as is_gm,
+            (SELECT COUNT(*) FROM room_members rm WHERE rm.room_id = r.id) as member_count,
+            (SELECT COUNT(*) FROM character_sheets cs WHERE cs.room_id = r.id) as sheet_count
+        FROM rooms r
+        JOIN users u ON r.gm_id = u.id
+        WHERE r.is_public = 1
+        ORDER BY r.created_at DESC
+        LIMIT 50
+    ";
+
+    let rows = sqlx::query(query)
+        .bind(&current_user_id)
+        .fetch_all(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    let summaries = rows.into_iter().map(|row| RoomSummary {
+        id: row.get("id"),
+        name: row.get("name"),
+        code: row.get("code"),
+        description: row.get("description"),
+        gm_username: row.get("gm_username"),
+        is_gm: row.get("is_gm"),
+        is_public: true,
+        has_password: row.get("has_password"),
         member_count: row.get("member_count"),
         sheet_count: row.get("sheet_count"),
         created_at: row.get("created_at"),
@@ -162,7 +222,12 @@ pub async fn get_user_rooms() -> Result<Vec<RoomSummary>, ServerFnError> {
 }
 
 #[server(endpoint = "create_room")]
-pub async fn create_room(name: String, description: String) -> Result<String, ServerFnError> {
+pub async fn create_room(
+    name: String,
+    description: String,
+    is_public: bool,
+    password: Option<String>,
+) -> Result<String, ServerFnError> {
     let clean_name = name.trim().to_string();
     if clean_name.is_empty() {
         return Err(ServerFnError::new("O nome da sala/crônica não pode ser vazio"));
@@ -183,14 +248,29 @@ pub async fn create_room(name: String, description: String) -> Result<String, Se
     let room_id = Uuid::new_v4().to_string();
     let code = generate_room_code();
 
+    let password_hash = if let Some(ref p) = password {
+        let p_trimmed = p.trim();
+        if !p_trimmed.is_empty() {
+            bcrypt::hash(p_trimmed, 8).map_err(|e| ServerFnError::new(format!("Erro ao processar senha: {}", e)))?
+        } else {
+            String::new()
+        }
+    } else {
+        String::new()
+    };
+
+    let is_pub_val: i64 = if is_public { 1 } else { 0 };
+
     sqlx::query(
-        "INSERT INTO rooms (id, name, code, description, gm_id) VALUES (?, ?, ?, ?, ?)"
+        "INSERT INTO rooms (id, name, code, description, gm_id, is_public, password_hash) VALUES (?, ?, ?, ?, ?, ?, ?)"
     )
     .bind(&room_id)
     .bind(&clean_name)
     .bind(&code)
     .bind(&description)
     .bind(&user_id)
+    .bind(is_pub_val)
+    .bind(&password_hash)
     .execute(&pool)
     .await
     .map_err(|e| ServerFnError::new(format!("Erro ao criar sala: {}", e)))?;
@@ -205,12 +285,12 @@ pub async fn create_room(name: String, description: String) -> Result<String, Se
     .await
     .map_err(|e| ServerFnError::new(format!("Erro ao adicionar membro: {}", e)))?;
 
-    log::info!("Created room '{}' with code {}", clean_name, code);
+    log::info!("Created room '{}' ({}) is_public={} has_pwd={}", clean_name, code, is_public, !password_hash.is_empty());
     Ok(room_id)
 }
 
 #[server(endpoint = "join_room_by_code")]
-pub async fn join_room_by_code(code: String) -> Result<String, ServerFnError> {
+pub async fn join_room_by_code(code: String, password: Option<String>) -> Result<String, ServerFnError> {
     let clean_code = code.trim().to_uppercase();
     if clean_code.is_empty() {
         return Err(ServerFnError::new("Código da sala não fornecido"));
@@ -227,7 +307,7 @@ pub async fn join_room_by_code(code: String) -> Result<String, ServerFnError> {
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
 
-    let room_row = sqlx::query("SELECT id, name FROM rooms WHERE code = ?")
+    let room_row = sqlx::query("SELECT id, name, gm_id, password_hash FROM rooms WHERE code = ?")
         .bind(&clean_code)
         .fetch_optional(&pool)
         .await
@@ -236,6 +316,19 @@ pub async fn join_room_by_code(code: String) -> Result<String, ServerFnError> {
 
     let room_id: String = room_row.get("id");
     let room_name: String = room_row.get("name");
+    let gm_id: String = room_row.get("gm_id");
+    let password_hash: String = room_row.try_get("password_hash").unwrap_or_default();
+
+    if user_id != gm_id && !password_hash.is_empty() {
+        let pwd_input = password.as_deref().unwrap_or("").trim();
+        if pwd_input.is_empty() {
+            return Err(ServerFnError::new("Esta sala é protegida por senha. Digite a senha para entrar."));
+        }
+        let valid = bcrypt::verify(pwd_input, &password_hash).unwrap_or(false);
+        if !valid {
+            return Err(ServerFnError::new("Senha incorreta para esta sala."));
+        }
+    }
 
     // Add member if not exists
     sqlx::query(
@@ -249,6 +342,124 @@ pub async fn join_room_by_code(code: String) -> Result<String, ServerFnError> {
 
     log::info!("User joined room '{}' ({})", room_name, room_id);
     Ok(room_id)
+}
+
+#[server(endpoint = "join_public_room")]
+pub async fn join_public_room(room_id: String, password: Option<String>) -> Result<String, ServerFnError> {
+    use sqlx::{SqlitePool, Row};
+    use crate::auth::get_auth_user_id;
+
+    let user_id = get_auth_user_id().await?.ok_or_else(|| {
+        ServerFnError::new("Você precisa estar logado para entrar em uma sala")
+    })?;
+
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        ServerFnError::new("Conexão com o banco de dados indisponível")
+    })?;
+
+    let room_row = sqlx::query("SELECT id, name, gm_id, password_hash, is_public FROM rooms WHERE id = ?")
+        .bind(&room_id)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?
+        .ok_or_else(|| ServerFnError::new("Sala não encontrada"))?;
+
+    let room_name: String = room_row.get("name");
+    let gm_id: String = room_row.get("gm_id");
+    let password_hash: String = room_row.try_get("password_hash").unwrap_or_default();
+
+    if user_id != gm_id && !password_hash.is_empty() {
+        let pwd_input = password.as_deref().unwrap_or("").trim();
+        if pwd_input.is_empty() {
+            return Err(ServerFnError::new("Esta sala é protegida por senha. Digite a senha para entrar."));
+        }
+        let valid = bcrypt::verify(pwd_input, &password_hash).unwrap_or(false);
+        if !valid {
+            return Err(ServerFnError::new("Senha incorreta para esta sala."));
+        }
+    }
+
+    sqlx::query(
+        "INSERT OR IGNORE INTO room_members (room_id, user_id, role) VALUES (?, ?, 'player')"
+    )
+    .bind(&room_id)
+    .bind(&user_id)
+    .execute(&pool)
+    .await
+    .map_err(|e| ServerFnError::new(format!("Erro ao entrar na sala: {}", e)))?;
+
+    log::info!("User joined public room '{}' ({})", room_name, room_id);
+    Ok(room_id)
+}
+
+#[server(endpoint = "update_room_settings")]
+pub async fn update_room_settings(
+    room_id: String,
+    is_public: bool,
+    new_password: Option<String>,
+    remove_password: bool,
+) -> Result<(), ServerFnError> {
+    use sqlx::SqlitePool;
+    use crate::auth::get_auth_user_id;
+
+    let user_id = get_auth_user_id().await?.ok_or_else(|| {
+        ServerFnError::new("Você precisa estar logado para alterar as configurações da sala")
+    })?;
+
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        ServerFnError::new("Conexão com o banco de dados indisponível")
+    })?;
+
+    let is_gm: bool = sqlx::query_scalar::<_, i64>("SELECT 1 FROM rooms WHERE id = ? AND gm_id = ?")
+        .bind(&room_id)
+        .bind(&user_id)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?
+        .is_some();
+
+    if !is_gm {
+        return Err(ServerFnError::new("Apenas o Narrador pode alterar as configurações da sala."));
+    }
+
+    let is_pub_val: i64 = if is_public { 1 } else { 0 };
+
+    if remove_password {
+        sqlx::query("UPDATE rooms SET is_public = ?, password_hash = '' WHERE id = ?")
+            .bind(is_pub_val)
+            .bind(&room_id)
+            .execute(&pool)
+            .await
+            .map_err(|e| ServerFnError::new(e.to_string()))?;
+    } else if let Some(ref p) = new_password {
+        let p_trimmed = p.trim();
+        if !p_trimmed.is_empty() {
+            let hash = bcrypt::hash(p_trimmed, 8).map_err(|e| ServerFnError::new(e.to_string()))?;
+            sqlx::query("UPDATE rooms SET is_public = ?, password_hash = ? WHERE id = ?")
+                .bind(is_pub_val)
+                .bind(&hash)
+                .bind(&room_id)
+                .execute(&pool)
+                .await
+                .map_err(|e| ServerFnError::new(e.to_string()))?;
+        } else {
+            sqlx::query("UPDATE rooms SET is_public = ? WHERE id = ?")
+                .bind(is_pub_val)
+                .bind(&room_id)
+                .execute(&pool)
+                .await
+                .map_err(|e| ServerFnError::new(e.to_string()))?;
+        }
+    } else {
+        sqlx::query("UPDATE rooms SET is_public = ? WHERE id = ?")
+            .bind(is_pub_val)
+            .bind(&room_id)
+            .execute(&pool)
+            .await
+            .map_err(|e| ServerFnError::new(e.to_string()))?;
+    }
+
+    Ok(())
 }
 
 #[server(endpoint = "get_room_details")]
@@ -269,7 +480,9 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
 
     // 1. Get room info including chantry, chronicle notes, and initiative
     let room_row = sqlx::query(
-        "SELECT r.id, r.name, r.code, r.description, r.gm_id, r.chantry_data, r.chronicle_notes, r.initiative_data, u.username as gm_username 
+        "SELECT r.id, r.name, r.code, r.description, r.gm_id, r.chantry_data, r.chronicle_notes, r.initiative_data, r.is_public,
+                (r.password_hash IS NOT NULL AND r.password_hash != '') as has_password,
+                u.username as gm_username 
          FROM rooms r 
          JOIN users u ON r.gm_id = u.id 
          WHERE r.id = ?"
@@ -282,6 +495,8 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
 
     let gm_id: String = room_row.get("gm_id");
     let is_gm = !current_user_id.is_empty() && current_user_id == gm_id;
+    let is_public = room_row.try_get::<i64, _>("is_public").map(|v| v == 1).unwrap_or(false);
+    let has_password: bool = room_row.get("has_password");
 
     let chantry_raw: String = room_row.try_get("chantry_data").unwrap_or_default();
     let chantry: ChantryPoolData = serde_json::from_str(&chantry_raw).unwrap_or_default();
@@ -342,18 +557,18 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         let (wp_total, wp_cur) = char_data.get_willpower();
         let (quint, paradox, _) = char_data.get_quintessence_paradox();
 
-        // Calculate health status
+        // Calculate health status & penalty
         let (agg, lethal, bashing) = char_data.get_health_counts();
         let total_dmg = agg + lethal + bashing;
-        let (health_label, health_penalty, health_badge_class) = match total_dmg {
-            0 => ("Íntegro", "0", "health-full"),
-            1 => ("Escoriado", "-0", "health-bruised"),
-            2 => ("Ferido", "-1", "health-hurt"),
-            3 => ("Gravemente Ferido", "-1", "health-injured"),
-            4 => ("Espancado", "-2", "health-wounded"),
-            5 => ("Estropiado", "-2", "health-mauled"),
-            6 => ("Aleijado", "-5", "health-crippled"),
-            _ => ("Incapacitado", "☠️", "health-incapacitated"),
+        let (health_label, health_penalty, health_badge_class, penalty_num) = match total_dmg {
+            0 => ("Íntegro", "0", "health-full", 0),
+            1 => ("Escoriado", "-0", "health-bruised", 0),
+            2 => ("Ferido", "-1", "health-hurt", 1),
+            3 => ("Gravemente Ferido", "-1", "health-injured", 1),
+            4 => ("Espancado", "-2", "health-wounded", 2),
+            5 => ("Estropiado", "-2", "health-mauled", 2),
+            6 => ("Aleijado", "-5", "health-crippled", 5),
+            _ => ("Incapacitado", "☠️", "health-incapacitated", 10),
         };
 
         let mut dmg_parts = Vec::new();
@@ -370,7 +585,9 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
 
         let dexterity = char_data.get_attribute_level("Destreza", 1);
         let wits = char_data.get_attribute_level("Raciocínio", 1);
-        let initiative_base = dexterity + wits;
+        let raw_base = dexterity + wits;
+        // Aplica a penalidade de dano com piso mínimo de 2
+        let initiative_base = (raw_base - penalty_num).max(2);
 
         RoomSheetSummary {
             id,
@@ -393,6 +610,7 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
             dexterity,
             wits,
             initiative_base,
+            health_penalty_val: penalty_num,
             updated_at,
         }
     }).collect();
@@ -405,6 +623,8 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         gm_id,
         gm_username: room_row.get("gm_username"),
         is_gm,
+        is_public,
+        has_password,
         chantry,
         chronicle_notes,
         initiative,
@@ -677,6 +897,8 @@ mod tests {
             description: "Uma crônica vitoriana".to_string(),
             gm_username: "MestreArkano".to_string(),
             is_gm: true,
+            is_public: true,
+            has_password: false,
             member_count: 4,
             sheet_count: 3,
             created_at: "2026-08-20 15:00:00".to_string(),
@@ -706,6 +928,8 @@ mod tests {
             gm_id: "gm-1".to_string(),
             gm_username: "Mestre".to_string(),
             is_gm: true,
+            is_public: false,
+            has_password: true,
             chantry: chantry.clone(),
             chronicle_notes: "Sessão 1: Encontro na Avenida Paulista".to_string(),
             initiative: RoomInitiativeData::default(),
