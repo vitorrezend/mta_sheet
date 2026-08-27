@@ -105,12 +105,7 @@ pub fn AuthPage() -> impl IntoView {
                     </div>
                 })}
 
-                <form 
-                    action=move || if is_register.get() { "/api/form_register" } else { "/api/form_login" }
-                    method="POST"
-                    on:submit=on_submit 
-                    class="auth-form"
-                >
+                <form on:submit=on_submit class="auth-form">
                     <div class="form-group">
                         <label class="form-label">"Usuário"</label>
                         <input
