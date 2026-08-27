@@ -9,6 +9,9 @@
 /pkg/
 *.wasm
 *.pdb
+*.exe
+mta_sheet.exe
+/mta_sheet.exe
 
 # --- Backup and Temporary Files ---
 **/*.rs.bk
