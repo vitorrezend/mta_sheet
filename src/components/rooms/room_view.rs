@@ -487,7 +487,7 @@ pub fn RoomView() -> impl IntoView {
                         is_open=show_initiative
                         set_is_open=set_show_initiative
                         sheets=sheets_signal
-                        is_gm=is_gm_room.get()
+                        is_gm=is_gm_room
                     />
                 }
             }

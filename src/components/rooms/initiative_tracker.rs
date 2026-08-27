@@ -1,4 +1,4 @@
-use leptos::*;
+﻿use leptos::*;
 use crate::rooms::RoomSheetSummary;
 use crate::components::common::play_dice_roll_sound;
 
@@ -20,7 +20,7 @@ pub fn InitiativeDrawer(
     is_open: ReadSignal<bool>,
     set_is_open: WriteSignal<bool>,
     sheets: Signal<Vec<RoomSheetSummary>>,
-    is_gm: bool,
+    is_gm: Signal<bool>,
 ) -> impl IntoView {
     let entries = create_rw_signal(Vec::<InitiativeEntry>::new());
     let round = create_rw_signal(1u32);
@@ -61,7 +61,7 @@ pub fn InitiativeDrawer(
 
     // Função de rolagem de iniciativa (WoD: Base + 1d10)
     let roll_initiative = move |_| {
-        if !is_gm {
+        if !is_gm.get() {
             return;
         }
 
@@ -118,7 +118,7 @@ pub fn InitiativeDrawer(
     };
 
     let next_round = move |_| {
-        if !is_gm {
+        if !is_gm.get() {
             return;
         }
         round.update(|r| *r += 1);
@@ -132,7 +132,7 @@ pub fn InitiativeDrawer(
 
     let add_npc = move |ev: leptos::ev::SubmitEvent| {
         ev.prevent_default();
-        if !is_gm {
+        if !is_gm.get() {
             return;
         }
         let raw_name = new_npc_name.get();
@@ -162,7 +162,7 @@ pub fn InitiativeDrawer(
     };
 
     let remove_npc = move |id: String| {
-        if !is_gm {
+        if !is_gm.get() {
             return;
         }
         entries.update(|list| {
@@ -171,7 +171,7 @@ pub fn InitiativeDrawer(
     };
 
     let clear_all_npcs = move |_| {
-        if !is_gm {
+        if !is_gm.get() {
             return;
         }
         entries.update(|list| {
@@ -228,7 +228,7 @@ pub fn InitiativeDrawer(
                                 <th class="col-base" title="Destreza + Raciocínio">"Base"</th>
                                 <th class="col-die" title="Resultado do 1d10">"d10"</th>
                                 <th class="col-total" title="Iniciativa Final">"Total"</th>
-                                {if is_gm {
+                                {move || if is_gm.get() {
                                     view! { <th class="col-del">""</th> }.into_view()
                                 } else {
                                     view! {}.into_view()
@@ -238,6 +238,7 @@ pub fn InitiativeDrawer(
                         <tbody>
                             {move || {
                                 let list = entries.get();
+                                let is_gm_val = is_gm.get();
                                 if list.is_empty() {
                                     return view! {
                                         <tr>
@@ -260,11 +261,12 @@ pub fn InitiativeDrawer(
 
                                     let entry_id = entry.id.clone();
                                     let toggle_id = entry.id.clone();
+                                    let is_npc = entry.is_npc;
 
                                     view! {
                                         <tr class=row_class>
                                             <td class="col-act">
-                                                {if is_gm {
+                                                {if is_gm_val {
                                                     view! {
                                                         <input type="checkbox" class="initiative-checkbox"
                                                             checked=entry.is_active
@@ -318,8 +320,8 @@ pub fn InitiativeDrawer(
                                                     None => view! { <span class="initiative-total-none">"-"</span> }.into_view(),
                                                 }}
                                             </td>
-                                            {if is_gm {
-                                                if entry.is_npc {
+                                            {if is_gm_val {
+                                                if is_npc {
                                                     let del_id = entry_id.clone();
                                                     view! {
                                                         <td class="col-del">
@@ -347,7 +349,7 @@ pub fn InitiativeDrawer(
                 </div>
 
                 // Painel de Ações do Mestre (GM Controls)
-                {if is_gm {
+                {move || if is_gm.get() {
                     view! {
                         <div class="initiative-gm-controls">
                             <h4 class="initiative-section-title">"⚙️ Controles do Narrador"</h4>
