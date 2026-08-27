@@ -56,7 +56,7 @@ goto :fim
 echo [AVISO] cargo-leptos nao foi encontrado no PATH.
 echo.
 echo Opcoes:
-echo   [1] Iniciar servidor backend diretamente via cargo run
+echo   [1] Compilar Frontend WASM e iniciar servidor via cargo run
 echo   [2] Instalar cargo-leptos agora
 echo.
 set /p DEV_OPT="Escolha uma opcao [1 ou 2, Enter para 1]: "
@@ -65,6 +65,16 @@ if "!DEV_OPT!"=="2" (
     powershell -NoProfile -Command "irm https://github.com/leptos-rs/cargo-leptos/releases/download/v0.2.20/cargo-leptos-installer.ps1 | iex"
     cargo leptos watch
 ) else (
+    echo [INFO] Compilando Frontend WASM...
+    cargo build --lib --target wasm32-unknown-unknown --features hydrate
+    where wasm-bindgen >nul 2>nul
+    if !ERRORLEVEL! EQU 0 (
+        wasm-bindgen --target web --out-dir target\site\pkg --out-name mta_sheet target\wasm32-unknown-unknown\debug\mta_sheet.wasm --no-typescript
+        if exist "target\site\pkg\mta_sheet_bg.wasm" if not exist "target\site\pkg\mta_sheet.wasm" copy /Y "target\site\pkg\mta_sheet_bg.wasm" "target\site\pkg\mta_sheet.wasm" >nul
+        if exist "target\site\pkg\mta_sheet.wasm" if not exist "target\site\pkg\mta_sheet_bg.wasm" copy /Y "target\site\pkg\mta_sheet.wasm" "target\site\pkg\mta_sheet_bg.wasm" >nul
+    )
+    copy /Y style.css target\site\pkg\mta_sheet.css >nul
+    echo [INFO] Iniciando servidor backend...
     cargo run --features ssr
 )
 
