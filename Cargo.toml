@@ -2,6 +2,7 @@
 name = "mta_sheet"
 version = "0.13.0"
 edition = "2024"
+license = "MIT"
 
 [lints.clippy]
 unwrap_used = "deny"

@@ -216,6 +216,11 @@ cargo test
 
 ---
 
-## 📄 Licença
+## 📄 Licença & Aviso Legal
 
-Distribuído sob a licença [MIT](LICENSE).
+Este projeto é um software de código aberto distribuído sob a licença [MIT](LICENSE).
+
+### 🌌 Aviso de Conteúdo de Fãs (World of Darkness)
+*Partes dos materiais utilizados são marcas registradas e direitos autorais da **Paradox Interactive AB**, utilizados com permissão. Todos os direitos reservados. Para mais informações, visite [worldofdarkness.com](https://www.worldofdarkness.com).*
+
+Este é um projeto comunitário independente, gratuito e sem fins lucrativos, desenvolvido por fãs para fãs como ferramenta de apoio a jogadores e narradores de **Mago: A Ascensão (M20)**. Não possui afiliação, patrocínio ou endosso da Paradox Interactive AB ou White Wolf Entertainment.
