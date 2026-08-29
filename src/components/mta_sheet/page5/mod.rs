@@ -155,24 +155,39 @@ pub fn PageGrimoire() -> impl IntoView {
         set_data.update(|s| s.grimoire.general_notes = val);
     });
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <div class="sheet-page-content page-grimoire-content">
             // Box 1: Paradigma, Práticas e Instrumentos
             <div class="group-box grimoire-foundations-box">
-                <span class="group-title">"MAGICKAL FOUNDATION"</span>
+                <span class="group-title">{move || match lang() {
+                    crate::i18n::Language::PtBr => "FUNDAMENTOS MÁGICOS",
+                    crate::i18n::Language::EnUs => "MAGICKAL FOUNDATIONS",
+                }}</span>
 
                 // Banner Hero do Paradigma Central
                 <div class="grimoire-paradigm-hero">
                     <div class="paradigm-header-wrap">
                         <span class="paradigm-icon">"🔮"</span>
                         <div class="paradigm-titles">
-                            <label class="paradigm-main-title">"PARADIGMA CENTRAL (CRENÇA MÁGICA)"</label>
-                            <span class="paradigm-sub-title">"A Filosofia e Verdade que moldam a Realidade do Mago"</span>
+                            <label class="paradigm-main-title">{move || match lang() {
+                                crate::i18n::Language::PtBr => "PARADIGMA CENTRAL (CRENÇA MÁGICA)",
+                                crate::i18n::Language::EnUs => "CENTRAL PARADIGM (MAGICKAL BELIEF)",
+                            }}</label>
+                            <span class="paradigm-sub-title">{move || match lang() {
+                                crate::i18n::Language::PtBr => "A Filosofia e Verdade que moldam a Realidade do Mago",
+                                crate::i18n::Language::EnUs => "The Philosophy and Truth shaping the Mage's Reality",
+                            }}</span>
                         </div>
                     </div>
                     <StableTextInput 
                         class="grimoire-paradigm-input"
-                        placeholder="Ex: Tudo é Mente e Informação • A Criação é Alquimia Divina • Caos e Vontade Pura..."
+                        placeholder=Signal::derive(move || match lang() {
+                            crate::i18n::Language::PtBr => "Ex: Tudo é Mente e Informação • A Criação é Alquimia Divina • Caos e Vontade Pura...".to_string(),
+                            crate::i18n::Language::EnUs => "Ex: Everything is Mind and Data • Creation is Divine Alchemy • Pure Will and Chaos...".to_string(),
+                        })
                         value=paradigm
                         on_change=on_paradigm_change
                     />
@@ -185,15 +200,21 @@ pub fn PageGrimoire() -> impl IntoView {
                         <div class="grimoire-col-header">
                             <div class="col-title-wrap">
                                 <span class="col-header-icon">"✦"</span>
-                                <h3 class="column-title">"PRÁTICAS MÁGICAS"</h3>
+                                <h3 class="column-title">{move || crate::i18n::tr("practices_label", lang())}</h3>
                             </div>
                             <button 
                                 type="button"
                                 class="add-grimoire-pill-btn" 
                                 on:click=add_practice
-                                title="Adicionar nova Prática Mágica"
+                                title=move || match lang() {
+                                    crate::i18n::Language::PtBr => "Adicionar nova Prática",
+                                    crate::i18n::Language::EnUs => "Add new Practice",
+                                }
                             >
-                                "+ Prática"
+                                {move || match lang() {
+                                    crate::i18n::Language::PtBr => "+ Prática",
+                                    crate::i18n::Language::EnUs => "+ Practice",
+                                }}
                             </button>
                         </div>
 
@@ -210,15 +231,21 @@ pub fn PageGrimoire() -> impl IntoView {
                                             <span class="grimoire-item-tag">{format!("{:02}", idx + 1)}</span>
                                             <StableTextInput 
                                                 class="grimoire-item-input"
-                                                placeholder="Ex: Alquimia, Alta Magia Ritual, Bruxaria, Cybernética..."
+                                                placeholder=Signal::derive(move || match lang() {
+                                                    crate::i18n::Language::PtBr => "Ex: Alquimia, Alta Magia Ritual, Bruxaria, Cybernética...".to_string(),
+                                                    crate::i18n::Language::EnUs => "Ex: Alchemy, High Ritual Magick, Witchcraft, Cybernetics...".to_string(),
+                                                })
                                                 value=val_sig
                                                 on_change=Callback::new(move |new_val| update_practice(idx, new_val))
                                             />
                                             <button 
-                                                type="button"
-                                                class="remove-grimoire-btn"
+                                                type="button" 
+                                                class="remove-grimoire-btn" 
                                                 on:click=move |_| remove_practice(idx)
-                                                title="Remover Prática"
+                                                title=move || match lang() {
+                                                    crate::i18n::Language::PtBr => "Remover Prática",
+                                                    crate::i18n::Language::EnUs => "Remove Practice",
+                                                }
                                             >
                                                 "×"
                                             </button>
@@ -234,15 +261,21 @@ pub fn PageGrimoire() -> impl IntoView {
                         <div class="grimoire-col-header">
                             <div class="col-title-wrap">
                                 <span class="col-header-icon">"✧"</span>
-                                <h3 class="column-title">"INSTRUMENTOS MÁGICOS"</h3>
+                                <h3 class="column-title">{move || crate::i18n::tr("instruments_label", lang())}</h3>
                             </div>
                             <button 
                                 type="button"
                                 class="add-grimoire-pill-btn" 
                                 on:click=add_instrument
-                                title="Adicionar novo Instrumento"
+                                title=move || match lang() {
+                                    crate::i18n::Language::PtBr => "Adicionar novo Instrumento",
+                                    crate::i18n::Language::EnUs => "Add new Instrument",
+                                }
                             >
-                                "+ Instrumento"
+                                {move || match lang() {
+                                    crate::i18n::Language::PtBr => "+ Instrumento",
+                                    crate::i18n::Language::EnUs => "+ Instrument",
+                                }}
                             </button>
                         </div>
 
@@ -259,15 +292,21 @@ pub fn PageGrimoire() -> impl IntoView {
                                             <span class="grimoire-item-tag">{format!("{:02}", idx + 1)}</span>
                                             <StableTextInput 
                                                 class="grimoire-item-input"
-                                                placeholder="Ex: Cálice de Prata, Varinha, Sigilos, Sangue, Computador..."
+                                                placeholder=Signal::derive(move || match lang() {
+                                                    crate::i18n::Language::PtBr => "Ex: Cálice de Prata, Varinha, Sigilos, Sangue, Computador...".to_string(),
+                                                    crate::i18n::Language::EnUs => "Ex: Silver Chalice, Wand, Sigils, Blood, Computer...".to_string(),
+                                                })
                                                 value=val_sig
                                                 on_change=Callback::new(move |new_val| update_instrument(idx, new_val))
                                             />
                                             <button 
-                                                type="button"
-                                                class="remove-grimoire-btn"
+                                                type="button" 
+                                                class="remove-grimoire-btn" 
                                                 on:click=move |_| remove_instrument(idx)
-                                                title="Remover Instrumento"
+                                                title=move || match lang() {
+                                                    crate::i18n::Language::PtBr => "Remover Instrumento",
+                                                    crate::i18n::Language::EnUs => "Remove Instrument",
+                                                }
                                             >
                                                 "×"
                                             </button>
@@ -282,20 +321,29 @@ pub fn PageGrimoire() -> impl IntoView {
 
             // Box 2: Cards de Rotinas Mágicas (Rotes)
             <div class="group-box grimoire-rotes-box">
-                <span class="group-title">"MAGICKAL ROTES (ROTINAS MÁGICAS)"</span>
+                <span class="group-title">{move || crate::i18n::tr("rotes_section_title", lang())}</span>
 
                 <div class="rotes-header-actions">
                     <div class="rotes-header-info">
-                        <span class="rotes-main-badge">"📜 Grimório de Feitiços"</span>
-                        <span class="rotes-hint">"Rotinas consagradas, fórmulas arcanas e efeitos característicos do Mago"</span>
+                        <span class="rotes-main-badge">{move || match lang() {
+                            crate::i18n::Language::PtBr => "📜 Grimório de Feitiços",
+                            crate::i18n::Language::EnUs => "📜 Spell Grimoire",
+                        }}</span>
+                        <span class="rotes-hint">{move || match lang() {
+                            crate::i18n::Language::PtBr => "Rotinas consagradas, fórmulas arcanas e efeitos característicos do Mago",
+                            crate::i18n::Language::EnUs => "Consecrated rotes, arcane formulas, and signature spells",
+                        }}</span>
                     </div>
                     <button 
                         type="button"
                         class="add-rote-card-btn" 
                         on:click=add_rote
-                        title="Adicionar nova Rotina Mágica ao Grimório"
+                        title=move || crate::i18n::tr("add_rote", lang())
                     >
-                        "✨ + Adicionar Nova Rotina"
+                        {move || match lang() {
+                            crate::i18n::Language::PtBr => "✨ + Adicionar Nova Rotina",
+                            crate::i18n::Language::EnUs => "✨ + Add New Rote",
+                        }}
                     </button>
                 </div>
 
@@ -306,8 +354,14 @@ pub fn PageGrimoire() -> impl IntoView {
                             view! {
                                 <div class="empty-rotes-banner">
                                     <span class="empty-rotes-icon">"📖"</span>
-                                    <p class="empty-rotes-title">"Nenhuma rotina mágica registrada no Grimório."</p>
-                                    <p class="empty-rotes-desc">"Clique no botão acima para adicionar feitiços, fórmulas e rituais."</p>
+                                    <p class="empty-rotes-title">{match lang() {
+                                        crate::i18n::Language::PtBr => "Nenhuma rotina mágica registrada no Grimório.",
+                                        crate::i18n::Language::EnUs => "No magic rotes registered in Grimoire.",
+                                    }}</p>
+                                    <p class="empty-rotes-desc">{match lang() {
+                                        crate::i18n::Language::PtBr => "Clique no botão acima para adicionar feitiços, fórmulas e rituais.",
+                                        crate::i18n::Language::EnUs => "Click the button above to add spells, formulas, and rituals.",
+                                    }}</p>
                                 </div>
                             }.into_view()
                         } else {
@@ -330,10 +384,16 @@ pub fn PageGrimoire() -> impl IntoView {
 
             // Box 3: Anotações Gerais do Grimório
             <div class="group-box grimoire-notes-box">
-                <span class="group-title">"GRIMOIRE SECRETS (ANOTAÇÕES DO TOMO)"</span>
+                <span class="group-title">{move || match lang() {
+                    crate::i18n::Language::PtBr => "ANOTAÇÕES DO TOMO & SEGREDOS",
+                    crate::i18n::Language::EnUs => "TOME NOTES & ARCANUM",
+                }}</span>
                 <StableTextArea 
                     class="grimoire-notes-textarea"
-                    placeholder="Histórico do tomo, linhagem de mestres, linguagens herméticas ou enochianas, cifras secretas, senhas arcanas e anotações adicionais..."
+                    placeholder=Signal::derive(move || match lang() {
+                        crate::i18n::Language::PtBr => "Histórico do tomo, linhagem de mestres, linguagens herméticas ou enochianas, cifras secretas, senhas arcanas e anotações adicionais...".to_string(),
+                        crate::i18n::Language::EnUs => "Tome history, master lineage, Enochian/Hermetic tongues, arcane ciphers, passwords, and extra notes...".to_string(),
+                    })
                     value=general_notes
                     on_change=on_general_notes_change
                 />
@@ -351,6 +411,9 @@ fn RoteCardComponent(
     on_update_rote: Callback<GrimoireRoteItem>,
     on_remove_rote: Callback<()>,
 ) -> impl IntoView {
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     let rote_id = if rote.id.is_empty() { format!("rote_{}", idx) } else { rote.id.clone() };
     let r_id_for_collapse = rote_id.clone();
     
@@ -427,14 +490,17 @@ fn RoteCardComponent(
                         type="button" 
                         class="rote-collapse-btn"
                         on:click=move |_| on_toggle_collapse.call(r_id_for_collapse.clone())
-                        title=move || if is_collapsed.get() { "Expandir Rotina" } else { "Recolher Rotina" }
+                        title=move || if is_collapsed.get() { "Expand" } else { "Collapse" }
                     >
                         {move || if is_collapsed.get() { "▶" } else { "▼" }}
                     </button>
                     <span class="rote-number-tag">{format!("Rote #{:02}", idx + 1)}</span>
                     <StableTextInput 
                         class="rote-name-input"
-                        placeholder="Nome da Rotina / Feitiço..."
+                        placeholder=Signal::derive(move || match lang() {
+                            crate::i18n::Language::PtBr => "Nome da Rotina / Feitiço...".to_string(),
+                            crate::i18n::Language::EnUs => "Rote / Spell Name...".to_string(),
+                        })
                         value=r_name_sig
                         on_change=Callback::new({
                             let on_update = on_update_rote.clone();
@@ -452,7 +518,7 @@ fn RoteCardComponent(
                         type="button"
                         class="remove-rote-card-btn"
                         on:click=move |_| on_remove_rote.call(())
-                        title="Remover esta Rotina"
+                        title="Remove Rote"
                     >
                         "×"
                     </button>
@@ -467,12 +533,14 @@ fn RoteCardComponent(
                     let p_txt = r_practice_sig.get();
                     let f_txt = r_focus_sig.get();
                     let (c_diff, v_diff, vw_diff) = r_diff_sig.get();
+                    let current_lang = lang();
                     view! {
                         <div class="preview-pills-row">
                             {sphere_list.into_iter().map(|s| {
+                                let sphere_name = crate::i18n::tr_sphere(&s.sphere, current_lang);
                                 view! {
                                     <span class="preview-pill preview-spheres">
-                                        {format!("🔮 {} {}", s.sphere, s.level)}
+                                        {format!("🔮 {} {}", sphere_name, s.level)}
                                     </span>
                                 }
                             }).collect_view()}
@@ -491,7 +559,7 @@ fn RoteCardComponent(
                             } else {
                                 view! {}.into_view()
                             }}
-                            <span class="preview-pill preview-diff-tag" title="Dificuldades M20: Coincidente / Vulgar / Vulgar com Testemunha">
+                            <span class="preview-pill preview-diff-tag" title="M20 Difficulties: Coincident / Vulgar / Vulgar with Witness">
                                 {format!("🎯 Dif: {} / {} / {}", c_diff, v_diff, vw_diff)}
                             </span>
                         </div>
@@ -503,25 +571,28 @@ fn RoteCardComponent(
             <div class="rote-card-body" class:tab-hidden=is_collapsed>
                 // Matriz de Cálculo de Dificuldade M20
                 <div class="rote-diff-matrix">
-                    <span class="diff-matrix-title">"DIFICULDADE MÁGICA (M20):"</span>
+                    <span class="diff-matrix-title">{move || match lang() {
+                        crate::i18n::Language::PtBr => "DIFICULDADE MÁGICA (M20):",
+                        crate::i18n::Language::EnUs => "MAGICKAL DIFFICULTY (M20):",
+                    }}</span>
                     <div class="diff-pills-wrap">
-                        <span class="diff-pill diff-coincidental" title="Magia Coincidente: Maior Esfera + 2">
+                        <span class="diff-pill diff-coincidental" title="Coincident Magick: Highest Sphere + 2">
                             <span class="diff-icon">"🟢"</span>
-                            <span class="diff-type">"Coincidente:"</span>
+                            <span class="diff-type">{move || format!("{}:", crate::i18n::tr("coincident", lang()))}</span>
                             <strong class="diff-value">{move || format!("Dif {}", r_diff_sig.get().0)}</strong>
                             <small class="diff-calc">{move || format!("({}+2)", r_max_sphere_sig.get())}</small>
                         </span>
 
-                        <span class="diff-pill diff-vulgar" title="Magia Vulgar (Sem Testemunhas): Maior Esfera + 3">
+                        <span class="diff-pill diff-vulgar" title="Vulgar Magick without Witness: Highest Sphere + 3">
                             <span class="diff-icon">"🟡"</span>
-                            <span class="diff-type">"Vulgar:"</span>
+                            <span class="diff-type">{move || format!("{}:", crate::i18n::tr("vulgar", lang()))}</span>
                             <strong class="diff-value">{move || format!("Dif {}", r_diff_sig.get().1)}</strong>
                             <small class="diff-calc">{move || format!("({}+3)", r_max_sphere_sig.get())}</small>
                         </span>
 
-                        <span class="diff-pill diff-witness" title="Magia Vulgar com Testemunha Adormecida: Maior Esfera + 4">
+                        <span class="diff-pill diff-witness" title="Vulgar Magick with Witness: Highest Sphere + 4">
                             <span class="diff-icon">"🔴"</span>
-                            <span class="diff-type">"Vulgar c/ Testemunha:"</span>
+                            <span class="diff-type">{move || format!("{}:", crate::i18n::tr("vulgar_witness", lang()))}</span>
                             <strong class="diff-value">{move || format!("Dif {}", r_diff_sig.get().2)}</strong>
                             <small class="diff-calc">{move || format!("({}+4)", r_max_sphere_sig.get())}</small>
                         </span>
@@ -535,31 +606,40 @@ fn RoteCardComponent(
                         // Bloco de Esferas com Seletor e Tags
                         <div class="rote-spheres-block">
                             <label class="rote-meta-label">
-                                <span class="meta-icon">"🔮"</span> "ESFERAS UTILIZADAS:"
+                                <span class="meta-icon">"🔮"</span> 
+                                {move || match lang() {
+                                    crate::i18n::Language::PtBr => "ESFERAS UTILIZADAS:",
+                                    crate::i18n::Language::EnUs => "REQUIRED SPHERES:",
+                                }}
                             </label>
 
                             // Container das Tags de Esferas
                             <div class="rote-sphere-tags-container">
                                 {move || {
                                     let list = r_sphere_list_sig.get();
+                                    let current_lang = lang();
                                     if list.is_empty() {
                                         view! {
-                                            <span class="no-spheres-hint">"Nenhuma esfera selecionada (escolha e adicione abaixo)"</span>
+                                            <span class="no-spheres-hint">{match current_lang {
+                                                crate::i18n::Language::PtBr => "Nenhuma esfera selecionada (escolha e adicione abaixo)",
+                                                crate::i18n::Language::EnUs => "No spheres selected (choose and add below)",
+                                            }}</span>
                                         }.into_view()
                                     } else {
                                         list.into_iter().enumerate().map(|(s_idx, s_req)| {
                                             let s_req_name = s_req.sphere.clone();
+                                            let translated_sphere = crate::i18n::tr_sphere(&s_req_name, current_lang).to_string();
                                             let remove_action = remove_sphere_tag.clone();
                                             view! {
                                                 <span class="rote-sphere-pill-tag">
                                                     <span class="sphere-pill-icon">"🔮"</span>
-                                                    <span class="sphere-pill-name">{s_req.sphere.clone()}</span>
+                                                    <span class="sphere-pill-name">{translated_sphere.clone()}</span>
                                                     <strong class="sphere-pill-lvl">{format!("{}", s_req.level)}</strong>
                                                     <button 
                                                         type="button" 
                                                         class="sphere-pill-remove-btn"
                                                         on:click=move |_| remove_action(s_idx)
-                                                        title=format!("Remover esfera {}", s_req_name)
+                                                        title=format!("Remove {}", translated_sphere)
                                                     >
                                                         "×"
                                                     </button>
@@ -577,15 +657,15 @@ fn RoteCardComponent(
                                     on:change=move |ev| set_new_sphere.set(event_target_value(&ev))
                                     prop:value=new_sphere
                                 >
-                                    <option value="Correspondência">"Correspondência"</option>
-                                    <option value="Entropia">"Entropia"</option>
-                                    <option value="Espírito">"Espírito"</option>
-                                    <option value="Forças">"Forças"</option>
-                                    <option value="Matéria">"Matéria"</option>
-                                    <option value="Mente">"Mente"</option>
-                                    <option value="Primórdio">"Primórdio"</option>
-                                    <option value="Tempo">"Tempo"</option>
-                                    <option value="Vida">"Vida"</option>
+                                    <option value="Correspondência">{move || crate::i18n::tr_sphere("Correspondência", lang())}</option>
+                                    <option value="Entropia">{move || crate::i18n::tr_sphere("Entropia", lang())}</option>
+                                    <option value="Espírito">{move || crate::i18n::tr_sphere("Espírito", lang())}</option>
+                                    <option value="Forças">{move || crate::i18n::tr_sphere("Forças", lang())}</option>
+                                    <option value="Matéria">{move || crate::i18n::tr_sphere("Matéria", lang())}</option>
+                                    <option value="Mente">{move || crate::i18n::tr_sphere("Mente", lang())}</option>
+                                    <option value="Primórdio">{move || crate::i18n::tr_sphere("Primórdio", lang())}</option>
+                                    <option value="Tempo">{move || crate::i18n::tr_sphere("Tempo", lang())}</option>
+                                    <option value="Vida">{move || crate::i18n::tr_sphere("Vida", lang())}</option>
                                 </select>
 
                                 <select 
@@ -597,20 +677,26 @@ fn RoteCardComponent(
                                     }
                                     prop:value=move || new_level.get().to_string()
                                 >
-                                    <option value="1">"Nível 1"</option>
-                                    <option value="2">"Nível 2"</option>
-                                    <option value="3">"Nível 3"</option>
-                                    <option value="4">"Nível 4"</option>
-                                    <option value="5">"Nível 5"</option>
+                                    <option value="1">{move || match lang() { crate::i18n::Language::PtBr => "Nível 1", crate::i18n::Language::EnUs => "Level 1" }}</option>
+                                    <option value="2">{move || match lang() { crate::i18n::Language::PtBr => "Nível 2", crate::i18n::Language::EnUs => "Level 2" }}</option>
+                                    <option value="3">{move || match lang() { crate::i18n::Language::PtBr => "Nível 3", crate::i18n::Language::EnUs => "Level 3" }}</option>
+                                    <option value="4">{move || match lang() { crate::i18n::Language::PtBr => "Nível 4", crate::i18n::Language::EnUs => "Level 4" }}</option>
+                                    <option value="5">{move || match lang() { crate::i18n::Language::PtBr => "Nível 5", crate::i18n::Language::EnUs => "Level 5" }}</option>
                                 </select>
 
                                 <button 
                                     type="button" 
                                     class="btn-add-sphere-tag"
                                     on:click=add_sphere_tag
-                                    title="Adicionar Esfera à Rotina"
+                                    title=move || match lang() {
+                                        crate::i18n::Language::PtBr => "Adicionar Esfera à Rotina",
+                                        crate::i18n::Language::EnUs => "Add Sphere to Rote",
+                                    }
                                 >
-                                    "+ Adicionar"
+                                    {move || match lang() {
+                                        crate::i18n::Language::PtBr => "+ Adicionar",
+                                        crate::i18n::Language::EnUs => "+ Add",
+                                    }}
                                 </button>
                             </div>
                         </div>
@@ -618,11 +704,18 @@ fn RoteCardComponent(
                         // Prática Utilizada
                         <div class="rote-meta-field">
                             <label class="rote-meta-label">
-                                <span class="meta-icon">"⚡"</span> "PRÁTICA UTILIZADA:"
+                                <span class="meta-icon">"⚡"</span> 
+                                {move || match lang() {
+                                    crate::i18n::Language::PtBr => "PRÁTICA UTILIZADA:",
+                                    crate::i18n::Language::EnUs => "PRACTICE USED:",
+                                }}
                             </label>
                             <StableTextInput 
                                 class="rote-meta-input"
-                                placeholder="Ex: Alta Magia Ritualística, Alquimia, Bruxaria..."
+                                placeholder=Signal::derive(move || match lang() {
+                                    crate::i18n::Language::PtBr => "Ex: Alta Magia Ritualística, Alquimia, Bruxaria...".to_string(),
+                                    crate::i18n::Language::EnUs => "Ex: High Ritual Magick, Alchemy, Witchcraft...".to_string(),
+                                })
                                 value=r_practice_sig
                                 on_change=Callback::new({
                                     let on_update = on_update_rote.clone();
@@ -641,11 +734,18 @@ fn RoteCardComponent(
                         // Habilidade Realçando Mágica
                         <div class="rote-meta-field">
                             <label class="rote-meta-label">
-                                <span class="meta-icon">"⭐"</span> "HABILIDADE REALÇANDO MÁGICA:"
+                                <span class="meta-icon">"⭐"</span> 
+                                {move || match lang() {
+                                    crate::i18n::Language::PtBr => "HABILIDADE REALÇANDO MÁGICA:",
+                                    crate::i18n::Language::EnUs => "ENHANCING ABILITY:",
+                                }}
                             </label>
                             <StableTextInput 
                                 class="rote-meta-input"
-                                placeholder="Ex: Esotérica (Geometria Sagrada), Ocultismo, Ciência..."
+                                placeholder=Signal::derive(move || match lang() {
+                                    crate::i18n::Language::PtBr => "Ex: Esotérica (Geometria Sagrada), Ocultismo, Ciência...".to_string(),
+                                    crate::i18n::Language::EnUs => "Ex: Esoterica (Sacred Geometry), Occult, Science...".to_string(),
+                                })
                                 value=r_ability_sig
                                 on_change=Callback::new({
                                     let on_update = on_update_rote.clone();
@@ -661,11 +761,18 @@ fn RoteCardComponent(
                         // Foco & Instrumento
                         <div class="rote-meta-field">
                             <label class="rote-meta-label">
-                                <span class="meta-icon">"🎯"</span> "FOCO & INSTRUMENTO UTILIZADO:"
+                                <span class="meta-icon">"🎯"</span> 
+                                {move || match lang() {
+                                    crate::i18n::Language::PtBr => "FOCO & INSTRUMENTO UTILIZADO:",
+                                    crate::i18n::Language::EnUs => "FOCUS & INSTRUMENT USED:",
+                                }}
                             </label>
                             <StableTextInput 
                                 class="rote-meta-input"
-                                placeholder="Ex: Círculos mágicos, Adaga de prata, Canto..."
+                                placeholder=Signal::derive(move || match lang() {
+                                    crate::i18n::Language::PtBr => "Ex: Círculos mágicos, Adaga de prata, Canto...".to_string(),
+                                    crate::i18n::Language::EnUs => "Ex: Magic circles, Silver dagger, Chanting...".to_string(),
+                                })
                                 value=r_focus_sig
                                 on_change=Callback::new({
                                     let on_update = on_update_rote.clone();
@@ -683,11 +790,18 @@ fn RoteCardComponent(
                 // Descrição Narrativa & Mecânica
                 <div class="rote-desc-wrap">
                     <label class="rote-desc-label">
-                        <span class="desc-icon">"📜"</span> "DESCRIÇÃO NARRATIVA & EFEITOS MECÂNICOS:"
+                        <span class="desc-icon">"📜"</span> 
+                        {move || match lang() {
+                            crate::i18n::Language::PtBr => "DESCRIÇÃO NARRATIVA & EFEITOS MECÂNICOS:",
+                            crate::i18n::Language::EnUs => "NARRATIVE DESCRIPTION & MECHANICS:",
+                        }}
                     </label>
                     <StableTextArea 
                         class="rote-desc-textarea"
-                        placeholder="Descreva o procedimento mágico, narrativa visual do feitiço, paradas de dados, dificuldade, gastos de quintessência, regras de paradoxo e efeitos..."
+                        placeholder=Signal::derive(move || match lang() {
+                            crate::i18n::Language::PtBr => "Descreva o procedimento mágico, narrativa visual do feitiço, paradas de dados, dificuldade, gastos de quintessência, regras de paradoxo e efeitos...".to_string(),
+                            crate::i18n::Language::EnUs => "Describe the magical procedure, visual manifestation, dice pool, difficulty, quintessence cost, paradox, and mechanical effects...".to_string(),
+                        })
                         value=r_desc_sig
                         on_change=Callback::new({
                             let on_update = on_update_rote.clone();

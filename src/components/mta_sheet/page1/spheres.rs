@@ -81,9 +81,12 @@ pub fn Spheres() -> impl IntoView {
             Callback::new(move |(idx, orig)| update_sphere_dot(name.clone(), idx, orig))
         };
 
+        let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+        let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
         view! {
             <ValueField 
-                label=Signal::derive(move || name.to_string())
+                label=Signal::derive(move || crate::i18n::tr_sphere(name, lang()).to_string())
                 level=level
                 modifier=modifier
                 origins=origins
@@ -99,21 +102,36 @@ pub fn Spheres() -> impl IntoView {
         }
     };
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <div class="group-box spheres-group-box">
-            <span class="group-title">"Esferas"</span>
+            <span class="group-title">{move || crate::i18n::tr("spheres", lang())}</span>
             <div class="spheres-header-bar">
                 <span class="spheres-affinity-badge">
                     <span class="affinity-star-icon active" style="font-size: 0.85rem; margin-right: 4px;">"★"</span>
                     {move || {
                         let aff = affinity_name.get();
+                        let current_lang = lang();
                         if aff.is_empty() {
                             view! {
-                                <span class="affinity-badge-text empty">"Clique na estrela ao lado de uma Esfera para marcar como Afinidade"</span>
+                                <span class="affinity-badge-text empty">
+                                    {match current_lang {
+                                        crate::i18n::Language::PtBr => "Clique na estrela ao lado de uma Esfera para marcar como Afinidade",
+                                        crate::i18n::Language::EnUs => "Click the star next to a Sphere to mark as Affinity",
+                                    }}
+                                </span>
                             }.into_view()
                         } else {
+                            let aff_translated = crate::i18n::tr_sphere(&aff, current_lang);
                             view! {
-                                <span class="affinity-badge-text selected">"Afinidade: " <strong>{aff}</strong> " (XP: Atual × 7)"</span>
+                                <span class="affinity-badge-text selected">
+                                    {match current_lang {
+                                        crate::i18n::Language::PtBr => format!("Afinidade: {} (XP: Atual × 7)", aff_translated),
+                                        crate::i18n::Language::EnUs => format!("Affinity: {} (XP: Current × 7)", aff_translated),
+                                    }}
+                                </span>
                             }.into_view()
                         }
                     }}

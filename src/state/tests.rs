@@ -49,6 +49,7 @@ mod tests {
         assert_eq!(q, 0);
         assert_eq!(p, 0);
 
+        // 1. Ciclar manualmente
         char_data.cycle_quintessence_paradox_box(0); // -> '1' (Quintessence)
         char_data.cycle_quintessence_paradox_box(1); // -> '1'
         char_data.cycle_quintessence_paradox_box(1); // -> '2' (Paradox)
@@ -56,6 +57,42 @@ mod tests {
         let (q, p, _) = char_data.get_quintessence_paradox();
         assert_eq!(q, 1);
         assert_eq!(p, 1);
+
+        // 2. Limpar
+        char_data.clear_quintessence();
+        char_data.clear_paradox();
+        let (q, p, _) = char_data.get_quintessence_paradox();
+        assert_eq!(q, 0);
+        assert_eq!(p, 0);
+
+        // 3. Adicionar Quintessência (sentido horário a partir de 0: 0, 1, 2)
+        char_data.add_quintessence();
+        char_data.add_quintessence();
+        char_data.add_quintessence();
+        let (q, p, states) = char_data.get_quintessence_paradox();
+        assert_eq!(q, 3);
+        assert_eq!(p, 0);
+        assert_eq!(&states[0..3], "111");
+
+        // 4. Remover Quintessência (remove o slot 2)
+        char_data.remove_quintessence();
+        let (q, _, states) = char_data.get_quintessence_paradox();
+        assert_eq!(q, 2);
+        assert_eq!(&states[0..3], "110");
+
+        // 5. Adicionar Paradoxo (sentido anti-horário a partir de 19: 19, 18)
+        char_data.add_paradox();
+        char_data.add_paradox();
+        let (q, p, states) = char_data.get_quintessence_paradox();
+        assert_eq!(q, 2);
+        assert_eq!(p, 2);
+        assert_eq!(&states[18..20], "22");
+
+        // 6. Remover Paradoxo
+        char_data.remove_paradox();
+        let (_, p, states) = char_data.get_quintessence_paradox();
+        assert_eq!(p, 1);
+        assert_eq!(&states[18..20], "02");
     }
 
     #[test]
@@ -454,6 +491,8 @@ mod tests {
             arete: 4,
             willpower: 8,
             photo_url: "/uploads/john.webp".to_string(),
+            photo_focus_y: 25,
+            photo_focus_x: 50,
             spheres: vec![("Tempo".to_string(), 3), ("Mente".to_string(), 2)],
             sheet_type: "mage".to_string(),
             is_public: true,
@@ -471,6 +510,8 @@ mod tests {
         assert_eq!(recovered.arete, 4);
         assert_eq!(recovered.willpower, 8);
         assert_eq!(recovered.photo_url, "/uploads/john.webp");
+        assert_eq!(recovered.photo_focus_y, 25);
+        assert_eq!(recovered.photo_focus_x, 50);
         assert_eq!(recovered.spheres, vec![("Tempo".to_string(), 3), ("Mente".to_string(), 2)]);
         assert!(recovered.is_public);
         assert!(recovered.is_owner);
@@ -481,6 +522,8 @@ mod tests {
         assert_eq!(legacy_recovered.name, "Mago Antigo");
         assert_eq!(legacy_recovered.arete, 1);
         assert_eq!(legacy_recovered.willpower, 5);
+        assert_eq!(legacy_recovered.photo_focus_y, 50);
+        assert_eq!(legacy_recovered.photo_focus_x, 50);
         assert!(!legacy_recovered.is_public);
         assert!(!legacy_recovered.is_owner);
         assert!(legacy_recovered.photo_url.is_empty());
@@ -695,4 +738,90 @@ mod tests {
         assert_eq!(recovered_legacy.grimoire.paradigm, "");
     }
 
+    #[test]
+    fn test_legacy_ability_names_migration_preserves_points() {
+        let mut char_data = CharacterData::new("legacy_mago".to_string(), "Mago Antigo".to_string());
+        char_data.attributes.insert("Empatia".to_string(), AttributeValue::new(3, "Empatia".to_string()));
+        char_data.attributes.insert("Empatia c/ Animais".to_string(), AttributeValue::new(2, "Empatia c/ Animais".to_string()));
+        char_data.attributes.insert("Política".to_string(), AttributeValue::new(4, "Política".to_string()));
+
+        // Run sanitize() which is automatically triggered on deserialization / load
+        char_data.sanitize();
+
+        // Old keys should be migrated
+        assert!(!char_data.attributes.contains_key("Empatia"));
+        assert!(!char_data.attributes.contains_key("Empatia c/ Animais"));
+        assert!(!char_data.attributes.contains_key("Política"));
+
+        // New keys must have the points and origins preserved
+        assert_eq!(char_data.get_attribute_level("Consciência", 0), 3);
+        assert_eq!(char_data.get_attribute_level("Ofícios", 0), 2);
+        assert_eq!(char_data.get_attribute_level("Esotérica", 0), 4);
+    }
+
+    #[test]
+    fn test_is_page_has_content() {
+        let mut char_data = CharacterData::new("smart_pdf_test".to_string(), "Mago de Teste".to_string());
+        
+        // Página 1 sempre tem conteúdo
+        assert!(char_data.is_page_has_content(0));
+
+        // Inicialmente, páginas 2 a 5 estão vazias
+        assert!(!char_data.is_page_has_content(1));
+        assert!(!char_data.is_page_has_content(2));
+        assert!(!char_data.is_page_has_content(3));
+        assert!(!char_data.is_page_has_content(4));
+        assert!(!char_data.is_page_has_content(5));
+
+        // Preenche uma arma na página 2
+        char_data.weapons.push(models::WeaponItem {
+            name: "Espada Cerimonial".to_string(),
+            ..Default::default()
+        });
+        assert!(char_data.is_page_has_content(1));
+
+        // Preenche uma posse na página 3
+        char_data.possessions.gear_carried = "Talismã de Proteção".to_string();
+        assert!(char_data.is_page_has_content(2));
+
+        // Preenche história na página 4
+        char_data.history_data.history = "Nascido em Praga nos anos 90...".to_string();
+        assert!(char_data.is_page_has_content(3));
+
+        // Preenche um feitiço no grimório na página 5
+        char_data.grimoire.rotes.push(models::GrimoireRoteItem {
+            name: "Chama Esmeralda".to_string(),
+            ..Default::default()
+        });
+        assert!(char_data.is_page_has_content(4));
+
+        // Preenche notas na página 6
+        char_data.notes_data.session_notes = "Sessão 1: Encontro na Capela.".to_string();
+        assert!(char_data.is_page_has_content(5));
+    }
+
+    #[test]
+    fn test_photo_focus_adjustment_and_persistence() {
+        let mut char_data = CharacterData::new("focus_test".to_string(), "Mago Foco".to_string());
+
+        // Padrão: (50, 50)
+        assert_eq!(char_data.get_photo_focus(), (50, 50));
+
+        // Ajusta para Foco no Rosto (Topo: Y = 15%, Centro X = 50%)
+        char_data.set_photo_focus(50, 15);
+        assert_eq!(char_data.get_photo_focus(), (50, 15));
+        assert_eq!(char_data.visuals.photo_focus_y, 15);
+        assert_eq!(char_data.visuals.photo_focus_x, 50);
+
+        // Clamping (limites 0 a 100)
+        char_data.set_photo_focus(-20, 150);
+        assert_eq!(char_data.get_photo_focus(), (0, 100));
+
+        // Serialização e Deserialização
+        let json = serde_json::to_string(&char_data).unwrap();
+        let recovered: CharacterData = serde_json::from_str(&json).unwrap();
+        assert_eq!(recovered.get_photo_focus(), (0, 100));
+    }
 }
+
+

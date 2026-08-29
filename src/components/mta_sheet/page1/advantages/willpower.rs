@@ -80,9 +80,12 @@ pub fn Willpower() -> impl IntoView {
         (base, bonus, xp, temp)
     });
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <div class="willpower-container" style="margin-top: 1.2rem;" on:mouseleave=move |_| set_open_popover_idx.set(None)>
-            <h3 class="column-title">"Força de Vontade"</h3>
+            <h3 class="column-title">{move || crate::i18n::tr("willpower", lang())}</h3>
             
             <div class="dots-container" style="justify-content: center; margin-bottom: 0.35rem; gap: 6px;">
                 {(1..=10).map(|i| {

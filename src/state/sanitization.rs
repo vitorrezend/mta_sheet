@@ -41,6 +41,26 @@ impl CharacterData {
             *qp = "0".repeat(20);
         }
 
+        // Migração automática retroativa de nomes de habilidades legadas (M20)
+        let legacy_ability_aliases = [
+            ("Empatia", "Consciência"),
+            ("Empatia c/ Animais", "Ofícios"),
+            ("Empatia com Animais", "Ofícios"),
+            ("Política", "Esotérica"),
+        ];
+        for (old_key, new_key) in legacy_ability_aliases {
+            if let Some(old_val) = self.attributes.remove(old_key) {
+                if !self.attributes.contains_key(new_key) {
+                    self.attributes.insert(new_key.to_string(), old_val);
+                }
+            }
+            if let Some(old_lbl) = self.labels.remove(old_key) {
+                if !self.labels.contains_key(new_key) {
+                    self.labels.insert(new_key.to_string(), old_lbl);
+                }
+            }
+        }
+
         // Normalize dot origins for all attributes
         for attr in self.attributes.values_mut() {
             let lvl = attr.level.max(0) as usize;
@@ -63,6 +83,14 @@ impl CharacterData {
             for (id, label) in defaults {
                 res_list.push(id.to_string());
                 self.labels.entry(id.to_string()).or_insert_with(|| label.to_string());
+            }
+        }
+
+        // Initialize default Backgrounds (Antecedentes) items (6 slots padrão) se estiver vazio
+        let bg_list = self.custom_lists.entry("Antecedentes".to_string()).or_default();
+        if bg_list.is_empty() {
+            for i in 0..6 {
+                bg_list.push(format!("bg_{}", i));
             }
         }
 
@@ -180,10 +208,19 @@ impl CharacterData {
     /// Resilient JSON recovery for backwards compatibility and damaged data
     pub fn from_raw_json_resilient(id: &str, raw_json: &str) -> Option<Self> {
         let val: serde_json::Value = serde_json::from_str(raw_json).ok()?;
-        let mut char_data = CharacterData::new(id.to_string(), "Personagem Recuperado".to_string());
+        let sheet_type = val.get("sheet_type").and_then(|v| v.as_str()).unwrap_or("mage");
+        let mut char_data = if sheet_type == "gods_and_monsters" {
+            CharacterData::new_gods_and_monsters(id.to_string(), "Personagem Recuperado".to_string())
+        } else {
+            CharacterData::new(id.to_string(), "Personagem Recuperado".to_string())
+        };
 
         if let Some(name) = val.get("name").and_then(|v| v.as_str()) {
             char_data.name = name.to_string();
+        }
+
+        if let Some(pub_val) = val.get("is_public").and_then(|v| v.as_bool()) {
+            char_data.is_public = pub_val;
         }
 
         if let Some(attrs) = val.get("attributes").and_then(|v| v.as_object()) {
@@ -212,6 +249,24 @@ impl CharacterData {
                 if let Some(arr) = v.as_array() {
                     let list: Vec<String> = arr.iter().filter_map(|x| x.as_str().map(|s| s.to_string())).collect();
                     char_data.custom_lists.insert(k.clone(), list);
+                }
+            }
+        }
+
+        if let Some(merits) = val.get("merits").and_then(|v| v.as_array()) {
+            char_data.merits.clear();
+            for m in merits {
+                if let Ok(merit) = serde_json::from_value::<MeritItem>(m.clone()) {
+                    char_data.merits.push(merit);
+                }
+            }
+        }
+
+        if let Some(flaws) = val.get("flaws").and_then(|v| v.as_array()) {
+            char_data.flaws.clear();
+            for f in flaws {
+                if let Ok(flaw) = serde_json::from_value::<FlawItem>(f.clone()) {
+                    char_data.flaws.push(flaw);
                 }
             }
         }

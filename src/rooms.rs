@@ -40,17 +40,29 @@ pub struct RoomSheetSummary {
     pub name: String,
     pub player_name: String,
     pub tradition: String,
+    #[serde(default)]
+    pub essence: String,
     pub concept: String,
+    #[serde(default = "default_sheet_type_str")]
+    pub sheet_type: String,
     pub arete: i32,
     pub willpower_total: i32,
     pub willpower_current: i32,
     pub quintessence: i32,
     pub paradox: i32,
     pub photo_url: String,
+    #[serde(default = "default_photo_focus_i32")]
+    pub photo_focus_y: i32,
+    #[serde(default = "default_photo_focus_i32")]
+    pub photo_focus_x: i32,
     pub health_label: String,
     pub health_penalty: String,
     pub health_badge_class: String,
     pub health_damage_str: String,
+    #[serde(default)]
+    pub health_boxes: Vec<String>,
+    #[serde(default)]
+    pub spheres: Vec<(String, i32)>,
     pub is_hidden: bool,
     pub is_owner: bool,
     #[serde(default = "default_initiative_attr")]
@@ -64,8 +76,13 @@ pub struct RoomSheetSummary {
     pub updated_at: String,
 }
 
+fn default_sheet_type_str() -> String {
+    "mage".to_string()
+}
+
 fn default_initiative_attr() -> i32 { 1 }
 fn default_initiative_base() -> i32 { 2 }
+fn default_photo_focus_i32() -> i32 { 50 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
 pub struct InitiativeEntry {
@@ -619,28 +636,51 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
             char_data.get_profile_photo()
         };
 
+        let essence = char_data.get_label(crate::state::keys::HEADER_ESSENCIA);
+        let sheet_type = if char_data.sheet_type.is_empty() {
+            "mage".to_string()
+        } else {
+            char_data.sheet_type.clone()
+        };
+        let total_boxes = char_data.get_total_health_boxes();
+        let health_boxes: Vec<String> = (0..total_boxes)
+            .map(|i| char_data.get_health(i).to_key().to_string())
+            .collect();
+        let spheres: Vec<(String, i32)> = crate::state::STANDARD_SPHERES
+            .iter()
+            .map(|&s| (s.to_string(), char_data.get_attribute_level(s, 0)))
+            .collect();
+
         let dexterity = char_data.get_attribute_level("Destreza", 1);
         let wits = char_data.get_attribute_level("Raciocínio", 1);
         let raw_base = dexterity + wits;
         // Aplica a penalidade de dano com piso mínimo de 2
         let initiative_base = (raw_base - penalty_num).max(2);
 
+        let (focus_x, focus_y) = char_data.get_photo_focus();
+
         RoomSheetSummary {
             id,
             name,
             player_name: char_data.get_label(crate::state::keys::HEADER_JOGADOR),
             tradition: char_data.get_label(crate::state::keys::HEADER_TRADICAO),
+            essence,
             concept: char_data.get_label(crate::state::keys::HEADER_CONCEITO),
+            sheet_type,
             arete: char_data.get_arete(),
             willpower_total: wp_total,
             willpower_current: wp_cur,
             quintessence: quint,
             paradox,
             photo_url,
+            photo_focus_y: focus_y,
+            photo_focus_x: focus_x,
             health_label: health_label.to_string(),
             health_penalty: health_penalty.to_string(),
             health_badge_class: health_badge_class.to_string(),
             health_damage_str,
+            health_boxes,
+            spheres,
             is_hidden,
             is_owner,
             dexterity,
@@ -996,5 +1036,43 @@ mod tests {
         let json = serde_json::to_string(&member).expect("serialize");
         let deserialized: RoomMemberInfo = serde_json::from_str(&json).expect("deserialize");
         assert_eq!(member, deserialized);
+    }
+
+    #[test]
+    fn test_room_sheet_summary_serialization() {
+        let summary = RoomSheetSummary {
+            id: "sheet-999".to_string(),
+            name: "John Doe".to_string(),
+            player_name: "Jogador 1".to_string(),
+            tradition: "Ordem de Hermes".to_string(),
+            essence: "Dinâmica".to_string(),
+            concept: "Erudito".to_string(),
+            sheet_type: "mage".to_string(),
+            arete: 3,
+            willpower_total: 7,
+            willpower_current: 5,
+            quintessence: 4,
+            paradox: 1,
+            photo_url: "https://example.com/photo.png".to_string(),
+            photo_focus_y: 20,
+            photo_focus_x: 50,
+            health_label: "Ferido".to_string(),
+            health_penalty: "-1".to_string(),
+            health_badge_class: "health-hurt".to_string(),
+            health_damage_str: "1 Letal, 1 Contundente".to_string(),
+            health_boxes: vec!["lethal".to_string(), "bashing".to_string(), "none".to_string(), "none".to_string(), "none".to_string(), "none".to_string(), "none".to_string()],
+            spheres: vec![("Forces".to_string(), 3), ("Prime".to_string(), 2)],
+            is_hidden: false,
+            is_owner: true,
+            dexterity: 3,
+            wits: 4,
+            initiative_base: 6,
+            health_penalty_val: 1,
+            updated_at: "2026-08-28 20:00:00".to_string(),
+        };
+
+        let json = serde_json::to_string(&summary).expect("serialize");
+        let deserialized: RoomSheetSummary = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(summary, deserialized);
     }
 }

@@ -33,6 +33,9 @@ pub fn QuizModal(
         set_show_quiz.set(false);
     };
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         {move || if show_quiz.get() {
             // Sincroniza e captura os dados de forma síncrona e untracked na abertura do modal
@@ -46,28 +49,38 @@ pub fn QuizModal(
             });
             local_entries.set_untracked(entries.clone());
             let entries_snapshot = entries;
+            let current_lang = lang();
             
             view! {
                 <div class="modal-overlay" on:click=move |_| save_and_close()>
                     <div class="modal-card quiz-modal-card" on:click=move |ev| ev.stop_propagation()>
                         <div class="modal-header quiz-modal-header">
                             <div class="modal-title-group">
-                                <h2 class="modal-title">"📂 Dossiê do Personagem — Questionário de Criação"</h2>
+                                <h2 class="modal-title">{crate::i18n::tr("dossier_modal_title", current_lang)}</h2>
                                 <span class="modal-subtitle">
-                                    "Material Suplementar & Guia de Interpretação (Mago: A Ascensão)"
+                                    {crate::i18n::tr("dossier_modal_sub", current_lang)}
                                 </span>
                             </div>
-                            <button class="modal-close-btn" on:click=move |_| save_and_close() title="Salvar e Fechar">"✕"</button>
+                            <button 
+                                class="modal-close-btn" 
+                                on:click=move |_| save_and_close() 
+                                title=match current_lang {
+                                    crate::i18n::Language::PtBr => "Salvar e Fechar",
+                                    crate::i18n::Language::EnUs => "Save & Close",
+                                }
+                            >
+                                "✕"
+                            </button>
                         </div>
 
                         <div class="quiz-modal-body">
                             <div class="quiz-section-header">
-                                <h3 class="quiz-section-title">"👤 Perguntas para o Personagem (Histórico & Identidade)"</h3>
-                                <p class="quiz-section-desc">"Perguntas essenciais sobre quem era o personagem antes do Despertar, infância, mentor, cabala e vida comum."</p>
+                                <h3 class="quiz-section-title">{crate::i18n::tr("quiz_char_section", current_lang)}</h3>
+                                <p class="quiz-section-desc">{crate::i18n::tr("quiz_char_desc", current_lang)}</p>
                             </div>
 
                             <div class="quiz-cards-list">
-                                {entries_snapshot.iter().enumerate().filter(|(_, e)| e.category != "player").map(|(idx, entry)| {
+                                {entries_snapshot.clone().into_iter().enumerate().filter(|(_, e)| e.category != "player").map(|(idx, entry)| {
                                     let answer_val = Signal::derive(move || {
                                         local_entries.with(|entries| {
                                             entries.get(idx).map(|e| e.answer.clone()).unwrap_or_default()
@@ -88,17 +101,24 @@ pub fn QuizModal(
                                         });
                                     });
 
+                                    let q_title = crate::i18n::tr_quiz_title(&entry.id, current_lang).to_string();
+                                    let q_prompt = crate::i18n::tr_quiz_prompt(&entry.id, current_lang).to_string();
+                                    let placeholder_txt = match current_lang {
+                                        crate::i18n::Language::PtBr => "Escreva sua resposta detalhada aqui...",
+                                        crate::i18n::Language::EnUs => "Write your detailed answer here...",
+                                    };
+
                                     view! {
                                         <div class="quiz-question-card">
                                             <div class="quiz-question-header">
-                                                <h3 class="quiz-question-title">{entry.title.clone()}</h3>
+                                                <h3 class="quiz-question-title">{q_title}</h3>
                                             </div>
-                                            <p class="quiz-question-prompt">{entry.prompt.clone()}</p>
+                                            <p class="quiz-question-prompt">{q_prompt}</p>
                                             <div class="quiz-textarea-wrapper">
                                                 <StableTextArea
                                                     value=answer_val
                                                     on_change=on_change
-                                                    placeholder="Escreva sua resposta detalhada aqui..."
+                                                    placeholder=placeholder_txt
                                                     class="quiz-textarea"
                                                 />
                                             </div>
@@ -109,18 +129,29 @@ pub fn QuizModal(
 
                             <div class="quiz-path-banner">
                                 <div class="quiz-section-header">
-                                    <h3 class="quiz-section-title">"🧭 Dicas & Perguntas para os Jogadores sobre o Caminho"</h3>
+                                    <h3 class="quiz-section-title">
+                                        {match current_lang {
+                                            crate::i18n::Language::PtBr => "🧭 Dicas & Perguntas para os Jogadores sobre o Caminho",
+                                            crate::i18n::Language::EnUs => "🧭 Guide & Questions for Players on the Path",
+                                        }}
+                                    </h3>
                                 </div>
                                 <p class="quiz-path-text">
-                                    "O Caminho de um mago significa muito mais do que a Tradição a qual ele pertence, se ele pertencer a uma. As quatro facções apenas indicam com quem o seu mago anda. Seu Caminho define quem ele é."
+                                    {match current_lang {
+                                        crate::i18n::Language::PtBr => "O Caminho de um mago significa muito mais do que a Tradição a qual ele pertence, se ele pertencer a uma. As quatro facções apenas indicam com quem o seu mago anda. Seu Caminho define quem ele é.",
+                                        crate::i18n::Language::EnUs => "A mage's Path means far more than the Tradition they belong to, if any. The factions merely indicate who your mage walks with. Their Path defines who they are.",
+                                    }}
                                 </p>
                                 <p class="quiz-path-text">
-                                    "O Caminho do seu mago oferece muitas sugestões sobre como o seu sósia místiko irá se comportar. Entretanto, lembre-se de que um Caminho não é um 'alinhamento' rígido — é uma predisposição. Você não tem que criá-la com antecedência — apenas imagine onde você eventualmente quer chegar e como. Pense no Caminho como um mapa, com um destino ideal, alguns marcos e um plano de viagem. A jornada verdadeira — o jogo — irá começar significativamente a partir daquele mapa. Todavia, ter alguma noção de onde você está indo deixará o caminho mais claro e as partidas mais fáceis de serem administradas."
+                                    {match current_lang {
+                                        crate::i18n::Language::PtBr => "O Caminho do seu mago oferece muitas sugestões sobre como o seu sósia místiko irá se comportar. Entretanto, lembre-se de que um Caminho não é um 'alinhamento' rígido — é uma predisposição. Você não tem que criá-la com antecedência — apenas imagine onde você eventualmente quer chegar e como. Pense no Caminho como um mapa, com um destino ideal, alguns marcos e um plano de viagem. A jornada verdadeira — o jogo — irá começar significativamente a partir daquele mapa. Todavia, ter alguma noção de onde você está indo deixará o caminho mais claro e as partidas mais fáceis de serem administradas.",
+                                        crate::i18n::Language::EnUs => "Your mage's Path offers suggestions on how your mystical persona behaves. Remember that a Path is not a rigid 'alignment' — it is a predisposition. You don't have to map everything in advance — just imagine where you want to end up and how. Think of the Path as a road map with an ideal destination, milestones, and travel plans. Having a sense of direction clarifies your journey and enriches the chronicle.",
+                                    }}
                                 </p>
                             </div>
 
                             <div class="quiz-cards-list">
-                                {entries_snapshot.iter().enumerate().filter(|(_, e)| e.category == "player").map(|(idx, entry)| {
+                                {entries_snapshot.clone().into_iter().enumerate().filter(|(_, e)| e.category == "player").map(|(idx, entry)| {
                                     let answer_val = Signal::derive(move || {
                                         local_entries.with(|entries| {
                                             entries.get(idx).map(|e| e.answer.clone()).unwrap_or_default()
@@ -141,17 +172,24 @@ pub fn QuizModal(
                                         });
                                     });
 
+                                    let q_title = crate::i18n::tr_quiz_title(&entry.id, current_lang).to_string();
+                                    let q_prompt = crate::i18n::tr_quiz_prompt(&entry.id, current_lang).to_string();
+                                    let placeholder_txt = match current_lang {
+                                        crate::i18n::Language::PtBr => "Escreva sua resposta detalhada aqui...",
+                                        crate::i18n::Language::EnUs => "Write your detailed answer here...",
+                                    };
+
                                     view! {
                                         <div class="quiz-question-card">
                                             <div class="quiz-question-header">
-                                                <h3 class="quiz-question-title">{entry.title.clone()}</h3>
+                                                <h3 class="quiz-question-title">{q_title}</h3>
                                             </div>
-                                            <p class="quiz-question-prompt">{entry.prompt.clone()}</p>
+                                            <p class="quiz-question-prompt">{q_prompt}</p>
                                             <div class="quiz-textarea-wrapper">
                                                 <StableTextArea
                                                     value=answer_val
                                                     on_change=on_change
-                                                    placeholder="Escreva sua resposta detalhada aqui..."
+                                                    placeholder=placeholder_txt
                                                     class="quiz-textarea"
                                                 />
                                             </div>
@@ -167,7 +205,10 @@ pub fn QuizModal(
                                 class="btn-close-dossier"
                                 on:click=move |_| save_and_close()
                             >
-                                "💾 Concluir / Salvar Dossiê"
+                                {match current_lang {
+                                    crate::i18n::Language::PtBr => "💾 Concluir / Salvar Dossiê",
+                                    crate::i18n::Language::EnUs => "💾 Save & Close Dossier",
+                                }}
                             </button>
                         </div>
                     </div>

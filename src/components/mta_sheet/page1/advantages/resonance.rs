@@ -51,9 +51,19 @@ pub fn Resonance() -> impl IntoView {
         let id_up_mod = id.clone();
         let id_up_dot = id.clone();
 
+        let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+        let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
         let label = Signal::derive({
             let id = id_label.clone();
-            move || data.with(|d| d.labels.get(&id).cloned().unwrap_or_default())
+            move || data.with(|d| {
+                let text = d.labels.get(&id).cloned().unwrap_or_default();
+                if text.is_empty() {
+                    crate::i18n::tr_resonance(&id, lang()).to_string()
+                } else {
+                    crate::i18n::tr_resonance(&text, lang()).to_string()
+                }
+            })
         });
 
         let level = Signal::derive({
@@ -113,9 +123,12 @@ pub fn Resonance() -> impl IntoView {
         }
     };
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <div class="resonance-column">
-            <h3 class="column-title">"RESSONÂNCIA"</h3>
+            <h3 class="column-title">{move || crate::i18n::tr("resonance", lang()).to_uppercase()}</h3>
             <For
                 each=move || list.get()
                 key=|id| id.clone()

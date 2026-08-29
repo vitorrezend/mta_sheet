@@ -6,6 +6,7 @@ pub mod database;
 pub mod auth;
 pub mod rooms;
 pub mod logging;
+pub mod i18n;
 
 #[cfg(test)]
 mod compliance_tests;
@@ -23,6 +24,10 @@ pub struct AuthContext {
 #[component]
 pub fn App() -> impl IntoView {
     provide_meta_context();
+
+    let (lang, set_lang) = create_signal(crate::i18n::detect_browser_language());
+    let lang_ctx = crate::i18n::LanguageContext::new(lang, set_lang);
+    provide_context(lang_ctx);
 
     let user_resource = create_local_resource(|| (), |_| async move { crate::auth::get_current_user().await });
     let user = Signal::derive(move || {

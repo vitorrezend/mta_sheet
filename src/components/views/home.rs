@@ -9,6 +9,9 @@ use crate::AuthContext;
 
 #[component]
 pub fn Home() -> impl IntoView {
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     let auth = use_context::<AuthContext>();
     let user = auth.map(|a| a.user).unwrap_or_else(|| Signal::derive(|| None));
 
@@ -155,8 +158,8 @@ pub fn Home() -> impl IntoView {
             <Navbar />
             <div class="home-container">
                 <header class="home-header">
-                <h1>"MTA Character Manager"</h1>
-                <p>"Gerencie suas fichas de Mago: A Ascensão e Gods & Monsters com total privacidade"</p>
+                <h1>{move || crate::i18n::tr("home_header_title", lang())}</h1>
+                <p>{move || crate::i18n::tr("home_header_subtitle", lang())}</p>
             </header>
 
             {move || error_msg.get().map(|msg| view! {
@@ -173,7 +176,7 @@ pub fn Home() -> impl IntoView {
                     let on_import = on_home_import_cb.clone();
                     view! {
                         <section class="create-section">
-                            <h2>"Criar Nova Ficha"</h2>
+                            <h2>{move || crate::i18n::tr("home_create_title", lang())}</h2>
                             
                             <div class="sheet-type-selector">
                                 <button
@@ -182,7 +185,7 @@ pub fn Home() -> impl IntoView {
                                     class:active=move || selected_sheet_type.get() == "mage"
                                     on:click=move |_| set_selected_sheet_type.set("mage".to_string())
                                 >
-                                    "🧙‍♂️ Mago: A Ascensão (6 Págs)"
+                                    {move || crate::i18n::tr("home_type_mage", lang())}
                                 </button>
                                 <button
                                     type="button"
@@ -190,7 +193,7 @@ pub fn Home() -> impl IntoView {
                                     class:active=move || selected_sheet_type.get() == "gods_and_monsters"
                                     on:click=move |_| set_selected_sheet_type.set("gods_and_monsters".to_string())
                                 >
-                                    "🐉 Gods & Monsters (2 Págs)"
+                                    {move || crate::i18n::tr("home_type_gm", lang())}
                                 </button>
                             </div>
 
@@ -198,9 +201,9 @@ pub fn Home() -> impl IntoView {
                                 <input
                                     type="text"
                                     placeholder=move || if selected_sheet_type.get() == "gods_and_monsters" {
-                                        "🐉 Nome do Familiar / Monstro (ex: Quimera de Hermes)"
+                                        crate::i18n::tr("home_name_ph_gm", lang())
                                     } else {
-                                        "🧙‍♂️ Nome do Personagem (ex: Hermes Trismegisto)"
+                                        crate::i18n::tr("home_name_ph_mage", lang())
                                     }
                                     on:input=move |ev| set_name.set(event_target_value(&ev))
                                     prop:value=name
@@ -215,12 +218,12 @@ pub fn Home() -> impl IntoView {
                                         node_ref=import_home_input_ref 
                                         style="display: none;" 
                                         on:change={
-                                            let cb = on_import.clone();
+                                             let cb = on_import.clone();
                                             move |ev| cb.call(ev)
                                         }
                                     />
                                     <button type="submit" class="create-btn" disabled=move || is_creating.get() || is_importing.get()>
-                                        {move || if is_creating.get() { "✨ Criando..." } else { "+ Criar Ficha" }}
+                                        {move || if is_creating.get() { crate::i18n::tr("home_btn_creating", lang()) } else { crate::i18n::tr("home_btn_create", lang()) }}
                                     </button>
                                     <button 
                                         type="button" 
@@ -231,9 +234,9 @@ pub fn Home() -> impl IntoView {
                                                 input.click();
                                             }
                                         }
-                                        title="Importar uma ficha salva em arquivo .json"
+                                        title=move || crate::i18n::tr("home_import_tooltip", lang())
                                     >
-                                        {move || if is_importing.get() { "📥 Importando..." } else { "📥 Importar JSON" }}
+                                        {move || if is_importing.get() { crate::i18n::tr("home_btn_importing", lang()) } else { crate::i18n::tr("home_btn_import", lang()) }}
                                     </button>
                                 </div>
                             </form>
@@ -245,11 +248,11 @@ pub fn Home() -> impl IntoView {
                         <div class="visitor-banner-content">
                             <span class="visitor-banner-icon">"🔮"</span>
                             <div class="visitor-banner-text">
-                                <h3>"Modo Visitante"</h3>
-                                <p>"Suas fichas agora são 100% privadas. Conecte-se para criar, editar e acessar suas fichas salvas com segurança."</p>
+                                <h3>{move || crate::i18n::tr("home_visitor_title", lang())}</h3>
+                                <p>{move || crate::i18n::tr("home_visitor_desc", lang())}</p>
                             </div>
                         </div>
-                        <A href="/login" class="visitor-login-btn">"Entrar / Cadastrar"</A>
+                        <A href="/login" class="visitor-login-btn">{move || crate::i18n::tr("home_visitor_btn", lang())}</A>
                     </div>
                 }.into_view(),
             }}
@@ -262,7 +265,7 @@ pub fn Home() -> impl IntoView {
                             class:active=move || home_tab.get() == "my_sheets"
                             on:click=move |_| set_home_tab.set("my_sheets")
                         >
-                            "📜 Minhas Fichas"
+                            {move || crate::i18n::tr("home_tab_my_sheets", lang())}
                         </button>
                     })
                 } else {
@@ -273,36 +276,39 @@ pub fn Home() -> impl IntoView {
                     class:active=move || home_tab.get() == "public_sheets" || user.get().is_none()
                     on:click=move |_| set_home_tab.set("public_sheets")
                 >
-                    "🌐 Fichas Públicas da Comunidade"
+                    {move || crate::i18n::tr("home_tab_public_sheets", lang())}
                 </button>
             </div>
 
             <section class="list-section">
-                {move || match home_tab.get() {
-                    "public_sheets" => match public_sheets.get() {
-                        None => view! { <p class="loading-msg">"Carregando fichas públicas..."</p> }.into_view(),
-                        Some(Ok(data)) if data.is_empty() => view! {
-                            <p class="empty-msg">"Nenhuma ficha pública encontrada na comunidade no momento."</p>
-                        }.into_view(),
-                        Some(Ok(data)) => render_character_grid(data, set_sheet_to_delete, toggle_privacy),
-                        Some(Err(e)) => view! {
-                            <div class="alert-box alert-error">
-                                <p>"Erro ao carregar fichas públicas: " {e.to_string()}</p>
-                            </div>
-                        }.into_view(),
-                    },
-                    _ => match sheets.get() {
-                        None => view! { <p class="loading-msg">"Carregando suas fichas..."</p> }.into_view(),
-                        Some(Ok(data)) if data.is_empty() => view! { 
-                            <p class="empty-msg">"Nenhuma ficha privada encontrada. Crie uma nova ficha acima!"</p> 
-                        }.into_view(),
-                        Some(Ok(data)) => render_character_grid(data, set_sheet_to_delete, toggle_privacy),
-                        Some(Err(e)) => view! { 
-                            <div class="alert-box alert-error">
-                                <p>"Erro ao carregar fichas: " {e.to_string()}</p>
-                            </div> 
-                        }.into_view(),
-                    },
+                {move || {
+                    let current_lang = lang();
+                    match home_tab.get() {
+                        "public_sheets" => match public_sheets.get() {
+                            None => view! { <p class="loading-msg">{crate::i18n::tr("home_loading_pub", current_lang)}</p> }.into_view(),
+                            Some(Ok(data)) if data.is_empty() => view! {
+                                <p class="empty-msg">{crate::i18n::tr("home_empty_pub", current_lang)}</p>
+                            }.into_view(),
+                            Some(Ok(data)) => render_character_grid(data, set_sheet_to_delete, toggle_privacy, current_lang),
+                            Some(Err(e)) => view! {
+                                <div class="alert-box alert-error">
+                                    <p>"Erro ao carregar fichas públicas: " {e.to_string()}</p>
+                                </div>
+                            }.into_view(),
+                        },
+                        _ => match sheets.get() {
+                            None => view! { <p class="loading-msg">{crate::i18n::tr("home_loading_my", current_lang)}</p> }.into_view(),
+                            Some(Ok(data)) if data.is_empty() => view! { 
+                                <p class="empty-msg">{crate::i18n::tr("home_empty_my", current_lang)}</p> 
+                            }.into_view(),
+                            Some(Ok(data)) => render_character_grid(data, set_sheet_to_delete, toggle_privacy, current_lang),
+                            Some(Err(e)) => view! { 
+                                <div class="alert-box alert-error">
+                                    <p>"Erro ao carregar fichas: " {e.to_string()}</p>
+                                </div> 
+                            }.into_view(),
+                        },
+                    }
                 }}
             </section>
 
@@ -310,22 +316,22 @@ pub fn Home() -> impl IntoView {
             {move || sheet_to_delete.get().map(|target| view! {
                 <div class="modal-overlay" on:click=cancel_delete>
                     <div class="modal-card" on:click=move |ev| ev.stop_propagation()>
-                        <h3 class="modal-title">"Confirmar Exclusão"</h3>
+                        <h3 class="modal-title">{move || crate::i18n::tr("home_delete_title", lang())}</h3>
                         <p class="modal-text">
-                            "Tem certeza que deseja excluir permanentemente a ficha de "
+                            {move || crate::i18n::tr("home_delete_prompt", lang())}
                             <strong>{target.name}</strong>"?"
                         </p>
-                        <p class="modal-subtext">"Esta ação não pode ser desfeita."</p>
+                        <p class="modal-subtext">{move || crate::i18n::tr("home_delete_sub", lang())}</p>
                         <div class="modal-actions">
-                            <button class="modal-btn btn-cancel" on:click=cancel_delete>"Cancelar"</button>
-                            <button class="modal-btn btn-danger" on:click=move |_| confirm_delete()>"Sim, Excluir"</button>
+                            <button class="modal-btn btn-cancel" on:click=cancel_delete>{move || crate::i18n::tr("home_btn_cancel", lang())}</button>
+                            <button class="modal-btn btn-danger" on:click=move |_| confirm_delete()>{move || crate::i18n::tr("home_btn_confirm_delete", lang())}</button>
                         </div>
                     </div>
                 </div>
             })}
 
             <footer class="home-footer">
-                <span class="home-footer-text">"MTA Sheet © 2026 — Mago: A Ascensão (M20) & Deuses e Monstros"</span>
+                <span class="home-footer-text">{move || crate::i18n::tr("home_footer_copyright", lang())}</span>
                 <button
                     type="button"
                     class="version-pill-badge"
@@ -334,7 +340,7 @@ pub fn Home() -> impl IntoView {
                 >
                     <span class="version-pill-sparkle">"✨"</span>
                     <span>{format!("v{}", CURRENT_VERSION)}</span>
-                    <span>"— Notas de Atualização"</span>
+                    <span>{move || format!(" {}", crate::i18n::tr("home_footer_patch_notes", lang()))}</span>
                 </button>
             </footer>
             </div>
@@ -350,6 +356,7 @@ fn render_character_grid<F>(
     data: Vec<CharacterSummary>,
     set_sheet_to_delete: WriteSignal<Option<CharacterSummary>>,
     toggle_privacy: F,
+    current_lang: crate::i18n::Language,
 ) -> View
 where
     F: Fn(String, bool) + Copy + 'static,
@@ -370,14 +377,14 @@ where
                 } else if is_gm {
                     "Familiar / Bygone".to_string()
                 } else {
-                    "Tradição não definida".to_string()
+                    crate::i18n::tr("card_tradition_undefined", current_lang).to_string()
                 };
                 let essence_display = if !summary.essence.is_empty() {
                     summary.essence.clone()
                 } else if is_gm {
                     "Gods & Monsters".to_string()
                 } else {
-                    "Mago Desperto".to_string()
+                    crate::i18n::tr("card_essence_awakened", current_lang).to_string()
                 };
                 let arete_val = summary.arete;
                 let wp_val = summary.willpower;
@@ -392,18 +399,20 @@ where
                     >
                         <div class="card-portrait-box">
                             {if has_photo {
+                                let img_style = format!("object-position: {}% {}%;", summary.photo_focus_x, summary.photo_focus_y);
                                 view! {
                                     <img
                                         src=photo
                                         alt=summary.name.clone()
                                         class="card-portrait-img"
+                                        style=img_style
                                     />
                                 }.into_view()
                             } else {
                                 view! {
                                     <div class="card-portrait-placeholder">
                                         <span class="placeholder-icon">{if is_gm { "🐉" } else { "🔮" }}</span>
-                                        <span class="placeholder-tag">{if is_gm { "Gods & Monsters" } else { "Sem Imagem" }}</span>
+                                        <span class="placeholder-tag">{if is_gm { "Gods & Monsters".to_string() } else { crate::i18n::tr("card_no_image", current_lang).to_string() }}</span>
                                     </div>
                                 }.into_view()
                             }}
@@ -416,7 +425,7 @@ where
                                             ev.stop_propagation();
                                             set_sheet_to_delete.set(Some(summary_clone.clone()));
                                         }
-                                        title="Excluir ficha"
+                                        title=crate::i18n::tr("card_delete_tooltip", current_lang)
                                     >
                                         "🗑️"
                                     </button>
@@ -432,11 +441,11 @@ where
                                 <div class="card-meta-tags">
                                     {if is_gm {
                                         view! {
-                                            <span class="meta-tag type-badge-gm">"🐉 Gods & Monsters"</span>
+                                            <span class="meta-tag type-badge-gm">{crate::i18n::tr("card_tag_gm", current_lang)}</span>
                                         }.into_view()
                                     } else {
                                         view! {
-                                            <span class="meta-tag type-badge-mage">"🧙‍♂️ Mago"</span>
+                                            <span class="meta-tag type-badge-mage">{crate::i18n::tr("card_tag_mage", current_lang)}</span>
                                         }.into_view()
                                     }}
                                     <span class="meta-tag tradition-tag">{tradition_display}</span>
@@ -445,19 +454,19 @@ where
                                         view! {
                                             <button
                                                 class=if is_pub_val { "meta-tag vis-tag vis-public" } else { "meta-tag vis-tag vis-private" }
-                                                title=if is_pub_val { "Visível para a comunidade. Clique para tornar privada." } else { "Privada para você. Clique para tornar pública." }
+                                                title=if is_pub_val { crate::i18n::tr("card_vis_public_tt", current_lang) } else { crate::i18n::tr("card_vis_private_tt", current_lang) }
                                                 on:click=move |ev: ev::MouseEvent| {
                                                     ev.stop_propagation();
                                                     toggle_privacy(id_vis.clone(), is_pub_val);
                                                 }
                                             >
-                                                {if is_pub_val { "🌐 Pública" } else { "🔒 Privada" }}
+                                                {if is_pub_val { crate::i18n::tr("card_vis_public", current_lang) } else { crate::i18n::tr("card_vis_private", current_lang) }}
                                             </button>
                                         }.into_view()
                                     } else {
                                         view! {
                                             <span class="meta-tag vis-tag vis-public">
-                                                "🌐 Pública"
+                                                {crate::i18n::tr("card_vis_public", current_lang)}
                                             </span>
                                         }.into_view()
                                     }}
@@ -466,7 +475,7 @@ where
 
                             <div class="card-stats-preview">
                                 <div class="card-stat-item">
-                                    <span class="stat-label">{if is_gm { "Gnose" } else { "Arete" }}</span>
+                                    <span class="stat-label">{if is_gm { crate::i18n::tr("card_gnosis", current_lang) } else { crate::i18n::tr("card_arete", current_lang) }}</span>
                                     <div class="stat-dots arete-dots">
                                         {(1..=if is_gm { 10 } else { 5 }).map(|idx| {
                                             let filled = idx <= arete_val;
@@ -479,7 +488,7 @@ where
                                 </div>
 
                                 <div class="card-stat-item">
-                                    <span class="stat-label">"Vontade"</span>
+                                    <span class="stat-label">{crate::i18n::tr("card_willpower", current_lang)}</span>
                                     <div class="stat-dots wp-dots">
                                         {(1..=10).map(|idx| {
                                             let filled = idx <= wp_val;
@@ -496,17 +505,21 @@ where
                                 view! {
                                     <div class="card-spheres-preview">
                                         <div class="spheres-header-row">
-                                            <span class="spheres-label">"9 Esferas"</span>
+                                            <span class="spheres-label">{crate::i18n::tr("card_spheres_title", current_lang)}</span>
                                         </div>
                                         <div class="spheres-9-grid">
                                             {summary.spheres.iter().map(|(sphere_name, lvl)| {
-                                                let s_name = sphere_name.clone();
+                                                let s_name = crate::i18n::tr_sphere(sphere_name, current_lang).to_string();
                                                 let s_lvl = *lvl;
                                                 let is_active = s_lvl > 0;
+                                                let level_label = match current_lang {
+                                                    crate::i18n::Language::PtBr => "nível",
+                                                    crate::i18n::Language::EnUs => "level",
+                                                };
                                                 view! {
                                                     <div
                                                         class=if is_active { "sphere-item-active" } else { "sphere-item-inactive" }
-                                                        title=format!("{}: nível {}", s_name, s_lvl)
+                                                        title=format!("{}: {} {}", s_name, level_label, s_lvl)
                                                     >
                                                         <span class="sphere-mini-name">{s_name}</span>
                                                         <div class="sphere-mini-dots">
@@ -526,16 +539,16 @@ where
                             } else {
                                 view! {
                                     <div class="card-gm-badge-footer">
-                                        <span class="gm-creature-desc">"🐉 Entidade Sobrenatural (Familiar / Bygone / Espírito)"</span>
+                                        <span class="gm-creature-desc">{crate::i18n::tr("card_gm_footer_desc", current_lang)}</span>
                                     </div>
                                 }.into_view()
                             }}
 
                             <div class="card-footer">
-                                <span class="card-date" title=format!("Última alteração: {}", updated_at_full)>
-                                    "Atualizado: " {date_display}
+                                <span class="card-date" title=format!("{}: {}", match current_lang { crate::i18n::Language::PtBr => "Última alteração", crate::i18n::Language::EnUs => "Last update" }, updated_at_full)>
+                                    {crate::i18n::tr("card_updated", current_lang)} " " {date_display}
                                 </span>
-                                <span class="card-cta">"Abrir Ficha →"</span>
+                                <span class="card-cta">{crate::i18n::tr("card_open_cta", current_lang)}</span>
                             </div>
                         </div>
                     </div>

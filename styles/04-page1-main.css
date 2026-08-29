@@ -260,42 +260,399 @@
 }
 
 
-/* Quintessence & Paradox Static Tracker */
+/* ─── Roda Circular de Quintessência & Paradoxo (M20) ─────────────────── */
 .quintessence-paradox-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 1rem;
+    margin-top: 0.4rem;
     width: 100%;
 }
 
-.qp-grid {
+.qp-wheel-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 170px;
+    height: 170px;
+    margin: 0.1rem auto 0 auto;
+}
+
+.qp-wheel-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.qp-track-ring {
+    fill: none;
+    stroke: #e2e8f0;
+    stroke-width: 1.5;
+    stroke-dasharray: 3 4;
+}
+
+.qp-origin-line {
+    stroke: #64748b;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+}
+
+.qp-origin-dot {
+    fill: #475569;
+}
+
+.qp-origin-text {
+    fill: #94a3b8;
+    font-size: 7.5px;
+    font-weight: 800;
+    font-family: inherit;
+    user-select: none;
+}
+
+.qp-wheel-box {
+    fill: #ffffff;
+    stroke: #64748b;
+    stroke-width: 1.4;
+    cursor: pointer;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.qp-wheel-box:hover {
+    stroke: #0f172a;
+    stroke-width: 2.0;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.qp-wheel-box.qp-box-quintessence {
+    fill: #0284c7 !important;
+    stroke: #0369a1 !important;
+    filter: drop-shadow(0 0 3px rgba(2, 132, 199, 0.45));
+}
+
+.qp-wheel-box.qp-box-paradox {
+    fill: #dc2626 !important;
+    stroke: #991b1b !important;
+    filter: drop-shadow(0 0 3px rgba(220, 38, 38, 0.45));
+}
+
+/* Núcleo Central de Controles */
+.qp-center-hub {
+    position: absolute;
+    width: 98px;
+    height: 98px;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid #cbd5e1;
+    border-radius: 50%;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
+    padding: 4px;
+    box-sizing: border-box;
+    z-index: 5;
+    backdrop-filter: blur(3px);
+}
+
+.qp-hub-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    width: 100%;
+}
+
+.qp-hub-title {
+    font-size: 0.52rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    line-height: 1;
+    user-select: none;
+}
+
+.qp-hub-quint .qp-hub-title {
+    color: #0284c7;
+}
+
+.qp-hub-paradox .qp-hub-title {
+    color: #dc2626;
+}
+
+.qp-hub-controls {
+    display: flex;
+    align-items: center;
     gap: 4px;
-    padding: 10px;
-    background: rgba(0,0,0,0.02);
-    border-radius: 4px;
 }
 
-.qp-square {
-    transition: all 0.2s ease;
+.qp-btn {
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 900;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    user-select: none;
 }
 
-.qp-square:hover {
+.qp-btn-quint {
+    background: #f0f9ff;
+    color: #0369a1;
+    border-color: #bae6fd;
+}
+
+.qp-btn-quint:hover {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #0284c7;
+    transform: scale(1.12);
+}
+
+.qp-btn-paradox {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #fecaca;
+}
+
+.qp-btn-paradox:hover {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #dc2626;
+    transform: scale(1.12);
+}
+
+.qp-count-badge {
+    min-width: 14px;
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    user-select: none;
+}
+
+.qp-badge-quint {
+    color: #0369a1;
+}
+
+.qp-badge-paradox {
+    color: #991b1b;
+}
+
+.qp-hub-divider {
+    width: 80%;
+    height: 1px;
+    background: #e2e8f0;
+    margin: 2px 0;
+}
+
+/* ─── Módulo de Combate Rápido & Estatísticas Derivadas ────────────── */
+.quick-combat-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    width: 100%;
+    margin-top: 0.2rem;
+    padding-top: 0.25rem;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.qc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.3rem;
+    width: 100%;
+}
+
+.qc-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    padding: 0.25rem 0.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    position: relative;
+    transition: all 0.15s ease;
+}
+
+.qc-card:hover {
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+}
+
+.qc-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.qc-label {
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: 0.02em;
+}
+
+.qc-info-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.qc-info-btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #64748b;
+    border: none;
+    font-size: 0.52rem;
+    font-weight: 900;
+    font-family: monospace;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.15s ease;
+}
+
+.qc-info-btn:hover,
+.qc-info-btn:focus {
+    background: #0284c7;
+    color: #ffffff;
     transform: scale(1.15);
-    z-index: 10;
 }
 
-.qp-square.paradox {
-    background-color: #000000 !important;
-    border-color: #000000 !important;
+.qc-tooltip-popover {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: calc(100% + 5px);
+    right: -10px;
+    width: 185px;
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 0.56rem;
+    line-height: 1.35;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
+    z-index: 999;
+    pointer-events: none;
+    transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateY(3px);
 }
 
-.qp-square.quintessence {
-    background-color: #3498db !important;
-    border-color: #1a5276 !important;
+.qc-tooltip-popover strong {
+    color: #38bdf8;
+    display: block;
+    margin-bottom: 2px;
+    font-size: 0.58rem;
 }
+
+.qc-tooltip-popover p {
+    margin: 0;
+    color: #e2e8f0;
+}
+
+.qc-info-wrapper:hover .qc-tooltip-popover,
+.qc-info-btn:focus + .qc-tooltip-popover {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.qc-value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+}
+
+.qc-value-main {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #1e293b;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.qc-value-sub {
+    font-size: 0.56rem;
+    font-weight: 600;
+    color: #94a3b8;
+    line-height: 1;
+}
+
+.qc-wound-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    padding: 0.2rem 0.45rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.qc-wound-title {
+    font-size: 0.56rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.qc-wound-badge {
+    font-size: 0.58rem;
+    font-weight: 800;
+    padding: 0.05rem 0.4rem;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.wound-healthy {
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+
+.wound-mild {
+    background: #fefce8;
+    color: #ca8a04;
+    border: 1px solid #fef08a;
+}
+
+.wound-severe {
+    background: #fff1f2;
+    color: #e11d48;
+    border: 1px solid #fecdd3;
+}
+
+.wound-incap {
+    background: #450a0a;
+    color: #ffffff;
+    border: 1px solid #991b1b;
+}
+
+
 
 
 /* ─── Vitalidade (Health Tracker) ─────────────────────────────────────── */

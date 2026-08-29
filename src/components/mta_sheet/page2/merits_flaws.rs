@@ -128,30 +128,33 @@ pub fn MeritsFlaws() -> impl IntoView {
         }
     };
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <div class="group-box">
-            <span class="group-title">"Qualidades & Defeitos"</span>
+            <span class="group-title">{move || crate::i18n::tr("merits_flaws", lang())}</span>
             <div class="attributes-block merits-flaws-block">
                 // Coluna 1: Qualidades (Merits)
                 <div class="attribute-column">
-                    <h3 class="column-title">"Qualidades"</h3>
+                    <h3 class="column-title">{move || crate::i18n::tr("merits", lang())}</h3>
                     <For
                         each=move || merits_list.get()
                         key=|id| id.clone()
                         children=move |id| render_item(keys::CAT_MERITS, id)
                     />
-                    <button class="add-field-btn" on:click=add_merit title="Adicionar Qualidade">"+"</button>
+                    <button class="add-field-btn" on:click=add_merit title=move || crate::i18n::tr("add_merit", lang())>"+"</button>
                 </div>
 
                 // Coluna 2: Defeitos (Flaws)
                 <div class="attribute-column">
-                    <h3 class="column-title">"Defeitos"</h3>
+                    <h3 class="column-title">{move || crate::i18n::tr("flaws", lang())}</h3>
                     <For
                         each=move || flaws_list.get()
                         key=|id| id.clone()
                         children=move |id| render_item(keys::CAT_FLAWS, id)
                     />
-                    <button class="add-field-btn" on:click=add_flaw title="Adicionar Defeito">"+"</button>
+                    <button class="add-field-btn" on:click=add_flaw title=move || crate::i18n::tr("add_flaw", lang())>"+"</button>
                 </div>
             </div>
         </div>

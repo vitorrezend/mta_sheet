@@ -15,6 +15,9 @@ pub fn LabelColumn(
         });
     };
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <div class="info-column">
             {fields.into_iter().map(|(label, key)| {
@@ -24,9 +27,10 @@ pub fn LabelColumn(
                     let key = key_str.clone();
                     move || data.with(|d| d.labels.get(&key).cloned().unwrap_or_default())
                 });
+                let translated_label = Signal::derive(move || crate::i18n::tr_header_label(label, lang()).to_string());
                 view! {
                     <LabelField 
-                        label=label 
+                        label=translated_label 
                         value=value
                         on_change=move |v| update_label(key_str2.clone(), v)
                     />

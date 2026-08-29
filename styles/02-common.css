@@ -378,6 +378,29 @@
     background: #fef2f2 !important;
     color: #b91c1c !important;
 }
+
+.lang-toggle-btn {
+    background: #f8fafc;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.lang-toggle-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+}
 .mode-btn.mode-bonus.active.limit-exceeded {
     background: #dc2626 !important;
     color: #ffffff !important;
@@ -464,9 +487,79 @@
     color: #0f172a;
 }
 
-.cost-alert-banner {
+.cost-tab-bar {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 2px;
+}
+
+.cost-tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.5rem 1rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
     display: flex;
     align-items: center;
+    gap: 8px;
+    transition: all 0.15s ease;
+    margin-bottom: -2px;
+}
+
+.cost-tab-btn:hover {
+    color: #0f172a;
+    background: #f8fafc;
+    border-radius: 6px 6px 0 0;
+}
+
+.cost-tab-btn.active {
+    color: #7c3aed;
+    border-bottom: 2px solid #7c3aed;
+    background: #faf5ff;
+    border-radius: 6px 6px 0 0;
+}
+
+.tab-badge-alert {
+    background: #fee2e2;
+    color: #b91c1c;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 999px;
+    border: 1px solid #fca5a5;
+}
+
+.tab-badge-ok {
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 999px;
+    border: 1px solid #86efac;
+}
+
+.tab-badge-neutral {
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 999px;
+}
+
+.badge-alert-dot {
+    font-size: 0.75rem;
+    margin-left: 2px;
+}
+
+.cost-alert-banner {
+    display: flex;
+    align-items: flex-start;
     gap: 10px;
     background: #fffbeb;
     border: 1px solid #fde68a;
@@ -474,6 +567,63 @@
     padding: 0.75rem 1rem;
     border-radius: 8px;
     font-size: 0.88rem;
+    line-height: 1.4;
+}
+
+.cost-alert-banner .alert-content {
+    flex: 1;
+}
+
+.creation-warnings-list {
+    margin: 0.35rem 0 0 1.2rem;
+    padding: 0;
+    font-size: 0.84rem;
+}
+
+.creation-warnings-list li {
+    margin-bottom: 0.2rem;
+}
+
+.cost-success-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    line-height: 1.4;
+}
+
+.creation-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.85rem;
+}
+
+.creation-tab-content, .bonus-xp-tab-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.metric-subdetail {
+    font-size: 0.78rem;
+    color: #64748b;
+    margin-top: 0.15rem;
+    font-weight: 500;
+}
+
+.metric-footer.text-alert {
+    color: #b91c1c;
+    font-weight: 600;
+}
+
+.cost-metric-card.limit-alert {
+    border-left: 4px solid #ef4444;
+    background: #fef2f2;
 }
 
 .cost-summary-grid {
@@ -1695,6 +1845,429 @@
     font-size: 0.95rem;
     padding: 0.65rem 1.4rem;
 }
+
+
+/* ==========================================================================
+   MODAL DE EXPORTAÇÃO PARA PDF (OPÇÕES INTELIGENTES & SELEÇÃO DE PÁGINAS)
+   ========================================================================== */
+
+.modal-card.pdf-export-modal {
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 620px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    animation: modalPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pdf-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.pdf-options-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.pdf-section-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #475569;
+    letter-spacing: 0.03em;
+}
+
+.pdf-modes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+@media (max-width: 600px) {
+    .pdf-modes-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.pdf-mode-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: #ffffff;
+}
+
+.pdf-mode-card:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+
+.pdf-mode-card.selected {
+    border-color: #7c3aed;
+    background: #fdf4ff;
+    box-shadow: 0 0 0 1px #7c3aed;
+}
+
+.pdf-mode-card input[type="radio"] {
+    margin-top: 2px;
+    accent-color: #7c3aed;
+    cursor: pointer;
+}
+
+.pdf-mode-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.pdf-mode-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+}
+
+.pdf-mode-info strong {
+    font-size: 0.8rem;
+    color: #1e293b;
+}
+
+.pdf-mode-info p {
+    font-size: 0.68rem;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.badge-recommended {
+    background: #ecfdf5;
+    color: #059669;
+    font-size: 0.58rem;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 999px;
+    border: 1px solid #a7f3d0;
+}
+
+.pdf-pages-checklist-container {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.pdf-pages-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.pdf-page-check-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.76rem;
+    color: #334155;
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: 4px;
+    transition: background 0.1s ease;
+}
+
+.pdf-page-check-row:hover {
+    background: #f1f5f9;
+}
+
+.pdf-page-check-row input[type="checkbox"] {
+    accent-color: #7c3aed;
+    cursor: pointer;
+}
+
+.badge-has-content {
+    margin-left: auto;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #15803d;
+    background: #dcfce7;
+    padding: 1px 6px;
+    border-radius: 999px;
+    border: 1px solid #bbf7d0;
+}
+
+.badge-empty {
+    margin-left: auto;
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: #94a3b8;
+    background: #f1f5f9;
+    padding: 1px 6px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+}
+
+.pdf-compact-option {
+    padding: 0.2rem 0;
+}
+
+.pdf-compact-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.76rem;
+    color: #475569;
+    cursor: pointer;
+}
+
+.pdf-compact-checkbox input[type="checkbox"] {
+    accent-color: #7c3aed;
+    cursor: pointer;
+}
+
+.btn-generate-pdf {
+    background: #7c3aed !important;
+    color: #ffffff !important;
+    font-weight: 700;
+    border: none;
+    padding: 0.55rem 1.25rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-generate-pdf:hover {
+    background: #6d28d9 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+}
+
+
+/* ==========================================================================
+   PARTY CARDS NA SALA / MESA (PORTRAIT, VONTADE QUADRADINHOS & VIDA)
+   ========================================================================== */
+
+.char-player-subtitle {
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 600;
+    margin-top: -3px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.party-card-hidden {
+    opacity: 0.75;
+    border: 1.5px dashed #f59e0b !important;
+}
+
+.party-card-hidden:hover {
+    opacity: 1;
+}
+
+.party-floating-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 10;
+}
+
+.party-float-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.party-float-btn:hover {
+    transform: scale(1.12);
+    background: rgba(15, 23, 42, 0.92);
+}
+
+.party-vis-btn.active-hidden {
+    background: #d97706 !important;
+    border-color: #f59e0b !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+}
+
+.party-unlink-btn:hover {
+    background: #dc2626 !important;
+    border-color: #ef4444 !important;
+    color: #ffffff !important;
+}
+
+.card-stat-item-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.2rem 0;
+}
+
+.stat-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.82rem;
+}
+
+.stat-subrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+}
+
+.subrow-tag {
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: #94a3b8;
+    width: 36px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.wp-boxes-row {
+    display: flex;
+    gap: 3.5px;
+    align-items: center;
+}
+
+.wp-mini-box {
+    width: 9.5px;
+    height: 9.5px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 2px;
+    background: #ffffff;
+    display: inline-block;
+    transition: all 0.15s ease;
+}
+
+.wp-mini-box.filled {
+    background: #f59e0b;
+    border-color: #d97706;
+    box-shadow: 0 0 3px rgba(245, 158, 11, 0.45);
+}
+
+.wp-mini-box.disabled {
+    opacity: 0.35;
+    border-color: #e2e8f0;
+    background: #f8fafc;
+}
+
+.health-track-card-item {
+    border-top: 1px dashed #e2e8f0;
+    padding-top: 0.45rem;
+    margin-top: 0.15rem;
+}
+
+.health-mini-track {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    margin-top: 3px;
+}
+
+.health-mini-box {
+    flex: 1;
+    height: 19px;
+    border: 1.5px solid #94a3b8;
+    border-radius: 3px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.68rem;
+    font-weight: 900;
+    line-height: 1;
+    user-select: none;
+    transition: transform 0.12s ease;
+}
+
+.health-mini-box:hover {
+    transform: scale(1.1);
+    z-index: 2;
+}
+
+.health-mini-box.dmg-none {
+    border-color: #10b981;
+    background: #ecfdf5;
+    color: transparent;
+}
+
+.health-mini-box.dmg-bashing {
+    border-color: #f59e0b;
+    background: #fffbeb;
+    color: #d97706;
+}
+
+.health-mini-box.dmg-lethal {
+    border-color: #ef4444;
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.health-mini-box.dmg-aggravated {
+    border-color: #9333ea;
+    background: #faf5ff;
+    color: #7e22ce;
+}
+
+.party-card-footer-action {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.btn-open-party-sheet {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    color: #ffffff !important;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.55rem 0.8rem;
+    border-radius: 7px;
+    text-decoration: none;
+    box-sizing: border-box;
+    transition: all 0.18s ease;
+}
+
+.btn-open-party-sheet:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.35);
+}
+
 
 
 

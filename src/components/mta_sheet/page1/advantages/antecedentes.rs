@@ -113,9 +113,12 @@ pub fn Antecedentes() -> impl IntoView {
         }
     };
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <div class="antecedentes-column">
-            <h3 class="column-title">"Antecedentes"</h3>
+            <h3 class="column-title">{move || crate::i18n::tr("backgrounds", lang())}</h3>
             <For
                 each=move || list.get()
                 key=|id| id.clone()

@@ -4,18 +4,18 @@ use crate::state::{CharacterData, DotOrigin};
 use crate::components::character_sheet::ActiveDotOriginContext;
 
 const TALENTOS: &[&'static str] = &[
-    "Prontidão", "Esportes", "Briga", "Esquiva", "Empatia", 
+    "Prontidão", "Esportes", "Briga", "Esquiva", "Consciência", 
     "Expressão", "Intimidação", "Liderança", "Manha", "Lábia"
 ];
 
 const PERICIAS: &[&'static str] = &[
-    "Empatia c/ Animais", "Condução", "Etiqueta", "Armas de Fogo", "Meditação", 
+    "Ofícios", "Condução", "Etiqueta", "Armas de Fogo", "Meditação", 
     "Armas Brancas", "Performance", "Furtividade", "Sobrevivência", "Tecnologia"
 ];
 
 const CONHECIMENTOS: &[&'static str] = &[
     "Acadêmicos", "Computador", "Cosmologia", "Enigmas", "Investigação", 
-    "Direito", "Medicina", "Ocultismo", "Política", "Ciência"
+    "Direito", "Medicina", "Ocultismo", "Esotérica", "Ciência"
 ];
 
 #[component]
@@ -72,6 +72,9 @@ pub fn Abilities() -> impl IntoView {
         });
     };
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     // Helper para criar o campo de habilidade (estático ou dinâmico)
     let render_field = move |name: String, is_custom: bool, category: &'static str| {
         let n_level = name.clone();
@@ -96,7 +99,7 @@ pub fn Abilities() -> impl IntoView {
                         }
                     })
                 } else {
-                    id.clone()
+                    crate::i18n::tr_ability(&id, lang()).to_string()
                 }
             })
         });
@@ -157,10 +160,10 @@ pub fn Abilities() -> impl IntoView {
 
     view! {
         <div class="group-box">
-            <span class="group-title">"Habilidades"</span>
+            <span class="group-title">{move || crate::i18n::tr("abilities", lang())}</span>
             <div class="attributes-block">
                 <AbilityColumn 
-                    title="Talentos" 
+                    title=Signal::derive(move || crate::i18n::tr("talents", lang()).to_string()) 
                     on_add=Callback::new(move |_| add_custom("Talentos"))
                 >
                     {TALENTOS.iter().map(|&n| render_field(n.to_string(), false, "Talentos")).collect_view()}
@@ -172,7 +175,7 @@ pub fn Abilities() -> impl IntoView {
                 </AbilityColumn>
                 
                 <AbilityColumn 
-                    title="Perícias"
+                    title=Signal::derive(move || crate::i18n::tr("skills", lang()).to_string())
                     on_add=Callback::new(move |_| add_custom("Perícias"))
                 >
                     {PERICIAS.iter().map(|&n| render_field(n.to_string(), false, "Perícias")).collect_view()}
@@ -184,7 +187,7 @@ pub fn Abilities() -> impl IntoView {
                 </AbilityColumn>
 
                 <AbilityColumn 
-                    title="Conhecimentos"
+                    title=Signal::derive(move || crate::i18n::tr("knowledges", lang()).to_string())
                     on_add=Callback::new(move |_| add_custom("Conhecimentos"))
                 >
                     {CONHECIMENTOS.iter().map(|&n| render_field(n.to_string(), false, "Conhecimentos")).collect_view()}
@@ -200,10 +203,10 @@ pub fn Abilities() -> impl IntoView {
 }
 
 #[component]
-fn AbilityColumn(title: &'static str, children: Children, on_add: Callback<()>) -> impl IntoView {
+fn AbilityColumn(title: Signal<String>, children: Children, on_add: Callback<()>) -> impl IntoView {
     view! {
         <div class="attribute-column">
-            <h3 class="column-title">{title}</h3>
+            <h3 class="column-title">{move || title.get()}</h3>
             {children()}
             <button class="add-field-btn" on:click=move |_| on_add.call(())>"+"</button>
         </div>

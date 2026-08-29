@@ -22,6 +22,9 @@ pub fn Attributes() -> impl IntoView {
         });
     };
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     let attr_field = move |name: &'static str| {
         let name_str = name.to_string();
         let name_str2 = name.to_string();
@@ -58,7 +61,7 @@ pub fn Attributes() -> impl IntoView {
 
         view! {
             <ValueField 
-                label=Signal::derive(move || name.to_string()) 
+                label=Signal::derive(move || crate::i18n::tr_attr(name, lang()).to_string()) 
                 level=level
                 modifier=modifier
                 origins=origins
@@ -73,21 +76,21 @@ pub fn Attributes() -> impl IntoView {
 
     view! {
         <div class="group-box">
-            <span class="group-title">"Atributos"</span>
+            <span class="group-title">{move || crate::i18n::tr("attributes", lang())}</span>
             <div class="attributes-block">
-                <AttributeColumn title="Físicos">
+                <AttributeColumn title=Signal::derive(move || crate::i18n::tr("physical", lang()).to_string())>
                     {attr_field("Força")}
                     {attr_field("Destreza")}
                     {attr_field("Vigor")}
                 </AttributeColumn>
                 
-                <AttributeColumn title="Sociais">
+                <AttributeColumn title=Signal::derive(move || crate::i18n::tr("social", lang()).to_string())>
                     {attr_field("Carisma")}
                     {attr_field("Manipulação")}
                     {attr_field("Aparência")}
                 </AttributeColumn>
 
-                <AttributeColumn title="Mentais">
+                <AttributeColumn title=Signal::derive(move || crate::i18n::tr("mental", lang()).to_string())>
                     {attr_field("Percepção")}
                     {attr_field("Inteligência")}
                     {attr_field("Raciocínio")}
@@ -98,10 +101,10 @@ pub fn Attributes() -> impl IntoView {
 }
 
 #[component]
-fn AttributeColumn(title: &'static str, children: Children) -> impl IntoView {
+fn AttributeColumn(title: Signal<String>, children: Children) -> impl IntoView {
     view! {
         <div class="attribute-column">
-            <h3 class="column-title">{title}</h3>
+            <h3 class="column-title">{move || title.get()}</h3>
             {children()}
         </div>
     }

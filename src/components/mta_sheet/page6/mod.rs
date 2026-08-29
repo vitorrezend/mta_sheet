@@ -71,17 +71,29 @@ pub fn PageNotes() -> impl IntoView {
         }
     };
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <div class="sheet-page-content page-notes-content">
             // Box 1: Anotações da Sessão & Contatos
             <div class="group-box notes-session-box">
-                <span class="group-title">"CHRONICLE & SESSION NOTES"</span>
+                <span class="group-title">{move || match lang() {
+                    crate::i18n::Language::PtBr => "NOTAS DA SESSÃO & CRÔNICA",
+                    crate::i18n::Language::EnUs => "CHRONICLE & SESSION NOTES",
+                }}</span>
                 <div class="notes-box-header-info">
-                    <span class="notes-box-sub">"Registros da mesa, contatos, pistas investigativas, acordos e acontecimentos da crônica"</span>
+                    <span class="notes-box-sub">{move || match lang() {
+                        crate::i18n::Language::PtBr => "Registros da mesa, contatos, pistas investigativas, acordos e acontecimentos da crônica",
+                        crate::i18n::Language::EnUs => "Game table logs, contacts, investigation clues, bargains, and chronicle events",
+                    }}</span>
                 </div>
                 <StableTextArea 
                     class="notes-fullpage-textarea"
-                    placeholder="Escreva livremente sobre os acontecimentos da crônica, reuniões com a Cabala, encontros com NPCs, favores, débitos de Quintessência e pistas da investigação..."
+                    placeholder=Signal::derive(move || match lang() {
+                        crate::i18n::Language::PtBr => "Escreva livremente sobre os acontecimentos da crônica, reuniões com a Cabala, encontros com NPCs, favores, débitos de Quintessência e pistas da investigação...".to_string(),
+                        crate::i18n::Language::EnUs => "Write freely about chronicle events, cabal meetings, NPC interactions, favors, quintessence debts, and investigation leads...".to_string(),
+                    })
                     value=session_notes
                     on_change=on_session_notes_change
                 />
@@ -89,13 +101,22 @@ pub fn PageNotes() -> impl IntoView {
 
             // Box 2: Diário de Campanha & Mistérios Arcanos
             <div class="group-box notes-journal-box">
-                <span class="group-title">"CAMPAIGN JOURNAL & ARCANUM"</span>
+                <span class="group-title">{move || match lang() {
+                    crate::i18n::Language::PtBr => "DIÁRIO DE CAMPANHA & MISTÉRIOS",
+                    crate::i18n::Language::EnUs => "CAMPAIGN JOURNAL & ARCANUM",
+                }}</span>
                 <div class="notes-box-header-info">
-                    <span class="notes-box-sub">"Diário pessoal do Mago, visões de Avatar, reflexões filosóficas, teorias de Paradigma e memórias arcanas"</span>
+                    <span class="notes-box-sub">{move || match lang() {
+                        crate::i18n::Language::PtBr => "Diário pessoal do Mago, visões de Avatar, reflexões filosóficas, teorias de Paradigma e memórias arcanas",
+                        crate::i18n::Language::EnUs => "Personal Mage diary, Avatar visions, philosophical reflections, Paradigm theories, and arcane memories",
+                    }}</span>
                 </div>
                 <StableTextArea 
                     class="notes-fullpage-textarea"
-                    placeholder="Diário íntimo do Mago, epifanias sobre o Paradigma, mensagens do Avatar, planos para o Despertar e estudos herméticos..."
+                    placeholder=Signal::derive(move || match lang() {
+                        crate::i18n::Language::PtBr => "Diário íntimo do Mago, epifanias sobre o Paradigma, mensagens do Avatar, planos para o Despertar e estudos herméticos...".to_string(),
+                        crate::i18n::Language::EnUs => "Intimate diary of the Mage, Paradigm epiphanies, Avatar messages, plans for Awakening, and hermetic research...".to_string(),
+                    })
                     value=campaign_journal
                     on_change=on_campaign_journal_change
                 />
@@ -103,15 +124,25 @@ pub fn PageNotes() -> impl IntoView {
 
             // Box 3: Arquivo Visual, Mapas & Evidências (Imagens até 10MB)
             <div class="group-box notes-visual-box">
-                <span class="group-title">"VISUAL ARCHIVES & ATTACHMENTS (MAPAS & EVIDÊNCIAS)"</span>
+                <span class="group-title">{move || match lang() {
+                    crate::i18n::Language::PtBr => "DOCUMENTOS VISUAIS, MAPAS & EVIDÊNCIAS",
+                    crate::i18n::Language::EnUs => "VISUAL ARCHIVES, MAPS & EVIDENCE",
+                }}</span>
                 <div class="notes-visual-container">
                     <div class="notes-visual-header">
                         <div class="notes-visual-info">
-                            <span class="notes-visual-badge">"📁 Anexo Visual"</span>
-                            <span class="notes-visual-desc">"Mapas de nós místicos, diagramas, fotos de pistas, documentos arcanos ou evidências (até 10MB)"</span>
+                            <span class="notes-visual-badge">{move || match lang() {
+                                crate::i18n::Language::PtBr => "📁 Anexo Visual",
+                                crate::i18n::Language::EnUs => "📁 Visual Attachment",
+                            }}</span>
+                            <span class="notes-visual-desc">{move || match lang() {
+                                crate::i18n::Language::PtBr => "Mapas de nós místicos, diagramas, fotos de pistas, documentos arcanos ou evidências (até 10MB)",
+                                crate::i18n::Language::EnUs => "Node maps, diagrams, clue photos, arcane documents, or evidence (up to 10MB)",
+                            }}</span>
                         </div>
                         {move || {
                             let url = attachment_image_url.get();
+                            let current_lang = lang();
                             if !url.is_empty() {
                                 view! {
                                     <button 
@@ -120,9 +151,15 @@ pub fn PageNotes() -> impl IntoView {
                                         on:click=move |_| {
                                             set_data.update(|s| s.notes_data.attachment_image_url.clear());
                                         }
-                                        title="Remover Imagem Anexada"
+                                        title=move || match current_lang {
+                                            crate::i18n::Language::PtBr => "Remover Imagem Anexada",
+                                            crate::i18n::Language::EnUs => "Remove Attached Image",
+                                        }
                                     >
-                                        "× Remover Imagem"
+                                        {match current_lang {
+                                            crate::i18n::Language::PtBr => "× Remover Imagem",
+                                            crate::i18n::Language::EnUs => "× Remove Image",
+                                        }}
                                     </button>
                                 }.into_view()
                             } else {
@@ -134,15 +171,16 @@ pub fn PageNotes() -> impl IntoView {
                     <div class="notes-image-preview-area">
                         {move || {
                             let url = attachment_image_url.get();
+                            let current_lang = lang();
                             if !url.is_empty() {
                                 let u_modal = url.clone();
                                 view! {
                                     <div class="notes-attached-image-wrapper">
                                         <img 
                                             src=url
-                                            alt="Documento / Mapa Anexado"
+                                            alt="Document / Map"
                                             class="notes-attached-img"
-                                            title="Clique para ampliar em tela cheia"
+                                            title="Click to zoom"
                                             on:click=move |_| set_active_modal_image.set(Some(u_modal.clone()))
                                         />
                                     </div>
@@ -167,8 +205,13 @@ pub fn PageNotes() -> impl IntoView {
                                             }
                                         />
                                         <span class="notes-dropzone-icon">"🗺️"</span>
-                                        <span class="notes-dropzone-text">"Clique ou arraste um mapa, documento ou imagem de apoio"</span>
-                                        <span class="notes-dropzone-hint">"JPG, PNG, WEBP, GIF até 10MB • Clique para zoom após o upload"</span>
+                                        <span class="notes-dropzone-text">
+                                            {match current_lang {
+                                                crate::i18n::Language::PtBr => "Clique ou arraste um mapa, documento ou imagem de apoio",
+                                                crate::i18n::Language::EnUs => "Click or drag a map, document, or reference image",
+                                            }}
+                                        </span>
+                                        <span class="notes-dropzone-hint">"JPG, PNG, WEBP max 10MB"</span>
                                     </label>
                                 }.into_view()
                             }

@@ -11,6 +11,9 @@ use crate::components::rooms::InitiativeDrawer;
 
 #[component]
 pub fn RoomView() -> impl IntoView {
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     let params = use_params_map();
     let room_id = move || params.with(|p| p.get("id").cloned().unwrap_or_default());
 
@@ -317,6 +320,7 @@ pub fn RoomView() -> impl IntoView {
 
                             <div class="room-tab-content">
                                 {move || if active_tab.get() == "party" {
+                                    let current_lang = lang();
                                     view! {
                                         <section class="room-characters-section">
                                             <div class="section-header">
@@ -327,23 +331,286 @@ pub fn RoomView() -> impl IntoView {
                                                 view! { <div class="empty-room-sheets"><h3>"Nenhum personagem aqui"</h3><button class="action-link-btn" on:click=move |_| set_show_assign_modal.set(true)>"+ Vincular Ficha"</button></div> }.into_view()
                                             } else {
                                                 view! {
-                                                    <div class="party-grid">
+                                                    <div class="character-cards-grid party-grid">
                                                         {room.sheets.iter().map(|sheet| {
-                                                            let s_id = sheet.id.clone();
+                                                            let s_id_nav = sheet.id.clone();
                                                             let remove_id = sheet.id.clone();
                                                             let toggle_id = sheet.id.clone();
                                                             let is_hidden = sheet.is_hidden;
                                                             let can_toggle = is_gm || sheet.is_owner;
+                                                            let is_gm_char = sheet.sheet_type == "gods_and_monsters";
+                                                            let photo = sheet.photo_url.clone();
+                                                            let has_photo = !photo.is_empty();
+                                                            let tradition_display = if !sheet.tradition.is_empty() {
+                                                                sheet.tradition.clone()
+                                                            } else if is_gm_char {
+                                                                "Familiar / Bygone".to_string()
+                                                            } else {
+                                                                crate::i18n::tr("card_tradition_undefined", current_lang).to_string()
+                                                            };
+                                                            let essence_display = if !sheet.essence.is_empty() {
+                                                                sheet.essence.clone()
+                                                            } else if !sheet.concept.is_empty() {
+                                                                sheet.concept.clone()
+                                                            } else if is_gm_char {
+                                                                "Gods & Monsters".to_string()
+                                                            } else {
+                                                                crate::i18n::tr("card_essence_awakened", current_lang).to_string()
+                                                            };
+                                                            let arete_val = sheet.arete;
+                                                            let wp_tot = sheet.willpower_total.clamp(1, 10);
+                                                            let wp_cur = sheet.willpower_current.clamp(0, wp_tot);
                                                             let badge_cls = format!("party-health-badge {}", sheet.health_badge_class);
+                                                            
                                                             view! {
-                                                                <div class="party-card" class:party-card-hidden=is_hidden>
-                                                                    <div class="party-card-header"><h3 class="char-name">{sheet.name.clone()}</h3><span class="char-player">{sheet.player_name.clone()}</span></div>
-                                                                    <div class=badge_cls><span>"Saúde: " {sheet.health_label.clone()}</span></div>
-                                                                    <div class="party-stats-grid"><div class="stat-box"><span>"Arete"</span><span>{sheet.arete}</span></div><div class="stat-box"><span>"Vontade"</span><span>{sheet.willpower_current}"/"{sheet.willpower_total}</span></div></div>
-                                                                    <div class="party-card-footer">
-                                                                        <A href=format!("/sheet/{}", s_id) class="open-sheet-btn">"Abrir Ficha"</A>
-                                                                        {if can_toggle { view! { <button class="visibility-toggle-btn" on:click=move |_| on_toggle_visibility(toggle_id.clone(), is_hidden)>{if is_hidden { "Revelar" } else { "Ocultar" }}</button> }.into_view() } else { view! {}.into_view() }}
-                                                                        {if is_gm || sheet.is_owner { view! { <button class="unlink-btn" on:click=move |_| on_remove_sheet(remove_id.clone())>"Desvincular"</button> }.into_view() } else { view! {}.into_view() }}
+                                                                <div 
+                                                                    class="character-card party-card" 
+                                                                    class:party-card-hidden=is_hidden
+                                                                >
+                                                                    // 1. Portrait Header Box
+                                                                    <div class="card-portrait-box">
+                                                                        {if has_photo {
+                                                                            let img_style = format!("object-position: {}% {}%;", sheet.photo_focus_x, sheet.photo_focus_y);
+                                                                            view! {
+                                                                                <img
+                                                                                    src=photo
+                                                                                    alt=sheet.name.clone()
+                                                                                    class="card-portrait-img"
+                                                                                    style=img_style
+                                                                                />
+                                                                            }.into_view()
+                                                                        } else {
+                                                                            view! {
+                                                                                <div class="card-portrait-placeholder">
+                                                                                    <span class="placeholder-icon">{if is_gm_char { "🐉" } else { "🔮" }}</span>
+                                                                                    <span class="placeholder-tag">{if is_gm_char { "Gods & Monsters".to_string() } else { crate::i18n::tr("card_no_image", current_lang).to_string() }}</span>
+                                                                                </div>
+                                                                            }.into_view()
+                                                                        }}
+                                                                        <div class="card-portrait-gradient"></div>
+
+                                                                        // Floating Top Actions
+                                                                        <div class="party-floating-actions">
+                                                                            {if can_toggle {
+                                                                                let t_id = toggle_id.clone();
+                                                                                view! {
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        class="party-float-btn party-vis-btn"
+                                                                                        class:active-hidden=is_hidden
+                                                                                        on:click=move |ev: ev::MouseEvent| {
+                                                                                            ev.stop_propagation();
+                                                                                            on_toggle_visibility(t_id.clone(), is_hidden);
+                                                                                        }
+                                                                                        title=if is_hidden { "Ficha Oculta dos Jogadores. Clique para Revelar." } else { "Ficha Visível. Clique para Ocultar dos Jogadores." }
+                                                                                    >
+                                                                                        {if is_hidden { "🔒" } else { "👁️" }}
+                                                                                    </button>
+                                                                                }.into_view()
+                                                                            } else {
+                                                                                ().into_view()
+                                                                            }}
+
+                                                                            {if is_gm || sheet.is_owner {
+                                                                                let r_id = remove_id.clone();
+                                                                                view! {
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        class="party-float-btn party-unlink-btn"
+                                                                                        on:click=move |ev: ev::MouseEvent| {
+                                                                                            ev.stop_propagation();
+                                                                                            on_remove_sheet(r_id.clone());
+                                                                                        }
+                                                                                        title="Desvincular esta ficha da mesa"
+                                                                                    >
+                                                                                        "✕"
+                                                                                    </button>
+                                                                                }.into_view()
+                                                                            } else {
+                                                                                ().into_view()
+                                                                            }}
+                                                                        </div>
+                                                                    </div>
+
+                                                                    // 2. Card Content
+                                                                    <div class="card-content">
+                                                                        <div class="card-header-info">
+                                                                            <h3 class="card-name" title=sheet.name.clone()>{sheet.name.clone()}</h3>
+                                                                            {if !sheet.player_name.is_empty() {
+                                                                                view! {
+                                                                                    <span class="char-player-subtitle">
+                                                                                        "👤 " {sheet.player_name.clone()}
+                                                                                    </span>
+                                                                                }.into_view()
+                                                                            } else {
+                                                                                ().into_view()
+                                                                            }}
+                                                                            <div class="card-meta-tags">
+                                                                                {if is_gm_char {
+                                                                                    view! { <span class="meta-tag type-badge-gm">{crate::i18n::tr("card_tag_gm", current_lang)}</span> }.into_view()
+                                                                                } else {
+                                                                                    view! { <span class="meta-tag type-badge-mage">{crate::i18n::tr("card_tag_mage", current_lang)}</span> }.into_view()
+                                                                                }}
+                                                                                <span class="meta-tag tradition-tag">{tradition_display}</span>
+                                                                                <span class="meta-tag essence-tag">{essence_display}</span>
+                                                                                {if is_hidden {
+                                                                                    view! { <span class="meta-tag vis-tag vis-private">"🔒 Oculto"</span> }.into_view()
+                                                                                } else {
+                                                                                    ().into_view()
+                                                                                }}
+                                                                            </div>
+                                                                        </div>
+
+                                                                        // 3. Stats Preview (Arete, Willpower with Dots & Squares, Health with 7 Boxes)
+                                                                        <div class="card-stats-preview">
+                                                                            // Arete / Gnose
+                                                                            <div class="card-stat-item">
+                                                                                <span class="stat-label">{if is_gm_char { crate::i18n::tr("card_gnosis", current_lang) } else { crate::i18n::tr("card_arete", current_lang) }}</span>
+                                                                                <div class="stat-dots arete-dots">
+                                                                                    {(1..=if is_gm_char { 10 } else { 5 }).map(|idx| {
+                                                                                        let filled = idx <= arete_val;
+                                                                                        view! {
+                                                                                            <span class=if filled { "stat-dot filled-arete" } else { "stat-dot empty-dot" }></span>
+                                                                                        }
+                                                                                    }).collect_view()}
+                                                                                </div>
+                                                                                <span class="stat-number">{arete_val}</span>
+                                                                            </div>
+
+                                                                            // Força de Vontade (Bolinhas Permanentes E Quadradinhos Temporários/Atuais)
+                                                                            <div class="card-stat-item-vertical">
+                                                                                <div class="stat-header-row">
+                                                                                    <span class="stat-label">{crate::i18n::tr("card_willpower", current_lang)}</span>
+                                                                                    <span class="stat-number">{format!("{}/{}", wp_cur, wp_tot)}</span>
+                                                                                </div>
+                                                                                // Bolinhas (Permanente)
+                                                                                <div class="stat-subrow" title=format!("Força de Vontade Permanente: {} bolinhas", wp_tot)>
+                                                                                    <span class="subrow-tag">"Perm:"</span>
+                                                                                    <div class="stat-dots wp-dots">
+                                                                                        {(1..=10).map(|idx| {
+                                                                                            let filled = idx <= wp_tot;
+                                                                                            view! {
+                                                                                                <span class=if filled { "stat-dot filled-wp" } else { "stat-dot empty-dot" }></span>
+                                                                                            }
+                                                                                        }).collect_view()}
+                                                                                    </div>
+                                                                                </div>
+                                                                                // Quadradinhos (Atual / Temporário)
+                                                                                <div class="stat-subrow" title=format!("Força de Vontade Atual: {} pontos disponíveis", wp_cur)>
+                                                                                    <span class="subrow-tag">"Atual:"</span>
+                                                                                    <div class="wp-boxes-row">
+                                                                                        {(1..=10).map(|idx| {
+                                                                                            let filled = idx <= wp_cur;
+                                                                                            let is_avail = idx <= wp_tot;
+                                                                                            view! {
+                                                                                                <span
+                                                                                                    class="wp-mini-box"
+                                                                                                    class:filled=filled
+                                                                                                    class:disabled=!is_avail
+                                                                                                ></span>
+                                                                                            }
+                                                                                        }).collect_view()}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            // Vitalidade & Trilha de Dano com os 7 Quadradinhos de Vida
+                                                                            <div class="card-stat-item-vertical health-track-card-item">
+                                                                                <div class="stat-header-row">
+                                                                                    <span class="stat-label">"Saúde:"</span>
+                                                                                    <span class=badge_cls>{sheet.health_label.clone()} " (" {sheet.health_penalty.clone()} ")"</span>
+                                                                                </div>
+                                                                                <div class="health-mini-track" title=format!("Dano: {}", sheet.health_damage_str)>
+                                                                                    {(0..sheet.health_boxes.len().max(7)).map(|i| {
+                                                                                        let lvl_name = match i {
+                                                                                            0 => "Escoriado (0)",
+                                                                                            1 => "Ferido (-1)",
+                                                                                            2 => "Gravemente Ferido (-1)",
+                                                                                            3 => "Espancado (-2)",
+                                                                                            4 => "Estropiado (-2)",
+                                                                                            5 => "Aleijado (-5)",
+                                                                                            6 => "Incapacitado (☠️)",
+                                                                                            _ => "Extra",
+                                                                                        };
+                                                                                        let dmg_type = sheet.health_boxes.get(i).map(|s| s.as_str()).unwrap_or("none");
+                                                                                        let (dmg_char, dmg_cls) = match dmg_type {
+                                                                                            "bashing" => ("/", "dmg-bashing"),
+                                                                                            "lethal" => ("X", "dmg-lethal"),
+                                                                                            "aggravated" => ("*", "dmg-aggravated"),
+                                                                                            _ => ("", "dmg-none"),
+                                                                                        };
+                                                                                        view! {
+                                                                                            <div
+                                                                                                class=format!("health-mini-box {}", dmg_cls)
+                                                                                                title=format!("{}: {}", lvl_name, match dmg_type {
+                                                                                                    "bashing" => "Contusivo (/)",
+                                                                                                    "lethal" => "Letal (X)",
+                                                                                                    "aggravated" => "Agravado (*)",
+                                                                                                    _ => "Livre [ ]",
+                                                                                                })
+                                                                                            >
+                                                                                                {dmg_char}
+                                                                                            </div>
+                                                                                        }
+                                                                                    }).collect_view()}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        // 4. Esferas Preview (para Magos)
+                                                                        {if !is_gm_char {
+                                                                            view! {
+                                                                                <div class="card-spheres-preview">
+                                                                                    <div class="spheres-header-row">
+                                                                                        <span class="spheres-label">{crate::i18n::tr("card_spheres_title", current_lang)}</span>
+                                                                                    </div>
+                                                                                    <div class="spheres-9-grid">
+                                                                                        {sheet.spheres.iter().map(|(sphere_name, lvl)| {
+                                                                                            let s_name = crate::i18n::tr_sphere(sphere_name, current_lang).to_string();
+                                                                                            let s_lvl = *lvl;
+                                                                                            let is_active = s_lvl > 0;
+                                                                                            let level_label = match current_lang {
+                                                                                                crate::i18n::Language::PtBr => "nível",
+                                                                                                crate::i18n::Language::EnUs => "level",
+                                                                                            };
+                                                                                            view! {
+                                                                                                <div
+                                                                                                    class=if is_active { "sphere-item-active" } else { "sphere-item-inactive" }
+                                                                                                    title=format!("{}: {} {}", s_name, level_label, s_lvl)
+                                                                                                >
+                                                                                                    <span class="sphere-mini-name">{s_name}</span>
+                                                                                                    <div class="sphere-mini-dots">
+                                                                                                        {(1..=5).map(|dot_i| {
+                                                                                                            let filled = dot_i <= s_lvl;
+                                                                                                            view! {
+                                                                                                                <span class=if filled { "stat-dot filled-sphere" } else { "stat-dot empty-dot" }></span>
+                                                                                                            }
+                                                                                                        }).collect_view()}
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            }
+                                                                                        }).collect_view()}
+                                                                                    </div>
+                                                                                </div>
+                                                                            }.into_view()
+                                                                        } else {
+                                                                            view! {
+                                                                                <div class="card-gm-badge-footer">
+                                                                                    <span class="gm-creature-desc">{crate::i18n::tr("card_gm_footer_desc", current_lang)}</span>
+                                                                                </div>
+                                                                            }.into_view()
+                                                                        }}
+
+                                                                        // 5. Card Footer
+                                                                        <div class="party-card-footer-action">
+                                                                            <A href=format!("/sheet/{}", s_id_nav) class="btn-open-party-sheet">
+                                                                                "📖 "
+                                                                                {match current_lang {
+                                                                                    crate::i18n::Language::PtBr => "Abrir Ficha Completa",
+                                                                                    crate::i18n::Language::EnUs => "Open Full Sheet",
+                                                                                }}
+                                                                            </A>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             }

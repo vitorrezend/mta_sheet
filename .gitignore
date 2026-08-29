@@ -19,6 +19,10 @@ mta_sheet.exe
 *.swo
 *~
 *.bak
+*.7z
+*.zip
+*.rar
+*.tar.gz
 
 # --- Logs & Runtime Output ---
 *.log

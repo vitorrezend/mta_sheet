@@ -11,22 +11,44 @@
 }
 
 @media print {
-    /* 1. Reset e Base */
+    /* 1. Reset, Eliminação Completa de Barras de Rolagem e Base */
+    * {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+
+    *::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        background: transparent !important;
+    }
+
     html, body {
         background: #ffffff !important;
         color: #000000 !important;
         padding: 0 !important;
         margin: 0 !important;
         width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        overflow-x: visible !important;
+        overflow-y: visible !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
 
-    .app-layout, .main-container, .sheet-view-container {
+    .app-layout, .main-container, .sheet-view-container, .sheet-page-tab-pane {
         padding: 0 !important;
         margin: 0 !important;
         max-width: 100% !important;
         width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        overflow-x: visible !important;
+        overflow-y: visible !important;
     }
 
     .sheet-container, .sheet-wrapper, .sheet {
@@ -36,10 +58,15 @@
         margin: 0 !important;
         width: 100% !important;
         max-width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
         background: #ffffff !important;
+        overflow: visible !important;
+        overflow-x: visible !important;
+        overflow-y: visible !important;
     }
 
-    /* 2. Ocultar todos os controles de interface e navegação */
+    /* 2. Ocultar todos os controles de interface, navegação e botões auxiliares */
     .main-navbar,
     .sheet-top-bar,
     .sheet-tabs-container,
@@ -68,9 +95,27 @@
     .add-grimoire-pill-btn,
     .rote-collapsed-preview,
     .add-sphere-inline-control,
-    .sphere-pill-remove-btn {
+    .sphere-pill-remove-btn,
+    .add-field-btn,
+    .remove-btn,
+    .vitality-reset-btn,
+    .qc-info-wrapper,
+    .qc-info-btn,
+    .qc-tooltip-popover,
+    .privacy-toggle-top-btn,
+    .lang-toggle-btn,
+    .manual-save-btn,
+    .export-pdf-btn,
+    .json-top-btn {
         display: none !important;
         visibility: hidden !important;
+    }
+
+    /* Ocultar textos de placeholder na impressão (ex: "NOME..." vazio) */
+    input::placeholder,
+    textarea::placeholder {
+        color: transparent !important;
+        opacity: 0 !important;
     }
 
     /* 3. Forçar TODAS as 4 páginas a aparecerem em sequência no PDF */
@@ -87,7 +132,52 @@
         box-sizing: border-box !important;
     }
 
-    /* A última página não deve forçar uma 5ª página em branco */
+    /* Omissão Seletiva de Páginas via classes no body (Modo Inteligente / Personalizado) */
+    body.print-hide-p1 .page-main,
+    body.print-hide-p1 .page-gods-1 {
+        display: none !important;
+        visibility: hidden !important;
+        break-after: auto !important;
+        page-break-after: auto !important;
+    }
+
+    body.print-hide-p2 .page-magic-combat,
+    body.print-hide-p2 .page-gods-2 {
+        display: none !important;
+        visibility: hidden !important;
+        break-after: auto !important;
+        page-break-after: auto !important;
+    }
+
+    body.print-hide-p3 .page-expanded {
+        display: none !important;
+        visibility: hidden !important;
+        break-after: auto !important;
+        page-break-after: auto !important;
+    }
+
+    body.print-hide-p4 .page-history-visuals {
+        display: none !important;
+        visibility: hidden !important;
+        break-after: auto !important;
+        page-break-after: auto !important;
+    }
+
+    body.print-hide-p5 .page-grimoire {
+        display: none !important;
+        visibility: hidden !important;
+        break-after: auto !important;
+        page-break-after: auto !important;
+    }
+
+    body.print-hide-p6 .page-notes {
+        display: none !important;
+        visibility: hidden !important;
+        break-after: auto !important;
+        page-break-after: auto !important;
+    }
+
+    /* A última página visível não deve forçar quebra de página vazia ao final */
     .sheet-page-tab-pane:last-child,
     .sheet-page-tab-pane.tab-hidden:last-child {
         break-after: auto !important;

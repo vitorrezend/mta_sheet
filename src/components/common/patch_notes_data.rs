@@ -19,6 +19,41 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.14.0",
+        date: "2026-08-29",
+        tag: "v0.14.0",
+        title: "Enquadramento Interativo por Arraste, Compressão WebP & Roda Circular de Paradoxo",
+        highlight: "Modal interativo com drag & drop e scroll para enquadramento de fotos, compressão automática no cliente com Canvas WebP (redução de 98%), nova Roda Circular de Paradoxo e Quintessência às 9h, Módulo de Combate Rápido com tooltips e cards enriquecidos na Home e Salas.",
+        sections: &[
+            PatchSection {
+                category: "Visual & Retratos",
+                icon: "📐",
+                items: &[
+                    "📐 Modal Interativo de Enquadramento por Arraste: Arraste a imagem diretamente com o mouse ou toque (drag & drop) para definir a área focal visível nos cards, com suporte a scroll do mouse e atalhos rápidos (Rosto, Busto, Centro, Base).",
+                    "🖼️ Compressão e Limpeza WebP no Cliente: Redimensionamento proporcional automático (800px para retratos/maravilhas, 1400px para cabalas), remoção de metadados EXIF/GPS e conversão para WebP de alta qualidade reduzindo arquivos em mais de 98%.",
+                    "🗂️ Cards de Personagens Enriquecidos: Exibição do retrato enquadrado na Página Inicial e nas Salas com caixas dinâmicas de Força de Vontade e Vitalidade.",
+                ],
+            },
+            PatchSection {
+                category: "Mecânica & Ficha M20",
+                icon: "🔮",
+                items: &[
+                    "🎡 Roda Circular de Paradoxo & Quintessência: Disposição em círculo de 20 caixas a partir das 9h, adicionando Quintessência no sentido horário e Paradoxo no sentido anti-horário com botões dedicados de controle.",
+                    "⚔️ Módulo de Combate Rápido & Estatísticas Derivadas: Cálculo instantâneo de Iniciativa, Defesa, Movimento e Absorção de Dano (com regra humana de Mago) e tooltips informativos.",
+                    "📄 Exportação Inteligente para PDF: Supressão de barras de rolagem e opção para ignorar páginas sem conteúdo, gerando PDFs limpos e econômicos.",
+                ],
+            },
+            PatchSection {
+                category: "Estabilidade & Desempenho",
+                icon: "⚡",
+                items: &[
+                    "🛡️ Correção de Pânico de Hidratação: Estabilização de containers de abas (SheetTabs) e corpo da ficha para transição suave entre Mago e Gods & Monsters.",
+                    "🧪 49 Testes Automatizados 100% Aprovados: Cobertura total de persistência de enquadramento, cálculos de custos, validação de segurança e conformidade arquitetural.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.13.0",
         date: "2026-08-27",
         tag: "v0.13.0",

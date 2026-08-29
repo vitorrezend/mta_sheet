@@ -27,6 +27,7 @@ pub fn SheetTopBar(
     do_manual_save: Callback<ev::MouseEvent>,
     on_export_json: Callback<()>,
     on_import_json: Callback<CharacterData>,
+    #[prop(optional)] set_show_pdf_modal: Option<WriteSignal<bool>>,
 ) -> impl IntoView {
     let import_input_ref = create_node_ref::<html::Input>();
 
@@ -64,25 +65,38 @@ pub fn SheetTopBar(
         target.set_value("");
     };
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <header class="sheet-top-bar">
             <div class="top-bar-left">
-                <a href="/" class="back-link" on:click=move |ev| on_back_click.call(ev)>"← Início"</a>
-                <a href="/logs" class="back-link logs-nav-link">"📊 Logs"</a>
+                <a href="/" class="back-link" on:click=move |ev| on_back_click.call(ev)>{move || crate::i18n::tr("home", lang())}</a>
+                <a href="/logs" class="back-link logs-nav-link">{move || crate::i18n::tr("logs", lang())}</a>
             </div>
 
             <div class="top-bar-center">
                 <div class="mode-selector-container">
-                    <span class="mode-label">"Modo:"</span>
+                    <span class="mode-label">{move || crate::i18n::tr("mode", lang())}</span>
                     <div class="mode-btn-group">
                         <button 
                             class="mode-btn mode-base"
                             class:active=move || active_origin.get() == DotOrigin::Base
+                            class=("limit-exceeded", move || costs.get().creation_points.has_any_overflow)
                             on:click=move |_| set_active_origin.set(DotOrigin::Base)
-                            title="Criação Base de Personagem (Preto)"
+                            title=move || if costs.get().creation_points.has_any_overflow {
+                                "Criação Base: ⚠️ Há orçamentos ou regras extrapolados! Clique em Extrato para ver."
+                            } else {
+                                "Criação Base de Personagem (Preto) - Orçamentos Oficiais M20"
+                            }
                         >
                             <span class="mode-dot-icon dot-base"></span>
-                            "Criação"
+                            {move || crate::i18n::tr("mode_base", lang())}
+                            {move || if costs.get().creation_points.has_any_overflow {
+                                view! { <span class="badge-alert-dot">"⚠️"</span> }.into_view()
+                            } else {
+                                view! { <span></span> }.into_view()
+                            }}
                         </button>
                         <button 
                             class="mode-btn mode-bonus"
@@ -92,7 +106,7 @@ pub fn SheetTopBar(
                             title="Pontos de Bônus Iniciais (Roxo - 5 Atrib, 2 Hab, 7 Esfera, 4 Arete, 1 Antecedente/FV)"
                         >
                             <span class="mode-dot-icon dot-bonus"></span>
-                            "Bônus (" {move || costs.get().total_bonus_spent} "/15 pts)"
+                            {move || format!("{} ({}/15 pts)", crate::i18n::tr("mode_bonus", lang()), costs.get().total_bonus_spent)}
                         </button>
                         <button 
                             class="mode-btn mode-xp"
@@ -101,7 +115,7 @@ pub fn SheetTopBar(
                             title="Experiência / XP Acumulado (Verde)"
                         >
                             <span class="mode-dot-icon dot-xp"></span>
-                            "XP (" {move || costs.get().total_xp_spent} " pts)"
+                            {move || format!("{} ({} pts)", crate::i18n::tr("mode_xp", lang()), costs.get().total_xp_spent)}
                         </button>
                         <button 
                             class="mode-btn mode-temp"
@@ -110,7 +124,7 @@ pub fn SheetTopBar(
                             title="Bônus Temporário / Feitiço / Wonder (Dourado)"
                         >
                             <span class="mode-dot-icon dot-temp"></span>
-                            "Buff / Magia"
+                            {move || crate::i18n::tr("mode_temp", lang())}
                         </button>
                     </div>
 
@@ -120,7 +134,7 @@ pub fn SheetTopBar(
                         on:click=move |_| set_show_breakdown.set(true)
                         title="Ver extrato detalhado de gastos de Pontos de Bônus e XP"
                     >
-                        "📊 Extrato"
+                        {move || crate::i18n::tr("statement", lang())}
                     </button>
 
                     <button 
@@ -129,7 +143,7 @@ pub fn SheetTopBar(
                         on:click=move |_| set_show_quiz.set(true)
                         title="Abrir Dossiê do Personagem (Questionário de Criação)"
                     >
-                        "📂 Dossiê"
+                        {move || crate::i18n::tr("dossier", lang())}
                     </button>
                 </div>
             </div>
@@ -173,9 +187,28 @@ pub fn SheetTopBar(
                              }.into_view()
                         },
                     }}
+                    <button
+                        type="button"
+                        class="lang-toggle-btn"
+                        on:click=move |_| {
+                            if let Some(ctx) = lang_ctx {
+                                ctx.toggle();
+                            }
+                        }
+                        title=move || match lang() {
+                            crate::i18n::Language::PtBr => "Idioma: Português (Clique para mudar para English)",
+                            crate::i18n::Language::EnUs => "Language: English (Click to switch to Português)",
+                        }
+                    >
+                        {move || match lang() {
+                            crate::i18n::Language::PtBr => "🇧🇷 PT",
+                            crate::i18n::Language::EnUs => "🇺🇸 EN",
+                        }}
+                    </button>
+
                     <button class="manual-save-btn" on:click=move |ev| do_manual_save.call(ev) title="Salvar imediatamente">
                         <span class="btn-icon">"💾"</span>
-                        <span>"Salvar"</span>
+                        <span>{move || crate::i18n::tr("save", lang())}</span>
                     </button>
 
                     <div class="top-bar-action-group">
@@ -189,7 +222,7 @@ pub fn SheetTopBar(
                             }
                             title="Importar dados de um arquivo .json"
                         >
-                            "📥 Importar"
+                            {move || format!("📥 {}", crate::i18n::tr("import", lang()))}
                         </button>
 
                         <button 
@@ -198,14 +231,16 @@ pub fn SheetTopBar(
                             on:click=move |_| on_export_json.call(())
                             title="Exportar e baixar esta ficha em arquivo .json"
                         >
-                            "📤 Exportar"
+                            {move || format!("📤 {}", crate::i18n::tr("export", lang()))}
                         </button>
 
                         <button 
                             type="button" 
                             class="export-pdf-btn" 
                             on:click=move |_| {
-                                if let Some(w) = web_sys::window() {
+                                if let Some(set_pdf) = set_show_pdf_modal {
+                                    set_pdf.set(true);
+                                } else if let Some(w) = web_sys::window() {
                                     let _ = w.print();
                                 }
                             } 
@@ -221,7 +256,12 @@ pub fn SheetTopBar(
                         on:click=move |_| on_toggle_privacy.call(())
                         title=move || if is_public.get() { "Ficha Pública na comunidade. Clique para tornar Privada." } else { "Ficha Privada. Clique para tornar Pública na comunidade." }
                     >
-                        {move || if is_public.get() { "🌐 Pública" } else { "🔒 Privada" }}
+                        {move || match (is_public.get(), lang()) {
+                            (true, crate::i18n::Language::PtBr) => "🌐 Pública",
+                            (true, crate::i18n::Language::EnUs) => "🌐 Public",
+                            (false, crate::i18n::Language::PtBr) => "🔒 Privada",
+                            (false, crate::i18n::Language::EnUs) => "🔒 Private",
+                        }}
                     </button>
                 </div>
             </div>

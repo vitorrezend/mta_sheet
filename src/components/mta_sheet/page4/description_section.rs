@@ -9,15 +9,18 @@ pub fn DescriptionSection() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>()
         .expect("WriteSignal<CharacterData> context not found");
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <div class="group-box description-box">
-            <span class="group-title">"DESCRIPTION"</span>
+            <span class="group-title">{move || crate::i18n::tr("description_title", lang())}</span>
 
             <div class="description-grid-container">
                 // Coluna Esquerda: Dados Pessoais e Demográficos
                 <div class="description-demographics-col">
                     <div class="demographic-row">
-                        <label class="demographic-label">"Age (Idade):"</label>
+                        <label class="demographic-label">{move || crate::i18n::tr("age", lang())}</label>
                         <StableTextInput 
                             class="demographic-input"
                             placeholder="Ex: 28"
@@ -29,7 +32,7 @@ pub fn DescriptionSection() -> impl IntoView {
                     </div>
 
                     <div class="demographic-row">
-                        <label class="demographic-label">"Apparent Age (Idade Aparente):"</label>
+                        <label class="demographic-label">{move || crate::i18n::tr("apparent_age", lang())}</label>
                         <StableTextInput 
                             class="demographic-input"
                             placeholder="Ex: 22"
@@ -41,7 +44,7 @@ pub fn DescriptionSection() -> impl IntoView {
                     </div>
 
                     <div class="demographic-row">
-                        <label class="demographic-label">"Date of Birth (Nascimento):"</label>
+                        <label class="demographic-label">{move || crate::i18n::tr("date_of_birth", lang())}</label>
                         <StableTextInput 
                             class="demographic-input"
                             placeholder="Ex: 14/05/1998"
@@ -53,7 +56,7 @@ pub fn DescriptionSection() -> impl IntoView {
                     </div>
 
                     <div class="demographic-row">
-                        <label class="demographic-label">"Age of Awakening (Despertar):"</label>
+                        <label class="demographic-label">{move || crate::i18n::tr("age_of_awakening", lang())}</label>
                         <StableTextInput 
                             class="demographic-input"
                             placeholder="Ex: 19"
@@ -65,10 +68,13 @@ pub fn DescriptionSection() -> impl IntoView {
                     </div>
 
                     <div class="demographic-row">
-                        <label class="demographic-label">"Hair (Cabelos):"</label>
+                        <label class="demographic-label">{move || crate::i18n::tr("hair", lang())}</label>
                         <StableTextInput 
                             class="demographic-input"
-                            placeholder="Ex: Castanhos"
+                            placeholder=Signal::derive(move || match lang() {
+                                crate::i18n::Language::PtBr => "Ex: Castanhos".to_string(),
+                                crate::i18n::Language::EnUs => "Ex: Brown".to_string(),
+                            })
                             value=Signal::derive(move || data.with(|d| d.description_data.hair.clone()))
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.description_data.hair = val);
@@ -77,10 +83,13 @@ pub fn DescriptionSection() -> impl IntoView {
                     </div>
 
                     <div class="demographic-row">
-                        <label class="demographic-label">"Eyes (Olhos):"</label>
+                        <label class="demographic-label">{move || crate::i18n::tr("eyes", lang())}</label>
                         <StableTextInput 
                             class="demographic-input"
-                            placeholder="Ex: Âmbar"
+                            placeholder=Signal::derive(move || match lang() {
+                                crate::i18n::Language::PtBr => "Ex: Âmbar".to_string(),
+                                crate::i18n::Language::EnUs => "Ex: Amber".to_string(),
+                            })
                             value=Signal::derive(move || data.with(|d| d.description_data.eyes.clone()))
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.description_data.eyes = val);
@@ -89,10 +98,13 @@ pub fn DescriptionSection() -> impl IntoView {
                     </div>
 
                     <div class="demographic-row">
-                        <label class="demographic-label">"Race (Etnia):"</label>
+                        <label class="demographic-label">{move || crate::i18n::tr("race_ethnicity", lang())}</label>
                         <StableTextInput 
                             class="demographic-input"
-                            placeholder="Ex: Latina"
+                            placeholder=Signal::derive(move || match lang() {
+                                crate::i18n::Language::PtBr => "Ex: Latina".to_string(),
+                                crate::i18n::Language::EnUs => "Ex: Latino".to_string(),
+                            })
                             value=Signal::derive(move || data.with(|d| d.description_data.race.clone()))
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.description_data.race = val);
@@ -101,10 +113,13 @@ pub fn DescriptionSection() -> impl IntoView {
                     </div>
 
                     <div class="demographic-row">
-                        <label class="demographic-label">"Nationality (Nacionalidade):"</label>
+                        <label class="demographic-label">{move || crate::i18n::tr("nationality", lang())}</label>
                         <StableTextInput 
                             class="demographic-input"
-                            placeholder="Ex: Brasileiro"
+                            placeholder=Signal::derive(move || match lang() {
+                                crate::i18n::Language::PtBr => "Ex: Brasileiro".to_string(),
+                                crate::i18n::Language::EnUs => "Ex: Brazilian".to_string(),
+                            })
                             value=Signal::derive(move || data.with(|d| d.description_data.nationality.clone()))
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.description_data.nationality = val);
@@ -113,7 +128,7 @@ pub fn DescriptionSection() -> impl IntoView {
                     </div>
 
                     <div class="demographic-row">
-                        <label class="demographic-label">"Height (Altura):"</label>
+                        <label class="demographic-label">{move || crate::i18n::tr("height", lang())}</label>
                         <StableTextInput 
                             class="demographic-input"
                             placeholder="Ex: 1,82m"
@@ -125,7 +140,7 @@ pub fn DescriptionSection() -> impl IntoView {
                     </div>
 
                     <div class="demographic-row">
-                        <label class="demographic-label">"Weight (Peso):"</label>
+                        <label class="demographic-label">{move || crate::i18n::tr("weight", lang())}</label>
                         <StableTextInput 
                             class="demographic-input"
                             placeholder="Ex: 78kg"
@@ -137,10 +152,13 @@ pub fn DescriptionSection() -> impl IntoView {
                     </div>
 
                     <div class="demographic-row">
-                        <label class="demographic-label">"Sex (Sexo):"</label>
+                        <label class="demographic-label">{move || crate::i18n::tr("gender", lang())}</label>
                         <StableTextInput 
                             class="demographic-input"
-                            placeholder="Ex: Masculino"
+                            placeholder=Signal::derive(move || match lang() {
+                                crate::i18n::Language::PtBr => "Ex: Masculino".to_string(),
+                                crate::i18n::Language::EnUs => "Ex: Male".to_string(),
+                            })
                             value=Signal::derive(move || data.with(|d| d.description_data.sex.clone()))
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.description_data.sex = val);
@@ -152,10 +170,16 @@ pub fn DescriptionSection() -> impl IntoView {
                 // Coluna Direita: Descrição Física e Natureza do Avatar
                 <div class="description-narrative-col">
                     <div class="narrative-item">
-                        <label class="narrative-label">"PHYSICAL DESCRIPTION (Aparência Física & Estilo)"</label>
+                        <label class="narrative-label">{move || match lang() {
+                            crate::i18n::Language::PtBr => "DESCRIÇÃO FÍSICA (Aparência & Estilo)",
+                            crate::i18n::Language::EnUs => "PHYSICAL DESCRIPTION (Appearance & Style)",
+                        }}</label>
                         <StableTextArea 
                             class="narrative-textarea"
-                            placeholder="Porte físico, estilo de vestimenta, cicatrizes, tatuagens místicas, maneirismos e tom de voz..."
+                            placeholder=Signal::derive(move || match lang() {
+                                crate::i18n::Language::PtBr => "Porte físico, estilo de vestimenta, cicatrizes, tatuagens místicas, maneirismos e tom de voz...".to_string(),
+                                crate::i18n::Language::EnUs => "Physical build, clothing style, scars, mystic tattoos, mannerisms, voice tone...".to_string(),
+                            })
                             value=Signal::derive(move || data.with(|d| d.description_data.physical_description.clone()))
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.description_data.physical_description = val);
@@ -164,10 +188,16 @@ pub fn DescriptionSection() -> impl IntoView {
                     </div>
 
                     <div class="narrative-item">
-                        <label class="narrative-label">"APPEARANCE / NATURE OF AVATAR (Aparência e Natureza do Avatar)"</label>
+                        <label class="narrative-label">{move || match lang() {
+                            crate::i18n::Language::PtBr => "APARÊNCIA E NATUREZA DO AVATAR",
+                            crate::i18n::Language::EnUs => "APPEARANCE & NATURE OF AVATAR",
+                        }}</label>
                         <StableTextArea 
                             class="narrative-textarea narrative-avatar-textarea"
-                            placeholder="Essência do Avatar (Dinâmico, Estático, Primordial, Infinito), forma espiritual visível em meditação, voz e manifestações durante a magia..."
+                            placeholder=Signal::derive(move || match lang() {
+                                crate::i18n::Language::PtBr => "Essência do Avatar (Dinâmico, Estático, Primordial, Infinito), forma espiritual visível em meditação, voz e manifestações durante a magia...".to_string(),
+                                crate::i18n::Language::EnUs => "Avatar essence (Dynamic, Static, Primordial, Infinite), astral form seen in meditation, voice, manifestations during casting...".to_string(),
+                            })
                             value=Signal::derive(move || data.with(|d| d.description_data.avatar_nature.clone()))
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.description_data.avatar_nature = val);

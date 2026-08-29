@@ -49,6 +49,21 @@ pub const STANDARD_ATTRIBUTES: [&str; 9] = [
     "Percepção", "Inteligência", "Raciocínio",
 ];
 
+pub const STANDARD_TALENTS: [&str; 10] = [
+    "Prontidão", "Esportes", "Briga", "Esquiva", "Consciência", 
+    "Expressão", "Intimidação", "Liderança", "Manha", "Lábia"
+];
+
+pub const STANDARD_SKILLS: [&str; 10] = [
+    "Ofícios", "Condução", "Etiqueta", "Armas de Fogo", "Meditação", 
+    "Armas Brancas", "Performance", "Furtividade", "Sobrevivência", "Tecnologia"
+];
+
+pub const STANDARD_KNOWLEDGES: [&str; 10] = [
+    "Acadêmicos", "Computador", "Cosmologia", "Enigmas", "Investigação", 
+    "Direito", "Medicina", "Ocultismo", "Esotérica", "Ciência"
+];
+
 pub const STANDARD_SPHERES: [&str; 9] = [
     "Correspondência", "Entropia", "Forças",
     "Vida", "Matéria", "Mente",
@@ -443,6 +458,64 @@ pub struct CostBreakdownItem {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct CreationCategoryBreakdown {
+    pub name: String,
+    pub spent: usize,
+    pub budget: usize,
+    pub is_exceeded: bool,
+    pub details: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct CreationPointsSummary {
+    // Atributos (Físicos, Sociais, Mentais: 7 / 5 / 3)
+    pub attr_physical: usize,
+    pub attr_social: usize,
+    pub attr_mental: usize,
+    pub attr_total_spent: usize,
+    pub attr_budget_total: usize, // 15
+    pub attr_spread_valid: bool,  // se distribuição cabe em {7, 5, 3}
+    pub attr_exceeded: bool,
+
+    // Habilidades (Talentos, Perícias, Conhecimentos: 13 / 9 / 5, max 3 por trait)
+    pub ab_talents: usize,
+    pub ab_skills: usize,
+    pub ab_knowledges: usize,
+    pub ab_total_spent: usize,
+    pub ab_budget_total: usize, // 27
+    pub ab_spread_valid: bool,  // se distribuição cabe em {13, 9, 5}
+    pub ab_exceeded: bool,
+    pub ab_cap_violations: Vec<String>, // Nomes das habilidades com >3 bolinhas base
+
+    // Esferas (6 pontos)
+    pub spheres_spent: usize,
+    pub spheres_budget: usize, // 6
+    pub spheres_exceeded: bool,
+
+    // Arete (1 grátis)
+    pub arete_base: usize,
+    pub arete_exceeded: bool, // arete_base > 1
+
+    // Antecedentes (7 pontos)
+    pub backgrounds_spent: usize,
+    pub backgrounds_budget: usize, // 7
+    pub backgrounds_exceeded: bool,
+
+    // Força de Vontade (5 grátis)
+    pub willpower_base: usize,
+    pub willpower_exceeded: bool, // willpower_base > 5
+
+    // Ressonância (1 ponto)
+    pub resonance_spent: usize,
+    pub resonance_budget: usize, // 1
+    pub resonance_exceeded: bool,
+
+    // Alertas e consolidação
+    pub has_any_overflow: bool,
+    pub warnings: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct CostSummary {
     pub total_bonus_spent: i32,
     pub bonus_limit: i32, // 15
@@ -451,6 +524,7 @@ pub struct CostSummary {
     pub arete_warning: bool,
     pub arete_total: i32,
     pub affinity_sphere: Option<String>,
+    pub creation_points: CreationPointsSummary,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
@@ -564,6 +638,10 @@ pub struct CharacterSummary {
     pub willpower: i32,
     #[serde(default)]
     pub photo_url: String,
+    #[serde(default = "default_photo_focus")]
+    pub photo_focus_y: i32,
+    #[serde(default = "default_photo_focus")]
+    pub photo_focus_x: i32,
     #[serde(default, alias = "active_spheres")]
     pub spheres: Vec<(String, i32)>,
     #[serde(default = "default_sheet_type")]
@@ -578,6 +656,7 @@ pub struct CharacterSummary {
 pub fn default_sheet_type() -> String { "mage".to_string() }
 fn default_arete() -> i32 { 1 }
 fn default_willpower() -> i32 { 5 }
+pub fn default_photo_focus() -> i32 { 50 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct ExpandedBackgroundsData {
@@ -685,12 +764,31 @@ pub fn is_default_description(d: &CharacterDescriptionData) -> bool {
     *d == CharacterDescriptionData::default()
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct CharacterVisualsData {
     #[serde(default, skip_serializing_if = "is_empty_str")]
     pub cabal_chart_url: String,
     #[serde(default, skip_serializing_if = "is_empty_str")]
     pub character_sketch_url: String,
+    #[serde(default = "default_photo_focus", skip_serializing_if = "is_default_focus")]
+    pub photo_focus_y: i32,
+    #[serde(default = "default_photo_focus", skip_serializing_if = "is_default_focus")]
+    pub photo_focus_x: i32,
+}
+
+impl Default for CharacterVisualsData {
+    fn default() -> Self {
+        Self {
+            cabal_chart_url: String::new(),
+            character_sketch_url: String::new(),
+            photo_focus_y: 50,
+            photo_focus_x: 50,
+        }
+    }
+}
+
+pub fn is_default_focus(f: &i32) -> bool {
+    *f == 50
 }
 
 pub fn is_default_visuals(v: &CharacterVisualsData) -> bool {
@@ -1199,6 +1297,27 @@ impl CharacterData {
         }
     }
 
+    pub fn get_photo_focus(&self) -> (i32, i32) {
+        let y = self.labels.get("photo_focus_y")
+            .and_then(|s| s.parse::<i32>().ok())
+            .unwrap_or(self.visuals.photo_focus_y);
+
+        let x = self.labels.get("photo_focus_x")
+            .and_then(|s| s.parse::<i32>().ok())
+            .unwrap_or(self.visuals.photo_focus_x);
+
+        (x.clamp(0, 100), y.clamp(0, 100))
+    }
+
+    pub fn set_photo_focus(&mut self, x: i32, y: i32) {
+        let cx = x.clamp(0, 100);
+        let cy = y.clamp(0, 100);
+        self.visuals.photo_focus_x = cx;
+        self.visuals.photo_focus_y = cy;
+        self.labels.insert("photo_focus_x".to_string(), cx.to_string());
+        self.labels.insert("photo_focus_y".to_string(), cy.to_string());
+    }
+
     pub fn get_history(&self) -> String {
         self.labels.get(keys::KEY_HISTORY).cloned().unwrap_or_default()
     }
@@ -1426,6 +1545,22 @@ impl CharacterData {
         (quint, paradox, normalized)
     }
 
+    pub fn set_quintessence_paradox_box(&mut self, index: usize, state: char) {
+        if index >= 20 {
+            return;
+        }
+        let raw = self
+            .labels
+            .entry(keys::KEY_QUINTESSENCE_PARADOX.to_string())
+            .or_insert_with(|| "0".repeat(20));
+        let mut chars: Vec<char> = raw.chars().collect();
+        while chars.len() < 20 {
+            chars.push('0');
+        }
+        chars[index] = state;
+        *raw = chars.into_iter().collect();
+    }
+
     pub fn cycle_quintessence_paradox_box(&mut self, index: usize) {
         if index >= 20 {
             return;
@@ -1444,6 +1579,120 @@ impl CharacterData {
             '1' => '2',
             _ => '0',
         };
+        *raw = chars.into_iter().collect();
+    }
+
+    /// Adiciona 1 ponto de Quintessência no sentido horário (para cima a partir das 9h: 0, 1, 2... 19)
+    pub fn add_quintessence(&mut self) {
+        let raw = self
+            .labels
+            .entry(keys::KEY_QUINTESSENCE_PARADOX.to_string())
+            .or_insert_with(|| "0".repeat(20));
+        let mut chars: Vec<char> = raw.chars().collect();
+        while chars.len() < 20 {
+            chars.push('0');
+        }
+
+        // Procura o primeiro slot livre no sentido horário a partir de 0
+        for i in 0..20 {
+            if chars[i] == '0' {
+                chars[i] = '1';
+                *raw = chars.into_iter().collect();
+                return;
+            }
+        }
+    }
+
+    /// Remove 1 ponto de Quintessência (do ponto mais distante no sentido horário)
+    pub fn remove_quintessence(&mut self) {
+        let raw = self
+            .labels
+            .entry(keys::KEY_QUINTESSENCE_PARADOX.to_string())
+            .or_insert_with(|| "0".repeat(20));
+        let mut chars: Vec<char> = raw.chars().collect();
+        while chars.len() < 20 {
+            chars.push('0');
+        }
+
+        for i in (0..20).rev() {
+            if chars[i] == '1' {
+                chars[i] = '0';
+                *raw = chars.into_iter().collect();
+                return;
+            }
+        }
+    }
+
+    /// Adiciona 1 ponto de Paradoxo no sentido anti-horário (para baixo a partir das 9h: 19, 18, 17... 0)
+    /// Se encontrar Quintessência no caminho, o Paradoxo consome/sobrepõe a Quintessência conforme as regras do Mago.
+    pub fn add_paradox(&mut self) {
+        let raw = self
+            .labels
+            .entry(keys::KEY_QUINTESSENCE_PARADOX.to_string())
+            .or_insert_with(|| "0".repeat(20));
+        let mut chars: Vec<char> = raw.chars().collect();
+        while chars.len() < 20 {
+            chars.push('0');
+        }
+
+        // Percorre de 19 descendo até 0
+        for i in (0..20).rev() {
+            if chars[i] != '2' {
+                chars[i] = '2';
+                *raw = chars.into_iter().collect();
+                return;
+            }
+        }
+    }
+
+    /// Remove 1 ponto de Paradoxo (o ponto mais recente adicionado, subindo em direção às 9h)
+    pub fn remove_paradox(&mut self) {
+        let raw = self
+            .labels
+            .entry(keys::KEY_QUINTESSENCE_PARADOX.to_string())
+            .or_insert_with(|| "0".repeat(20));
+        let mut chars: Vec<char> = raw.chars().collect();
+        while chars.len() < 20 {
+            chars.push('0');
+        }
+
+        // Procura a partir de 0 subindo para 19
+        for i in 0..20 {
+            if chars[i] == '2' {
+                chars[i] = '0';
+                *raw = chars.into_iter().collect();
+                return;
+            }
+        }
+    }
+
+    /// Limpa todos os pontos de Quintessência da roda
+    pub fn clear_quintessence(&mut self) {
+        let raw = self
+            .labels
+            .entry(keys::KEY_QUINTESSENCE_PARADOX.to_string())
+            .or_insert_with(|| "0".repeat(20));
+        let mut chars: Vec<char> = raw.chars().collect();
+        for c in chars.iter_mut() {
+            if *c == '1' {
+                *c = '0';
+            }
+        }
+        *raw = chars.into_iter().collect();
+    }
+
+    /// Limpa todos os pontos de Paradoxo da roda
+    pub fn clear_paradox(&mut self) {
+        let raw = self
+            .labels
+            .entry(keys::KEY_QUINTESSENCE_PARADOX.to_string())
+            .or_insert_with(|| "0".repeat(20));
+        let mut chars: Vec<char> = raw.chars().collect();
+        for c in chars.iter_mut() {
+            if *c == '2' {
+                *c = '0';
+            }
+        }
         *raw = chars.into_iter().collect();
     }
 
@@ -1530,5 +1779,48 @@ impl CharacterData {
         }
         chars[index] = if chars[index] == '1' { '0' } else { '1' };
         *raw = chars.into_iter().collect();
+    }
+
+    /// Verifica se uma página possui conteúdo real preenchido pelo jogador
+    pub fn is_page_has_content(&self, page_index: usize) -> bool {
+        match page_index {
+            0 => true, // Página 1 (Principal): sempre ativa
+            1 => {
+                // Página 2 (Mágika & Combate): Méritos, Defeitos, Armas, Maravilhas, Focos/Paradigmas
+                let has_merits = self.merits.iter().any(|m| !m.name.trim().is_empty());
+                let has_flaws = self.flaws.iter().any(|f| !f.name.trim().is_empty());
+                let has_weapons = self.weapons.iter().any(|w| !w.name.trim().is_empty());
+                let has_wonders = self.wonders.iter().any(|w| !w.name.trim().is_empty());
+                let has_focus = self.labels.iter().any(|(k, v)| {
+                    (k.starts_with("focus_") || k.starts_with("paradigm_") || k.starts_with("practice_") || k.starts_with("instrument_") || k.starts_with("other_trait_"))
+                        && !v.trim().is_empty()
+                });
+                let has_armor = !self.armor.class_name.trim().is_empty() || !self.armor.rating.trim().is_empty();
+                has_merits || has_flaws || has_weapons || has_wonders || has_focus || has_armor
+            }
+            2 => {
+                // Página 3 (Antecedentes Expandidos & Posses)
+                let has_chantry = self.chantry.iter().any(|c| !c.location.trim().is_empty() || !c.description.trim().is_empty());
+                let has_possessions = !self.possessions.gear_carried.trim().is_empty() || !self.possessions.equipment_owned.trim().is_empty() || !self.possessions.grimoire.trim().is_empty();
+                let has_expanded_bg = self.custom_lists.iter().any(|(k, list)| k.starts_with("exp_bg_") && !list.is_empty());
+                has_chantry || has_possessions || has_expanded_bg
+            }
+            3 => {
+                // Página 4 (História & Visual)
+                let has_history = !self.history_data.history.trim().is_empty() || !self.history_data.goals_destiny.trim().is_empty();
+                let has_desc = !self.description_data.apparent_age.trim().is_empty() || !self.description_data.hair.trim().is_empty() || !self.description_data.eyes.trim().is_empty();
+                let has_visuals = !self.visuals.cabal_chart_url.trim().is_empty() || !self.visuals.character_sketch_url.trim().is_empty();
+                has_history || has_desc || has_visuals
+            }
+            4 => {
+                // Página 5 (Grimório)
+                !self.grimoire.rotes.is_empty() || !self.grimoire.paradigm.trim().is_empty() || !self.grimoire.general_notes.trim().is_empty()
+            }
+            5 => {
+                // Página 6 (Notas)
+                !self.notes_data.session_notes.trim().is_empty() || !self.notes_data.campaign_journal.trim().is_empty()
+            }
+            _ => false,
+        }
     }
 }

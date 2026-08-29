@@ -9,22 +9,26 @@ use super::callback::Callback;
 pub fn StableTextArea(
     #[prop(into)] value: Signal<String>,
     #[prop(into)] on_change: Callback<String>,
-    #[prop(optional)] placeholder: &'static str,
+    #[prop(into, optional)] placeholder: MaybeSignal<String>,
     #[prop(optional)] class: &'static str,
 ) -> impl IntoView {
     let textarea_ref = create_node_ref::<Textarea>();
-    let is_focused = create_rw_signal(false);
-    let last_synced_value = create_rw_signal(String::new());
+    let is_focused = std::rc::Rc::new(std::cell::Cell::new(false));
+    let last_synced_value = std::rc::Rc::new(std::cell::RefCell::new(String::new()));
 
-    // Sincroniza o valor do sinal externo APENAS quando o valor externo mudar
-    // e o usuário NÃO estiver digitando ativamente no campo
-    create_effect(move |_| {
+    let is_focused_focus = is_focused.clone();
+    let is_focused_blur = is_focused.clone();
+    let last_synced_blur = last_synced_value.clone();
+    let last_synced_effect = last_synced_value.clone();
+    let is_focused_effect = is_focused.clone();
+
+    create_render_effect(move |_| {
         let val = value.get();
-        if !is_focused.get_untracked() {
+        if !is_focused_effect.get() {
             if let Some(elem) = textarea_ref.get() {
                 elem.set_value(&val);
             }
-            let _ = last_synced_value.try_set(val);
+            *last_synced_effect.borrow_mut() = val;
         }
     });
 
@@ -32,14 +36,15 @@ pub fn StableTextArea(
         <textarea
             node_ref=textarea_ref
             class=class
-            placeholder=placeholder
-            on:focus=move |_| { let _ = is_focused.try_set(true); }
+            placeholder=move || placeholder.get()
+            prop:value=move || value.get()
+            on:focus=move |_| { is_focused_focus.set(true); }
             on:blur=move |_| {
-                let _ = is_focused.try_set(false);
+                is_focused_blur.set(false);
                 if let Some(elem) = textarea_ref.get() {
                     let current_val = elem.value();
-                    if current_val != last_synced_value.get_untracked() {
-                        let _ = last_synced_value.try_set(current_val.clone());
+                    if current_val != *last_synced_blur.borrow() {
+                        *last_synced_blur.borrow_mut() = current_val.clone();
                         on_change.call(current_val);
                     }
                 }
@@ -49,26 +54,32 @@ pub fn StableTextArea(
 }
 
 /// Componente de Input de Texto Inteligente com Bloqueio de Foco.
+/// Previne perda de foco e inversão de digitação ao sincronizar reativamente
+/// apenas quando o input não está ativamente em foco pelo usuário.
 #[component]
 pub fn StableTextInput(
     #[prop(into)] value: Signal<String>,
     #[prop(into)] on_change: Callback<String>,
-    #[prop(optional)] placeholder: &'static str,
+    #[prop(into, optional)] placeholder: MaybeSignal<String>,
     #[prop(optional)] class: &'static str,
 ) -> impl IntoView {
     let input_ref = create_node_ref::<Input>();
-    let is_focused = create_rw_signal(false);
-    let last_synced_value = create_rw_signal(String::new());
+    let is_focused = std::rc::Rc::new(std::cell::Cell::new(false));
+    let last_synced_value = std::rc::Rc::new(std::cell::RefCell::new(String::new()));
 
-    // Sincroniza o valor do sinal externo APENAS quando o valor externo mudar
-    // e o usuário NÃO estiver focado no campo
-    create_effect(move |_| {
+    let is_focused_focus = is_focused.clone();
+    let is_focused_blur = is_focused.clone();
+    let last_synced_blur = last_synced_value.clone();
+    let last_synced_effect = last_synced_value.clone();
+    let is_focused_effect = is_focused.clone();
+
+    create_render_effect(move |_| {
         let val = value.get();
-        if !is_focused.get_untracked() {
+        if !is_focused_effect.get() {
             if let Some(elem) = input_ref.get() {
                 elem.set_value(&val);
             }
-            let _ = last_synced_value.try_set(val);
+            *last_synced_effect.borrow_mut() = val;
         }
     });
 
@@ -77,14 +88,15 @@ pub fn StableTextInput(
             type="text"
             node_ref=input_ref
             class=class
-            placeholder=placeholder
-            on:focus=move |_| { let _ = is_focused.try_set(true); }
+            placeholder=move || placeholder.get()
+            prop:value=move || value.get()
+            on:focus=move |_| { is_focused_focus.set(true); }
             on:blur=move |_| {
-                let _ = is_focused.try_set(false);
+                is_focused_blur.set(false);
                 if let Some(elem) = input_ref.get() {
                     let current_val = elem.value();
-                    if current_val != last_synced_value.get_untracked() {
-                        let _ = last_synced_value.try_set(current_val.clone());
+                    if current_val != *last_synced_blur.borrow() {
+                        *last_synced_blur.borrow_mut() = current_val.clone();
                         on_change.call(current_val);
                     }
                 }
@@ -110,14 +122,14 @@ mod tests {
         let _textarea_view = StableTextArea(StableTextAreaProps {
             value: val_sig.into(),
             on_change: on_change.clone(),
-            placeholder: "Digite...",
+            placeholder: "Digite...".to_string().into(),
             class: "custom-area",
         });
 
         let _input_view = StableTextInput(StableTextInputProps {
             value: val_sig.into(),
             on_change,
-            placeholder: "Digite...",
+            placeholder: "Digite...".to_string().into(),
             class: "custom-input",
         });
 

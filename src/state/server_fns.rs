@@ -43,6 +43,8 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
         let mut arete = 1;
         let mut willpower = 5;
         let mut photo_url = String::new();
+        let mut photo_focus_x = 50;
+        let mut photo_focus_y = 50;
         let mut spheres = Vec::new();
         let mut sheet_type = row.try_get::<String, _>("sheet_type").unwrap_or_else(|_| "mage".to_string());
 
@@ -65,6 +67,9 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
             } else {
                 data.get_profile_photo()
             };
+            let (fx, fy) = data.get_photo_focus();
+            photo_focus_x = fx;
+            photo_focus_y = fy;
             for sphere in crate::state::models::STANDARD_SPHERES {
                 let lvl = data.get_attribute_level(sphere, 0);
                 spheres.push((sphere.to_string(), lvl));
@@ -88,6 +93,9 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
             } else {
                 data.get_profile_photo()
             };
+            let (fx, fy) = data.get_photo_focus();
+            photo_focus_x = fx;
+            photo_focus_y = fy;
             for sphere in crate::state::models::STANDARD_SPHERES {
                 let lvl = data.get_attribute_level(sphere, 0);
                 spheres.push((sphere.to_string(), lvl));
@@ -106,6 +114,8 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
             arete,
             willpower,
             photo_url,
+            photo_focus_y,
+            photo_focus_x,
             spheres,
             sheet_type,
             is_public,
@@ -157,6 +167,8 @@ pub async fn get_public_sheets() -> Result<Vec<CharacterSummary>, ServerFnError>
         let mut arete = 1;
         let mut willpower = 5;
         let mut photo_url = String::new();
+        let mut photo_focus_x = 50;
+        let mut photo_focus_y = 50;
         let mut spheres = Vec::new();
         let mut sheet_type = row.try_get::<String, _>("sheet_type").unwrap_or_else(|_| "mage".to_string());
 
@@ -179,6 +191,9 @@ pub async fn get_public_sheets() -> Result<Vec<CharacterSummary>, ServerFnError>
             } else {
                 data.get_profile_photo()
             };
+            let (fx, fy) = data.get_photo_focus();
+            photo_focus_x = fx;
+            photo_focus_y = fy;
             for sphere in crate::state::models::STANDARD_SPHERES {
                 let lvl = data.get_attribute_level(sphere, 0);
                 spheres.push((sphere.to_string(), lvl));
@@ -202,6 +217,9 @@ pub async fn get_public_sheets() -> Result<Vec<CharacterSummary>, ServerFnError>
             } else {
                 data.get_profile_photo()
             };
+            let (fx, fy) = data.get_photo_focus();
+            photo_focus_x = fx;
+            photo_focus_y = fy;
             for sphere in crate::state::models::STANDARD_SPHERES {
                 let lvl = data.get_attribute_level(sphere, 0);
                 spheres.push((sphere.to_string(), lvl));
@@ -220,6 +238,8 @@ pub async fn get_public_sheets() -> Result<Vec<CharacterSummary>, ServerFnError>
             arete,
             willpower,
             photo_url,
+            photo_focus_y,
+            photo_focus_x,
             spheres,
             sheet_type,
             is_public: true,

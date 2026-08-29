@@ -138,10 +138,13 @@ pub fn OtherTraits() -> impl IntoView {
         }
     };
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <div class="group-box other-traits-box">
             <div class="group-box-header">
-                <span class="group-box-title">"OUTRAS CARACTERÍSTICAS (OTHER TRAITS)"</span>
+                <span class="group-box-title">{move || crate::i18n::tr("other_traits", lang()).to_uppercase()}</span>
             </div>
 
             <div class="other-traits-grid">

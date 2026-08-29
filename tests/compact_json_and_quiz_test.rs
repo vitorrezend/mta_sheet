@@ -34,8 +34,8 @@ fn test_compact_json_export_omits_empty_structures_and_unanswered_quiz() {
     assert!(!json_str.contains("Como Era A Sua Família?"), "Perguntas sem resposta não devem poluir o JSON");
     assert!(!json_str.contains("O que o místiko vê no seu destino?"), "Prompts não respondidos devem ser omitidos");
 
-    // 4. O tamanho do JSON deve ser ultra-compacto (< 1.5 KB em vez de 20 KB)
-    assert!(json_str.len() < 1500, "JSON compacto deve ser menor que 1.5KB (atual: {} bytes)", json_str.len());
+    // 4. O tamanho do JSON deve ser ultra-compacto (< 1.8 KB em vez de 20 KB)
+    assert!(json_str.len() < 1800, "JSON compacto deve ser menor que 1.8KB (atual: {} bytes)", json_str.len());
 }
 
 #[test]

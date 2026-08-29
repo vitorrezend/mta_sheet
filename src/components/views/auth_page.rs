@@ -4,6 +4,9 @@ use crate::auth::{login, register};
 
 #[component]
 pub fn AuthPage() -> impl IntoView {
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     let query = use_query_map();
     let initial_tab_register = query.with(|q| q.get("tab").map(|t| t == "register").unwrap_or(false));
     let initial_error = query.with(|q| q.get("error").cloned());
@@ -76,10 +79,39 @@ pub fn AuthPage() -> impl IntoView {
     view! {
         <div class="auth-page-container">
             <div class="auth-card">
+                <div class="auth-top-actions" style="display: flex; justify-content: flex-end; margin-bottom: 0.5rem;">
+                    <button
+                        type="button"
+                        class="lang-toggle-btn"
+                        on:click=move |_| {
+                            if let Some(ctx) = lang_ctx {
+                                ctx.toggle();
+                            }
+                        }
+                        title=move || match lang() {
+                            crate::i18n::Language::PtBr => "Idioma: Português (Clique para mudar para English)",
+                            crate::i18n::Language::EnUs => "Language: English (Click to switch to Português)",
+                        }
+                    >
+                        {move || match lang() {
+                            crate::i18n::Language::PtBr => "🇧🇷 PT",
+                            crate::i18n::Language::EnUs => "🇺🇸 EN",
+                        }}
+                    </button>
+                </div>
+
                 <div class="auth-header">
                     <span class="auth-icon">"🔮"</span>
-                    <h2>{move || if is_register.get() { "Criar Conta de Mago" } else { "Entrar no MTA Sheet" }}</h2>
-                    <p>{move || if is_register.get() { "Crie sua conta para gerenciar suas crônicas e salas" } else { "Acesse suas fichas e salas de jogo" }}</p>
+                    <h2>{move || if is_register.get() {
+                        crate::i18n::tr("auth_register_title", lang())
+                    } else {
+                        crate::i18n::tr("auth_login_title", lang())
+                    }}</h2>
+                    <p>{move || if is_register.get() {
+                        crate::i18n::tr("auth_register_desc", lang())
+                    } else {
+                        crate::i18n::tr("auth_login_desc", lang())
+                    }}</p>
                 </div>
 
                 <div class="auth-tabs">
@@ -88,30 +120,33 @@ pub fn AuthPage() -> impl IntoView {
                         class:active=move || !is_register.get()
                         on:click=move |_| { set_is_register.set(false); set_error_msg.set(None); }
                     >
-                        "Entrar"
+                        {move || crate::i18n::tr("auth_tab_login", lang())}
                     </button>
                     <button 
                         class="auth-tab" 
                         class:active=move || is_register.get()
                         on:click=move |_| { set_is_register.set(true); set_error_msg.set(None); }
                     >
-                        "Cadastrar"
+                        {move || crate::i18n::tr("auth_tab_register", lang())}
                     </button>
                 </div>
 
-                {move || error_msg.get().map(|msg| view! {
-                    <div class="alert-box alert-error">
-                        <span>{msg}</span>
-                    </div>
+                {move || error_msg.get().map(|msg| {
+                    let translated_error = crate::i18n::tr_auth_error(&msg, lang());
+                    view! {
+                        <div class="alert-box alert-error">
+                            <span>{translated_error}</span>
+                        </div>
+                    }
                 })}
 
                 <form on:submit=on_submit class="auth-form">
                     <div class="form-group">
-                        <label class="form-label">"Usuário"</label>
+                        <label class="form-label">{move || crate::i18n::tr("auth_username_label", lang())}</label>
                         <input
                             type="text"
                             name="username"
-                            placeholder="Seu nome de usuário"
+                            placeholder=move || crate::i18n::tr("auth_username_placeholder", lang())
                             class="form-input"
                             prop:value=username
                             on:input=move |ev| set_username.set(event_target_value(&ev))
@@ -121,11 +156,11 @@ pub fn AuthPage() -> impl IntoView {
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">"Senha"</label>
+                        <label class="form-label">{move || crate::i18n::tr("auth_password_label", lang())}</label>
                         <input
                             type="password"
                             name="password"
-                            placeholder="Sua senha"
+                            placeholder=move || crate::i18n::tr("auth_password_placeholder", lang())
                             class="form-input"
                             prop:value=password
                             on:input=move |ev| set_password.set(event_target_value(&ev))
@@ -136,11 +171,11 @@ pub fn AuthPage() -> impl IntoView {
 
                     {move || is_register.get().then(|| view! {
                         <div class="form-group">
-                            <label class="form-label">"Confirmar Senha"</label>
+                            <label class="form-label">{move || crate::i18n::tr("auth_confirm_password_label", lang())}</label>
                             <input
                                 type="password"
                                 name="confirm_password"
-                                placeholder="Confirme sua senha"
+                                placeholder=move || crate::i18n::tr("auth_confirm_password_placeholder", lang())
                                 class="form-input"
                                 prop:value=confirm_password
                                 on:input=move |ev| set_confirm_password.set(event_target_value(&ev))
@@ -152,17 +187,17 @@ pub fn AuthPage() -> impl IntoView {
 
                     <button type="submit" class="auth-submit-btn" disabled=move || is_submitting.get()>
                         {move || if is_submitting.get() {
-                            "Processando..."
+                            crate::i18n::tr("auth_submitting", lang())
                         } else if is_register.get() {
-                            "Criar Minha Conta"
+                            crate::i18n::tr("auth_submit_register", lang())
                         } else {
-                            "Entrar"
+                            crate::i18n::tr("auth_submit_login", lang())
                         }}
                     </button>
                 </form>
 
                 <div class="auth-footer">
-                    <A href="/" class="auth-back-link">"← Continuar como Convidado"</A>
+                    <A href="/" class="auth-back-link">{move || crate::i18n::tr("auth_guest_link", lang())}</A>
                 </div>
             </div>
         </div>

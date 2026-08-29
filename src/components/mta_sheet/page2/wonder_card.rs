@@ -53,9 +53,7 @@ pub fn WonderCard(
     let on_image_file_change = move |idx: usize, ev: ev::Event| {
         #[cfg(target_arch = "wasm32")]
         {
-            use web_sys::{FileReader, HtmlInputElement};
-            use wasm_bindgen::JsCast;
-            use wasm_bindgen::closure::Closure;
+            use web_sys::HtmlInputElement;
 
             let input: HtmlInputElement = event_target(&ev);
             if let Some(files) = input.files() {
@@ -70,43 +68,50 @@ pub fn WonderCard(
 
                     let file_name = file.name();
                     let sheet_id = data.with_untracked(|d| d.id.clone());
-                    if let Ok(reader) = FileReader::new() {
-                        let reader_clone = reader.clone();
-                        let set_data_clone = set_data.clone();
+                    let set_d = set_data.clone();
 
-                        let onload = Closure::wrap(Box::new(move |_: web_sys::Event| {
-                            if let Ok(result) = reader_clone.result() {
-                                if let Some(data_url) = result.as_string() {
+                    crate::components::common::compress_image_file_to_webp(
+                        &file,
+                        crate::components::common::ImageCompressionOptions::portrait(),
+                        Callback::new(move |res: Result<String, String>| {
+                            match res {
+                                Ok(compressed_data_url) => {
                                     let s_id = sheet_id.clone();
                                     let f_name = file_name.clone();
-                                    let set_d = set_data_clone.clone();
+                                    let set_d_inner = set_d.clone();
+                                    let compressed_backup = compressed_data_url.clone();
 
                                     spawn_local(async move {
-                                        match save_uploaded_media(s_id, "wonders".to_string(), f_name, data_url).await {
+                                        match save_uploaded_media(s_id, "wonders".to_string(), f_name, compressed_data_url).await {
                                             Ok(uploaded_url) => {
-                                                let _ = set_d.try_update(|s| {
+                                                let _ = set_d_inner.try_update(|s| {
                                                     while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
                                                     s.wonders[idx].image_url = uploaded_url;
                                                 });
                                             }
                                             Err(e) => {
+                                                let _ = set_d_inner.try_update(|s| {
+                                                    while s.wonders.len() <= idx { s.wonders.push(WonderItem::default()); }
+                                                    s.wonders[idx].image_url = compressed_backup;
+                                                });
                                                 crate::logging::log_client(
                                                     "errors",
-                                                    "ERROR",
-                                                    "Falha ao enviar imagem para o servidor",
+                                                    "WARN",
+                                                    "Falha no upload em disco da maravilha, salvo como WebP comprimido inline",
                                                     Some(&e.to_string()),
                                                 );
                                             }
                                         }
                                     });
                                 }
+                                Err(err_msg) => {
+                                    if let Some(w) = web_sys::window() {
+                                        let _ = w.alert_with_message(&format!("Erro ao processar imagem: {}", err_msg));
+                                    }
+                                }
                             }
-                        }) as Box<dyn FnMut(_)>);
-
-                        reader.set_onload(Some(onload.as_ref().unchecked_ref()));
-                        onload.forget();
-                        let _ = reader.read_as_data_url(&file);
-                    }
+                        }),
+                    );
                 }
             }
         }
@@ -203,6 +208,9 @@ pub fn WonderCard(
         data.with(|d| d.wonders.get(idx).map(|w| w.image_url.clone()).unwrap_or_default())
     });
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <div class="wonder-card">
             // 1. Linha do Topo: Nome, Botão de Imagem e Botão de Remover
@@ -210,7 +218,7 @@ pub fn WonderCard(
                 <div class="wonder-field name-field">
                     <StableTextInput 
                         class="wonder-input font-bold"
-                        placeholder="Nome da Maravilha / Artefato..."
+                        placeholder=Signal::derive(move || crate::i18n::tr("wonder_name_placeholder", lang()).to_string())
                         value=Signal::derive(move || data.with(|d| d.wonders.get(idx).map(|w| w.name.clone()).unwrap_or_default()))
                         on_change=Callback::new(move |val| update_wonder_name(idx, val))
                     />
@@ -220,7 +228,10 @@ pub fn WonderCard(
                     class="wonder-img-toggle-btn"
                     class:active=move || !current_image_url.get().is_empty() || show_image_field.get()
                     on:click=move |_| set_show_image_field.update(|cur| *cur = !*cur)
-                    title="Vincular/Alterar Imagem da Maravilha"
+                    title=move || match lang() {
+                        crate::i18n::Language::PtBr => "Vincular/Alterar Imagem da Maravilha",
+                        crate::i18n::Language::EnUs => "Attach/Change Wonder Image",
+                    }
                 >
                     "🖼️"
                 </button>
@@ -228,7 +239,7 @@ pub fn WonderCard(
                     type="button" 
                     class="wonder-remove-btn" 
                     on:click=move |_| remove_wonder(idx)
-                    title="Remover Maravilha"
+                    title=move || crate::i18n::tr("remove_wonder", lang())
                 >
                     "🗑️"
                 </button>
@@ -241,12 +252,16 @@ pub fn WonderCard(
                     let on_image_click = on_image_click.clone();
                     let url = current_image_url.get();
                     let is_visible = show_image_field.get() || !url.is_empty();
+                    let current_lang = lang();
                     if is_visible {
                         view! {
                             <div class="wonder-image-section">
                                 <div class="wonder-image-controls-grid">
-                                    <label class="wonder-file-upload-label" title="Upload de imagem local (até 10MB)">
-                                        "📁 Escolher Imagem (até 10MB)"
+                                    <label class="wonder-file-upload-label" title="Upload image (max 10MB)">
+                                        {match current_lang {
+                                            crate::i18n::Language::PtBr => "📁 Escolher Imagem (até 10MB)",
+                                            crate::i18n::Language::EnUs => "📁 Choose Image (up to 10MB)",
+                                        }}
                                         <input 
                                             type="file" 
                                             accept="image/*" 
@@ -256,7 +271,10 @@ pub fn WonderCard(
                                     </label>
                                     <StableTextInput 
                                         class="wonder-image-url-input"
-                                        placeholder="Ou cole a URL da imagem (https://...)"
+                                        placeholder=Signal::derive(move || match lang() {
+                                            crate::i18n::Language::PtBr => "Ou cole a URL da imagem (https://...)".to_string(),
+                                            crate::i18n::Language::EnUs => "Or paste image URL (https://...)".to_string(),
+                                        })
                                         value=current_image_url
                                         on_change=Callback::new(move |val| update_wonder_image(idx, val))
                                     />
@@ -269,19 +287,22 @@ pub fn WonderCard(
                                         <div class="wonder-image-preview-wrapper">
                                             <img 
                                                 src=img_url 
-                                                alt="Imagem da Maravilha (Clique para ampliar)"
+                                                alt="Wonder Image"
                                                 class="wonder-image-preview"
                                                 loading="lazy"
-                                                title="Clique para abrir e dar zoom na imagem"
+                                                title="Click to zoom"
                                                 on:click=move |_| on_image_click.call(img_modal_url.clone())
                                             />
                                         <button 
                                             type="button" 
                                             class="wonder-remove-image-btn" 
                                             on:click=move |_| clear_wonder_image(idx)
-                                            title="Remover Imagem"
+                                            title="Remove Image"
                                         >
-                                            "✕ Remover Imagem"
+                                            {match current_lang {
+                                                crate::i18n::Language::PtBr => "✕ Remover Imagem",
+                                                crate::i18n::Language::EnUs => "✕ Remove Image",
+                                            }}
                                         </button>
                                     </div>
                                 }.into_view()
@@ -298,7 +319,10 @@ pub fn WonderCard(
             // 2. Bloco de Pontos da Maravilha (1 a 20 pontos com custo e origens)
             <div class="wonder-stat-row-block">
                 <ValueField 
-                    label=Signal::derive(move || "Pontos (1-20)".to_string())
+                    label=Signal::derive(move || match lang() {
+                        crate::i18n::Language::PtBr => "Pontos (1-20)".to_string(),
+                        crate::i18n::Language::EnUs => "Rating (1-20)".to_string(),
+                    })
                     level=points_level
                     modifier=points_mod
                     origins=points_origins
@@ -336,13 +360,13 @@ pub fn WonderCard(
             // 4. Bloco de Quintessência (0 a 20 pontos organizados em 2 linhas de 10)
             <div class="wonder-quintessence-row">
                 <div class="wonder-quint-header">
-                    <span class="wonder-stat-label">"Quintessência:"</span>
+                    <span class="wonder-stat-label">{move || format!("{}:", crate::i18n::tr("quintessence", lang()))}</span>
                     <div class="wonder-quint-controls">
                         <button 
                             type="button" 
                             class="quint-step-btn" 
                             on:click=move |_| change_wonder_quint_max(idx, -5)
-                            title="Reduzir capacidade de Quintessência (-5)"
+                            title="Reduzir capacidade (-5)"
                             disabled=move || data.with(|d| d.wonders.get(idx).map(|w| w.quintessence_max <= 0).unwrap_or(true))
                         >
                             "-5"
@@ -354,7 +378,7 @@ pub fn WonderCard(
                             type="button" 
                             class="quint-step-btn" 
                             on:click=move |_| change_wonder_quint_max(idx, 5)
-                            title="Aumentar capacidade de Quintessência (+5)"
+                            title="Aumentar capacidade (+5)"
                             disabled=move || data.with(|d| d.wonders.get(idx).map(|w| w.quintessence_max >= 20).unwrap_or(false))
                         >
                             "+5"
@@ -372,7 +396,7 @@ pub fn WonderCard(
                                     class="square wonder-square"
                                     class:filled=is_filled
                                     on:click=move |_| update_wonder_quint_current(idx, sq_i)
-                                    title=format!("Quintessência {}", sq_i)
+                                    title=format!("Quintessence {}", sq_i)
                                 ></span>
                             }
                         }).collect_view()
@@ -382,10 +406,10 @@ pub fn WonderCard(
 
             // 5. Bloco de Descrição e Poderes da Maravilha
             <div class="wonder-desc-row">
-                <label class="wonder-label">"Descrição / Poderes & Esferas:"</label>
+                <label class="wonder-label">{move || format!("{}:", crate::i18n::tr("wonder_powers", lang()))}</label>
                 <StableTextArea 
                     class="wonder-desc-textarea"
-                    placeholder="Poderes místicos, esferas exigidas, gatilhos, histórico e efeitos..."
+                    placeholder=Signal::derive(move || crate::i18n::tr("wonder_powers_placeholder", lang()).to_string())
                     value=Signal::derive(move || data.with(|d| d.wonders.get(idx).map(|w| w.description.clone()).unwrap_or_default()))
                     on_change=Callback::new(move |val| {
                         set_data.update(|s| {

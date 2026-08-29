@@ -23,6 +23,9 @@ pub fn Navbar() -> impl IntoView {
         });
     };
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <nav class="main-navbar">
             <div class="navbar-container">
@@ -43,11 +46,11 @@ pub fn Navbar() -> impl IntoView {
                 </div>
 
                 <div class="navbar-links">
-                    <A href="/" class="nav-link" exact=true>"📜 Fichas"</A>
-                    <A href="/rooms" class="nav-link">"🏰 Salas de Jogo"</A>
+                    <A href="/" class="nav-link" exact=true>{move || crate::i18n::tr("character_sheets", lang())}</A>
+                    <A href="/rooms" class="nav-link">{move || crate::i18n::tr("game_rooms", lang())}</A>
                     {move || user.get().and_then(|u| {
                         if u.is_admin {
-                            Some(view! { <A href="/logs" class="nav-link">"📊 Logs"</A> })
+                            Some(view! { <A href="/logs" class="nav-link">{move || crate::i18n::tr("logs", lang())}</A> })
                         } else {
                             None
                         }
@@ -55,11 +58,30 @@ pub fn Navbar() -> impl IntoView {
                 </div>
 
                 <div class="navbar-auth">
+                    <button
+                        type="button"
+                        class="lang-toggle-btn"
+                        on:click=move |_| {
+                            if let Some(ctx) = lang_ctx {
+                                ctx.toggle();
+                            }
+                        }
+                        title=move || match lang() {
+                            crate::i18n::Language::PtBr => "Idioma: Português (Clique para mudar para English)",
+                            crate::i18n::Language::EnUs => "Language: English (Click to switch to Português)",
+                        }
+                    >
+                        {move || match lang() {
+                            crate::i18n::Language::PtBr => "🇧🇷 PT",
+                            crate::i18n::Language::EnUs => "🇺🇸 EN",
+                        }}
+                    </button>
+
                     {move || match user.get() {
                         Some(u) => view! {
                             <div class="user-pill">
                                 <span class="user-greeting">"🧙 " {u.username}</span>
-                                <button class="logout-btn" on:click=on_logout title="Sair da conta">"Sair"</button>
+                                <button class="logout-btn" on:click=on_logout title="Sair da conta">{move || crate::i18n::tr("logout", lang())}</button>
                             </div>
                         }.into_view(),
                         None => view! {

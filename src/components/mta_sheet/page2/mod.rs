@@ -16,14 +16,17 @@ use leptos::*;
 
 #[component]
 pub fn PageMagicCombat() -> impl IntoView {
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <div class="page2-content">
             // Cabeçalho da Página 2
             <div class="page2-header-banner">
                 <div class="page2-header-title-box">
-                    <h2 class="page2-title">"MAGIA & COMBATE"</h2>
+                    <h2 class="page2-title">{move || crate::i18n::tr("page2_title", lang())}</h2>
                     <span class="page2-subtitle">
-                        "Qualidades & Defeitos • Outras Características • Maravilhas • Rotes • Armamento"
+                        {move || crate::i18n::tr("page2_subtitle", lang())}
                     </span>
                 </div>
             </div>

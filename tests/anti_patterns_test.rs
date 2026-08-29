@@ -258,3 +258,30 @@ fn test_ssr_render_app_and_home() {
     println!("=== RENDERED APP SSR ===\n{}\n========================", app_html);
     assert!(!app_html.is_empty());
 }
+
+#[test]
+fn test_sheet_loading_guard_prevents_owner_disposed_panic() {
+    let sheet_view_rs = fs::read_to_string("src/components/views/character_sheet.rs")
+        .expect("character_sheet.rs deve existir");
+
+    // Garante que o switch da ficha verifica `if !is_loaded.get()` antes de renderizar
+    assert!(
+        sheet_view_rs.contains("if !is_loaded.get()"),
+        "character_sheet.rs DEVE checar `if !is_loaded.get()` antes de instanciar a árvore de componentes da ficha \
+         para impedir que a ficha padrão de Mago seja criada e descartada imediatamente na resolução de Gods & Monsters, \
+         o que causaria pânico de 'OwnerDisposed'."
+    );
+}
+
+#[test]
+fn test_no_signal_storms_in_stable_inputs() {
+    let stable_rs = fs::read_to_string("src/components/common/stable_textarea.rs")
+        .expect("stable_textarea.rs deve existir");
+
+    assert!(
+        !stable_rs.contains("create_rw_signal"),
+        "stable_textarea.rs NÃO deve usar 'create_rw_signal' para gerenciar foco e sincronização interna. \
+         Use referências locais não reativas (Rc<Cell> e Rc<RefCell>) para evitar cascatas de re-render e 'OwnerDisposed'."
+    );
+}
+

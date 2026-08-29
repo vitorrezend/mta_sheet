@@ -3,6 +3,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{FileReader, HtmlInputElement, ProgressEvent};
 use crate::components::Callback;
 use crate::components::page2::ImageModal;
+use super::CardFramingModal;
 use crate::state::CharacterData;
 
 const MAX_FILE_SIZE_BYTES: f64 = 10.0 * 1024.0 * 1024.0; // 10MB
@@ -17,6 +18,7 @@ pub fn VisualsSection() -> impl IntoView {
     let (active_modal_image, set_active_modal_image) = create_signal::<Option<String>>(None);
     let (cabal_error, set_cabal_error) = create_signal::<Option<String>>(None);
     let (sketch_error, set_sketch_error) = create_signal::<Option<String>>(None);
+    let is_framing_modal_open = create_rw_signal(false);
 
     let cabal_chart_url = Signal::derive(move || data.with(|d| d.visuals.cabal_chart_url.clone()));
     let character_sketch_url = Signal::derive(move || {
@@ -37,40 +39,44 @@ pub fn VisualsSection() -> impl IntoView {
         set_cabal_error.set(None);
         let file_name = file.name();
         let sheet_id = data.with_untracked(|d| d.id.clone());
+        let set_d = set_data.clone();
+        let set_err = set_cabal_error.clone();
 
-        if let Ok(reader) = FileReader::new() {
-            let reader_clone = reader.clone();
-            let set_data_clone = set_data.clone();
-            let onload = wasm_bindgen::closure::Closure::wrap(Box::new(move |_e: ProgressEvent| {
-                if let Ok(result) = reader_clone.result() {
-                    if let Some(data_url) = result.as_string() {
+        crate::components::common::compress_image_file_to_webp(
+            &file,
+            crate::components::common::ImageCompressionOptions::chart_or_map(),
+            Callback::new(move |res: Result<String, String>| {
+                match res {
+                    Ok(compressed_data_url) => {
                         let s_id = sheet_id.clone();
                         let f_name = file_name.clone();
-                        let set_d = set_data_clone.clone();
+                        let set_d_inner = set_d.clone();
+                        let compressed_backup = compressed_data_url.clone();
 
                         spawn_local(async move {
-                            match crate::state::save_uploaded_media(s_id, "cabal".to_string(), f_name, data_url).await {
+                            match crate::state::save_uploaded_media(s_id, "cabal".to_string(), f_name, compressed_data_url).await {
                                 Ok(uploaded_url) => {
-                                    set_d.update(|s| s.visuals.cabal_chart_url = uploaded_url);
+                                    set_d_inner.update(|s| s.visuals.cabal_chart_url = uploaded_url);
                                 }
                                 Err(e) => {
+                                    // Fallback: salva a string WebP comprimida de tamanho reduzido diretamente
+                                    set_d_inner.update(|s| s.visuals.cabal_chart_url = compressed_backup);
                                     crate::logging::log_client(
                                         "errors",
-                                        "ERROR",
-                                        "Falha ao enviar organograma do Cabal para o servidor",
+                                        "WARN",
+                                        "Upload em disco indisponível, imagem comprimida WebP salva inline",
                                         Some(&e.to_string()),
                                     );
                                 }
                             }
                         });
                     }
+                    Err(err_msg) => {
+                        set_err.set(Some(format!("Erro ao processar imagem: {}", err_msg)));
+                    }
                 }
-            }) as Box<dyn FnMut(ProgressEvent)>);
-
-            reader.set_onload(Some(onload.as_ref().unchecked_ref()));
-            onload.forget();
-            let _ = reader.read_as_data_url(&file);
-        }
+            }),
+        );
     };
 
     let handle_sketch_file = move |file: web_sys::File| {
@@ -79,52 +85,69 @@ pub fn VisualsSection() -> impl IntoView {
             return;
         }
         set_sketch_error.set(None);
-        #[cfg(target_arch = "wasm32")]
-        {
-            let set_d = set_data.clone();
-            let set_err = set_sketch_error.clone();
+        let file_name = file.name();
+        let sheet_id = data.with_untracked(|d| d.id.clone());
+        let set_d = set_data.clone();
+        let set_err = set_sketch_error.clone();
 
-            if let Ok(form_data) = web_sys::FormData::new() {
-                let _ = form_data.append_with_blob_and_filename("file", &file, &file.name());
+        crate::components::common::compress_image_file_to_webp(
+            &file,
+            crate::components::common::ImageCompressionOptions::portrait(),
+            Callback::new(move |res: Result<String, String>| {
+                match res {
+                    Ok(compressed_data_url) => {
+                        let s_id = sheet_id.clone();
+                        let f_name = file_name.clone();
+                        let set_d_inner = set_d.clone();
+                        let compressed_backup = compressed_data_url.clone();
 
-                spawn_local(async move {
-                    if let Ok(req) = gloo_net::http::Request::post("/api/upload_image").body(form_data) {
-                        if let Ok(resp) = req.send().await {
-                            if resp.ok() {
-                                if let Ok(json) = resp.json::<serde_json::Value>().await {
-                                    if let Some(url) = json.get("url").and_then(|u| u.as_str()) {
-                                        let u_clone = url.to_string();
-                                        set_d.update(|s| {
-                                            s.visuals.character_sketch_url = u_clone.clone();
-                                            s.set_profile_photo(u_clone);
-                                        });
-                                        return;
-                                    }
+                        spawn_local(async move {
+                            match crate::state::save_uploaded_media(s_id, "sketch".to_string(), f_name, compressed_data_url).await {
+                                Ok(uploaded_url) => {
+                                    set_d_inner.update(|s| {
+                                        s.visuals.character_sketch_url = uploaded_url.clone();
+                                        s.set_profile_photo(uploaded_url);
+                                    });
+                                }
+                                Err(e) => {
+                                    // Fallback: salva a string WebP comprimida de tamanho reduzido diretamente
+                                    set_d_inner.update(|s| {
+                                        s.visuals.character_sketch_url = compressed_backup.clone();
+                                        s.set_profile_photo(compressed_backup);
+                                    });
+                                    crate::logging::log_client(
+                                        "errors",
+                                        "WARN",
+                                        "Upload em disco indisponível, imagem comprimida WebP salva inline",
+                                        Some(&e.to_string()),
+                                    );
                                 }
                             }
-                        }
+                        });
                     }
-                    let _ = set_err.try_set(Some("Falha no upload do retrato".to_string()));
-                });
-            }
-        }
-        #[cfg(not(target_arch = "wasm32"))]
-        {
-            let _ = file;
-        }
+                    Err(err_msg) => {
+                        set_err.set(Some(format!("Erro ao processar retrato: {}", err_msg)));
+                    }
+                }
+            }),
+        );
     };
+
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
 
     view! {
         <div class="group-box visuals-box">
-            <span class="group-title">"VISUALS"</span>
+            <span class="group-title">{move || crate::i18n::tr("visuals_title", lang())}</span>
 
             <div class="visuals-grid-2col">
                 // 1. Cabal Chart
                 <div class="visual-card">
                     <div class="visual-card-header">
-                        <label class="visual-label">"CABAL CHART (Organograma / Diagrama do Cabal)"</label>
+                        <label class="visual-label">{move || crate::i18n::tr("cabal_chart_title", lang())}</label>
                         {move || {
                             let url = cabal_chart_url.get();
+                            let current_lang = lang();
                             if !url.is_empty() {
                                 view! {
                                     <button 
@@ -133,9 +156,15 @@ pub fn VisualsSection() -> impl IntoView {
                                         on:click=move |_| {
                                             set_data.update(|s| s.visuals.cabal_chart_url.clear());
                                         }
-                                        title="Remover Imagem"
+                                        title=move || match current_lang {
+                                            crate::i18n::Language::PtBr => "Remover Imagem",
+                                            crate::i18n::Language::EnUs => "Remove Image",
+                                        }
                                     >
-                                        "Remover"
+                                        {match current_lang {
+                                            crate::i18n::Language::PtBr => "Remover",
+                                            crate::i18n::Language::EnUs => "Remove",
+                                        }}
                                     </button>
                                 }.into_view()
                             } else {
@@ -147,6 +176,7 @@ pub fn VisualsSection() -> impl IntoView {
                     <div class="visual-preview-container">
                         {move || {
                             let url = cabal_chart_url.get();
+                            let current_lang = lang();
                             if !url.is_empty() {
                                 let u_modal = url.clone();
                                 view! {
@@ -155,7 +185,7 @@ pub fn VisualsSection() -> impl IntoView {
                                             src=url
                                             alt="Cabal Chart"
                                             class="visual-img wonder-image-preview"
-                                            title="Clique para ampliar em tela cheia"
+                                            title="Click to zoom"
                                             on:click=move |_| set_active_modal_image.set(Some(u_modal.clone()))
                                         />
                                     </div>
@@ -180,8 +210,13 @@ pub fn VisualsSection() -> impl IntoView {
                                             }
                                         />
                                         <span class="visual-dropzone-icon">"📐"</span>
-                                        <span class="visual-dropzone-text">"Clique ou arraste o diagrama / símbolo do Cabal"</span>
-                                        <span class="visual-dropzone-hint">"JPG, PNG, WEBP até 10MB"</span>
+                                        <span class="visual-dropzone-text">
+                                            {match current_lang {
+                                                crate::i18n::Language::PtBr => "Clique ou arraste o diagrama / símbolo da Cabala",
+                                                crate::i18n::Language::EnUs => "Click or drag Cabal diagram / crest",
+                                            }}
+                                        </span>
+                                        <span class="visual-dropzone-hint">"JPG, PNG, WEBP max 10MB"</span>
                                     </label>
                                 }.into_view()
                             }
@@ -198,9 +233,10 @@ pub fn VisualsSection() -> impl IntoView {
                 // 2. Character Sketch
                 <div class="visual-card">
                     <div class="visual-card-header">
-                        <label class="visual-label">"CHARACTER SKETCH (Retrato do Personagem)"</label>
+                        <label class="visual-label">{move || crate::i18n::tr("portrait_title", lang())}</label>
                         {move || {
                             let url = character_sketch_url.get();
+                            let current_lang = lang();
                             if !url.is_empty() {
                                 view! {
                                     <button 
@@ -212,9 +248,15 @@ pub fn VisualsSection() -> impl IntoView {
                                                 s.set_profile_photo(String::new());
                                             });
                                         }
-                                        title="Remover Imagem"
+                                        title=move || match current_lang {
+                                            crate::i18n::Language::PtBr => "Remover Imagem",
+                                            crate::i18n::Language::EnUs => "Remove Image",
+                                        }
                                     >
-                                        "Remover"
+                                        {match current_lang {
+                                            crate::i18n::Language::PtBr => "Remover",
+                                            crate::i18n::Language::EnUs => "Remove",
+                                        }}
                                     </button>
                                 }.into_view()
                             } else {
@@ -226,17 +268,75 @@ pub fn VisualsSection() -> impl IntoView {
                     <div class="visual-preview-container">
                         {move || {
                             let url = character_sketch_url.get();
+                            let current_lang = lang();
                             if !url.is_empty() {
                                 let u_modal = url.clone();
+                                let u_card_preview = url.clone();
+                                let focus_y = Signal::derive(move || data.with(|d| d.get_photo_focus().1));
+                                let focus_x = Signal::derive(move || data.with(|d| d.get_photo_focus().0));
+
                                 view! {
-                                    <div class="visual-image-wrapper">
-                                        <img 
-                                            src=url
-                                            alt="Character Sketch"
-                                            class="visual-img wonder-image-preview"
-                                            title="Clique para ampliar em tela cheia"
-                                            on:click=move |_| set_active_modal_image.set(Some(u_modal.clone()))
-                                        />
+                                    <div class="visual-sketch-with-framing">
+                                        <div class="visual-image-wrapper">
+                                            <img 
+                                                src=url
+                                                alt="Character Sketch"
+                                                class="visual-img wonder-image-preview"
+                                                title="Click to zoom"
+                                                on:click=move |_| set_active_modal_image.set(Some(u_modal.clone()))
+                                            />
+                                        </div>
+
+                                        // Card Framing Action Panel
+                                        <div class="visual-framing-action-box">
+                                            <div class="framing-action-info">
+                                                <span class="framing-action-title">
+                                                    "📐 "
+                                                    {match current_lang {
+                                                        crate::i18n::Language::PtBr => "Enquadramento nos Cards",
+                                                        crate::i18n::Language::EnUs => "Card Framing & Position",
+                                                    }}
+                                                </span>
+                                                <span class="framing-action-hint">
+                                                    {match current_lang {
+                                                        crate::i18n::Language::PtBr => "Arraste a foto no modal para escolher qual parte aparece nos cards.",
+                                                        crate::i18n::Language::EnUs => "Drag the photo in the modal to choose which part appears on the cards.",
+                                                    }}
+                                                </span>
+                                            </div>
+
+                                            <div class="framing-action-controls">
+                                                <button
+                                                    type="button"
+                                                    class="btn-open-framing-modal"
+                                                    on:click=move |_| is_framing_modal_open.set(true)
+                                                >
+                                                    "📐 "
+                                                    {match current_lang {
+                                                        crate::i18n::Language::PtBr => "Ajustar Enquadramento",
+                                                        crate::i18n::Language::EnUs => "Adjust Framing",
+                                                    }}
+                                                </button>
+
+                                                <div 
+                                                    class="card-portrait-box mini-card-framing-preview clickable-preview" 
+                                                    title=match current_lang {
+                                                        crate::i18n::Language::PtBr => "Clique para ajustar enquadramento",
+                                                        crate::i18n::Language::EnUs => "Click to adjust framing",
+                                                    }
+                                                    on:click=move |_| is_framing_modal_open.set(true)
+                                                >
+                                                    <img
+                                                        src=u_card_preview
+                                                        alt="Card Preview"
+                                                        class="card-portrait-img"
+                                                        style=move || format!("object-position: {}% {}%;", focus_x.get(), focus_y.get())
+                                                    />
+                                                    <div class="card-portrait-gradient"></div>
+                                                    <div class="preview-hover-tag">"✏️ Editar"</div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 }.into_view()
                             } else {
@@ -259,8 +359,13 @@ pub fn VisualsSection() -> impl IntoView {
                                             }
                                         />
                                         <span class="visual-dropzone-icon">"🎨"</span>
-                                        <span class="visual-dropzone-text">"Clique ou arraste o retrato / esboço do personagem"</span>
-                                        <span class="visual-dropzone-hint">"JPG, PNG, WEBP até 10MB"</span>
+                                        <span class="visual-dropzone-text">
+                                            {match current_lang {
+                                                crate::i18n::Language::PtBr => "Clique ou arraste o retrato / foto do personagem",
+                                                crate::i18n::Language::EnUs => "Click or drag character portrait / photo",
+                                            }}
+                                        </span>
+                                        <span class="visual-dropzone-hint">"JPG, PNG, WEBP max 10MB"</span>
                                     </label>
                                 }.into_view()
                             }
@@ -280,6 +385,32 @@ pub fn VisualsSection() -> impl IntoView {
                 image_url=active_modal_image.into()
                 on_close=Callback::new(move |_| set_active_modal_image.set(None)) 
             />
+
+            // Card Framing Drag Modal
+            <Show
+                when=move || is_framing_modal_open.get() && !character_sketch_url.get().is_empty()
+                fallback=|| ()
+            >
+                {
+                    let url = character_sketch_url.get();
+                    let (fx, fy) = data.with(|d| d.get_photo_focus());
+                    let set_d = set_data.clone();
+                    view! {
+                        <CardFramingModal
+                            image_url=url
+                            initial_focus_x=fx
+                            initial_focus_y=fy
+                            on_save=Callback::new(move |(new_x, new_y)| {
+                                set_d.update(|s| s.set_photo_focus(new_x, new_y));
+                                is_framing_modal_open.set(false);
+                            })
+                            on_close=Callback::new(move |_| {
+                                is_framing_modal_open.set(false);
+                            })
+                        />
+                    }
+                }
+            </Show>
         </div>
     }
 }

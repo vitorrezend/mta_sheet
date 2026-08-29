@@ -9,6 +9,9 @@ pub fn CombatSection() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>()
         .expect("WriteSignal<CharacterData> context not found");
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     let render_weapon_row = move |idx: usize| {
         let name_val = Signal::derive(move || data.with(|d| d.weapons.get(idx).map(|w| w.name.clone()).unwrap_or_default()));
         let diff_val = Signal::derive(move || data.with(|d| d.weapons.get(idx).map(|w| w.diff.clone()).unwrap_or_default()));
@@ -23,7 +26,7 @@ pub fn CombatSection() -> impl IntoView {
                 <td>
                     <StableTextInput 
                         class="table-cell-input text-left font-bold"
-                        placeholder="Arma / Golpe..."
+                        placeholder=Signal::derive(move || format!("{}...", crate::i18n::tr("weapon_header", lang())))
                         value=name_val
                         on_change=Callback::new(move |val| {
                             set_data.update(|s| {
@@ -36,7 +39,7 @@ pub fn CombatSection() -> impl IntoView {
                 <td>
                     <StableTextInput 
                         class="table-cell-input text-center"
-                        placeholder="Dif"
+                        placeholder=Signal::derive(move || crate::i18n::tr("diff_header", lang()).to_string())
                         value=diff_val
                         on_change=Callback::new(move |val| {
                             set_data.update(|s| {
@@ -49,7 +52,7 @@ pub fn CombatSection() -> impl IntoView {
                 <td>
                     <StableTextInput 
                         class="table-cell-input text-center"
-                        placeholder="Dano"
+                        placeholder=Signal::derive(move || crate::i18n::tr("dmg_header", lang()).to_string())
                         value=dmg_val
                         on_change=Callback::new(move |val| {
                             set_data.update(|s| {
@@ -62,7 +65,7 @@ pub fn CombatSection() -> impl IntoView {
                 <td>
                     <StableTextInput 
                         class="table-cell-input text-center"
-                        placeholder="Alc."
+                        placeholder=Signal::derive(move || crate::i18n::tr("range_header", lang()).to_string())
                         value=range_val
                         on_change=Callback::new(move |val| {
                             set_data.update(|s| {
@@ -75,7 +78,7 @@ pub fn CombatSection() -> impl IntoView {
                 <td>
                     <StableTextInput 
                         class="table-cell-input text-center"
-                        placeholder="Cad."
+                        placeholder=Signal::derive(move || crate::i18n::tr("rate_header", lang()).to_string())
                         value=rate_val
                         on_change=Callback::new(move |val| {
                             set_data.update(|s| {
@@ -88,7 +91,7 @@ pub fn CombatSection() -> impl IntoView {
                 <td>
                     <StableTextInput 
                         class="table-cell-input text-center"
-                        placeholder="Pente"
+                        placeholder=Signal::derive(move || crate::i18n::tr("clip_header", lang()).to_string())
                         value=clip_val
                         on_change=Callback::new(move |val| {
                             set_data.update(|s| {
@@ -101,7 +104,7 @@ pub fn CombatSection() -> impl IntoView {
                 <td>
                     <StableTextInput 
                         class="table-cell-input text-center"
-                        placeholder="Ocult."
+                        placeholder=Signal::derive(move || crate::i18n::tr("conceal_header", lang()).to_string())
                         value=conceal_val
                         on_change=Callback::new(move |val| {
                             set_data.update(|s| {
@@ -118,27 +121,30 @@ pub fn CombatSection() -> impl IntoView {
     view! {
         <div class="group-box combat-section-box">
             <div class="group-box-header">
-                <span class="group-box-title">"COMBATE (COMBAT)"</span>
+                <span class="group-box-title">{move || crate::i18n::tr("combat_title", lang())}</span>
             </div>
 
             <div class="combat-grid">
                 // Tabela de Armas e Ataques (4 Linhas Estáticas)
                 <div class="weapons-table-column">
                     <div class="weapons-table-header-row">
-                        <span class="weapons-table-title">"ARMAS & ATAQUES"</span>
+                        <span class="weapons-table-title">{move || match lang() {
+                            crate::i18n::Language::PtBr => "ARMAS & ATAQUES",
+                            crate::i18n::Language::EnUs => "WEAPONS & ATTACKS",
+                        }}</span>
                     </div>
 
                     <div class="weapons-table-container">
                         <table class="weapons-table">
                             <thead>
                                 <tr>
-                                    <th class="th-weapon">"ARMA / ATAQUE"</th>
-                                    <th class="th-stat">"DIF."</th>
-                                    <th class="th-stat">"DANO"</th>
-                                    <th class="th-stat">"ALCANCE"</th>
-                                    <th class="th-stat">"CADÊNCIA"</th>
-                                    <th class="th-stat">"PENTE"</th>
-                                    <th class="th-stat">"OCULT."</th>
+                                    <th class="th-weapon">{move || crate::i18n::tr("weapon_header", lang()).to_uppercase()}</th>
+                                    <th class="th-stat">{move || crate::i18n::tr("diff_header", lang()).to_uppercase()}</th>
+                                    <th class="th-stat">{move || crate::i18n::tr("dmg_header", lang()).to_uppercase()}</th>
+                                    <th class="th-stat">{move || crate::i18n::tr("range_header", lang()).to_uppercase()}</th>
+                                    <th class="th-stat">{move || crate::i18n::tr("rate_header", lang()).to_uppercase()}</th>
+                                    <th class="th-stat">{move || crate::i18n::tr("clip_header", lang()).to_uppercase()}</th>
+                                    <th class="th-stat">{move || crate::i18n::tr("conceal_header", lang()).to_uppercase()}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -151,15 +157,18 @@ pub fn CombatSection() -> impl IntoView {
                 // Bloco de Armadura
                 <div class="armor-column">
                     <div class="armor-header">
-                        <span class="weapons-table-title">"ARMADURA (ARMOR)"</span>
+                        <span class="weapons-table-title">{move || crate::i18n::tr("armor_title", lang()).to_uppercase()}</span>
                     </div>
 
                     <div class="armor-box-content">
                         <div class="armor-field-row">
-                            <label class="armor-label">"Classe:"</label>
+                            <label class="armor-label">{move || format!("{}:", crate::i18n::tr("armor_class", lang()))}</label>
                             <StableTextInput 
                                 class="armor-input"
-                                placeholder="Ex: Jaqueta de Couro"
+                                placeholder=Signal::derive(move || match lang() {
+                                    crate::i18n::Language::PtBr => "Ex: Jaqueta de Couro".to_string(),
+                                    crate::i18n::Language::EnUs => "Ex: Leather Jacket".to_string(),
+                                })
                                 value=Signal::derive(move || data.with(|d| d.armor.class_name.clone()))
                                 on_change=Callback::new(move |val| {
                                     set_data.update(|s| s.armor.class_name = val);
@@ -168,7 +177,7 @@ pub fn CombatSection() -> impl IntoView {
                         </div>
 
                         <div class="armor-field-row">
-                            <label class="armor-label">"Rating:"</label>
+                            <label class="armor-label">{move || format!("{}:", crate::i18n::tr("armor_rating", lang()))}</label>
                             <StableTextInput 
                                 class="armor-input text-center"
                                 placeholder="1"
@@ -180,7 +189,7 @@ pub fn CombatSection() -> impl IntoView {
                         </div>
 
                         <div class="armor-field-row">
-                            <label class="armor-label">"Penalidade:"</label>
+                            <label class="armor-label">{move || format!("{}:", crate::i18n::tr("armor_penalty", lang()))}</label>
                             <StableTextInput 
                                 class="armor-input text-center"
                                 placeholder="0"
@@ -192,10 +201,16 @@ pub fn CombatSection() -> impl IntoView {
                         </div>
 
                         <div class="armor-desc-row">
-                            <label class="armor-label">"Descrição:"</label>
+                            <label class="armor-label">{move || match lang() {
+                                crate::i18n::Language::PtBr => "Descrição:",
+                                crate::i18n::Language::EnUs => "Description:",
+                            }}</label>
                             <StableTextArea 
                                 class="armor-desc-textarea"
-                                placeholder="Detalhes da proteção..."
+                                placeholder=Signal::derive(move || match lang() {
+                                    crate::i18n::Language::PtBr => "Detalhes da proteção...".to_string(),
+                                    crate::i18n::Language::EnUs => "Protection details...".to_string(),
+                                })
                                 value=Signal::derive(move || data.with(|d| d.armor.description.clone()))
                                 on_change=Callback::new(move |val| {
                                     set_data.update(|s| s.armor.description = val);

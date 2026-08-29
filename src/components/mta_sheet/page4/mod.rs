@@ -3,10 +3,12 @@ use leptos::*;
 mod history_section;
 mod description_section;
 mod visuals_section;
+mod framing_modal;
 
 pub use history_section::*;
 pub use description_section::*;
 pub use visuals_section::*;
+pub use framing_modal::*;
 
 #[component]
 pub fn PageHistoryDescriptionVisuals() -> impl IntoView {

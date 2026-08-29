@@ -20,9 +20,12 @@ pub fn MagicSection() -> impl IntoView {
         });
     };
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <div class="group-box magic-section-box">
-            <span class="group-title">"MARAVILHAS & ARTEFATOS"</span>
+            <span class="group-title">{move || crate::i18n::tr("wonders_title", lang())}</span>
 
             // Grade 2x2 preenchendo toda a largura da folha
             <div class="wonders-grid-2x2">
@@ -40,7 +43,7 @@ pub fn MagicSection() -> impl IntoView {
             </div>
 
             <div class="wonders-footer-actions">
-                <button class="add-field-btn" on:click=add_wonder title="Adicionar Nova Maravilha">"+"</button>
+                <button class="add-field-btn" on:click=add_wonder title=move || crate::i18n::tr("add_wonder", lang())>"+"</button>
             </div>
 
             // Modal Lightbox para visualização e zoom da imagem

@@ -17,6 +17,9 @@ pub fn Vitality() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
     let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     let counts = move || data.with(|d| d.get_health_counts());
     let is_gm = move || data.with(|d| d.is_gods_and_monsters());
     let extra_bruised = move || data.with(|d| d.get_extra_bruised());
@@ -25,7 +28,7 @@ pub fn Vitality() -> impl IntoView {
     view! {
         <div class="vitality-container">
             <div class="vitality-header-row">
-                <h3 class="column-title">"Vitalidade"</h3>
+                <h3 class="column-title">{move || crate::i18n::tr("vitality", lang())}</h3>
                 <div class="vitality-actions">
                     {move || if is_gm() {
                         let extra = extra_bruised();
@@ -64,7 +67,10 @@ pub fn Vitality() -> impl IntoView {
                         on:click=move |_| set_data.update(|s| s.clear_health())
                         title="Limpar todos os danos (Curar totalmente)"
                     >
-                        "🧹 Limpar"
+                        {move || match lang() {
+                            crate::i18n::Language::PtBr => "🧹 Limpar",
+                            crate::i18n::Language::EnUs => "🧹 Clear",
+                        }}
                     </button>
                 </div>
             </div>
@@ -73,6 +79,7 @@ pub fn Vitality() -> impl IntoView {
                 {move || {
                     let total = total_boxes();
                     let extra = extra_bruised();
+                    let current_lang = lang();
                     (0..total).map(|i| {
                         let (label, penalty) = if i < extra {
                             ("Escoriado", None)
@@ -81,11 +88,12 @@ pub fn Vitality() -> impl IntoView {
                             BASE_HEALTH_LEVELS[base_idx.min(6)]
                         };
                         let current = move || data.with(|d| d.get_health(i));
+                        let translated_label = crate::i18n::tr_health(label, current_lang);
 
                         view! {
                             <div class="health-row">
                                 <div class="health-label-group">
-                                    <span class="health-label">{label}</span>
+                                    <span class="health-label">{translated_label}</span>
                                     {penalty.map(|p| view! {
                                         <span class="health-penalty">{p}</span>
                                     })}

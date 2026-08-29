@@ -288,6 +288,7 @@ pub fn CharacterSheet() -> impl IntoView {
 
     let is_gods_and_monsters = create_memo(move |_| data.with(|d| d.is_gods_and_monsters()));
     let (show_quiz_modal, set_show_quiz_modal) = create_signal(false);
+    let (show_pdf_modal, set_show_pdf_modal) = create_signal(false);
 
     view! {
         <div class="sheet-page-container">
@@ -305,6 +306,7 @@ pub fn CharacterSheet() -> impl IntoView {
                 do_manual_save=do_manual_save
                 on_export_json=on_export_json
                 on_import_json=on_import_json
+                set_show_pdf_modal=set_show_pdf_modal
             />
 
             // Modal de Extrato de Custos
@@ -323,6 +325,15 @@ pub fn CharacterSheet() -> impl IntoView {
                 set_data=set_data
             />
 
+            // Modal de Opções de Exportação para PDF (Econômico / Inteligente)
+            <crate::components::mta_sheet::sheet::pdf_export_modal::PdfExportModal
+                show_modal=show_pdf_modal
+                set_show_modal=set_show_pdf_modal
+                data=data
+                current_active_tab=active_tab.into()
+                is_gods_and_monsters=is_gods_and_monsters
+            />
+
             // Barra de Navegação de Abas (Páginas da Ficha)
             <SheetTabs 
                 active_tab=active_tab
@@ -330,90 +341,95 @@ pub fn CharacterSheet() -> impl IntoView {
                 is_gods_and_monsters=is_gods_and_monsters.into()
             />
 
-            {move || match sheet_resource.get() {
-                Some(Ok(_)) => {
-                    let is_gm = is_gods_and_monsters.get();
-                    if is_gm {
-                        view! {
-                            <Sheet>
-                                <div 
-                                    class="sheet-page-tab-pane page-gods-1"
-                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::Main
-                                >
-                                    <crate::components::gods_and_monsters::GodsAndMonstersPage1 />
+            <div class="sheet-main-content">
+                {move || {
+                    if !is_loaded.get() {
+                        match sheet_resource.get() {
+                            Some(Err(e)) => view! { 
+                                <div class="error-container">
+                                    <p class="error-title">"Erro ao carregar a ficha"</p>
+                                    <p class="error-detail">{e.to_string()}</p>
+                                    <A href="/" class="back-home-btn">"Voltar para a lista de fichas"</A>
                                 </div>
-
-                                <div 
-                                    class="sheet-page-tab-pane page-gods-2"
-                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::MagicCombat
-                                >
-                                    <crate::components::gods_and_monsters::GodsAndMonstersPage2 />
-                                </div>
-                            </Sheet>
-                        }.into_view()
+                            }.into_view(),
+                            _ => view! {
+                                <div class="loading-state"><p>"Carregando Ficha..."</p></div>
+                            }.into_view(),
+                        }
                     } else {
-                        view! {
-                            <Sheet>
-                                <div 
-                                    class="sheet-page-tab-pane page-main"
-                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::Main
-                                >
-                                    <InfoHeader />
-                                    <Attributes />
-                                    <Abilities />
-                                    <Spheres />
-                                    <AdvantagesMta />
-                                </div>
+                        let is_gm = is_gods_and_monsters.get();
+                        if is_gm {
+                            view! {
+                                <Sheet>
+                                    <div 
+                                        class="sheet-page-tab-pane page-gods-1"
+                                        class:tab-hidden=move || active_tab.get() != SheetPageTab::Main
+                                    >
+                                        <crate::components::gods_and_monsters::GodsAndMonstersPage1 />
+                                    </div>
 
-                                <div 
-                                    class="sheet-page-tab-pane page-magic-combat"
-                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::MagicCombat
-                                >
-                                    <PageMagicCombat />
-                                </div>
+                                    <div 
+                                        class="sheet-page-tab-pane page-gods-2"
+                                        class:tab-hidden=move || active_tab.get() != SheetPageTab::MagicCombat
+                                    >
+                                        <crate::components::gods_and_monsters::GodsAndMonstersPage2 />
+                                    </div>
+                                </Sheet>
+                            }.into_view()
+                        } else {
+                            view! {
+                                <Sheet>
+                                    <div 
+                                        class="sheet-page-tab-pane page-main"
+                                        class:tab-hidden=move || active_tab.get() != SheetPageTab::Main
+                                    >
+                                        <InfoHeader />
+                                        <Attributes />
+                                        <Abilities />
+                                        <Spheres />
+                                        <AdvantagesMta />
+                                    </div>
 
-                                <div 
-                                    class="sheet-page-tab-pane page-expanded"
-                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::Expanded
-                                >
-                                    <PageExpandedBackgroundsPossessions />
-                                </div>
+                                    <div 
+                                        class="sheet-page-tab-pane page-magic-combat"
+                                        class:tab-hidden=move || active_tab.get() != SheetPageTab::MagicCombat
+                                    >
+                                        <PageMagicCombat />
+                                    </div>
 
-                                <div 
-                                    class="sheet-page-tab-pane page-history-visuals"
-                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::HistoryVisuals
-                                >
-                                    <PageHistoryDescriptionVisuals />
-                                </div>
+                                    <div 
+                                        class="sheet-page-tab-pane page-expanded"
+                                        class:tab-hidden=move || active_tab.get() != SheetPageTab::Expanded
+                                    >
+                                        <PageExpandedBackgroundsPossessions />
+                                    </div>
 
-                                <div 
-                                    class="sheet-page-tab-pane page-grimoire"
-                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::Grimoire
-                                >
-                                    <PageGrimoire />
-                                </div>
+                                    <div 
+                                        class="sheet-page-tab-pane page-history-visuals"
+                                        class:tab-hidden=move || active_tab.get() != SheetPageTab::HistoryVisuals
+                                    >
+                                        <PageHistoryDescriptionVisuals />
+                                    </div>
 
-                                <div 
-                                    class="sheet-page-tab-pane page-notes"
-                                    class:tab-hidden=move || active_tab.get() != SheetPageTab::Notes
-                                >
-                                    <PageNotes />
-                                </div>
-                            </Sheet>
-                        }.into_view()
+                                    <div 
+                                        class="sheet-page-tab-pane page-grimoire"
+                                        class:tab-hidden=move || active_tab.get() != SheetPageTab::Grimoire
+                                    >
+                                        <PageGrimoire />
+                                    </div>
+
+                                    <div 
+                                        class="sheet-page-tab-pane page-notes"
+                                        class:tab-hidden=move || active_tab.get() != SheetPageTab::Notes
+                                    >
+                                        <PageNotes />
+                                    </div>
+                                </Sheet>
+                            }.into_view()
+                        }
                     }
-                },
-                Some(Err(e)) => view! { 
-                    <div class="error-container">
-                        <p class="error-title">"Erro ao carregar a ficha"</p>
-                        <p class="error-detail">{e.to_string()}</p>
-                        <A href="/" class="back-home-btn">"Voltar para a lista de fichas"</A>
-                    </div>
-                }.into_view(),
-                None => view! {
-                    <div class="loading-state"><p>"Carregando Ficha..."</p></div>
-                }.into_view(),
-            }}
+                }}
+            </div>
         </div>
     }
 }

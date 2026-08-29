@@ -16,10 +16,13 @@ pub fn Experience() -> impl IntoView {
         });
     };
 
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
     view! {
         <div class="experience-column">
             <LabelField 
-                label=name
+                label=Signal::derive(move || crate::i18n::tr("experience", lang()).to_string())
                 value=value
                 on_change=update_value
             />

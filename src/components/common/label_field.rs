@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 #[component]
 pub fn LabelField(
-    label: &'static str,
+    #[prop(into)] label: MaybeSignal<String>,
     value: Signal<String>,
     on_change: impl Fn(String) + 'static,
 ) -> impl IntoView {
@@ -26,7 +26,7 @@ pub fn LabelField(
 
     view! {
         <div class="label-field">
-            <span class="label-text">{label}</span>
+            <span class="label-text">{move || label.get()}</span>
             <div class="tooltip-container" style="flex: 1; min-width: 0;">
                 <input 
                     type="text" 
