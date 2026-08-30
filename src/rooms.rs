@@ -113,7 +113,127 @@ pub struct RoomBroadcastEvent {
     pub play_sound: bool,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum GridShape {
+    #[default]
+    #[serde(rename = "square")]
+    Square,
+    #[serde(rename = "hex_pointy")]
+    HexPointy,
+    #[serde(rename = "hex_flat")]
+    HexFlat,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub struct MapToken {
+    pub id: String,
+    #[serde(default)]
+    pub sheet_id: Option<String>,
+    pub name: String,
+    #[serde(default)]
+    pub avatar_url: String,
+    #[serde(default)]
+    pub grid_col: f32,
+    #[serde(default)]
+    pub grid_row: f32,
+    #[serde(default = "default_token_size")]
+    pub size_cells: f32,
+    #[serde(default)]
+    pub is_npc: bool,
+    #[serde(default)]
+    pub is_hidden: bool,
+    #[serde(default = "default_token_color")]
+    pub color: String,
+    #[serde(default)]
+    pub health_status: Option<String>,
+}
+
+fn default_token_size() -> f32 { 1.0 }
+fn default_token_color() -> String { "#6366f1".to_string() }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub struct MapStructure {
+    pub id: String,
+    #[serde(default = "default_structure_type")]
+    pub structure_type: String, // "wall", "door", "cover", "water", "fire", "ward"
+    #[serde(default = "default_structure_name")]
+    pub name: String,
+    #[serde(default = "default_structure_color")]
+    pub color: String,
+    #[serde(default = "default_structure_icon")]
+    pub icon: String,
+    #[serde(default)]
+    pub grid_col: f32,
+    #[serde(default)]
+    pub grid_row: f32,
+    #[serde(default = "default_structure_blocks_move")]
+    pub blocks_movement: bool,
+    #[serde(default)]
+    pub blocks_sight: bool,
+    #[serde(default = "default_structure_opacity")]
+    pub opacity: f32,
+}
+
+fn default_structure_type() -> String { "wall".to_string() }
+fn default_structure_name() -> String { "Muro".to_string() }
+fn default_structure_color() -> String { "#334155".to_string() }
+fn default_structure_icon() -> String { "🧱".to_string() }
+fn default_structure_blocks_move() -> bool { true }
+fn default_structure_opacity() -> f32 { 0.85 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub struct RoomMapData {
+    #[serde(default = "default_map_enabled")]
+    pub enabled: bool,
+    #[serde(default)]
+    pub grid_shape: GridShape,
+    #[serde(default = "default_map_cols")]
+    pub cols: u32,
+    #[serde(default = "default_map_rows")]
+    pub rows: u32,
+    #[serde(default = "default_map_cell_size")]
+    pub cell_size: u32,
+    #[serde(default = "default_map_grid_color")]
+    pub grid_color: String,
+    #[serde(default)]
+    pub bg_image_url: String,
+    #[serde(default = "default_map_bg_opacity")]
+    pub bg_opacity: f32,
+    #[serde(default = "default_map_meters_per_cell")]
+    pub meters_per_cell: f32,
+    #[serde(default)]
+    pub tokens: Vec<MapToken>,
+    #[serde(default)]
+    pub structures: Vec<MapStructure>,
+}
+
+fn default_map_enabled() -> bool { true }
+fn default_map_cols() -> u32 { 20 }
+fn default_map_rows() -> u32 { 20 }
+fn default_map_cell_size() -> u32 { 50 }
+fn default_map_grid_color() -> String { "rgba(99, 102, 241, 0.4)".to_string() }
+fn default_map_bg_opacity() -> f32 { 0.85 }
+fn default_map_meters_per_cell() -> f32 { 1.5 }
+
+impl Default for RoomMapData {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            grid_shape: GridShape::Square,
+            cols: default_map_cols(),
+            rows: default_map_rows(),
+            cell_size: default_map_cell_size(),
+            grid_color: default_map_grid_color(),
+            bg_image_url: String::new(),
+            bg_opacity: default_map_bg_opacity(),
+            meters_per_cell: default_map_meters_per_cell(),
+            tokens: Vec::new(),
+            structures: Vec::new(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct RoomDetails {
     pub id: String,
     pub name: String,
@@ -127,6 +247,7 @@ pub struct RoomDetails {
     pub chantry: ChantryPoolData,
     pub chronicle_notes: String,
     pub initiative: RoomInitiativeData,
+    pub map_data: RoomMapData,
     pub members: Vec<RoomMemberInfo>,
     pub sheets: Vec<RoomSheetSummary>,
 }
@@ -531,9 +652,9 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
 
-    // 1. Get room info including chantry, chronicle notes, and initiative
+    // 1. Get room info including chantry, chronicle notes, initiative, and map
     let room_row = sqlx::query(
-        "SELECT r.id, r.name, r.code, r.description, r.gm_id, r.chantry_data, r.chronicle_notes, r.initiative_data, r.is_public,
+        "SELECT r.id, r.name, r.code, r.description, r.gm_id, r.chantry_data, r.chronicle_notes, r.initiative_data, r.map_data, r.is_public,
                 (r.password_hash IS NOT NULL AND r.password_hash != '') as has_password,
                 u.username as gm_username 
          FROM rooms r 
@@ -559,6 +680,12 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         serde_json::from_str(&initiative_raw).unwrap_or_default()
     } else {
         RoomInitiativeData::default()
+    };
+    let map_raw: String = room_row.try_get("map_data").unwrap_or_default();
+    let map_data: RoomMapData = if !map_raw.is_empty() {
+        serde_json::from_str(&map_raw).unwrap_or_default()
+    } else {
+        RoomMapData::default()
     };
 
     // 2. Get members
@@ -704,6 +831,7 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         chantry,
         chronicle_notes,
         initiative,
+        map_data,
         members,
         sheets,
     })
@@ -747,6 +875,52 @@ pub async fn update_room_initiative(room_id: String, initiative: RoomInitiativeD
         initiative,
         play_sound,
     });
+
+    Ok(())
+}
+
+#[server(endpoint = "update_room_map")]
+pub async fn update_room_map(room_id: String, map_data: RoomMapData) -> Result<(), ServerFnError> {
+    if room_id.trim().is_empty() {
+        return Err(ServerFnError::new("ID da sala não fornecido"));
+    }
+
+    use sqlx::{SqlitePool, Row};
+    use crate::auth::get_auth_user_id;
+
+    let user_id = get_auth_user_id().await?.ok_or_else(|| {
+        ServerFnError::new("Você precisa estar logado para alterar o mapa da sala")
+    })?;
+
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        ServerFnError::new("Conexão com o banco de dados indisponível")
+    })?;
+
+    let member_check = sqlx::query("SELECT rm.role, r.gm_id FROM rooms r LEFT JOIN room_members rm ON rm.room_id = r.id AND rm.user_id = ? WHERE r.id = ?")
+        .bind(&user_id)
+        .bind(&room_id)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?
+        .ok_or_else(|| ServerFnError::new("Sala não encontrada"))?;
+
+    let gm_id: String = member_check.try_get("gm_id").unwrap_or_default();
+    let is_gm = gm_id == user_id;
+    let has_role: bool = member_check.try_get::<Option<String>, _>("role").ok().flatten().is_some();
+
+    if !is_gm && !has_role {
+        return Err(ServerFnError::new("Você não tem permissão para alterar o mapa desta sala"));
+    }
+
+    let map_json = serde_json::to_string(&map_data)
+        .map_err(|e| ServerFnError::new(format!("Erro ao serializar dados do mapa: {}", e)))?;
+
+    sqlx::query("UPDATE rooms SET map_data = ? WHERE id = ?")
+        .bind(&map_json)
+        .bind(&room_id)
+        .execute(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(format!("Erro ao salvar mapa: {}", e)))?;
 
     Ok(())
 }
@@ -1015,6 +1189,7 @@ mod tests {
             chantry: chantry.clone(),
             chronicle_notes: "Sessão 1: Encontro na Avenida Paulista".to_string(),
             initiative: RoomInitiativeData::default(),
+            map_data: RoomMapData::default(),
             members: vec![],
             sheets: vec![],
         };
@@ -1022,6 +1197,59 @@ mod tests {
         let json = serde_json::to_string(&details).expect("serialize");
         let deserialized: RoomDetails = serde_json::from_str(&json).expect("deserialize");
         assert_eq!(details, deserialized);
+    }
+
+    #[test]
+    fn test_room_map_data_serialization() {
+        let token = MapToken {
+            id: "token-1".to_string(),
+            sheet_id: Some("sheet-123".to_string()),
+            name: "John Mage".to_string(),
+            avatar_url: "/uploads/john.webp".to_string(),
+            grid_col: 5.0,
+            grid_row: 8.0,
+            size_cells: 1.0,
+            is_npc: false,
+            is_hidden: false,
+            color: "#6366f1".to_string(),
+            health_status: Some("Saudável".to_string()),
+        };
+
+        let structure = MapStructure {
+            id: "struct-1".to_string(),
+            structure_type: "wall".to_string(),
+            name: "Muro de Concreto".to_string(),
+            color: "#334155".to_string(),
+            icon: "🧱".to_string(),
+            grid_col: 2.0,
+            grid_row: 3.0,
+            blocks_movement: true,
+            blocks_sight: true,
+            opacity: 0.85,
+        };
+
+        let map = RoomMapData {
+            enabled: true,
+            grid_shape: GridShape::HexPointy,
+            cols: 25,
+            rows: 25,
+            cell_size: 48,
+            grid_color: "rgba(99, 102, 241, 0.3)".to_string(),
+            bg_image_url: "/uploads/map.png".to_string(),
+            bg_opacity: 0.9,
+            meters_per_cell: 1.5,
+            tokens: vec![token],
+            structures: vec![structure],
+        };
+
+        let json = serde_json::to_string(&map).expect("serialize map");
+        let deserialized: RoomMapData = serde_json::from_str(&json).expect("deserialize map");
+        assert_eq!(map, deserialized);
+        assert_eq!(deserialized.grid_shape, GridShape::HexPointy);
+        assert_eq!(deserialized.tokens.len(), 1);
+        assert_eq!(deserialized.tokens[0].grid_col, 5.0);
+        assert_eq!(deserialized.structures.len(), 1);
+        assert_eq!(deserialized.structures[0].icon, "🧱");
     }
 
     #[test]

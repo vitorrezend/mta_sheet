@@ -8,9 +8,9 @@ pub fn AuthPage() -> impl IntoView {
     let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
 
     let query = use_query_map();
-    let initial_tab_register = query.with(|q| q.get("tab").map(|t| t == "register").unwrap_or(false));
-    let initial_error = query.with(|q| q.get("error").cloned());
-    let initial_user = query.with(|q| q.get("user").cloned().unwrap_or_default());
+    let initial_tab_register = query.with_untracked(|q| q.get("tab").map(|t| t == "register").unwrap_or(false));
+    let initial_error = query.with_untracked(|q| q.get("error").cloned());
+    let initial_user = query.with_untracked(|q| q.get("user").cloned().unwrap_or_default());
 
     let (is_register, set_is_register) = create_signal(initial_tab_register);
     let (username, set_username) = create_signal(initial_user);

@@ -169,6 +169,7 @@ pub async fn get_db() -> SqlitePool {
     let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN chantry_data TEXT DEFAULT ''").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN chronicle_notes TEXT DEFAULT ''").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN initiative_data TEXT DEFAULT ''").execute(&pool).await;
+    let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN map_data TEXT DEFAULT ''").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN is_public INTEGER NOT NULL DEFAULT 0").execute(&pool).await;
     let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN password_hash TEXT DEFAULT ''").execute(&pool).await;
 

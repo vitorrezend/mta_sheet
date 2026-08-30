@@ -1,4 +1,4 @@
-﻿use mta_sheet::rooms::{RoomSummary, RoomDetails, ChantryPoolData, RoomInitiativeData};
+use mta_sheet::rooms::{RoomSummary, RoomDetails, ChantryPoolData, RoomInitiativeData, RoomMapData};
 use mta_sheet::state::CharacterData;
 
 #[test]
@@ -76,6 +76,7 @@ fn test_room_summary_and_details_public_and_password_serialization() {
         chantry: ChantryPoolData::default(),
         chronicle_notes: "Notas de abertura".to_string(),
         initiative: RoomInitiativeData::default(),
+        map_data: RoomMapData::default(),
         members: vec![],
         sheets: vec![],
     };

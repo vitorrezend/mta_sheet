@@ -4,10 +4,12 @@ use crate::rooms::{
     get_room_details, assign_sheet_to_room, remove_sheet_from_room,
     toggle_sheet_room_visibility, update_room_chantry, update_room_chronicle_notes,
     clone_and_assign_sheet_to_member, update_room_settings, ChantryPoolData, RoomMemberInfo,
+    RoomDetails,
 };
 use crate::state::get_sheets;
 use crate::components::Navbar;
-use crate::components::rooms::InitiativeDrawer;
+use crate::components::rooms::{InitiativeDrawer, BattleGrid};
+use crate::rooms::RoomMapData;
 
 #[component]
 pub fn RoomView() -> impl IntoView {
@@ -29,7 +31,7 @@ pub fn RoomView() -> impl IntoView {
         let is_active = std::rc::Rc::new(std::cell::Cell::new(true));
         let is_active_cleanup = is_active.clone();
 
-        let interval = gloo_timers::callback::Interval::new(3_000, move || {
+        let interval = gloo_timers::callback::Interval::new(4_000, move || {
             if is_active.get() {
                 room_resource.refetch();
             }
@@ -42,6 +44,10 @@ pub fn RoomView() -> impl IntoView {
     }
 
     let my_sheets_resource = create_local_resource(|| (), |_| async move { get_sheets().await });
+
+    let (room_data, set_room_data) = create_signal(Option::<RoomDetails>::None);
+    let (is_loaded, set_is_loaded) = create_signal(false);
+    let (load_error, set_load_error) = create_signal(Option::<String>::None);
 
     let (active_tab, set_active_tab) = create_signal("party");
     let (show_assign_modal, set_show_assign_modal) = create_signal(false);
@@ -71,24 +77,43 @@ pub fn RoomView() -> impl IntoView {
     let (chronicle_text, set_chronicle_text) = create_signal(String::new());
     let (chronicle_initialized, set_chronicle_initialized) = create_signal(false);
 
+    let (map_data, set_map_data) = create_signal(RoomMapData::default());
+    let (map_initialized, set_map_initialized) = create_signal(false);
+
     create_effect(move |_| {
-        if let Some(Ok(room)) = room_resource.get() {
-            if !chantry_initialized.get() {
-                set_chantry_loc.set(room.chantry.location_name.clone());
-                set_chantry_node.set(room.chantry.node_rating);
-                set_chantry_library.set(room.chantry.library_rating);
-                set_chantry_quint.set(room.chantry.quintessence_pool);
-                set_chantry_max_quint.set(if room.chantry.max_quintessence > 0 { room.chantry.max_quintessence } else { 20 });
-                set_chantry_notes.set(room.chantry.notes.clone());
-                set_chantry_initialized.set(true);
-            }
-            if !chronicle_initialized.get() {
-                set_chronicle_text.set(room.chronicle_notes.clone());
-                set_chronicle_initialized.set(true);
-            }
-            if !settings_initialized.get() {
-                set_settings_is_public.set(room.is_public);
-                set_settings_initialized.set(true);
+        if let Some(res) = room_resource.get() {
+            match res {
+                Ok(room) => {
+                    if !chantry_initialized.get_untracked() {
+                        set_chantry_loc.set(room.chantry.location_name.clone());
+                        set_chantry_node.set(room.chantry.node_rating);
+                        set_chantry_library.set(room.chantry.library_rating);
+                        set_chantry_quint.set(room.chantry.quintessence_pool);
+                        set_chantry_max_quint.set(if room.chantry.max_quintessence > 0 { room.chantry.max_quintessence } else { 20 });
+                        set_chantry_notes.set(room.chantry.notes.clone());
+                        set_chantry_initialized.set(true);
+                    }
+                    if !chronicle_initialized.get_untracked() {
+                        set_chronicle_text.set(room.chronicle_notes.clone());
+                        set_chronicle_initialized.set(true);
+                    }
+                    if !map_initialized.get_untracked() {
+                        set_map_data.set(room.map_data.clone());
+                        set_map_initialized.set(true);
+                    }
+                    if !settings_initialized.get_untracked() {
+                        set_settings_is_public.set(room.is_public);
+                        set_settings_initialized.set(true);
+                    }
+                    set_room_data.set(Some(room));
+                    set_is_loaded.set(true);
+                    set_load_error.set(None);
+                }
+                Err(e) => {
+                    if !is_loaded.get_untracked() {
+                        set_load_error.set(Some(e.to_string()));
+                    }
+                }
             }
         }
     });
@@ -222,122 +247,151 @@ pub fn RoomView() -> impl IntoView {
         });
     };
 
+    let is_gm_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.is_gm).unwrap_or(false)));
+    let room_name_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.name.clone()).unwrap_or_default()));
+    let room_code_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.code.clone()).unwrap_or_default()));
+    let gm_username_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.gm_username.clone()).unwrap_or_default()));
+    let description_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.description.clone()).unwrap_or_default()));
+    let is_public_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.is_public).unwrap_or(false)));
+    let has_password_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.has_password).unwrap_or(false)));
+    let room_sheets_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.sheets.clone()).unwrap_or_default()));
+    let room_members_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.members.clone()).unwrap_or_default()));
+    let initiative_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.initiative.clone()).unwrap_or_default()));
+    let room_id_sig = Signal::derive(move || room_id());
+
+    let on_copy = move |_| {
+        #[cfg(target_arch = "wasm32")]
+        {
+            let code = room_code_sig.get();
+            if let Some(window) = web_sys::window() {
+                let _ = window.navigator().clipboard().write_text(&code);
+            }
+        }
+        set_copied_code.set(true);
+    };
+
     view! {
         <div class="room-view-page">
             <Navbar />
             <div class="room-view-container">
-            {move || match room_resource.get() {
-                None => view! { <p class="loading-msg">"Carregando mesa da crônica..."</p> }.into_view(),
-                Some(Ok(room)) => {
-                    let _code_copy = room.code.clone();
-                    let on_copy = move |_| {
-                        #[cfg(target_arch = "wasm32")]
-                        {
-                            let code = _code_copy.clone();
-                            if let Some(window) = web_sys::window() {
-                                let _ = window.navigator().clipboard().write_text(&code);
-                            }
-                        }
-                        set_copied_code.set(true);
-                    };
-
-                    let is_gm = room.is_gm;
-                    let member_count = room.members.len();
-                    let sheet_count = room.sheets.len();
-
-                    let is_public = room.is_public;
-                    let has_password = room.has_password;
-
+            {move || if !is_loaded.get() {
+                if let Some(err) = load_error.get() {
                     view! {
-                        <div class="room-dashboard">
-                            <header class="room-top-header">
-                                <div class="header-left">
-                                    <A href="/rooms" class="back-link">"← Voltar para Minhas Salas"</A>
-                                    <div class="room-title-row">
-                                        <h1 class="room-title">{room.name.clone()}</h1>
-                                        <div class="room-badge-group">
-                                            {if is_public {
-                                                view! { <span class="room-privacy-tag public">"🌐 Pública"</span> }.into_view()
-                                            } else {
-                                                view! { <span class="room-privacy-tag private">"🔒 Privada"</span> }.into_view()
-                                            }}
-                                            {if has_password {
-                                                view! { <span class="room-pwd-tag" title="Mesa Protegida por Senha">"🔑 Com Senha"</span> }.into_view()
-                                            } else {
-                                                view! {}.into_view()
-                                            }}
-                                        </div>
+                        <div class="error-container">
+                            <p>{err}</p>
+                            <A href="/rooms">"Voltar para Salas"</A>
+                        </div>
+                    }.into_view()
+                } else {
+                    view! { <p class="loading-msg">"Carregando mesa da crônica..."</p> }.into_view()
+                }
+            } else {
+                view! {
+                    <div class="room-dashboard">
+                        <header class="room-top-header">
+                            <div class="header-left">
+                                <A href="/rooms" class="back-link">"← Voltar para Minhas Salas"</A>
+                                <div class="room-title-row">
+                                    <h1 class="room-title">{move || room_name_sig.get()}</h1>
+                                    <div class="room-badge-group">
+                                        {move || if is_public_sig.get() {
+                                            view! { <span class="room-privacy-tag public">"🌐 Pública"</span> }.into_view()
+                                        } else {
+                                            view! { <span class="room-privacy-tag private">"🔒 Privada"</span> }.into_view()
+                                        }}
+                                        {move || if has_password_sig.get() {
+                                            view! { <span class="room-pwd-tag" title="Mesa Protegida por Senha">"🔑 Com Senha"</span> }.into_view()
+                                        } else {
+                                            view! {}.into_view()
+                                        }}
                                     </div>
-                                    <p class="room-subtitle">
-                                        "Narrador: " <strong>{room.gm_username.clone()}</strong>
-                                        {if !room.description.is_empty() {
-                                            format!(" • {}", room.description)
+                                </div>
+                                <p class="room-subtitle">
+                                    "Narrador: " <strong>{move || gm_username_sig.get()}</strong>
+                                    {move || {
+                                        let desc = description_sig.get();
+                                        if !desc.is_empty() {
+                                            format!(" • {}", desc)
                                         } else {
                                             "".to_string()
-                                        }}
-                                    </p>
-                                </div>
+                                        }
+                                    }}
+                                </p>
+                            </div>
 
-                                <div class="header-right">
-                                    <div class="invite-code-pill">
-                                        <span class="invite-label">"Código:"</span>
-                                        <span class="invite-code">{room.code.clone()}</span>
-                                        <button class="copy-btn" on:click=on_copy>{move || if copied_code.get() { "✓" } else { "Copiar" }}</button>
-                                    </div>
+                            <div class="header-right">
+                                <div class="invite-code-pill">
+                                    <span class="invite-label">"Código:"</span>
+                                    <span class="invite-code">{move || room_code_sig.get()}</span>
+                                    <button class="copy-btn" on:click=on_copy>{move || if copied_code.get() { "✓" } else { "Copiar" }}</button>
+                                </div>
+                                <button
+                                    class="initiative-top-bar-btn"
+                                    on:click=move |_| set_show_initiative.update(|v| *v = !*v)
+                                    title="Abrir Rastreador de Iniciativa de Combate"
+                                >
+                                    "⚔️ Iniciativa"
+                                </button>
+                                <button class="add-sheet-to-room-btn" on:click=move |_| set_show_assign_modal.set(true)>"+ Adicionar Ficha"</button>
+                            </div>
+                        </header>
+
+                        {move || feedback_msg.get().map(|msg| view! { <div class="alert-box alert-success"><span>{msg}</span><button class="alert-close" on:click=move |_| set_feedback_msg.set(None)>"×"</button></div> })}
+                        {move || error_msg.get().map(|msg| view! { <div class="alert-box alert-error"><span>{msg}</span><button class="alert-close" on:click=move |_| set_error_msg.set(None)>"×"</button></div> })}
+
+                        <nav class="room-tabs-nav">
+                            <button class="room-tab-btn" class:active=move || active_tab.get() == "party" on:click=move |_| set_active_tab.set("party")>
+                                "👥 Personagens & HUD (" {move || room_sheets_sig.get().len()} ")"
+                            </button>
+                            <button class="room-tab-btn" class:active=move || active_tab.get() == "map" on:click=move |_| set_active_tab.set("map")>
+                                "🗺️ Mapa & Grid Tático"
+                            </button>
+                            <button class="room-tab-btn" class:active=move || active_tab.get() == "chantry" on:click=move |_| set_active_tab.set("chantry")>
+                                "🏛️ Capela & Recursos"
+                            </button>
+                            <button class="room-tab-btn" class:active=move || active_tab.get() == "chronicle" on:click=move |_| set_active_tab.set("chronicle")>
+                                "📜 Diário & Mural"
+                            </button>
+                            <button class="room-tab-btn" class:active=move || active_tab.get() == "members" on:click=move |_| set_active_tab.set("members")>
+                                "🧙 Membros (" {move || room_members_sig.get().len()} ")"
+                            </button>
+                            {move || if is_gm_sig.get() {
+                                view! {
                                     <button
-                                        class="initiative-top-bar-btn"
-                                        on:click=move |_| set_show_initiative.update(|v| *v = !*v)
-                                        title="Abrir Rastreador de Iniciativa de Combate"
+                                        class="room-tab-btn"
+                                        class:active=move || active_tab.get() == "settings"
+                                        on:click=move |_| set_active_tab.set("settings")
                                     >
-                                        "⚔️ Iniciativa"
+                                        "⚙️ Configurações da Mesa"
                                     </button>
-                                    <button class="add-sheet-to-room-btn" on:click=move |_| set_show_assign_modal.set(true)>"+ Adicionar Ficha"</button>
-                                </div>
-                            </header>
+                                }.into_view()
+                            } else {
+                                view! {}.into_view()
+                            }}
+                        </nav>
 
-                            {move || feedback_msg.get().map(|msg| view! { <div class="alert-box alert-success"><span>{msg}</span><button class="alert-close" on:click=move |_| set_feedback_msg.set(None)>"×"</button></div> })}
-                            {move || error_msg.get().map(|msg| view! { <div class="alert-box alert-error"><span>{msg}</span><button class="alert-close" on:click=move |_| set_error_msg.set(None)>"×"</button></div> })}
-
-                            <nav class="room-tabs-nav">
-                                <button class="room-tab-btn" class:active=move || active_tab.get() == "party" on:click=move |_| set_active_tab.set("party")>"👥 Personagens & HUD (" {sheet_count} ")"</button>
-                                <button class="room-tab-btn" class:active=move || active_tab.get() == "chantry" on:click=move |_| set_active_tab.set("chantry")>"🏛️ Capela & Recursos"</button>
-                                <button class="room-tab-btn" class:active=move || active_tab.get() == "chronicle" on:click=move |_| set_active_tab.set("chronicle")>"📜 Diário & Mural"</button>
-                                <button class="room-tab-btn" class:active=move || active_tab.get() == "members" on:click=move |_| set_active_tab.set("members")>"🧙 Membros (" {member_count} ")"</button>
-                                {if is_gm {
-                                    view! {
-                                        <button
-                                            class="room-tab-btn"
-                                            class:active=move || active_tab.get() == "settings"
-                                            on:click=move |_| set_active_tab.set("settings")
-                                        >
-                                            "⚙️ Configurações da Mesa"
-                                        </button>
-                                    }.into_view()
-                                } else {
-                                    view! {}.into_view()
-                                }}
-                            </nav>
-
-                            <div class="room-tab-content">
-                                {move || if active_tab.get() == "party" {
-                                    let current_lang = lang();
-                                    view! {
-                                        <section class="room-characters-section">
-                                            <div class="section-header">
-                                                <h2>"HUD da Cabala & Personagens"</h2>
-                                                <span class="count-badge">{room.sheets.len()} " personagens"</span>
-                                            </div>
-                                            {if room.sheets.is_empty() {
+                        <div class="room-tab-content">
+                            {move || if active_tab.get() == "party" {
+                                let current_lang = lang();
+                                view! {
+                                    <section class="room-characters-section">
+                                        <div class="section-header">
+                                            <h2>"HUD da Cabala & Personagens"</h2>
+                                            <span class="count-badge">{move || format!("{} personagens", room_sheets_sig.get().len())}</span>
+                                        </div>
+                                        {move || {
+                                            let sheets = room_sheets_sig.get();
+                                            if sheets.is_empty() {
                                                 view! { <div class="empty-room-sheets"><h3>"Nenhum personagem aqui"</h3><button class="action-link-btn" on:click=move |_| set_show_assign_modal.set(true)>"+ Vincular Ficha"</button></div> }.into_view()
                                             } else {
                                                 view! {
                                                     <div class="character-cards-grid party-grid">
-                                                        {room.sheets.iter().map(|sheet| {
+                                                        {sheets.into_iter().map(|sheet| {
                                                             let s_id_nav = sheet.id.clone();
                                                             let remove_id = sheet.id.clone();
                                                             let toggle_id = sheet.id.clone();
                                                             let is_hidden = sheet.is_hidden;
-                                                            let can_toggle = is_gm || sheet.is_owner;
+                                                            let can_toggle = is_gm_sig.get() || sheet.is_owner;
                                                             let is_gm_char = sheet.sheet_type == "gods_and_monsters";
                                                             let photo = sheet.photo_url.clone();
                                                             let has_photo = !photo.is_empty();
@@ -362,10 +416,12 @@ pub fn RoomView() -> impl IntoView {
                                                             let wp_cur = sheet.willpower_current.clamp(0, wp_tot);
                                                             let badge_cls = format!("party-health-badge {}", sheet.health_badge_class);
                                                             
+                                                            let s_id_card = s_id_nav.clone();
                                                             view! {
                                                                 <div 
                                                                     class="character-card party-card" 
                                                                     class:party-card-hidden=is_hidden
+                                                                    on:click=move |_| use_navigate()(&format!("/sheet/{}", s_id_card), Default::default())
                                                                 >
                                                                     // 1. Portrait Header Box
                                                                     <div class="card-portrait-box">
@@ -411,7 +467,7 @@ pub fn RoomView() -> impl IntoView {
                                                                                 ().into_view()
                                                                             }}
 
-                                                                            {if is_gm || sheet.is_owner {
+                                                                            {if is_gm_sig.get() || sheet.is_owner {
                                                                                 let r_id = remove_id.clone();
                                                                                 view! {
                                                                                     <button
@@ -435,171 +491,38 @@ pub fn RoomView() -> impl IntoView {
                                                                     // 2. Card Content
                                                                     <div class="card-content">
                                                                         <div class="card-header-info">
-                                                                            <h3 class="card-name" title=sheet.name.clone()>{sheet.name.clone()}</h3>
-                                                                            {if !sheet.player_name.is_empty() {
-                                                                                view! {
-                                                                                    <span class="char-player-subtitle">
-                                                                                        "👤 " {sheet.player_name.clone()}
-                                                                                    </span>
-                                                                                }.into_view()
-                                                                            } else {
-                                                                                ().into_view()
-                                                                            }}
-                                                                            <div class="card-meta-tags">
-                                                                                {if is_gm_char {
-                                                                                    view! { <span class="meta-tag type-badge-gm">{crate::i18n::tr("card_tag_gm", current_lang)}</span> }.into_view()
-                                                                                } else {
-                                                                                    view! { <span class="meta-tag type-badge-mage">{crate::i18n::tr("card_tag_mage", current_lang)}</span> }.into_view()
-                                                                                }}
-                                                                                <span class="meta-tag tradition-tag">{tradition_display}</span>
-                                                                                <span class="meta-tag essence-tag">{essence_display}</span>
-                                                                                {if is_hidden {
-                                                                                    view! { <span class="meta-tag vis-tag vis-private">"🔒 Oculto"</span> }.into_view()
-                                                                                } else {
-                                                                                    ().into_view()
-                                                                                }}
-                                                                            </div>
+                                                                            <h3 class="card-name">{sheet.name.clone()}</h3>
+                                                                            <span class="card-tradition">{tradition_display}</span>
                                                                         </div>
 
-                                                                        // 3. Stats Preview (Arete, Willpower with Dots & Squares, Health with 7 Boxes)
-                                                                        <div class="card-stats-preview">
-                                                                            // Arete / Gnose
-                                                                            <div class="card-stat-item">
-                                                                                <span class="stat-label">{if is_gm_char { crate::i18n::tr("card_gnosis", current_lang) } else { crate::i18n::tr("card_arete", current_lang) }}</span>
-                                                                                <div class="stat-dots arete-dots">
-                                                                                    {(1..=if is_gm_char { 10 } else { 5 }).map(|idx| {
-                                                                                        let filled = idx <= arete_val;
-                                                                                        view! {
-                                                                                            <span class=if filled { "stat-dot filled-arete" } else { "stat-dot empty-dot" }></span>
-                                                                                        }
-                                                                                    }).collect_view()}
-                                                                                </div>
-                                                                                <span class="stat-number">{arete_val}</span>
+                                                                        <div class="party-card-details">
+                                                                            <div class="party-detail-row">
+                                                                                <span class="party-detail-label">"Conceito / Essência"</span>
+                                                                                <span class="party-detail-val">{essence_display}</span>
                                                                             </div>
-
-                                                                            // Força de Vontade (Bolinhas Permanentes E Quadradinhos Temporários/Atuais)
-                                                                            <div class="card-stat-item-vertical">
-                                                                                <div class="stat-header-row">
-                                                                                    <span class="stat-label">{crate::i18n::tr("card_willpower", current_lang)}</span>
-                                                                                    <span class="stat-number">{format!("{}/{}", wp_cur, wp_tot)}</span>
+                                                                            
+                                                                            // 3. Quick Stats Grid
+                                                                            <div class="party-stats-grid">
+                                                                                <div class="party-stat-box">
+                                                                                    <span class="stat-box-label">"Arete"</span>
+                                                                                    <span class="stat-box-num">{arete_val}</span>
                                                                                 </div>
-                                                                                // Bolinhas (Permanente)
-                                                                                <div class="stat-subrow" title=format!("Força de Vontade Permanente: {} bolinhas", wp_tot)>
-                                                                                    <span class="subrow-tag">"Perm:"</span>
-                                                                                    <div class="stat-dots wp-dots">
-                                                                                        {(1..=10).map(|idx| {
-                                                                                            let filled = idx <= wp_tot;
-                                                                                            view! {
-                                                                                                <span class=if filled { "stat-dot filled-wp" } else { "stat-dot empty-dot" }></span>
-                                                                                            }
-                                                                                        }).collect_view()}
-                                                                                    </div>
+                                                                                <div class="party-stat-box">
+                                                                                    <span class="stat-box-label">"Vontade"</span>
+                                                                                    <span class="stat-box-num">{wp_cur}"/"{wp_tot}</span>
                                                                                 </div>
-                                                                                // Quadradinhos (Atual / Temporário)
-                                                                                <div class="stat-subrow" title=format!("Força de Vontade Atual: {} pontos disponíveis", wp_cur)>
-                                                                                    <span class="subrow-tag">"Atual:"</span>
-                                                                                    <div class="wp-boxes-row">
-                                                                                        {(1..=10).map(|idx| {
-                                                                                            let filled = idx <= wp_cur;
-                                                                                            let is_avail = idx <= wp_tot;
-                                                                                            view! {
-                                                                                                <span
-                                                                                                    class="wp-mini-box"
-                                                                                                    class:filled=filled
-                                                                                                    class:disabled=!is_avail
-                                                                                                ></span>
-                                                                                            }
-                                                                                        }).collect_view()}
-                                                                                    </div>
+                                                                                <div class="party-stat-box">
+                                                                                    <span class="stat-box-label">"Jogador"</span>
+                                                                                    <span class="stat-box-val-text">{if !sheet.player_name.is_empty() { sheet.player_name.clone() } else { "—".to_string() }}</span>
                                                                                 </div>
                                                                             </div>
 
-                                                                            // Vitalidade & Trilha de Dano com os 7 Quadradinhos de Vida
-                                                                            <div class="card-stat-item-vertical health-track-card-item">
-                                                                                <div class="stat-header-row">
-                                                                                    <span class="stat-label">"Saúde:"</span>
-                                                                                    <span class=badge_cls>{sheet.health_label.clone()} " (" {sheet.health_penalty.clone()} ")"</span>
-                                                                                </div>
-                                                                                <div class="health-mini-track" title=format!("Dano: {}", sheet.health_damage_str)>
-                                                                                    {(0..sheet.health_boxes.len().max(7)).map(|i| {
-                                                                                        let lvl_name = match i {
-                                                                                            0 => "Escoriado (0)",
-                                                                                            1 => "Ferido (-1)",
-                                                                                            2 => "Gravemente Ferido (-1)",
-                                                                                            3 => "Espancado (-2)",
-                                                                                            4 => "Estropiado (-2)",
-                                                                                            5 => "Aleijado (-5)",
-                                                                                            6 => "Incapacitado (☠️)",
-                                                                                            _ => "Extra",
-                                                                                        };
-                                                                                        let dmg_type = sheet.health_boxes.get(i).map(|s| s.as_str()).unwrap_or("none");
-                                                                                        let (dmg_char, dmg_cls) = match dmg_type {
-                                                                                            "bashing" => ("/", "dmg-bashing"),
-                                                                                            "lethal" => ("X", "dmg-lethal"),
-                                                                                            "aggravated" => ("*", "dmg-aggravated"),
-                                                                                            _ => ("", "dmg-none"),
-                                                                                        };
-                                                                                        view! {
-                                                                                            <div
-                                                                                                class=format!("health-mini-box {}", dmg_cls)
-                                                                                                title=format!("{}: {}", lvl_name, match dmg_type {
-                                                                                                    "bashing" => "Contusivo (/)",
-                                                                                                    "lethal" => "Letal (X)",
-                                                                                                    "aggravated" => "Agravado (*)",
-                                                                                                    _ => "Livre [ ]",
-                                                                                                })
-                                                                                            >
-                                                                                                {dmg_char}
-                                                                                            </div>
-                                                                                        }
-                                                                                    }).collect_view()}
-                                                                                </div>
+                                                                            // 4. Health Status Pill
+                                                                            <div class="party-vitality-row">
+                                                                                <span class="vitality-label">"Vitalidade:"</span>
+                                                                                <span class=badge_cls>{sheet.health_label.clone()}</span>
                                                                             </div>
                                                                         </div>
-
-                                                                        // 4. Esferas Preview (para Magos)
-                                                                        {if !is_gm_char {
-                                                                            view! {
-                                                                                <div class="card-spheres-preview">
-                                                                                    <div class="spheres-header-row">
-                                                                                        <span class="spheres-label">{crate::i18n::tr("card_spheres_title", current_lang)}</span>
-                                                                                    </div>
-                                                                                    <div class="spheres-9-grid">
-                                                                                        {sheet.spheres.iter().map(|(sphere_name, lvl)| {
-                                                                                            let s_name = crate::i18n::tr_sphere(sphere_name, current_lang).to_string();
-                                                                                            let s_lvl = *lvl;
-                                                                                            let is_active = s_lvl > 0;
-                                                                                            let level_label = match current_lang {
-                                                                                                crate::i18n::Language::PtBr => "nível",
-                                                                                                crate::i18n::Language::EnUs => "level",
-                                                                                            };
-                                                                                            view! {
-                                                                                                <div
-                                                                                                    class=if is_active { "sphere-item-active" } else { "sphere-item-inactive" }
-                                                                                                    title=format!("{}: {} {}", s_name, level_label, s_lvl)
-                                                                                                >
-                                                                                                    <span class="sphere-mini-name">{s_name}</span>
-                                                                                                    <div class="sphere-mini-dots">
-                                                                                                        {(1..=5).map(|dot_i| {
-                                                                                                            let filled = dot_i <= s_lvl;
-                                                                                                            view! {
-                                                                                                                <span class=if filled { "stat-dot filled-sphere" } else { "stat-dot empty-dot" }></span>
-                                                                                                            }
-                                                                                                        }).collect_view()}
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            }
-                                                                                        }).collect_view()}
-                                                                                    </div>
-                                                                                </div>
-                                                                            }.into_view()
-                                                                        } else {
-                                                                            view! {
-                                                                                <div class="card-gm-badge-footer">
-                                                                                    <span class="gm-creature-desc">{crate::i18n::tr("card_gm_footer_desc", current_lang)}</span>
-                                                                                </div>
-                                                                            }.into_view()
-                                                                        }}
 
                                                                         // 5. Card Footer
                                                                         <div class="party-card-footer-action">
@@ -617,156 +540,172 @@ pub fn RoomView() -> impl IntoView {
                                                         }).collect_view()}
                                                     </div>
                                                 }.into_view()
-                                            }}
-                                        </section>
-                                    }.into_view()
-                                } else if active_tab.get() == "chantry" {
-                                    view! {
-                                        <section class="room-chantry-section">
-                                            <div class="section-header"><h2>"Santuário da Cabala"</h2><button class="save-chantry-btn" on:click=on_save_chantry>"Salvar Capela"</button></div>
-                                            <div class="chantry-grid">
-                                                <div class="chantry-card">
-                                                    <h3>"Quintessência"</h3>
-                                                    <div class="pool-numbers">{move || chantry_quint.get()}"/"{move || chantry_max_quint.get()}</div>
-                                                    <div class="pool-actions">
-                                                        <button on:click=move |_| set_chantry_quint.update(|q| *q = (*q - 1).max(0))>"-"</button>
-                                                        <button on:click=move |_| set_chantry_quint.update(|q| *q = (*q + 1).min(chantry_max_quint.get()))>"+"</button>
-                                                    </div>
-                                                </div>
-                                                <div class="chantry-card">
-                                                    <h3>"Localização / Nome"</h3>
-                                                    <input type="text" prop:value=move || chantry_loc.get() on:input=move |e| set_chantry_loc.set(event_target_value(&e))/>
-                                                </div>
-                                                <div class="chantry-card chantry-card-full">
-                                                    <h3>"Notas e Recursos Comuns"</h3>
-                                                    <textarea rows="5" class="chantry-textarea" prop:value=move || chantry_notes.get() on:input=move |e| set_chantry_notes.set(event_target_value(&e))></textarea>
-                                                </div>
-                                            </div>
-                                        </section>
-                                    }.into_view()
-                                } else if active_tab.get() == "chronicle" {
-                                    view! {
-                                        <section class="room-chronicle-section">
-                                            <div class="section-header">
-                                                <h2>"Diário da Crônica & Mural"</h2>
-                                                <button class="save-chantry-btn" on:click=on_save_chronicle>"Salvar Diário"</button>
-                                            </div>
-                                            <textarea rows="14" class="chronicle-textarea" prop:value=move || chronicle_text.get() on:input=move |e| set_chronicle_text.set(event_target_value(&e))></textarea>
-                                        </section>
-                                    }.into_view()
-                                } else if active_tab.get() == "settings" && is_gm {
-                                    let r_id = room_id();
-                                    let on_save_settings = move |ev: ev::SubmitEvent| {
-                                        ev.prevent_default();
-                                        if r_id.is_empty() { return; }
-                                        let is_pub = settings_is_public.get();
-                                        let pwd_val = settings_new_password.get().trim().to_string();
-                                        let pwd_opt = if pwd_val.is_empty() { None } else { Some(pwd_val) };
-                                        let remove_pwd = settings_remove_password.get();
-
-                                        set_is_saving_settings.set(true);
-                                        let r_id_clone = r_id.clone();
-                                        spawn_local(async move {
-                                            match update_room_settings(r_id_clone, is_pub, pwd_opt, remove_pwd).await {
-                                                Ok(_) => {
-                                                    set_feedback_msg.set(Some("Configurações da crônica salvas com sucesso!".to_string()));
-                                                    set_is_saving_settings.set(false);
-                                                    set_settings_new_password.set(String::new());
-                                                    set_settings_remove_password.set(false);
-                                                    room_resource.refetch();
-                                                }
-                                                Err(e) => {
-                                                    set_error_msg.set(Some(e.to_string()));
-                                                    set_is_saving_settings.set(false);
-                                                }
                                             }
-                                        });
-                                    };
-
-                                    view! {
-                                        <section class="room-settings-section">
-                                            <div class="section-header">
-                                                <h2>"⚙️ Configurações da Mesa"</h2>
-                                                <p class="section-subtitle">"Gerencie a visibilidade na comunidade e a senha de proteção desta crônica."</p>
+                                        }}
+                                    </section>
+                                }.into_view()
+                            } else if active_tab.get() == "map" {
+                                view! {
+                                    <section class="room-map-tab-section">
+                                        <BattleGrid
+                                            room_id=room_id_sig
+                                            is_gm=is_gm_sig
+                                            map_data=map_data.into()
+                                            set_map_data=set_map_data
+                                            room_sheets=room_sheets_sig
+                                        />
+                                    </section>
+                                }.into_view()
+                            } else if active_tab.get() == "chantry" {
+                                view! {
+                                    <section class="room-chantry-section">
+                                        <div class="section-header"><h2>"Santuário da Cabala"</h2><button class="save-chantry-btn" on:click=on_save_chantry>"Salvar Capela"</button></div>
+                                        <div class="chantry-grid">
+                                            <div class="chantry-card">
+                                                <h3>"Quintessência"</h3>
+                                                <div class="pool-numbers">{move || chantry_quint.get()}"/"{move || chantry_max_quint.get()}</div>
+                                                <div class="pool-actions">
+                                                    <button on:click=move |_| set_chantry_quint.update(|q| *q = (*q - 1).max(0))>"-"</button>
+                                                    <button on:click=move |_| set_chantry_quint.update(|q| *q = (*q + 1).min(chantry_max_quint.get()))>"+"</button>
+                                                </div>
                                             </div>
+                                            <div class="chantry-card">
+                                                <h3>"Localização / Nome"</h3>
+                                                <input type="text" prop:value=move || chantry_loc.get() on:input=move |e| set_chantry_loc.set(event_target_value(&e))/>
+                                            </div>
+                                            <div class="chantry-card chantry-card-full">
+                                                <h3>"Notas e Recursos Comuns"</h3>
+                                                <textarea rows="5" class="chantry-textarea" prop:value=move || chantry_notes.get() on:input=move |e| set_chantry_notes.set(event_target_value(&e))></textarea>
+                                            </div>
+                                        </div>
+                                    </section>
+                                }.into_view()
+                            } else if active_tab.get() == "chronicle" {
+                                view! {
+                                    <section class="room-chronicle-section">
+                                        <div class="section-header">
+                                            <h2>"Diário da Crônica & Mural"</h2>
+                                            <button class="save-chantry-btn" on:click=on_save_chronicle>"Salvar Diário"</button>
+                                        </div>
+                                        <textarea rows="14" class="chronicle-textarea" prop:value=move || chronicle_text.get() on:input=move |e| set_chronicle_text.set(event_target_value(&e))></textarea>
+                                    </section>
+                                }.into_view()
+                            } else if active_tab.get() == "settings" && is_gm_sig.get() {
+                                let r_id = room_id();
+                                let on_save_settings = move |ev: ev::SubmitEvent| {
+                                    ev.prevent_default();
+                                    if r_id.is_empty() { return; }
+                                    let is_pub = settings_is_public.get();
+                                    let pwd_val = settings_new_password.get().trim().to_string();
+                                    let pwd_opt = if pwd_val.is_empty() { None } else { Some(pwd_val) };
+                                    let remove_pwd = settings_remove_password.get();
 
-                                            <div class="settings-card-container">
-                                                <form on:submit=on_save_settings class="room-settings-tab-form">
-                                                    <div class="settings-option-card">
-                                                        <div class="settings-option-info">
-                                                            <strong class="settings-option-title">"🌐 Visibilidade no Mural Público"</strong>
-                                                            <p class="settings-option-desc">
-                                                                "Quando ativado, sua mesa é listada na aba 'Explorar Mesas Públicas' para qualquer jogador poder encontrá-la."
-                                                            </p>
-                                                        </div>
-                                                        <label class="settings-toggle-label">
-                                                            <input
-                                                                type="checkbox"
-                                                                class="room-checkbox-styled"
-                                                                checked=settings_is_public
-                                                                on:change=move |ev| set_settings_is_public.set(event_target_checked(&ev))
-                                                                disabled=is_saving_settings
-                                                            />
-                                                            <span class="toggle-text">
-                                                                {move || if settings_is_public.get() { "Mesa Pública (Visível)" } else { "Mesa Privada (Oculta)" }}
-                                                            </span>
-                                                        </label>
+                                    set_is_saving_settings.set(true);
+                                    let r_id_clone = r_id.clone();
+                                    spawn_local(async move {
+                                        match update_room_settings(r_id_clone, is_pub, pwd_opt, remove_pwd).await {
+                                            Ok(_) => {
+                                                set_feedback_msg.set(Some("Configurações da crônica salvas com sucesso!".to_string()));
+                                                set_is_saving_settings.set(false);
+                                                set_settings_new_password.set(String::new());
+                                                set_settings_remove_password.set(false);
+                                                room_resource.refetch();
+                                            }
+                                            Err(e) => {
+                                                set_error_msg.set(Some(e.to_string()));
+                                                set_is_saving_settings.set(false);
+                                            }
+                                        }
+                                    });
+                                };
+
+                                view! {
+                                    <section class="room-settings-section">
+                                        <div class="section-header">
+                                            <h2>"⚙️ Configurações da Mesa"</h2>
+                                            <p class="section-subtitle">"Gerencie a visibilidade na comunidade e a senha de proteção desta crônica."</p>
+                                        </div>
+
+                                        <div class="settings-card-container">
+                                            <form on:submit=on_save_settings class="room-settings-tab-form">
+                                                <div class="settings-option-card">
+                                                    <div class="settings-option-info">
+                                                        <strong class="settings-option-title">"🌐 Visibilidade no Mural Público"</strong>
+                                                        <p class="settings-option-desc">
+                                                            "Quando ativado, sua mesa é listada na aba 'Explorar Mesas Públicas' para qualquer jogador poder encontrá-la."
+                                                        </p>
                                                     </div>
+                                                    <label class="settings-toggle-label">
+                                                        <input
+                                                            type="checkbox"
+                                                            class="room-checkbox-styled"
+                                                            checked=settings_is_public
+                                                            on:change=move |ev| set_settings_is_public.set(event_target_checked(&ev))
+                                                            disabled=is_saving_settings
+                                                        />
+                                                        <span class="toggle-text">
+                                                            {move || if settings_is_public.get() { "Mesa Pública (Visível)" } else { "Mesa Privada (Oculta)" }}
+                                                        </span>
+                                                    </label>
+                                                </div>
 
-                                                    <div class="settings-option-card">
-                                                        <div class="settings-option-info">
-                                                            <strong class="settings-option-title">"🔒 Senha de Acesso à Mesa"</strong>
-                                                            <p class="settings-option-desc">
-                                                                {if has_password {
-                                                                    "Esta mesa está protegida por senha (criptografia bcrypt). Novos membros precisam inseri-la para entrar."
-                                                                } else {
-                                                                    "Esta mesa não possui senha ativa no momento. Qualquer pessoa com o código ou via lista pública pode ingressar."
-                                                                }}
-                                                            </p>
-                                                        </div>
-                                                        <div class="settings-pwd-inputs">
-                                                            <input
-                                                                type="password"
-                                                                class="room-input settings-tab-pwd-input"
-                                                                placeholder="Digite nova senha para a sala (ou deixe em branco)..."
-                                                                prop:value=settings_new_password
-                                                                on:input=move |ev| set_settings_new_password.set(event_target_value(&ev))
-                                                                disabled=is_saving_settings
-                                                            />
-                                                            {if has_password {
-                                                                view! {
-                                                                    <label class="room-checkbox-label remove-pwd-chk">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            class="room-checkbox"
-                                                                            checked=settings_remove_password
-                                                                            on:change=move |ev| set_settings_remove_password.set(event_target_checked(&ev))
-                                                                            disabled=is_saving_settings
-                                                                        />
-                                                                        <span>"🔓 Remover senha atual da mesa"</span>
-                                                                    </label>
-                                                                }.into_view()
+                                                <div class="settings-option-card">
+                                                    <div class="settings-option-info">
+                                                        <strong class="settings-option-title">"🔒 Senha de Acesso à Mesa"</strong>
+                                                        <p class="settings-option-desc">
+                                                            {move || if has_password_sig.get() {
+                                                                "Esta mesa está protegida por senha (criptografia bcrypt). Novos membros precisam inseri-la para entrar."
                                                             } else {
-                                                                view! {}.into_view()
+                                                                "Esta mesa não possui senha ativa no momento. Qualquer pessoa com o código ou via lista pública pode ingressar."
                                                             }}
-                                                        </div>
+                                                        </p>
                                                     </div>
+                                                    <div class="settings-pwd-inputs">
+                                                        <input
+                                                            type="password"
+                                                            class="room-input settings-tab-pwd-input"
+                                                            placeholder="Digite nova senha para a sala (ou deixe em branco)..."
+                                                            prop:value=settings_new_password
+                                                            on:input=move |ev| set_settings_new_password.set(event_target_value(&ev))
+                                                            disabled=is_saving_settings
+                                                        />
+                                                        {move || if has_password_sig.get() {
+                                                            view! {
+                                                                <label class="room-checkbox-label remove-pwd-chk">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        class="room-checkbox"
+                                                                        checked=settings_remove_password
+                                                                        on:change=move |ev| set_settings_remove_password.set(event_target_checked(&ev))
+                                                                        disabled=is_saving_settings
+                                                                    />
+                                                                    <span>"🔓 Remover senha atual da mesa"</span>
+                                                                </label>
+                                                            }.into_view()
+                                                        } else {
+                                                            view! {}.into_view()
+                                                        }}
+                                                    </div>
+                                                </div>
 
-                                                    <div class="settings-submit-box">
-                                                        <button type="submit" class="save-chantry-btn settings-save-btn" disabled=is_saving_settings>
-                                                            {move || if is_saving_settings.get() { "Salvando..." } else { "💾 Salvar Configurações da Mesa" }}
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </section>
-                                    }.into_view()
-                                } else {
-                                    view! {
-                                        <section class="room-members-section">
-                                            <h2>"Membros da Crônica"</h2>
-                                            <div class="members-pills">
-                                                {room.members.iter().map(|m| {
+                                                <div class="settings-submit-box">
+                                                    <button type="submit" class="save-chantry-btn settings-save-btn" disabled=is_saving_settings>
+                                                        {move || if is_saving_settings.get() { "Salvando..." } else { "💾 Salvar Configurações da Mesa" }}
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </section>
+                                }.into_view()
+                            } else {
+                                view! {
+                                    <section class="room-members-section">
+                                        <h2>"Membros da Crônica"</h2>
+                                        <div class="members-pills">
+                                            {move || {
+                                                let members = room_members_sig.get();
+                                                let is_user_gm = is_gm_sig.get();
+                                                members.into_iter().map(|m| {
                                                     let is_narrator = m.role == "gm";
                                                     let m_member = m.clone();
                                                     view! {
@@ -774,7 +713,7 @@ pub fn RoomView() -> impl IntoView {
                                                             <span class="member-avatar">{if is_narrator { "👑" } else { "🧙" }}</span>
                                                             <span class="member-name">{m.username.clone()}</span>
                                                             <span class="member-role">{if is_narrator { "Narrador" } else { "Jogador" }}</span>
-                                                            {if is_gm {
+                                                            {if is_user_gm {
                                                                 view! {
                                                                     <button
                                                                         type="button"
@@ -793,16 +732,15 @@ pub fn RoomView() -> impl IntoView {
                                                             }}
                                                         </div>
                                                     }
-                                                }).collect_view()}
-                                            </div>
-                                        </section>
-                                    }.into_view()
-                                }}
-                            </div>
+                                                }).collect_view()
+                                            }}
+                                        </div>
+                                    </section>
+                                }.into_view()
+                            }}
                         </div>
-                    }.into_view()
-                },
-                Some(Err(e)) => view! { <div class="error-container"><p>{e.to_string()}</p><A href="/rooms">"Voltar para Salas"</A></div> }.into_view(),
+                    </div>
+                }.into_view()
             }}
 
             {move || if show_assign_modal.get() {
@@ -889,28 +827,14 @@ pub fn RoomView() -> impl IntoView {
                 }.into_view()
             } else { view! {}.into_view() }}
 
-            {
-                let sheets_signal = Signal::derive(move || {
-                    room_resource.get().and_then(|r| r.ok()).map(|r| r.sheets).unwrap_or_default()
-                });
-                let is_gm_room = Signal::derive(move || {
-                    room_resource.get().and_then(|r| r.ok()).map(|r| r.is_gm).unwrap_or(false)
-                });
-                let room_id_sig = Signal::derive(move || room_id());
-                let initiative_sig = Signal::derive(move || {
-                    room_resource.get().and_then(|r| r.ok()).map(|r| r.initiative).unwrap_or_default()
-                });
-                view! {
-                    <InitiativeDrawer
-                        is_open=show_initiative
-                        set_is_open=set_show_initiative
-                        room_id=room_id_sig
-                        initiative=initiative_sig
-                        sheets=sheets_signal
-                        is_gm=is_gm_room
-                    />
-                }
-            }
+            <InitiativeDrawer
+                is_open=show_initiative
+                set_is_open=set_show_initiative
+                room_id=room_id_sig
+                initiative=initiative_sig
+                sheets=room_sheets_sig
+                is_gm=is_gm_sig
+            />
             </div>
         </div>
     }
