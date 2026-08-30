@@ -19,6 +19,24 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.14.1",
+        date: "2026-08-29",
+        tag: "v0.14.1",
+        title: "Compatibilidade com Linux & Sincronizacao WebAssembly (wasm-bindgen 0.2.121)",
+        highlight: "Atualizacao da suite de WebAssembly para o schema wasm-bindgen 0.2.121, garantindo paridade e compilacao nativa perfeita no ambiente Linux e no Docker.",
+        sections: &[
+            PatchSection {
+                category: "Compatibilidade & Build",
+                icon: "🐧",
+                items: &[
+                    "🐧 Suporte Nativo a Ambientes Linux: Sincronizacao do schema WebAssembly para wasm-bindgen 0.2.121, compatibilizando os scripts dev.sh e build_release.sh com o cargo-leptos no Linux.",
+                    "⚡ Executavel Standalone Otimizado: Geracao de binario Linux standalone autocontido de alta performance com assets e WASM embutidos.",
+                    "🧪 109 Testes Automatizados Aprovados: Cobertura total e 100% de aprovacao nas suites de testes de integridade e regras.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.14.0",
         date: "2026-08-29",
         tag: "v0.14.0",

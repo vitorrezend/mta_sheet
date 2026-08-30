@@ -29,7 +29,7 @@ if %ERRORLEVEL% NEQ 0 (
 where wasm-bindgen >nul 2>nul
 if %ERRORLEVEL% NEQ 0 (
     echo   -^> Instalando wasm-bindgen-cli...
-    cargo install wasm-bindgen-cli --version 0.2.93 --locked
+    cargo install wasm-bindgen-cli --version 0.2.121 --locked
 )
 
 echo [3/4] Compilando Frontend WASM e Backend com Assets Embutidos...

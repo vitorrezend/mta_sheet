@@ -24,7 +24,7 @@ fi
 
 if ! command -v wasm-bindgen &> /dev/null; then
     echo "  -> Instalando wasm-bindgen-cli..."
-    cargo install wasm-bindgen-cli --version 0.2.93 --locked
+    cargo install wasm-bindgen-cli --version 0.2.121 --locked
 fi
 
 echo "[3/4] Compilando Frontend WASM e Backend..."

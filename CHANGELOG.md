@@ -4,6 +4,14 @@ Todas as modificações notáveis no projeto **MTA Sheet** são documentadas nes
 
 ---
 
+## [v0.14.1] - 2026-08-29
+
+### 🚀 Melhorias & Compatibilidade
+- **🐧 Suporte Nativo a Ambientes Linux:** Atualização e travamento estrito do `wasm-bindgen` para `=0.2.121` em `Cargo.toml`, scripts de automação (`scripts/dev.sh`, `scripts/build_release.sh`) e Dockerfile.
+- **⚡ Resolução de Divergência de Schema:** Eliminação de erros de incompatibilidade de versão de schema entre o Rust Wasm e o CLI local ao rodar `cargo leptos watch` ou `./scripts/dev.sh` no Linux.
+- **📦 Build Standalone Linux:** Scripts de compilação release (`./scripts/build_release.sh`) totalmente funcionais em distribuições Linux.
+
+
 ## [v0.11.0] - 2026-08-27
 
 ### 🚀 Novas Funcionalidades (Features)
