@@ -1,6 +1,6 @@
 [package]
 name = "mta_sheet"
-version = "0.14.1"
+version = "0.14.2"
 edition = "2024"
 license = "MIT"
 
@@ -34,7 +34,7 @@ serde_json = "1.0"
 uuid = { version = "1.0", features = ["v4", "serde", "js"] }
 getrandom = { version = "0.2", features = ["js"] }
 console_error_panic_hook = "0.1.7"
-wasm-bindgen = "=0.2.93"
+wasm-bindgen = "=0.2.121"
 web-sys = { version = "0.3.70", features = ["Storage", "Window", "Document", "Element", "HtmlInputElement", "HtmlAnchorElement", "Navigator", "Clipboard", "FileList", "File", "Blob", "BlobPropertyBag", "Url", "FileReader", "ProgressEvent", "HtmlTextAreaElement", "DragEvent", "DataTransfer", "FormData", "Request", "Response", "RequestInit", "AudioContext", "AudioNode", "AudioDestinationNode", "OscillatorNode", "OscillatorType", "GainNode", "AudioParam", "EventSource", "MessageEvent", "HtmlCanvasElement", "CanvasRenderingContext2d", "HtmlImageElement"] }
 js-sys = "0.3.70"
 http = "1.0"
@@ -80,11 +80,9 @@ style-file = "style.css"
 site-addr = "0.0.0.0:3000"
 reload-port = 3001
 bin-features = ["ssr"]
-bin-package = "mta_sheet"
 bin-target = "mta_sheet_server"
+bin-exe-name = "mta_sheet_server"
 lib-features = ["hydrate"]
-lib-package = "mta_sheet"
-wasm-opt = false
 
 [profile.release]
 opt-level = 'z'

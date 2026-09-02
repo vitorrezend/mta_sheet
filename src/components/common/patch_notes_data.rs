@@ -19,6 +19,33 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.14.2",
+        date: "2026-09-02",
+        tag: "v0.14.2",
+        title: "Scripts de Backup SQLite (WAL/VACUUM), Suporte cargo-leptos 0.3 no Linux & Padronizacao de Porta 3000",
+        highlight: "Scripts de backup a quente consolidando arquivos .wal e .shm com desfragmentacao VACUUM e estrutura YYYY/MM/DD, resolucao de compatibilidade com cargo-leptos 0.3 no Linux (bin-exe-name) e padronizacao global da porta 3000.",
+        sections: &[
+            PatchSection {
+                category: "Infraestrutura & Backups",
+                icon: "💾",
+                items: &[
+                    "💾 Scripts de Backup Seguro SQLite (WAL/VACUUM): Scripts dedicados em scripts/backup/ para backup online veloz (.backup) e com desfragmentacao de paginas livres (VACUUM INTO), gerando snapshots consistentes e absorvendo transacoes ativas do WAL.",
+                    "📁 Organizacao Cronologica YYYY/MM/DD: Criacao automatica da arvore de diretorios por ano, mes e dia com checagem rigorosa de integridade pos-geracao (PRAGMA integrity_check).",
+                    "🔌 Padronizacao Global da Porta 3000: Unificacao de todas as portas e variaveis de ambiente em containers Docker, compose e scripts locais para a porta 3000.",
+                ],
+            },
+            PatchSection {
+                category: "Compatibilidade & Ambiente Linux",
+                icon: "🐧",
+                items: &[
+                    "🐧 Resolucao cargo-leptos 0.3 no Linux: Adicao de bin-exe-name = \"mta_sheet_server\" no Cargo.toml, eliminando o erro de leitura do binario ('No such file or directory') e permitindo hot-reload instantaneo com ./scripts/dev.sh.",
+                    "🧹 Limpeza de Metadados Obsoletos: Remocao de chaves nao reconhecidas (bin-package, lib-package, wasm-opt) da secao [package.metadata.leptos].",
+                    "⚙️ Sincronizacao de Build Multiplataforma: Padronizacao do schema wasm-bindgen 0.2.121 entre Linux, Docker e scripts de build.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.14.1",
         date: "2026-08-29",
         tag: "v0.14.1",
