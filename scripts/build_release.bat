@@ -14,6 +14,10 @@ if exist .env (
     )
 )
 
+:: Encerra eventuais instancias em execucao que possam travar os arquivos .exe
+taskkill /F /IM mta_sheet_server.exe >nul 2>nul
+taskkill /F /IM mta_sheet.exe >nul 2>nul
+
 echo [1/4] Preparando diretorios e estrutura de assets...
 if not exist "uploads" mkdir uploads
 if not exist "target\site\pkg" mkdir target\site\pkg
