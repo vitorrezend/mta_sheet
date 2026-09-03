@@ -30,10 +30,18 @@ if %ERRORLEVEL% NEQ 0 (
     rustup target add wasm32-unknown-unknown
 )
 
+set "INSTALL_WASM_BINDGEN=0"
 where wasm-bindgen >nul 2>nul
 if %ERRORLEVEL% NEQ 0 (
-    echo   -^> Instalando wasm-bindgen-cli...
-    cargo install wasm-bindgen-cli --version 0.2.121 --locked
+    set "INSTALL_WASM_BINDGEN=1"
+) else (
+    wasm-bindgen --version 2>&1 | findstr /C:"0.2.121" >nul
+    if !ERRORLEVEL! NEQ 0 set "INSTALL_WASM_BINDGEN=1"
+)
+
+if "!INSTALL_WASM_BINDGEN!"=="1" (
+    echo   -^> Sincronizando wasm-bindgen-cli para versao 0.2.121...
+    cargo install wasm-bindgen-cli --version 0.2.121 --locked --force
 )
 
 echo [3/4] Compilando Frontend WASM e Backend com Assets Embutidos...
