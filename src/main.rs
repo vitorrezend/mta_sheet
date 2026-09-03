@@ -508,23 +508,23 @@ async fn main() {
 
     let _ = dotenv();
 
-    let manifest_path = if std::path::Path::new("Cargo.toml").exists() {
-        Some("Cargo.toml")
-    } else {
-        None
-    };
-
-    // Obtém configuração do Leptos com fallback seguro caso Cargo.toml não exista
-    let conf = match get_configuration(manifest_path).await {
-        Ok(c) => c,
-        Err(_) => {
+    // Obtém configuração do Leptos: se existir Cargo.toml, lê o manifesto; caso contrário, monta fallback direto sem invocar get_configuration(None)
+    let conf = if std::path::Path::new("Cargo.toml").exists() {
+        get_configuration(Some("Cargo.toml")).await.unwrap_or_else(|_| {
             let mut opt = LeptosOptions::default();
             opt.output_name = "mta_sheet".into();
             opt.site_root = "target/site".into();
             opt.site_pkg_dir = "pkg".into();
             opt.site_addr = "0.0.0.0:3000".parse().unwrap_or_else(|_| std::net::SocketAddr::from(([0, 0, 0, 0], 3000)));
             leptos::leptos_config::ConfFile { leptos_options: opt }
-        }
+        })
+    } else {
+        let mut opt = LeptosOptions::default();
+        opt.output_name = "mta_sheet".into();
+        opt.site_root = "target/site".into();
+        opt.site_pkg_dir = "pkg".into();
+        opt.site_addr = "0.0.0.0:3000".parse().unwrap_or_else(|_| std::net::SocketAddr::from(([0, 0, 0, 0], 3000)));
+        leptos::leptos_config::ConfFile { leptos_options: opt }
     };
     let mut leptos_options = conf.leptos_options;
 
@@ -538,7 +538,12 @@ async fn main() {
         leptos_options.site_root = "target/site".into();
     }
 
-    // Permite sobrescrever o endereço por variável de ambiente
+    // Garante que o endereço padrão seja sempre 0.0.0.0:3000 para acesso via Wi-Fi e rede local
+    if leptos_options.site_addr.ip().is_loopback() && std::env::var("LEPTOS_SITE_ADDR").is_err() {
+        leptos_options.site_addr = "0.0.0.0:3000".parse().unwrap_or_else(|_| std::net::SocketAddr::from(([0, 0, 0, 0], 3000)));
+    }
+
+    // Permite sobrescrever o endereço por variável de ambiente se desejado
     if let Ok(addr_str) = std::env::var("LEPTOS_SITE_ADDR") {
         if let Ok(parsed_addr) = addr_str.parse() {
             leptos_options.site_addr = parsed_addr;
@@ -622,6 +627,10 @@ async fn main() {
         }
     };
     println!("listening on http://{}", addr);
+    if addr.ip().is_unspecified() {
+        println!("   -> Acesso local: http://localhost:{}", addr.port());
+        println!("   -> Acesso via Wi-Fi / Rede Local: http://<SEU_IP_LOCAL>:{}", addr.port());
+    }
     if let Err(e) = axum::serve(listener, app).await {
         eprintln!("Erro na execução do servidor HTTP: {}", e);
     }
