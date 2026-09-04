@@ -48,9 +48,9 @@ if /i "%1"=="build" (
 where cargo-leptos >nul 2>nul
 if %ERRORLEVEL% NEQ 0 goto :no_cargo_leptos
 
-cargo-leptos --version 2>&1 | findstr /C:"0.2." >nul
+cargo-leptos --version 2>&1 | findstr "0.2." >nul
 if !ERRORLEVEL! EQU 0 (
-    echo [AVISO] cargo-leptos desatualizado (0.2.x). Atualizando para 0.3.7 compativel com wasm-bindgen 0.2.121...
+    echo [AVISO] cargo-leptos desatualizado [0.2.x]. Atualizando para 0.3.7 compativel com wasm-bindgen 0.2.121...
     powershell -NoProfile -Command "irm https://github.com/leptos-rs/cargo-leptos/releases/download/v0.3.7/cargo-leptos-installer.ps1 | iex"
 )
 
