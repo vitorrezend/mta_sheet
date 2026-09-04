@@ -15,7 +15,7 @@ if [ -f .env ]; then
 fi
 
 export DATABASE_URL="${DATABASE_URL:-sqlite:mta_sheet.db}"
-export LEPTOS_SITE_ADDR="${LEPTOS_SITE_ADDR:-127.0.0.1:3000}"
+export LEPTOS_SITE_ADDR="${LEPTOS_SITE_ADDR:-0.0.0.0:3000}"
 export RUST_LOG="${RUST_LOG:-info}"
 export RUST_BACKTRACE=1
 

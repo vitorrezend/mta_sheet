@@ -18,7 +18,7 @@ if exist .env (
 
 :: 2. Variaveis padrao para ambiente de desenvolvimento
 if "%DATABASE_URL%"=="" set DATABASE_URL=sqlite:mta_sheet.db
-if "%LEPTOS_SITE_ADDR%"=="" set LEPTOS_SITE_ADDR=127.0.0.1:3000
+if "%LEPTOS_SITE_ADDR%"=="" set LEPTOS_SITE_ADDR=0.0.0.0:3000
 if "%RUST_LOG%"=="" set RUST_LOG=info
 set RUST_BACKTRACE=1
 
