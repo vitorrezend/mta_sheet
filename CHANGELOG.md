@@ -4,6 +4,33 @@ Todas as modificações notáveis no projeto **MTA Sheet** são documentadas nes
 
 ---
 
+## [v0.14.3] - 2026-09-04
+
+### 🌐 Rede & Compartilhamento
+- **🌐 Acesso Wi-Fi / Rede Local (0.0.0.0:3000):** Servidor e scripts de desenvolvimento (`dev.bat` e `dev.sh`) configurados para escutar em todas as interfaces de rede por padrão, permitindo acesso imediato de celulares, tablets e outros computadores na mesma rede.
+- **📢 URLs de Acesso no Console:** O console exibe claramente os endereços de acesso local (`localhost:3000`) e de rede Wi-Fi (`<SEU_IP_LOCAL>:3000`).
+- **📦 Executável Standalone Totalmente Autônomo:** Eliminação de dependência do `Cargo.toml` em tempo de execução, permitindo rodar silenciosamente em qualquer pasta ou máquina com frontend WASM e assets 100% embutidos.
+
+### 🔮 Interface & Salas
+- **🎯 Alinhamento Uniforme das 9 Esferas:** Ajuste no Grid CSS com `minmax(0, 1fr)` e truncamento inteligente, garantindo que esferas com nomes longos (como *Correspondência*) mantenham largura e alinhamento simétricos perfeitos no card.
+- **📖 Card da Sala como Atalho Direto:** Clicar em qualquer parte do card de personagem na sala de jogo abre diretamente a ficha completa (`/sheet/:id`), preservando os cliques dos botões flutuantes.
+
+### ⚡ Build & Ferramental
+- **🚀 Sincronização cargo-leptos 0.3.7 no Windows:** Atualização do utilitário global e instalador automatizado no `dev.bat`, eliminando divergências de schema com o `wasm-bindgen 0.2.121`.
+- **🛠️ Auto-Check no build_release.bat:** Verificação inteligente de versão do `wasm-bindgen-cli` com atualização automática em caso de versão desatualizada.
+- **🐛 Correção de Sintaxe no dev.bat:** Resolução de escape de parênteses em blocos `if` do interpretador `cmd.exe`.
+
+---
+
+## [v0.14.2] - 2026-09-02
+
+### 💾 Infraestrutura & Backups
+- **💾 Scripts de Backup Seguro SQLite (WAL/VACUUM):** Scripts dedicados em `scripts/backup/` para backup online veloz (.backup) e com desfragmentação de páginas livres (VACUUM INTO).
+- **📁 Organização Cronológica YYYY/MM/DD:** Criação automática da árvore de diretórios por ano, mês e dia com checagem de integridade (PRAGMA integrity_check).
+- **🔌 Padronização Global da Porta 3000:** Unificação de todas as portas e variáveis de ambiente em containers Docker e scripts locais.
+
+---
+
 ## [v0.14.1] - 2026-08-29
 
 ### 🚀 Melhorias & Compatibilidade

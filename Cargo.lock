@@ -1762,7 +1762,7 @@ dependencies = [
 
 [[package]]
 name = "mta_sheet"
-version = "0.14.2"
+version = "0.14.3"
 dependencies = [
  "axum",
  "base64 0.22.1",

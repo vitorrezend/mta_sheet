@@ -19,6 +19,41 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.14.3",
+        date: "2026-09-04",
+        tag: "v0.14.3",
+        title: "Acesso Wi-Fi / Rede Local (0.0.0.0:3000), Executavel Standalone Autonomo e Grid de Esferas Perfeito",
+        highlight: "Escuta padronizada em 0.0.0.0:3000 permitindo acesso via Wi-Fi e rede local em dev e release, inicializacao limpa e autonoma sem dependencia de Cargo.toml, upgrade cargo-leptos 0.3.7 no Windows, correcao de sintaxe no dev.bat e alinhamento uniforme das 9 esferas nos cards de sala.",
+        sections: &[
+            PatchSection {
+                category: "Rede & Compartilhamento",
+                icon: "🌐",
+                items: &[
+                    "🌐 Acesso por Wi-Fi e Rede Local (0.0.0.0:3000): Servidor e scripts de desenvolvimento (dev.bat e dev.sh) configurados para escutar em todas as interfaces de rede por padrao, permitindo acesso imediato de celulares, tablets e outros computadores na mesma rede.",
+                    "📢 Mensagens Informativas de Inicializacao: O console agora indica claramente as URLs de acesso local (localhost:3000) e via rede local Wi-Fi (<SEU_IP_LOCAL>:3000).",
+                    "📦 Executavel Standalone Totalmente Autonomo: O binario mta_sheet.exe agora roda silenciosamente em qualquer pasta ou computador sem depender de arquivos externos ou Cargo.toml, com frontend WASM e assets 100% embutidos.",
+                ],
+            },
+            PatchSection {
+                category: "Interface & Salas",
+                icon: "🔮",
+                items: &[
+                    "🎯 Alinhamento Uniforme das 9 Esferas: Ajuste no Grid CSS com minmax(0, 1fr) e truncamento inteligente, garantindo que esferas com nomes longos (como Correspondencia) mantenham largura e alinhamento simetricos perfeitos.",
+                    "📖 Card da Sala como Atalho Direto: Clicar em qualquer parte do card de personagem na sala de jogo abre diretamente a ficha completa (/sheet/:id), mantendo a propagacao isolada nos botoes flutuantes de acao.",
+                ],
+            },
+            PatchSection {
+                category: "Build & Ferramental de Desenvolvimento",
+                icon: "⚡",
+                items: &[
+                    "🚀 Sincronizacao cargo-leptos 0.3.7 no Windows: Atualizacao do utilitario global e instalador automatizado no dev.bat, eliminando divergencias de schema com o wasm-bindgen 0.2.121.",
+                    "🛠️ Auto-Check no build_release.bat: Verificacao inteligente de versao do wasm-bindgen-cli com atualizacao automatica em caso de versao desatualizada.",
+                    "🐛 Correcao de Sintaxe no dev.bat: Resolucao de escape de parenteses em blocos if do interpretador cmd.exe do Windows.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.14.2",
         date: "2026-09-02",
         tag: "v0.14.2",
