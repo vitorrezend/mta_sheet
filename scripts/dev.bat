@@ -48,6 +48,12 @@ if /i "%1"=="build" (
 where cargo-leptos >nul 2>nul
 if %ERRORLEVEL% NEQ 0 goto :no_cargo_leptos
 
+cargo-leptos --version 2>&1 | findstr /C:"0.2." >nul
+if !ERRORLEVEL! EQU 0 (
+    echo [AVISO] cargo-leptos desatualizado (0.2.x). Atualizando para 0.3.7 compativel com wasm-bindgen 0.2.121...
+    powershell -NoProfile -Command "irm https://github.com/leptos-rs/cargo-leptos/releases/download/v0.3.7/cargo-leptos-installer.ps1 | iex"
+)
+
 echo [INFO] Iniciando servidor com Hot-Reload [cargo leptos watch]...
 cargo leptos watch
 goto :fim
@@ -62,7 +68,7 @@ echo.
 set /p DEV_OPT="Escolha uma opcao [1 ou 2, Enter para 1]: "
 if "!DEV_OPT!"=="2" (
     echo [INFO] Baixando instalador do cargo-leptos...
-    powershell -NoProfile -Command "irm https://github.com/leptos-rs/cargo-leptos/releases/download/v0.2.20/cargo-leptos-installer.ps1 | iex"
+    powershell -NoProfile -Command "irm https://github.com/leptos-rs/cargo-leptos/releases/download/v0.3.7/cargo-leptos-installer.ps1 | iex"
     cargo leptos watch
 ) else (
     echo [INFO] Compilando Frontend WASM...
