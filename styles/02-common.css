@@ -274,26 +274,14 @@
 .supernatural-container {
     display: inline-flex;
     align-items: center;
+    flex-shrink: 0;
 }
 
-.supernatural-slot.supernatural-ghost {
-    opacity: 0;
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-.attribute-row:hover .supernatural-slot.supernatural-ghost {
-    opacity: 0.45;
-}
-
-.supernatural-slot.supernatural-ghost:hover {
-    opacity: 1 !important;
-    transform: scale(1.1);
-}
-
-.dot.dot-supernatural.ghost-diamond {
-    border: 1.5px dashed #a855f7 !important;
-    background: transparent !important;
+.supernatural-container.hidden {
+    display: none !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .label-context-item {
