@@ -1057,6 +1057,7 @@ pub async fn clone_and_assign_sheet_to_member(
 ) -> Result<String, ServerFnError> {
     use sqlx::{SqlitePool, Row};
     use crate::auth::get_auth_user_id;
+    use crate::state::CharacterData;
 
     let caller_user_id = get_auth_user_id().await?.ok_or_else(|| {
         ServerFnError::new("Você precisa estar logado para realizar esta ação")
@@ -1092,8 +1093,19 @@ pub async fn clone_and_assign_sheet_to_member(
         return Err(ServerFnError::new("O jogador selecionado não é membro desta sala"));
     }
 
-    // 3. Busca a ficha original do Narrador
-    let sheet_row = sqlx::query("SELECT name, data, sheet_type, photo_url FROM characters WHERE id = ? AND user_id = ?")
+    // 3. Validação de cota de 50 fichas para o jogador de destino
+    let count = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM character_sheets WHERE user_id = ?")
+        .bind(&target_user_id)
+        .fetch_one(&pool)
+        .await
+        .unwrap_or(0);
+
+    if count >= 50 {
+        return Err(ServerFnError::new("O jogador selecionado atingiu o limite de 50 fichas. Ele precisa excluir fichas antigas para receber uma nova."));
+    }
+
+    // 4. Busca a ficha original do Narrador
+    let sheet_row = sqlx::query("SELECT name, data, sheet_type FROM character_sheets WHERE id = ? AND user_id = ?")
         .bind(&sheet_id)
         .bind(&caller_user_id)
         .fetch_optional(&pool)
@@ -1104,29 +1116,56 @@ pub async fn clone_and_assign_sheet_to_member(
     let sheet_name: String = sheet_data.get("name");
     let sheet_json: String = sheet_data.get("data");
     let sheet_type: String = sheet_data.get("sheet_type");
-    let photo_url: Option<String> = sheet_data.get("photo_url");
 
-    // 4. Cria nova ficha com novo UUID pertencente ao jogador
+    // 5. Cria nova ficha com novo UUID pertencente ao jogador e já associada à sala
     let new_sheet_id = uuid::Uuid::new_v4().to_string();
 
-    sqlx::query("INSERT INTO characters (id, user_id, name, data, sheet_type, photo_url, is_public, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 0, datetime('now'), datetime('now'))")
-        .bind(&new_sheet_id)
-        .bind(&target_user_id)
-        .bind(&sheet_name)
-        .bind(&sheet_json)
-        .bind(&sheet_type)
-        .bind(&photo_url)
-        .execute(&pool)
-        .await
-        .map_err(|e| ServerFnError::new(format!("Erro ao criar ficha clonada: {}", e)))?;
+    let mut updated_data: CharacterData = serde_json::from_str(&sheet_json)
+        .unwrap_or_else(|_| CharacterData::new(new_sheet_id.clone(), sheet_name.clone()));
+    updated_data.id = new_sheet_id.clone();
+    let updated_json = serde_json::to_string(&updated_data).unwrap_or(sheet_json);
 
-    // 5. Vincula a nova ficha à sala automaticamente
-    sqlx::query("INSERT OR IGNORE INTO room_sheets (room_id, sheet_id, is_hidden, created_at) VALUES (?, ?, 0, datetime('now'))")
-        .bind(&room_id)
-        .bind(&new_sheet_id)
-        .execute(&pool)
+    sqlx::query(
+        "INSERT INTO character_sheets (id, user_id, room_id, name, data, sheet_type, is_public, is_hidden_in_room, updated_at) \
+         VALUES (?, ?, ?, ?, ?, ?, 0, 0, datetime('now'))"
+    )
+    .bind(&new_sheet_id)
+    .bind(&target_user_id)
+    .bind(&room_id)
+    .bind(&sheet_name)
+    .bind(&updated_json)
+    .bind(&sheet_type)
+    .execute(&pool)
+    .await
+    .map_err(|e| ServerFnError::new(format!("Erro ao criar ficha clonada: {}", e)))?;
+
+    // 6. Clona respostas do Dossiê/Questionário, se houverem
+    let quiz_answers = sqlx::query("SELECT question_id, answer FROM character_quiz_answers WHERE character_id = ?")
+        .bind(&sheet_id)
+        .fetch_all(&pool)
         .await
-        .map_err(|e| ServerFnError::new(format!("Erro ao vincular ficha à mesa: {}", e)))?;
+        .unwrap_or_default();
+
+    for qa in quiz_answers {
+        let q_id: String = qa.get("question_id");
+        let ans: String = qa.get("answer");
+        let _ = sqlx::query(
+            "INSERT OR REPLACE INTO character_quiz_answers (character_id, question_id, answer, updated_at) \
+             VALUES (?, ?, ?, datetime('now'))"
+        )
+        .bind(&new_sheet_id)
+        .bind(&q_id)
+        .bind(&ans)
+        .execute(&pool)
+        .await;
+    }
+
+    crate::logging::server::write_log(
+        crate::logging::LogCategory::UserActions,
+        "INFO",
+        &format!("CLONE & ASSIGN SHEET: Ficha '{}' ({}) clonada com sucesso para o jogador '{}' na sala '{}'", sheet_name, new_sheet_id, target_user_id, room_id),
+        None,
+    );
 
     Ok(new_sheet_id)
 }

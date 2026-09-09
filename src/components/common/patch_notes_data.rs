@@ -19,6 +19,32 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.14.4",
+        date: "2026-09-09",
+        tag: "v0.14.4",
+        title: "Entrega de Fichas para Membros da Sala e Preview de Construção no Battle Grid",
+        highlight: "Correção crítica na clonagem e entrega de fichas do Narrador para jogadores na sala com preservação do Dossiê/Questionário, além de preview holográfico na colocação de estruturas no grid tático de batalha.",
+        sections: &[
+            PatchSection {
+                category: "Salas de Jogo & Crônica",
+                icon: "🧙",
+                items: &[
+                    "🎁 Entrega de Fichas para Jogadores: Correção no endpoint clone_and_assign_sheet_to_member para operar corretamente na tabela character_sheets, sincronizando o novo UUID interno e associando automaticamente o personagem à crônica.",
+                    "📂 Clonagem de Respostas do Dossiê: Ao entregar uma ficha para um membro, todas as respostas salvas do questionário de criação (character_quiz_answers) são replicadas para a nova ficha.",
+                    "🛡️ Proteção de Cota do Jogador: Validação rigorosa garantindo que o jogador destinatário não exceda o limite de 50 fichas ativas na sua conta.",
+                ],
+            },
+            PatchSection {
+                category: "Grid Tático & Battle Grid",
+                icon: "🗺️",
+                items: &[
+                    "🧱 Preview Fantasma de Construção: Exibição holográfica semitransparente com ícone e borda tracejada indicando exatamente onde a estrutura selecionada (parede, porta, cobertura, etc.) será posicionada antes do clique.",
+                    "🎯 Otimização de Eventos no Grid: Camada de preview e estruturas isolada com pointer-events otimizados, eliminando engasgos de clique na colocação e remoção de elementos.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.14.3",
         date: "2026-09-04",
         tag: "v0.14.3",

@@ -1,6 +1,11 @@
 use leptos::*;
 use crate::rooms::{update_room_map, GridShape, MapStructure, MapToken, RoomMapData, RoomSheetSummary};
 
+/// Helper para log de alta visibilidade no console do navegador (DevTools F12)
+fn grid_log(msg: &str) {
+    web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(msg));
+}
+
 #[component]
 pub fn BattleGrid(
     room_id: Signal<String>,
@@ -14,6 +19,10 @@ pub fn BattleGrid(
     let (selected_token_id, set_selected_token_id) = create_signal(Option::<String>::None);
     let (hovered_cell, set_hovered_cell) = create_signal(Option::<(f32, f32)>::None);
     let (dragged_token_id, set_dragged_token_id) = create_signal(Option::<String>::None);
+
+    // Sinais para modo Pincel / Arraste contínuo
+    let (is_pointer_down, set_is_pointer_down) = create_signal(false);
+    let (pointer_action, set_pointer_action) = create_signal("none"); // "none" | "build" | "erase"
 
     // Zoom Signals
     let (zoom_scale, set_zoom_scale) = create_signal(1.0f32);
@@ -60,25 +69,34 @@ pub fn BattleGrid(
         }
     });
 
-    // Salvar Mapa no Servidor
+    // Salvar Mapa no Servidor com Logs
     let save_map_to_server = move |data_to_save: RoomMapData| {
-        let r_id = room_id.get();
+        let r_id = room_id.get_untracked();
         if r_id.is_empty() {
+            grid_log("[BattleGrid] ⚠️ Aviso: room_id vazio, salvamento ignorado.");
             return;
         }
 
         set_is_saving.set(true);
         set_save_msg.set(Some("Salvando...".to_string()));
+        grid_log(&format!(
+            "[BattleGrid] 💾 Salvando mapa na sala '{}' ({} estruturas, {} tokens)...",
+            r_id,
+            data_to_save.structures.len(),
+            data_to_save.tokens.len()
+        ));
 
         spawn_local(async move {
             match update_room_map(r_id, data_to_save).await {
                 Ok(_) => {
                     let _ = set_is_saving.try_set(false);
                     let _ = set_save_msg.try_set(Some("✓ Salvo".to_string()));
+                    grid_log("[BattleGrid] ✓ Mapa salvo com sucesso no servidor!");
                 }
                 Err(e) => {
                     let _ = set_is_saving.try_set(false);
                     let _ = set_save_msg.try_set(Some(format!("Erro: {}", e)));
+                    grid_log(&format!("[BattleGrid] ❌ Erro ao salvar mapa: {}", e));
                 }
             }
         });
@@ -86,10 +104,11 @@ pub fn BattleGrid(
 
     // Mover token por ID diretamente para célula
     let move_token_to_cell = move |token_id: &str, col: f32, row: f32| {
-        let mut current = map_data.get();
+        let mut current = map_data.get_untracked();
         if let Some(token) = current.tokens.iter_mut().find(|t| t.id == token_id) {
             token.grid_col = col;
             token.grid_row = row;
+            grid_log(&format!("[BattleGrid] 🎯 Token '{}' movido para ({:.0}, {:.0})", token.name, col, row));
             set_map_data.set(current.clone());
             save_map_to_server(current);
         }
@@ -97,73 +116,171 @@ pub fn BattleGrid(
 
     // Mover token selecionado
     let move_selected_token = move |col: f32, row: f32| {
-        if let Some(token_id) = selected_token_id.get() {
+        if let Some(token_id) = selected_token_id.get_untracked() {
             move_token_to_cell(&token_id, col, row);
         }
     };
 
     // Remover Token
     let remove_token = move |token_id: String| {
-        let mut current = map_data.get();
+        let mut current = map_data.get_untracked();
+        let token_name = current.tokens.iter().find(|t| t.id == token_id).map(|t| t.name.clone()).unwrap_or_else(|| "Token".to_string());
         current.tokens.retain(|t| t.id != token_id);
-        if selected_token_id.get().as_deref() == Some(&token_id) {
+        if selected_token_id.get_untracked().as_deref() == Some(&token_id) {
             set_selected_token_id.set(None);
         }
+        grid_log(&format!("[BattleGrid] 🗑️ Token '{}' ({}) removido", token_name, token_id));
         set_map_data.set(current.clone());
         save_map_to_server(current);
     };
 
     // Alternar visibilidade de Token (GM)
     let toggle_token_hidden = move |token_id: String| {
-        let mut current = map_data.get();
+        let mut current = map_data.get_untracked();
         if let Some(token) = current.tokens.iter_mut().find(|t| t.id == token_id) {
             token.is_hidden = !token.is_hidden;
+            grid_log(&format!("[BattleGrid] 👁️ Visibilidade de '{}' alterada para hidden={}", token.name, token.is_hidden));
             set_map_data.set(current.clone());
             save_map_to_server(current);
         }
     };
 
     // Construir ou Demolir Estrutura na célula (col, row)
-    let place_or_erase_structure = move |col: f32, row: f32| {
-        let mut current = map_data.get();
-        let build_type = selected_build_type.get();
+    // - force_erase: Se true (botão direito), remove imediatamente qualquer estrutura existente.
+    // - Se false: Se já houver a MESMA estrutura na célula, faz toggle (apaga). Se for outra, substitui. Se vazia, cria.
+    let place_or_erase_structure = move |col: f32, row: f32, force_erase: bool| {
+        let mut current = map_data.get_untracked();
+        let build_type = selected_build_type.get_untracked();
 
-        if build_type == "eraser" {
-            // Remove estruturas e/ou tokens na célula
-            current.structures.retain(|s| !((s.grid_col - col).abs() < 0.1 && (s.grid_row - row).abs() < 0.1));
-            current.tokens.retain(|t| !((t.grid_col - col).abs() < 0.1 && (t.grid_row - row).abs() < 0.1));
-        } else {
-            // Remove estrutura pré-existente na mesma célula se houver
-            current.structures.retain(|s| !((s.grid_col - col).abs() < 0.1 && (s.grid_row - row).abs() < 0.1));
+        let existing_idx = current.structures.iter().position(|s| {
+            (s.grid_col - col).abs() < 0.1 && (s.grid_row - row).abs() < 0.1
+        });
 
-            let (name, color, icon, blocks_m, blocks_s, opacity) = match build_type.as_str() {
-                "wall" => ("Muro de Alvenaria", "#334155", "🧱", true, true, 0.94),
-                "door" => ("Porta", "#854d0e", "🚪", false, true, 0.92),
-                "cover" => ("Barricada / Cobertura", "#78350f", "🛡️", false, false, 0.88),
-                "water" => ("Água / Terreno Difícil", "#0284c7", "🌊", false, false, 0.70),
-                "fire" => ("Fogo Mágico", "#dc2626", "🔥", false, false, 0.80),
-                "ward" => ("Círculo de Proteção", "#7c3aed", "🔯", false, false, 0.75),
-                _ => ("Estrutura", "#475569", "📦", true, false, 0.80),
-            };
-
-            let new_struct = MapStructure {
-                id: format!("struct-{}", uuid::Uuid::new_v4()),
-                structure_type: build_type,
-                name: name.to_string(),
-                color: color.to_string(),
-                icon: icon.to_string(),
-                grid_col: col,
-                grid_row: row,
-                blocks_movement: blocks_m,
-                blocks_sight: blocks_s,
-                opacity,
-            };
-
-            current.structures.push(new_struct);
+        if force_erase || build_type == "eraser" {
+            if let Some(idx) = existing_idx {
+                let removed = current.structures.remove(idx);
+                grid_log(&format!("[BattleGrid] 🗑️ Demolido: {} em ({:.0}, {:.0})", removed.name, col, row));
+                set_map_data.set(current.clone());
+                save_map_to_server(current);
+            } else {
+                grid_log(&format!("[BattleGrid] Nenhuma estrutura para demolir em ({:.0}, {:.0})", col, row));
+            }
+            return;
         }
 
+        // Toggle: Se já existe exatamente a mesma estrutura na célula, apaga (toggle off)
+        if let Some(idx) = existing_idx {
+            if current.structures[idx].structure_type == build_type {
+                let removed = current.structures.remove(idx);
+                grid_log(&format!("[BattleGrid] 🔄 Toggle OFF: Removido {} em ({:.0}, {:.0})", removed.name, col, row));
+                set_map_data.set(current.clone());
+                save_map_to_server(current);
+                return;
+            } else {
+                let old = current.structures.remove(idx);
+                grid_log(&format!("[BattleGrid] 🔄 Substituindo {} por {} em ({:.0}, {:.0})", old.name, build_type, col, row));
+            }
+        }
+
+        let (name, color, icon, blocks_m, blocks_s, opacity) = match build_type.as_str() {
+            "wall" => ("Muro de Alvenaria", "#334155", "🧱", true, true, 0.94),
+            "door" => ("Porta", "#854d0e", "🚪", false, true, 0.92),
+            "cover" => ("Barricada / Cobertura", "#78350f", "🛡️", false, false, 0.88),
+            "water" => ("Água / Terreno Difícil", "#0284c7", "🌊", false, false, 0.70),
+            "fire" => ("Fogo Mágico", "#dc2626", "🔥", false, false, 0.80),
+            "ward" => ("Selo Arcano", "#7c3aed", "🔯", false, false, 0.75),
+            _ => ("Estrutura", "#475569", "📦", true, false, 0.80),
+        };
+
+        let new_struct = MapStructure {
+            id: format!("struct-{}", uuid::Uuid::new_v4()),
+            structure_type: build_type,
+            name: name.to_string(),
+            color: color.to_string(),
+            icon: icon.to_string(),
+            grid_col: col,
+            grid_row: row,
+            blocks_movement: blocks_m,
+            blocks_sight: blocks_s,
+            opacity,
+        };
+
+        grid_log(&format!("[BattleGrid] 🔨 Construído: {} ({}) em ({:.0}, {:.0})", name, icon, col, row));
+        current.structures.push(new_struct);
         set_map_data.set(current.clone());
         save_map_to_server(current);
+    };
+
+    // Pintar estrutura durante arraste contínuo (sem toggle para não oscilar)
+    let paint_structure = move |col: f32, row: f32| {
+        let mut current = map_data.get_untracked();
+        let build_type = selected_build_type.get_untracked();
+
+        if build_type == "eraser" {
+            let existing_idx = current.structures.iter().position(|s| {
+                (s.grid_col - col).abs() < 0.1 && (s.grid_row - row).abs() < 0.1
+            });
+            if let Some(idx) = existing_idx {
+                let removed = current.structures.remove(idx);
+                grid_log(&format!("[BattleGrid] 🧹 Pincel Borracha: Removido {} em ({:.0}, {:.0})", removed.name, col, row));
+                set_map_data.set(current.clone());
+                save_map_to_server(current);
+            }
+            return;
+        }
+
+        let existing_idx = current.structures.iter().position(|s| {
+            (s.grid_col - col).abs() < 0.1 && (s.grid_row - row).abs() < 0.1
+        });
+
+        if let Some(idx) = existing_idx {
+            if current.structures[idx].structure_type == build_type {
+                return; // Já possui esta estrutura
+            }
+            current.structures.remove(idx);
+        }
+
+        let (name, color, icon, blocks_m, blocks_s, opacity) = match build_type.as_str() {
+            "wall" => ("Muro de Alvenaria", "#334155", "🧱", true, true, 0.94),
+            "door" => ("Porta", "#854d0e", "🚪", false, true, 0.92),
+            "cover" => ("Barricada / Cobertura", "#78350f", "🛡️", false, false, 0.88),
+            "water" => ("Água / Terreno Difícil", "#0284c7", "🌊", false, false, 0.70),
+            "fire" => ("Fogo Mágico", "#dc2626", "🔥", false, false, 0.80),
+            "ward" => ("Selo Arcano", "#7c3aed", "🔯", false, false, 0.75),
+            _ => ("Estrutura", "#475569", "📦", true, false, 0.80),
+        };
+
+        let new_struct = MapStructure {
+            id: format!("struct-{}", uuid::Uuid::new_v4()),
+            structure_type: build_type,
+            name: name.to_string(),
+            color: color.to_string(),
+            icon: icon.to_string(),
+            grid_col: col,
+            grid_row: row,
+            blocks_movement: blocks_m,
+            blocks_sight: blocks_s,
+            opacity,
+        };
+
+        grid_log(&format!("[BattleGrid] 🖌️ Pincel Contínuo: {} ({}) em ({:.0}, {:.0})", name, icon, col, row));
+        current.structures.push(new_struct);
+        set_map_data.set(current.clone());
+        save_map_to_server(current);
+    };
+
+    // Demolir estrutura durante arraste do botão direito
+    let erase_structure_at = move |col: f32, row: f32| {
+        let mut current = map_data.get_untracked();
+        let existing_idx = current.structures.iter().position(|s| {
+            (s.grid_col - col).abs() < 0.1 && (s.grid_row - row).abs() < 0.1
+        });
+        if let Some(idx) = existing_idx {
+            let removed = current.structures.remove(idx);
+            grid_log(&format!("[BattleGrid] 🗑️ Demolição Contínua: Removido {} em ({:.0}, {:.0})", removed.name, col, row));
+            set_map_data.set(current.clone());
+            save_map_to_server(current);
+        }
     };
 
     // Auto-Spawn dos Personagens da Sala (Cabala)
@@ -441,6 +558,7 @@ pub fn BattleGrid(
                             set_active_tool.set("select");
                             set_ruler_start.set(None);
                             set_ruler_end.set(None);
+                            grid_log("[BattleGrid] 👆 Ferramenta ativa: Mover / Seleção");
                         }
                         title="Modo Seleção & Movimento (Arraste ou clique)"
                     >
@@ -455,6 +573,7 @@ pub fn BattleGrid(
                             set_ruler_start.set(None);
                             set_ruler_end.set(None);
                             set_selected_token_id.set(None);
+                            grid_log(&format!("[BattleGrid] 🧱 Ferramenta ativa: Construir | Tipo: {}", selected_build_type.get_untracked()));
                         }
                         title="Construir Muros, Portas, Terreno e Selos Arcanos"
                     >
@@ -467,6 +586,7 @@ pub fn BattleGrid(
                         on:click=move |_| {
                             set_active_tool.set("ruler");
                             set_selected_token_id.set(None);
+                            grid_log("[BattleGrid] 📏 Ferramenta ativa: Régua Tática");
                         }
                         title="Medir Distância & Alcance de Esferas"
                     >
@@ -582,7 +702,10 @@ pub fn BattleGrid(
                         <button
                             class="palette-item-btn"
                             class:active=move || selected_build_type.get() == "wall"
-                            on:click=move |_| set_selected_build_type.set("wall".to_string())
+                            on:click=move |_| {
+                                set_selected_build_type.set("wall".to_string());
+                                grid_log("[BattleGrid] 🧱 Selecionado: Muro de Alvenaria");
+                            }
                             title="Muro / Parede de Alvenaria (Bloqueia movimento e visão)"
                         >
                             <span class="palette-icon">"🧱"</span>
@@ -592,7 +715,10 @@ pub fn BattleGrid(
                         <button
                             class="palette-item-btn"
                             class:active=move || selected_build_type.get() == "door"
-                            on:click=move |_| set_selected_build_type.set("door".to_string())
+                            on:click=move |_| {
+                                set_selected_build_type.set("door".to_string());
+                                grid_log("[BattleGrid] 🚪 Selecionado: Porta / Passagem");
+                            }
                             title="Porta / Passagem (Bloqueia visão, permite passagem)"
                         >
                             <span class="palette-icon">"🚪"</span>
@@ -602,7 +728,10 @@ pub fn BattleGrid(
                         <button
                             class="palette-item-btn"
                             class:active=move || selected_build_type.get() == "cover"
-                            on:click=move |_| set_selected_build_type.set("cover".to_string())
+                            on:click=move |_| {
+                                set_selected_build_type.set("cover".to_string());
+                                grid_log("[BattleGrid] 🛡️ Selecionado: Barricada / Cobertura");
+                            }
                             title="Barricada / Cobertura Tática (+2 Dificuldade para tiros)"
                         >
                             <span class="palette-icon">"🛡️"</span>
@@ -612,7 +741,10 @@ pub fn BattleGrid(
                         <button
                             class="palette-item-btn"
                             class:active=move || selected_build_type.get() == "water"
-                            on:click=move |_| set_selected_build_type.set("water".to_string())
+                            on:click=move |_| {
+                                set_selected_build_type.set("water".to_string());
+                                grid_log("[BattleGrid] 🌊 Selecionado: Água Profunda");
+                            }
                             title="Água Profunda / Terreno Difícil (Custo dobrado de movimento)"
                         >
                             <span class="palette-icon">"🌊"</span>
@@ -622,7 +754,10 @@ pub fn BattleGrid(
                         <button
                             class="palette-item-btn"
                             class:active=move || selected_build_type.get() == "fire"
-                            on:click=move |_| set_selected_build_type.set("fire".to_string())
+                            on:click=move |_| {
+                                set_selected_build_type.set("fire".to_string());
+                                grid_log("[BattleGrid] 🔥 Selecionado: Fogo Mágico");
+                            }
                             title="Fogo Mágico / Campo de Chamas (Dano por turno)"
                         >
                             <span class="palette-icon">"🔥"</span>
@@ -632,7 +767,10 @@ pub fn BattleGrid(
                         <button
                             class="palette-item-btn"
                             class:active=move || selected_build_type.get() == "ward"
-                            on:click=move |_| set_selected_build_type.set("ward".to_string())
+                            on:click=move |_| {
+                                set_selected_build_type.set("ward".to_string());
+                                grid_log("[BattleGrid] 🔯 Selecionado: Selo Arcano");
+                            }
                             title="Selo Arcano / Círculo de Proteção (Barreira mágica)"
                         >
                             <span class="palette-icon">"🔯"</span>
@@ -642,14 +780,17 @@ pub fn BattleGrid(
                         <button
                             class="palette-item-btn palette-eraser"
                             class:active=move || selected_build_type.get() == "eraser"
-                            on:click=move |_| set_selected_build_type.set("eraser".to_string())
-                            title="Demolir / Borracha (Clique na célula para apagar a estrutura)"
+                            on:click=move |_| {
+                                set_selected_build_type.set("eraser".to_string());
+                                grid_log("[BattleGrid] 🧹 Selecionado: Demolir / Borracha");
+                            }
+                            title="Demolir / Borracha (Clique ou arraste na célula para apagar)"
                         >
                             <span class="palette-icon">"🧹"</span>
                             <span class="palette-label">"Demolir"</span>
                         </button>
 
-                        <span class="palette-hint">"💡 Clique em qualquer célula para construir ou apagar."</span>
+                        <span class="palette-hint">"💡 Clique para construir/toggle • Botão direito para demolir • Segure e arraste para desenhar"</span>
                     </div>
                 }.into_view()
             } else {
@@ -694,7 +835,19 @@ pub fn BattleGrid(
                     let svg_style = format!("width: {}px; height: {}px;", board_w, board_h);
 
                     view! {
-                        <div class="battle-board-container" style=container_style>
+                        <div 
+                            class="battle-board-container" 
+                            style=container_style
+                            on:pointerup=move |_| {
+                                set_is_pointer_down.set(false);
+                                set_pointer_action.set("none");
+                            }
+                            on:pointerleave=move |_| {
+                                set_is_pointer_down.set(false);
+                                set_pointer_action.set("none");
+                                set_hovered_cell.set(None);
+                            }
+                        >
                             // Imagem de Fundo do Mapa
                             {if has_bg {
                                 let bg_style = format!(
@@ -737,11 +890,16 @@ pub fn BattleGrid(
                                                     class="map-structure-block"
                                                     style=struct_style
                                                     title=s.name.clone()
+                                                    on:contextmenu=move |ev: ev::MouseEvent| {
+                                                        ev.prevent_default();
+                                                        ev.stop_propagation();
+                                                        place_or_erase_structure(s_col, s_row, true);
+                                                    }
                                                     on:click=move |ev: ev::MouseEvent| {
                                                         ev.stop_propagation();
-                                                        let cur_tool = active_tool.get();
+                                                        let cur_tool = active_tool.get_untracked();
                                                         if cur_tool == "build" {
-                                                            place_or_erase_structure(s_col, s_row);
+                                                            place_or_erase_structure(s_col, s_row, false);
                                                         }
                                                     }
                                                 >
@@ -762,11 +920,16 @@ pub fn BattleGrid(
                                                     class="map-structure-block hex-structure"
                                                     style=struct_style
                                                     title=s.name.clone()
+                                                    on:contextmenu=move |ev: ev::MouseEvent| {
+                                                        ev.prevent_default();
+                                                        ev.stop_propagation();
+                                                        place_or_erase_structure(s_col, s_row, true);
+                                                    }
                                                     on:click=move |ev: ev::MouseEvent| {
                                                         ev.stop_propagation();
-                                                        let cur_tool = active_tool.get();
+                                                        let cur_tool = active_tool.get_untracked();
                                                         if cur_tool == "build" {
-                                                            place_or_erase_structure(s_col, s_row);
+                                                            place_or_erase_structure(s_col, s_row, false);
                                                         }
                                                     }
                                                 >
@@ -798,7 +961,6 @@ pub fn BattleGrid(
                                                     let c_f = c as f32;
                                                     let x = c_f * cs;
                                                     let y = r_f * cs;
-                                                    let is_hovered = hovered_cell.get() == Some((c_f, r_f));
                                                     let stroke_cell = stroke_row.clone();
                                                     
                                                     view! {
@@ -807,12 +969,71 @@ pub fn BattleGrid(
                                                             y=y.to_string()
                                                             width=cs.to_string()
                                                             height=cs.to_string()
-                                                            fill=if is_hovered { "rgba(99, 102, 241, 0.2)" } else { "rgba(0, 0, 0, 0.001)" }
+                                                            fill="rgba(0, 0, 0, 0.001)"
                                                             stroke=stroke_cell
                                                             stroke-width="1"
                                                             class="grid-cell-rect"
                                                             pointer-events="all"
-                                                            on:pointerenter=move |_| set_hovered_cell.set(Some((c_f, r_f)))
+                                                            on:pointerenter=move |_| {
+                                                                set_hovered_cell.set(Some((c_f, r_f)));
+                                                                if is_pointer_down.get_untracked() {
+                                                                    let action = pointer_action.get_untracked();
+                                                                    let tool = active_tool.get_untracked();
+                                                                    if action == "build" && tool == "build" {
+                                                                        paint_structure(c_f, r_f);
+                                                                    } else if action == "erase" {
+                                                                        erase_structure_at(c_f, r_f);
+                                                                    }
+                                                                }
+                                                            }
+                                                            on:pointerdown=move |ev: ev::PointerEvent| {
+                                                                let cur_tool = active_tool.get_untracked();
+                                                                if ev.button() == 2 {
+                                                                    // Botão direito: Demolição imediata
+                                                                    ev.prevent_default();
+                                                                    grid_log(&format!("[BattleGrid] 🗑️ Botão direito na célula ({:.0}, {:.0}) -> Demolir", c_f, r_f));
+                                                                    place_or_erase_structure(c_f, r_f, true);
+                                                                    set_is_pointer_down.set(true);
+                                                                    set_pointer_action.set("erase");
+                                                                } else if ev.button() == 0 {
+                                                                    // Botão esquerdo
+                                                                    if cur_tool == "build" {
+                                                                        ev.prevent_default();
+                                                                        grid_log(&format!("[BattleGrid] 🖱️ Clique construir na célula ({:.0}, {:.0})", c_f, r_f));
+                                                                        let b_type = selected_build_type.get_untracked();
+                                                                        if b_type == "eraser" {
+                                                                            place_or_erase_structure(c_f, r_f, true);
+                                                                            set_is_pointer_down.set(true);
+                                                                            set_pointer_action.set("erase");
+                                                                        } else {
+                                                                            place_or_erase_structure(c_f, r_f, false);
+                                                                            set_is_pointer_down.set(true);
+                                                                            set_pointer_action.set("build");
+                                                                        }
+                                                                    } else if cur_tool == "ruler" {
+                                                                        if ruler_start.get_untracked().is_none() {
+                                                                            set_ruler_start.set(Some((c_f, r_f)));
+                                                                            set_ruler_end.set(None);
+                                                                        } else if ruler_end.get_untracked().is_none() {
+                                                                            set_ruler_end.set(Some((c_f, r_f)));
+                                                                        } else {
+                                                                            set_ruler_start.set(Some((c_f, r_f)));
+                                                                            set_ruler_end.set(None);
+                                                                        }
+                                                                    } else {
+                                                                        move_selected_token(c_f, r_f);
+                                                                    }
+                                                                }
+                                                            }
+                                                            on:contextmenu=move |ev: ev::MouseEvent| {
+                                                                ev.prevent_default();
+                                                                ev.stop_propagation();
+                                                                grid_log(&format!("[BattleGrid] 🗑️ Contextmenu na célula ({:.0}, {:.0}) -> Demolir", c_f, r_f));
+                                                                place_or_erase_structure(c_f, r_f, true);
+                                                            }
+                                                            on:click=move |ev: ev::MouseEvent| {
+                                                                ev.prevent_default();
+                                                            }
                                                             on:dragover=move |ev: ev::DragEvent| {
                                                                 ev.prevent_default();
                                                                 if let Some(dt) = ev.data_transfer() {
@@ -822,26 +1043,9 @@ pub fn BattleGrid(
                                                             on:drop=move |ev: ev::DragEvent| {
                                                                 ev.prevent_default();
                                                                 if let Some(token_id) = dragged_token_id.get_untracked() {
+                                                                    grid_log(&format!("[BattleGrid] 🎯 Token '{}' solto em ({:.0}, {:.0})", token_id, c_f, r_f));
                                                                     move_token_to_cell(&token_id, c_f, r_f);
                                                                     set_dragged_token_id.set(None);
-                                                                }
-                                                            }
-                                                            on:click=move |_| {
-                                                                let cur_tool = active_tool.get();
-                                                                if cur_tool == "build" {
-                                                                    place_or_erase_structure(c_f, r_f);
-                                                                } else if cur_tool == "ruler" {
-                                                                    if ruler_start.get().is_none() {
-                                                                        set_ruler_start.set(Some((c_f, r_f)));
-                                                                        set_ruler_end.set(None);
-                                                                    } else if ruler_end.get().is_none() {
-                                                                        set_ruler_end.set(Some((c_f, r_f)));
-                                                                    } else {
-                                                                        set_ruler_start.set(Some((c_f, r_f)));
-                                                                        set_ruler_end.set(None);
-                                                                    }
-                                                                } else {
-                                                                    move_selected_token(c_f, r_f);
                                                                 }
                                                             }
                                                         />
@@ -863,18 +1067,76 @@ pub fn BattleGrid(
                                                     let c_f = c as f32;
                                                     let (cx, cy) = get_cell_center(c_f, r_f);
                                                     let pts = get_hex_points(cx, cy, r_radius);
-                                                    let is_hovered = hovered_cell.get() == Some((c_f, r_f));
                                                     let stroke_cell = stroke_row.clone();
 
                                                     view! {
                                                         <polygon
                                                             points=pts
-                                                            fill=if is_hovered { "rgba(99, 102, 241, 0.2)" } else { "rgba(0, 0, 0, 0.001)" }
+                                                            fill="rgba(0, 0, 0, 0.001)"
                                                             stroke=stroke_cell
                                                             stroke-width="1"
                                                             class="grid-cell-hex"
                                                             pointer-events="all"
-                                                            on:pointerenter=move |_| set_hovered_cell.set(Some((c_f, r_f)))
+                                                            on:pointerenter=move |_| {
+                                                                set_hovered_cell.set(Some((c_f, r_f)));
+                                                                if is_pointer_down.get_untracked() {
+                                                                    let action = pointer_action.get_untracked();
+                                                                    let tool = active_tool.get_untracked();
+                                                                    if action == "build" && tool == "build" {
+                                                                        paint_structure(c_f, r_f);
+                                                                    } else if action == "erase" {
+                                                                        erase_structure_at(c_f, r_f);
+                                                                    }
+                                                                }
+                                                            }
+                                                            on:pointerdown=move |ev: ev::PointerEvent| {
+                                                                let cur_tool = active_tool.get_untracked();
+                                                                if ev.button() == 2 {
+                                                                    // Botão direito: Demolição imediata
+                                                                    ev.prevent_default();
+                                                                    grid_log(&format!("[BattleGrid] 🗑️ Botão direito na célula ({:.0}, {:.0}) -> Demolir", c_f, r_f));
+                                                                    place_or_erase_structure(c_f, r_f, true);
+                                                                    set_is_pointer_down.set(true);
+                                                                    set_pointer_action.set("erase");
+                                                                } else if ev.button() == 0 {
+                                                                    // Botão esquerdo
+                                                                    if cur_tool == "build" {
+                                                                        ev.prevent_default();
+                                                                        grid_log(&format!("[BattleGrid] 🖱️ Clique construir na célula ({:.0}, {:.0})", c_f, r_f));
+                                                                        let b_type = selected_build_type.get_untracked();
+                                                                        if b_type == "eraser" {
+                                                                            place_or_erase_structure(c_f, r_f, true);
+                                                                            set_is_pointer_down.set(true);
+                                                                            set_pointer_action.set("erase");
+                                                                        } else {
+                                                                            place_or_erase_structure(c_f, r_f, false);
+                                                                            set_is_pointer_down.set(true);
+                                                                            set_pointer_action.set("build");
+                                                                        }
+                                                                    } else if cur_tool == "ruler" {
+                                                                        if ruler_start.get_untracked().is_none() {
+                                                                            set_ruler_start.set(Some((c_f, r_f)));
+                                                                            set_ruler_end.set(None);
+                                                                        } else if ruler_end.get_untracked().is_none() {
+                                                                            set_ruler_end.set(Some((c_f, r_f)));
+                                                                        } else {
+                                                                            set_ruler_start.set(Some((c_f, r_f)));
+                                                                            set_ruler_end.set(None);
+                                                                        }
+                                                                    } else {
+                                                                        move_selected_token(c_f, r_f);
+                                                                    }
+                                                                }
+                                                            }
+                                                            on:contextmenu=move |ev: ev::MouseEvent| {
+                                                                ev.prevent_default();
+                                                                ev.stop_propagation();
+                                                                grid_log(&format!("[BattleGrid] 🗑️ Contextmenu na célula ({:.0}, {:.0}) -> Demolir", c_f, r_f));
+                                                                place_or_erase_structure(c_f, r_f, true);
+                                                            }
+                                                            on:click=move |ev: ev::MouseEvent| {
+                                                                ev.prevent_default();
+                                                            }
                                                             on:dragover=move |ev: ev::DragEvent| {
                                                                 ev.prevent_default();
                                                                 if let Some(dt) = ev.data_transfer() {
@@ -884,26 +1146,9 @@ pub fn BattleGrid(
                                                             on:drop=move |ev: ev::DragEvent| {
                                                                 ev.prevent_default();
                                                                 if let Some(token_id) = dragged_token_id.get_untracked() {
+                                                                    grid_log(&format!("[BattleGrid] 🎯 Token '{}' solto em ({:.0}, {:.0})", token_id, c_f, r_f));
                                                                     move_token_to_cell(&token_id, c_f, r_f);
                                                                     set_dragged_token_id.set(None);
-                                                                }
-                                                            }
-                                                            on:click=move |_| {
-                                                                let cur_tool = active_tool.get();
-                                                                if cur_tool == "build" {
-                                                                    place_or_erase_structure(c_f, r_f);
-                                                                } else if cur_tool == "ruler" {
-                                                                    if ruler_start.get().is_none() {
-                                                                        set_ruler_start.set(Some((c_f, r_f)));
-                                                                        set_ruler_end.set(None);
-                                                                    } else if ruler_end.get().is_none() {
-                                                                        set_ruler_end.set(Some((c_f, r_f)));
-                                                                    } else {
-                                                                        set_ruler_start.set(Some((c_f, r_f)));
-                                                                        set_ruler_end.set(None);
-                                                                    }
-                                                                } else {
-                                                                    move_selected_token(c_f, r_f);
                                                                 }
                                                             }
                                                         />
@@ -912,6 +1157,57 @@ pub fn BattleGrid(
                                             }).collect_view()}
                                         </g>
                                     }.into_view()
+                                }}
+
+                                // ─── Preview Fantasma da Estrutura em Construção ─────────────
+                                {move || {
+                                    if active_tool.get() == "build" {
+                                        if let Some((hc, hr)) = hovered_cell.get() {
+                                            let b_type = selected_build_type.get();
+                                            let (icon, color) = match b_type.as_str() {
+                                                "wall" => ("🧱", "rgba(51, 65, 85, 0.75)"),
+                                                "door" => ("🚪", "rgba(133, 77, 14, 0.75)"),
+                                                "cover" => ("🛡️", "rgba(120, 53, 15, 0.75)"),
+                                                "water" => ("🌊", "rgba(2, 132, 199, 0.70)"),
+                                                "fire" => ("🔥", "rgba(220, 38, 38, 0.75)"),
+                                                "ward" => ("🔯", "rgba(124, 58, 237, 0.75)"),
+                                                "eraser" => ("🧹", "rgba(239, 68, 68, 0.50)"),
+                                                _ => ("📦", "rgba(71, 85, 105, 0.75)"),
+                                            };
+                                            let (cx, cy) = get_cell_center(hc, hr);
+                                            let cs = cell_size_val();
+                                            let sz = cs * 0.84;
+                                            let half = sz / 2.0;
+
+                                            view! {
+                                                <g class="build-ghost-preview" pointer-events="none">
+                                                    <rect
+                                                        x=(cx - half).to_string()
+                                                        y=(cy - half).to_string()
+                                                        width=sz.to_string()
+                                                        height=sz.to_string()
+                                                        rx="6"
+                                                        fill=color
+                                                        stroke="#f8fafc"
+                                                        stroke-width="1.5"
+                                                        stroke-dasharray="4,3"
+                                                    />
+                                                    <text
+                                                        x=cx.to_string()
+                                                        y=(cy + sz * 0.28).to_string()
+                                                        text-anchor="middle"
+                                                        font-size=(sz * 0.55).to_string()
+                                                    >
+                                                        {icon}
+                                                    </text>
+                                                </g>
+                                            }.into_view()
+                                        } else {
+                                            view! {}.into_view()
+                                        }
+                                    } else {
+                                        view! {}.into_view()
+                                    }
                                 }}
 
                                 // ─── Linha da Régua ──────────────────────────
@@ -1005,9 +1301,9 @@ pub fn BattleGrid(
                                                 }
                                                 on:click=move |ev: ev::MouseEvent| {
                                                     ev.stop_propagation();
-                                                    let cur_tool = active_tool.get();
+                                                    let cur_tool = active_tool.get_untracked();
                                                     if cur_tool == "build" {
-                                                        place_or_erase_structure(t_col, t_row);
+                                                        place_or_erase_structure(t_col, t_row, false);
                                                     } else if cur_tool == "select" {
                                                         if selected_token_id.get().as_deref() == Some(&t_id_select) {
                                                             set_selected_token_id.set(None);
