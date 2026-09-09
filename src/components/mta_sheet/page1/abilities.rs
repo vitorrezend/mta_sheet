@@ -38,6 +38,12 @@ pub fn Abilities() -> impl IntoView {
         });
     };
 
+    let update_ability_supernatural = move |name: String| {
+        set_data.update(|s| {
+            s.toggle_attribute_supernatural(&name);
+        });
+    };
+
     // Função para adicionar novo campo
     let add_custom = move |category: &'static str| {
         set_data.update(|s| {
@@ -86,6 +92,8 @@ pub fn Abilities() -> impl IntoView {
         let n_update_mod = name.clone();
         let n_update_dot = name.clone();
         let n_remove = name.clone();
+        let n_sup = name.clone();
+        let n_toggle_sup = name.clone();
         
         let label = Signal::derive({
             let id = n_label.clone();
@@ -113,12 +121,20 @@ pub fn Abilities() -> impl IntoView {
         });
         let origins = Signal::derive({
             let name = n_origins.clone();
-            move || data.with(|d| d.attributes.get(&name).map(|a| a.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5]))
+            move || data.with(|d| d.attributes.get(&name).map(|a| a.get_origins(6)).unwrap_or_else(|| vec![DotOrigin::Base; 6]))
+        });
+        let is_supernatural = Signal::derive({
+            let name = n_sup.clone();
+            move || data.with(|d| d.is_attribute_supernatural(&name))
         });
 
         let on_dot_origin_change = {
             let name = n_update_dot.clone();
             Callback::new(move |(idx, orig)| update_ability_dot(name.clone(), idx, orig))
+        };
+        let on_toggle_supernatural = {
+            let name = n_toggle_sup.clone();
+            Callback::new(move |_| update_ability_supernatural(name.clone()))
         };
 
         if is_custom {
@@ -130,6 +146,8 @@ pub fn Abilities() -> impl IntoView {
                     level=level
                     modifier=modifier
                     origins=origins
+                    is_supernatural=is_supernatural
+                    on_toggle_supernatural=on_toggle_supernatural
                     on_level_change=move |v| update_ability(n_update_level.clone(), Some(v), None)
                     on_modifier_change=move |m| update_ability(n_update_mod.clone(), None, Some(m))
                     on_dot_origin_change=on_dot_origin_change
@@ -147,6 +165,8 @@ pub fn Abilities() -> impl IntoView {
                     level=level
                     modifier=modifier
                     origins=origins
+                    is_supernatural=is_supernatural
+                    on_toggle_supernatural=on_toggle_supernatural
                     on_level_change=move |v| update_ability(n_update_level.clone(), Some(v), None)
                     on_modifier_change=move |m| update_ability(n_update_mod.clone(), None, Some(m))
                     on_dot_origin_change=on_dot_origin_change

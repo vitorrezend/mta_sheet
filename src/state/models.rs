@@ -371,14 +371,18 @@ pub struct AttributeValue {
     pub modifier: String,
     #[serde(default, skip_serializing_if = "is_default_origins")]
     pub dot_origins: Vec<DotOrigin>,
+    #[serde(default, skip_serializing_if = "is_false_bool")]
+    pub is_supernatural: bool,
 }
 
 impl AttributeValue {
     pub fn new(level: i32, modifier: String) -> Self {
+        let is_supernatural = level >= 6;
         Self {
             level,
             modifier,
             dot_origins: vec![DotOrigin::Base; level.max(0) as usize],
+            is_supernatural,
         }
     }
 
@@ -1255,6 +1259,22 @@ impl CharacterData {
     pub fn set_attribute_dot_origin(&mut self, name: &str, dot_index: usize, origin: DotOrigin) {
         let entry = self.attributes.entry(name.to_string()).or_default();
         entry.set_dot_origin(dot_index, origin);
+    }
+
+    pub fn is_attribute_supernatural(&self, name: &str) -> bool {
+        self.attributes
+            .get(name)
+            .map(|a| a.is_supernatural || a.level >= 6)
+            .unwrap_or(false)
+    }
+
+    pub fn toggle_attribute_supernatural(&mut self, name: &str) {
+        let entry = self.attributes.entry(name.to_string()).or_default();
+        let current = entry.is_supernatural || entry.level >= 6;
+        entry.is_supernatural = !current;
+        if !entry.is_supernatural && entry.level > 5 {
+            entry.set_level_with_origin(5, DotOrigin::Base);
+        }
     }
 
     pub fn get_total_bonus_and_xp_dots(&self) -> (usize, usize) {

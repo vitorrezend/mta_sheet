@@ -38,7 +38,7 @@ pub fn Vitality() -> impl IntoView {
                                     type="button"
                                     class="add-field-btn bruised-btn"
                                     on:click=move |_| set_data.update(|s| s.add_extra_bruised())
-                                    title="Adicionar nível extra de Escoriado (Criatura / Bygone)"
+                                    title=move || crate::i18n::tr("add_extra_bruised", lang())
                                 >
                                     "+"
                                 </button>
@@ -48,7 +48,7 @@ pub fn Vitality() -> impl IntoView {
                                             type="button"
                                             class="add-field-btn bruised-btn remove-bruised"
                                             on:click=move |_| set_data.update(|s| s.remove_extra_bruised())
-                                            title="Remover nível extra de Escoriado"
+                                            title=move || crate::i18n::tr("remove_extra_bruised", lang())
                                         >
                                             "-"
                                         </button>

@@ -145,6 +145,7 @@ mod tests {
             level: 3,
             modifier: String::new(),
             dot_origins: Vec::new(),
+            is_supernatural: false,
         };
 
         // Adding 4th dot with Bonus mode must keep first 3 as Base and only 4th as Bonus
@@ -171,6 +172,7 @@ mod tests {
             level: 4,
             modifier: String::new(),
             dot_origins: vec![DotOrigin::Base, DotOrigin::Base, DotOrigin::Bonus, DotOrigin::Experience],
+            is_supernatural: false,
         });
 
         // 2. Custom Ability (Talento): Level 3 -> [Base, Bonus, Experience]
@@ -182,6 +184,7 @@ mod tests {
             level: 3,
             modifier: String::new(),
             dot_origins: vec![DotOrigin::Base, DotOrigin::Bonus, DotOrigin::Experience],
+            is_supernatural: false,
         });
 
         // 3. Forças (Sphere): Level 2 -> [Base, Experience] (Affinity Sphere)
@@ -191,6 +194,7 @@ mod tests {
             level: 2,
             modifier: String::new(),
             dot_origins: vec![DotOrigin::Base, DotOrigin::Experience],
+            is_supernatural: false,
         });
 
         // 4. Correspondência (Sphere): Level 2 -> [Base, Experience] (Other Sphere)
@@ -199,6 +203,7 @@ mod tests {
             level: 2,
             modifier: String::new(),
             dot_origins: vec![DotOrigin::Base, DotOrigin::Experience],
+            is_supernatural: false,
         });
 
         // 5. Arete: Level 3 -> [Base, Bonus, Experience]
@@ -208,6 +213,7 @@ mod tests {
             level: 3,
             modifier: String::new(),
             dot_origins: vec![DotOrigin::Base, DotOrigin::Bonus, DotOrigin::Experience],
+            is_supernatural: false,
         });
 
         // 6. Willpower Total: Level 6 -> [Base x 5, Bonus]
@@ -216,6 +222,7 @@ mod tests {
             level: 6,
             modifier: String::new(),
             dot_origins: vec![DotOrigin::Base, DotOrigin::Base, DotOrigin::Base, DotOrigin::Base, DotOrigin::Base, DotOrigin::Bonus],
+            is_supernatural: false,
         });
 
         let summary = char_data.calculate_costs();
@@ -240,6 +247,7 @@ mod tests {
             level: 3,
             modifier: String::new(),
             dot_origins: vec![DotOrigin::Base, DotOrigin::Bonus, DotOrigin::Bonus],
+            is_supernatural: false,
         });
 
         // Defeito: Level 3 -> concede 3 pontos de bônus (-3 no total_bonus_spent)
@@ -249,6 +257,7 @@ mod tests {
             level: 3,
             modifier: String::new(),
             dot_origins: vec![DotOrigin::Base, DotOrigin::Base, DotOrigin::Base],
+            is_supernatural: false,
         });
 
         let summary = char_data.calculate_costs();
@@ -271,11 +280,13 @@ mod tests {
                 level: 3,
                 modifier: String::new(),
                 dot_origins: vec![DotOrigin::Base, DotOrigin::Bonus, DotOrigin::Experience],
+                is_supernatural: false,
             },
             arete: AttributeValue {
                 level: 2,
                 modifier: String::new(),
                 dot_origins: vec![DotOrigin::Base, DotOrigin::Base],
+                is_supernatural: false,
             },
             quintessence_max: 10,
             quintessence_current: 7,
@@ -821,6 +832,41 @@ mod tests {
         let json = serde_json::to_string(&char_data).unwrap();
         let recovered: CharacterData = serde_json::from_str(&json).unwrap();
         assert_eq!(recovered.get_photo_focus(), (0, 100));
+    }
+
+    #[test]
+    fn test_supernatural_trait_persistence_and_toggle() {
+        let mut char_data = CharacterData::new("sup_test".to_string(), "Mago Titã".to_string());
+
+        // 1. Padrão: característica humana comum (não sobrenatural)
+        assert_eq!(char_data.is_attribute_supernatural("Força"), false);
+
+        // 2. Alternar para sobrenatural
+        char_data.toggle_attribute_supernatural("Força");
+        assert_eq!(char_data.is_attribute_supernatural("Força"), true);
+
+        // 3. Atribuir 6 bolinhas com origem XP
+        char_data.set_attribute_with_origin("Força", Some(6), None, DotOrigin::Experience);
+        assert_eq!(char_data.get_attribute_level("Força", 1), 6);
+        assert_eq!(char_data.attributes.get("Força").unwrap().dot_origins.len(), 6);
+
+        // 4. Serialização e deserialização
+        let json = serde_json::to_string(&char_data).unwrap();
+        assert!(json.contains("\"is_supernatural\":true"));
+
+        let recovered: CharacterData = serde_json::from_str(&json).unwrap();
+        assert_eq!(recovered.is_attribute_supernatural("Força"), true);
+        assert_eq!(recovered.get_attribute_level("Força", 1), 6);
+
+        // 5. Desativar característica sobrenatural: deve clamp para 5
+        let mut char_data_disabled = recovered;
+        char_data_disabled.toggle_attribute_supernatural("Força");
+        assert_eq!(char_data_disabled.is_attribute_supernatural("Força"), false);
+        assert_eq!(char_data_disabled.get_attribute_level("Força", 1), 5);
+
+        // 6. Ao desativar, não deve poluir o JSON serializado com is_supernatural:false
+        let json_disabled = serde_json::to_string(&char_data_disabled).unwrap();
+        assert!(!json_disabled.contains("\"is_supernatural\""));
     }
 }
 

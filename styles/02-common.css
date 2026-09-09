@@ -166,6 +166,166 @@
     box-shadow: 0 0 5px rgba(217, 119, 6, 0.5);
 }
 
+/* Divisor e 6º Ponto: Característica Sobrenatural (Losango com Borda Especial) */
+.supernatural-slot {
+    display: inline-flex;
+    align-items: center;
+    gap: 3.5px;
+}
+
+.supernatural-slot.hidden,
+.label-context-menu.hidden,
+.hidden {
+    display: none !important;
+}
+
+.supernatural-separator {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    margin: 0 1.5px;
+    user-select: none;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.85;
+}
+
+.dot.dot-supernatural {
+    border-radius: 2px !important;
+    transform: rotate(45deg) scale(0.82);
+    border: 1.8px solid #a855f7 !important;
+    box-shadow: 0 0 4px rgba(168, 85, 247, 0.45);
+    background-color: transparent;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dot.dot-supernatural:hover {
+    transform: rotate(45deg) scale(1.1);
+    border-color: #c084fc !important;
+    box-shadow: 0 0 8px rgba(192, 132, 252, 0.75);
+}
+
+.dot.dot-supernatural.filled {
+    border-color: #7e22ce !important;
+}
+
+.dot.dot-supernatural.filled.dot-base {
+    background-color: #2c3e50 !important;
+    border-color: #9333ea !important;
+}
+
+.dot.dot-supernatural.filled.dot-bonus {
+    background-color: #7c3aed !important;
+    border-color: #c084fc !important;
+    box-shadow: 0 0 6px rgba(168, 85, 247, 0.65);
+}
+
+.dot.dot-supernatural.filled.dot-xp {
+    background-color: #059669 !important;
+    border-color: #34d399 !important;
+    box-shadow: 0 0 6px rgba(52, 211, 153, 0.65);
+}
+
+.dot.dot-supernatural.filled.dot-temp {
+    background-color: #d97706 !important;
+    border-color: #fbbf24 !important;
+    box-shadow: 0 0 6px rgba(251, 191, 36, 0.65);
+}
+
+/* Menu de Contexto da Característica (Clique com Botão Direito no Rótulo) */
+.label-cell-container {
+    position: relative;
+    cursor: context-menu;
+}
+
+.label-cell-container:hover .attribute-label {
+    color: #6366f1;
+}
+
+.context-menu-wrapper.hidden {
+    display: none !important;
+}
+
+.context-menu-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9998;
+    background: transparent;
+}
+
+.label-context-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 9999;
+    background: #0f172a;
+    border: 1px solid #64748b;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.6);
+    border-radius: 6px;
+    padding: 5px;
+    min-width: 270px;
+    animation: popoverFadeIn 0.15s ease-out;
+}
+
+.supernatural-container {
+    display: inline-flex;
+    align-items: center;
+}
+
+.supernatural-slot.supernatural-ghost {
+    opacity: 0;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.attribute-row:hover .supernatural-slot.supernatural-ghost {
+    opacity: 0.45;
+}
+
+.supernatural-slot.supernatural-ghost:hover {
+    opacity: 1 !important;
+    transform: scale(1.1);
+}
+
+.dot.dot-supernatural.ghost-diamond {
+    border: 1.5px dashed #a855f7 !important;
+    background: transparent !important;
+}
+
+.label-context-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 7px 10px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: #e2e8f0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.label-context-item:hover {
+    background: rgba(147, 51, 234, 0.25);
+    color: #f3e8ff;
+    border-color: #a855f7;
+    transform: translateX(2px);
+}
+
+.label-context-item .context-item-icon {
+    color: #c084fc;
+    font-size: 0.85rem;
+}
+
 /* Wrapper de Ponto e Popover Suspenso */
 .dot-wrapper {
     position: relative;

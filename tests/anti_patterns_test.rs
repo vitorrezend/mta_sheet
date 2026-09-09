@@ -155,6 +155,105 @@ fn test_no_reactive_anti_patterns_in_components() {
                 ));
             }
         }
+
+        // Regra 10: Prevenção de Hydration Mismatch em dyn_child.rs (Option::unwrap on None)
+        // Múltiplos nós irmãos soltos (fragmentos dinâmicos sem tag pai envolvente) dentro de closures `move ||`
+        // causam desalinhamento crítico no cursor de hidratação do Leptos 0.6.
+        // Se uma closure reativa retornar mais de um nó DOM irmão (ex: view! { <span ...> <div ...> }),
+        // eles DEVEM ser envolvidos em uma única tag container estável (ex: <div class="...">) ou controlados por class:hidden.
+        if content.contains("view! {") {
+            let mut search_idx = 0;
+            while let Some(rel_idx) = content[search_idx..].find("view! {") {
+                let view_start = search_idx + rel_idx + 7;
+                search_idx = view_start;
+
+                // Checa se este view! está genuinamente dentro de uma closure dinâmica `move ||` ou `move |_|` ativa
+                let is_dynamic_closure = if let Some(closure_pos) = content[..view_start].rfind("move |") {
+                    let between = &content[closure_pos..view_start];
+                    if between.contains(';') {
+                        false
+                    } else {
+                        let open_braces = between.chars().filter(|&c| c == '{').count();
+                        let close_braces = between.chars().filter(|&c| c == '}').count();
+                        open_braces > close_braces
+                    }
+                } else {
+                    false
+                };
+
+                if is_dynamic_closure {
+                    // Encontra o fechamento exato das chaves do view! { ... }
+                    let mut brace_depth = 1;
+                    let mut view_end = None;
+                    for (offset, ch) in content[view_start..].char_indices() {
+                        if ch == '{' {
+                            brace_depth += 1;
+                        } else if ch == '}' {
+                            brace_depth -= 1;
+                            if brace_depth == 0 {
+                                view_end = Some(view_start + offset);
+                                break;
+                            }
+                        }
+                    }
+
+                    if let Some(view_end) = view_end {
+                        let view_body = &content[view_start..view_end];
+                        // Analisa os nós raiz do corpo do view! desconsiderando blocos de código internos { ... }
+                        let mut inner_code_depth = 0;
+                        let mut element_depth = 0;
+                        let mut root_elements_count = 0;
+                        let mut first_tag = String::new();
+                        let chars: Vec<(usize, char)> = view_body.char_indices().collect();
+                        let mut i = 0;
+
+                        while i < chars.len() {
+                            let (byte_pos, ch) = chars[i];
+                            if ch == '{' {
+                                inner_code_depth += 1;
+                            } else if ch == '}' {
+                                inner_code_depth = (inner_code_depth - 1).max(0);
+                            } else if inner_code_depth == 0 && ch == '<' {
+                                let rest = &view_body[byte_pos..];
+                                if !rest.starts_with("<!--") {
+                                    if rest.starts_with("</") {
+                                        element_depth = (element_depth - 1).max(0);
+                                    } else if let Some(tag_end) = rest.find('>') {
+                                        let tag_str = &rest[..=tag_end];
+                                        // Garante que é uma tag HTML/RSX válida e não operador matemático
+                                        let first_char_after_bracket = rest.chars().nth(1).unwrap_or(' ');
+                                        if first_char_after_bracket.is_alphabetic() {
+                                            let is_void_tag = tag_str.starts_with("<input") || tag_str.starts_with("<img") || tag_str.starts_with("<br") || tag_str.starts_with("<hr");
+                                            let is_self_closing = tag_str.ends_with("/>") || is_void_tag;
+
+                                            if element_depth == 0 {
+                                                root_elements_count += 1;
+                                                if root_elements_count == 1 {
+                                                    first_tag = tag_str.split_whitespace().next().unwrap_or("<tag>").to_string();
+                                                }
+                                            }
+                                            if !is_self_closing {
+                                                element_depth += 1;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            i += 1;
+                        }
+
+                        if root_elements_count > 1 {
+                            let line_num = content[..view_start].lines().count();
+                            violations.push(format!(
+                                "[{:?}:L{}] Violação da Regra 10: Múltiplos nós irmãos soltos ({} nós raiz detectados, iniciando em '{}') retornados dentro de uma closure dinâmica view! sem container pai único envolvente. \
+                                 Isso causa descolamento do cursor de hidratação (Option::unwrap on None em dyn_child.rs). Envolva-os em um container único (<div class=\"...\">) ou use class:hidden.",
+                                file_path, line_num, root_elements_count, first_tag
+                            ));
+                        }
+                    }
+                }
+            }
+        }
     }
 
     if !violations.is_empty() {
@@ -166,6 +265,70 @@ fn test_no_reactive_anti_patterns_in_components() {
             violations.join("\n\n")
         );
     }
+}
+
+#[test]
+fn test_ssr_render_character_sheet_page1_with_supernatural_traits() {
+    use leptos::*;
+    use mta_sheet::state::{CharacterData, DotOrigin};
+    use mta_sheet::components::mta_sheet::page1::attributes::Attributes;
+    use mta_sheet::components::mta_sheet::page1::abilities::Abilities;
+
+    let html = leptos::ssr::render_to_string(|| {
+        let mut char_data = CharacterData::new("test_sheet".to_string(), "Mago Arcano".to_string());
+        char_data.toggle_attribute_supernatural("Força");
+        char_data.set_attribute_with_origin("Força", Some(6), None, DotOrigin::Experience);
+        char_data.toggle_attribute_supernatural("Prontidão");
+
+        let (data, set_data) = create_signal(char_data);
+        provide_context(data);
+        provide_context(set_data);
+
+        view! {
+            <div class="sheet-container">
+                <Attributes />
+                <Abilities />
+            </div>
+        }
+    });
+
+    assert!(!html.is_empty(), "HTML da página 1 não deve estar vazio");
+    assert!(html.contains("supernatural-slot"), "HTML deve conter o container estável do 6º ponto");
+    assert!(html.contains("dot-supernatural"), "HTML deve conter a bolinha em formato de losango");
+    assert!(html.contains("supernatural-separator"), "HTML deve conter o separador vertical |");
+    assert!(html.contains("label-context-menu"), "HTML deve conter o menu de contexto estável");
+}
+
+#[test]
+fn test_ssr_render_gods_and_monsters_with_supernatural_traits() {
+    use leptos::*;
+    use mta_sheet::state::{CharacterData, DotOrigin};
+    use mta_sheet::components::gods_and_monsters::attributes::GodsAndMonstersAttributes;
+    use mta_sheet::components::gods_and_monsters::abilities::GodsAndMonstersAbilities;
+
+    let html = leptos::ssr::render_to_string(|| {
+        let mut char_data = CharacterData::new("test_bygone".to_string(), "Bygone Dragon".to_string());
+        char_data.toggle_attribute_supernatural("Strength");
+        char_data.set_attribute_with_origin("Strength", Some(6), None, DotOrigin::Experience);
+        char_data.toggle_attribute_supernatural("Brawl");
+
+        let (data, set_data) = create_signal(char_data);
+        provide_context(data);
+        provide_context(set_data);
+
+        view! {
+            <div class="gods-sheet-container">
+                <GodsAndMonstersAttributes />
+                <GodsAndMonstersAbilities />
+            </div>
+        }
+    });
+
+    assert!(!html.is_empty(), "HTML de Gods & Monsters não deve estar vazio");
+    assert!(html.contains("supernatural-slot"), "HTML deve conter o slot sobrenatural");
+    assert!(html.contains("dot-supernatural"), "HTML deve conter a bolinha em formato de losango");
+    assert!(html.contains("supernatural-separator"), "HTML deve conter o separador vertical |");
+    assert!(html.contains("label-context-menu"), "HTML deve conter o menu de contexto estável");
 }
 
 #[test]

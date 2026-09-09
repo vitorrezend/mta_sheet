@@ -288,115 +288,119 @@ pub fn PdfExportModal(
                                             {if is_gm {
                                                 view! {
                                                     // Gods and Monsters (2 Páginas)
-                                                    <label class="pdf-page-check-row">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked=move || p1_checked.get()
-                                                            disabled=move || mode != PdfExportMode::Custom
-                                                            on:change=move |ev| p1_checked.set(event_target_checked(&ev))
-                                                        />
-                                                        <span>"Página 1: Atributos, Habilidades e Vantagens"</span>
-                                                        <span class="badge-has-content">"✓ Com dados"</span>
-                                                    </label>
-                                                    <label class="pdf-page-check-row">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked=move || p2_checked.get()
-                                                            disabled=move || mode != PdfExportMode::Custom
-                                                            on:change=move |ev| p2_checked.set(event_target_checked(&ev))
-                                                        />
-                                                        <span>"Página 2: Poderes, História e Descrição"</span>
-                                                        <span class="badge-has-content">"✓ Com dados"</span>
-                                                    </label>
+                                                    <div class="pdf-checklist-group">
+                                                        <label class="pdf-page-check-row">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked=move || p1_checked.get()
+                                                                disabled=move || mode != PdfExportMode::Custom
+                                                                on:change=move |ev| p1_checked.set(event_target_checked(&ev))
+                                                            />
+                                                            <span>"Página 1: Atributos, Habilidades e Vantagens"</span>
+                                                            <span class="badge-has-content">"✓ Com dados"</span>
+                                                        </label>
+                                                        <label class="pdf-page-check-row">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked=move || p2_checked.get()
+                                                                disabled=move || mode != PdfExportMode::Custom
+                                                                on:change=move |ev| p2_checked.set(event_target_checked(&ev))
+                                                            />
+                                                            <span>"Página 2: Poderes, História e Descrição"</span>
+                                                            <span class="badge-has-content">"✓ Com dados"</span>
+                                                        </label>
+                                                    </div>
                                                 }.into_view()
                                             } else {
                                                 view! {
                                                     // Mago: A Ascensão (6 Páginas)
-                                                    <label class="pdf-page-check-row">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked=move || p1_checked.get()
-                                                            disabled=move || mode != PdfExportMode::Custom
-                                                            on:change=move |ev| p1_checked.set(event_target_checked(&ev))
-                                                        />
-                                                        <span>"Página 1: Principal (Atributos, Esferas, Vantagens)"</span>
-                                                        <span class="badge-has-content">"✓ Com dados"</span>
-                                                    </label>
+                                                    <div class="pdf-checklist-group">
+                                                        <label class="pdf-page-check-row">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked=move || p1_checked.get()
+                                                                disabled=move || mode != PdfExportMode::Custom
+                                                                on:change=move |ev| p1_checked.set(event_target_checked(&ev))
+                                                            />
+                                                            <span>"Página 1: Principal (Atributos, Esferas, Vantagens)"</span>
+                                                            <span class="badge-has-content">"✓ Com dados"</span>
+                                                        </label>
 
-                                                    <label class="pdf-page-check-row">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked=move || if mode == PdfExportMode::Smart { p2_has } else { p2_checked.get() }
-                                                            disabled=move || mode != PdfExportMode::Custom
-                                                            on:change=move |ev| p2_checked.set(event_target_checked(&ev))
-                                                        />
-                                                        <span>"Página 2: Mágika & Combate (Méritos, Armas, Focos)"</span>
-                                                        {if p2_has {
-                                                            view! { <span class="badge-has-content">"✓ Com dados"</span> }.into_view()
-                                                        } else {
-                                                            view! { <span class="badge-empty">"○ Vazia (Omitida)"</span> }.into_view()
-                                                        }}
-                                                    </label>
+                                                        <label class="pdf-page-check-row">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked=move || if mode == PdfExportMode::Smart { p2_has } else { p2_checked.get() }
+                                                                disabled=move || mode != PdfExportMode::Custom
+                                                                on:change=move |ev| p2_checked.set(event_target_checked(&ev))
+                                                            />
+                                                            <span>"Página 2: Mágika & Combate (Méritos, Armas, Focos)"</span>
+                                                            {if p2_has {
+                                                                view! { <span class="badge-has-content">"✓ Com dados"</span> }.into_view()
+                                                            } else {
+                                                                view! { <span class="badge-empty">"○ Vazia (Omitida)"</span> }.into_view()
+                                                            }}
+                                                        </label>
 
-                                                    <label class="pdf-page-check-row">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked=move || if mode == PdfExportMode::Smart { p3_has } else { p3_checked.get() }
-                                                            disabled=move || mode != PdfExportMode::Custom
-                                                            on:change=move |ev| p3_checked.set(event_target_checked(&ev))
-                                                        />
-                                                        <span>"Página 3: Antecedentes Expandidos, Posses & Capela"</span>
-                                                        {if p3_has {
-                                                            view! { <span class="badge-has-content">"✓ Com dados"</span> }.into_view()
-                                                        } else {
-                                                            view! { <span class="badge-empty">"○ Vazia (Omitida)"</span> }.into_view()
-                                                        }}
-                                                    </label>
+                                                        <label class="pdf-page-check-row">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked=move || if mode == PdfExportMode::Smart { p3_has } else { p3_checked.get() }
+                                                                disabled=move || mode != PdfExportMode::Custom
+                                                                on:change=move |ev| p3_checked.set(event_target_checked(&ev))
+                                                            />
+                                                            <span>"Página 3: Antecedentes Expandidos, Posses & Capela"</span>
+                                                            {if p3_has {
+                                                                view! { <span class="badge-has-content">"✓ Com dados"</span> }.into_view()
+                                                            } else {
+                                                                view! { <span class="badge-empty">"○ Vazia (Omitida)"</span> }.into_view()
+                                                            }}
+                                                        </label>
 
-                                                    <label class="pdf-page-check-row">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked=move || if mode == PdfExportMode::Smart { p4_has } else { p4_checked.get() }
-                                                            disabled=move || mode != PdfExportMode::Custom
-                                                            on:change=move |ev| p4_checked.set(event_target_checked(&ev))
-                                                        />
-                                                        <span>"Página 4: História, Descrição & Galeria Visual"</span>
-                                                        {if p4_has {
-                                                            view! { <span class="badge-has-content">"✓ Com dados"</span> }.into_view()
-                                                        } else {
-                                                            view! { <span class="badge-empty">"○ Vazia (Omitida)"</span> }.into_view()
-                                                        }}
-                                                    </label>
+                                                        <label class="pdf-page-check-row">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked=move || if mode == PdfExportMode::Smart { p4_has } else { p4_checked.get() }
+                                                                disabled=move || mode != PdfExportMode::Custom
+                                                                on:change=move |ev| p4_checked.set(event_target_checked(&ev))
+                                                            />
+                                                            <span>"Página 4: História, Descrição & Galeria Visual"</span>
+                                                            {if p4_has {
+                                                                view! { <span class="badge-has-content">"✓ Com dados"</span> }.into_view()
+                                                            } else {
+                                                                view! { <span class="badge-empty">"○ Vazia (Omitida)"</span> }.into_view()
+                                                            }}
+                                                        </label>
 
-                                                    <label class="pdf-page-check-row">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked=move || if mode == PdfExportMode::Smart { p5_has } else { p5_checked.get() }
-                                                            disabled=move || mode != PdfExportMode::Custom
-                                                            on:change=move |ev| p5_checked.set(event_target_checked(&ev))
-                                                        />
-                                                        <span>"Página 5: Grimório & Rituais Místicos"</span>
-                                                        {if p5_has {
-                                                            view! { <span class="badge-has-content">"✓ Com dados"</span> }.into_view()
-                                                        } else {
-                                                            view! { <span class="badge-empty">"○ Vazia (Omitida)"</span> }.into_view()
-                                                        }}
-                                                    </label>
+                                                        <label class="pdf-page-check-row">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked=move || if mode == PdfExportMode::Smart { p5_has } else { p5_checked.get() }
+                                                                disabled=move || mode != PdfExportMode::Custom
+                                                                on:change=move |ev| p5_checked.set(event_target_checked(&ev))
+                                                            />
+                                                            <span>"Página 5: Grimório & Rituais Místicos"</span>
+                                                            {if p5_has {
+                                                                view! { <span class="badge-has-content">"✓ Com dados"</span> }.into_view()
+                                                            } else {
+                                                                view! { <span class="badge-empty">"○ Vazia (Omitida)"</span> }.into_view()
+                                                            }}
+                                                        </label>
 
-                                                    <label class="pdf-page-check-row">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked=move || if mode == PdfExportMode::Smart { p6_has } else { p6_checked.get() }
-                                                            disabled=move || mode != PdfExportMode::Custom
-                                                            on:change=move |ev| p6_checked.set(event_target_checked(&ev))
-                                                        />
-                                                        <span>"Página 6: Diário de Sessão & Anotações"</span>
-                                                        {if p6_has {
-                                                            view! { <span class="badge-has-content">"✓ Com dados"</span> }.into_view()
-                                                        } else {
-                                                            view! { <span class="badge-empty">"○ Vazia (Omitida)"</span> }.into_view()
-                                                        }}
-                                                    </label>
+                                                        <label class="pdf-page-check-row">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked=move || if mode == PdfExportMode::Smart { p6_has } else { p6_checked.get() }
+                                                                disabled=move || mode != PdfExportMode::Custom
+                                                                on:change=move |ev| p6_checked.set(event_target_checked(&ev))
+                                                            />
+                                                            <span>"Página 6: Diário de Sessão & Anotações"</span>
+                                                            {if p6_has {
+                                                                view! { <span class="badge-has-content">"✓ Com dados"</span> }.into_view()
+                                                            } else {
+                                                                view! { <span class="badge-empty">"○ Vazia (Omitida)"</span> }.into_view()
+                                                            }}
+                                                        </label>
+                                                    </div>
                                                 }.into_view()
                                             }}
                                         </div>

@@ -1,4 +1,4 @@
-use mta_sheet::i18n::{tr, tr_ability, tr_attr, tr_health, tr_sphere, Language};
+use mta_sheet::i18n::{tr, tr_ability, tr_attr, tr_health, tr_sphere, tr_header_label, Language};
 use mta_sheet::state::{STANDARD_ATTRIBUTES, STANDARD_KNOWLEDGES, STANDARD_SKILLS, STANDARD_SPHERES, STANDARD_TALENTS};
 
 #[test]
@@ -255,5 +255,81 @@ fn test_outside_pages_ui_translations() {
     assert_eq!(tr("card_willpower", Language::EnUs), "Willpower");
     assert_eq!(tr("card_open_cta", Language::PtBr), "Abrir Ficha →");
     assert_eq!(tr("card_open_cta", Language::EnUs), "Open Sheet →");
+}
+
+#[test]
+fn test_gods_and_monsters_translations() {
+    // 1. Bi-directional attributes
+    let gm_attrs = ["Strength", "Dexterity", "Stamina", "Charisma", "Manipulation", "Appearance", "Perception", "Intelligence", "Wits"];
+    let pt_attrs = ["Força", "Destreza", "Vigor", "Carisma", "Manipulação", "Aparência", "Percepção", "Inteligência", "Raciocínio"];
+
+    for i in 0..9 {
+        // English keys translate to PT when PtBr is selected
+        assert_eq!(tr_attr(gm_attrs[i], Language::PtBr), pt_attrs[i]);
+        // English keys remain in EN when EnUs is selected
+        assert_eq!(tr_attr(gm_attrs[i], Language::EnUs), gm_attrs[i]);
+        // Portuguese keys translate to EN when EnUs is selected
+        assert_eq!(tr_attr(pt_attrs[i], Language::EnUs), gm_attrs[i]);
+        // Portuguese keys remain in PT when PtBr is selected
+        assert_eq!(tr_attr(pt_attrs[i], Language::PtBr), pt_attrs[i]);
+    }
+
+    // 2. Bi-directional abilities
+    assert_eq!(tr_ability("Alertness", Language::PtBr), "Prontidão");
+    assert_eq!(tr_ability("Alertness", Language::EnUs), "Alertness");
+    assert_eq!(tr_ability("Art", Language::PtBr), "Arte");
+    assert_eq!(tr_ability("Art", Language::EnUs), "Art");
+    assert_eq!(tr_ability("Martial Arts", Language::PtBr), "Artes Marciais");
+    assert_eq!(tr_ability("Martial Arts", Language::EnUs), "Martial Arts");
+    assert_eq!(tr_ability("Research", Language::PtBr), "Pesquisa");
+    assert_eq!(tr_ability("Research", Language::EnUs), "Research");
+    assert_eq!(tr_ability("Politics", Language::PtBr), "Política");
+    assert_eq!(tr_ability("Politics", Language::EnUs), "Politics");
+
+    // 3. Header labels
+    assert_eq!(tr_header_label("Type", Language::PtBr), "Tipo");
+    assert_eq!(tr_header_label("Type", Language::EnUs), "Type");
+    assert_eq!(tr_header_label("Tipo", Language::PtBr), "Tipo");
+    assert_eq!(tr_header_label("Tipo", Language::EnUs), "Type");
+    assert_eq!(tr_header_label("Concept", Language::PtBr), "Conceito");
+    assert_eq!(tr_header_label("Concept", Language::EnUs), "Concept");
+
+    // 4. GM UI strings
+    assert_eq!(tr("gods_monsters_title", Language::PtBr), "DEUSES & MONSTROS");
+    assert_eq!(tr("gods_monsters_title", Language::EnUs), "GODS & MONSTERS");
+    assert_eq!(tr("charms", Language::PtBr), "Encantos");
+    assert_eq!(tr("charms", Language::EnUs), "Charms");
+    assert_eq!(tr("gifts", Language::PtBr), "Dons");
+    assert_eq!(tr("gifts", Language::EnUs), "Gifts");
+    assert_eq!(tr("gnosis", Language::PtBr), "Gnose");
+    assert_eq!(tr("gnosis", Language::EnUs), "Gnosis");
+    assert_eq!(tr("special_advantages", Language::PtBr), "Vantagens Especiais");
+    assert_eq!(tr("special_advantages", Language::EnUs), "Special Advantages");
+    assert_eq!(tr("clear_essence", Language::PtBr), "Limpar Essência");
+    assert_eq!(tr("clear_essence", Language::EnUs), "Clear Essence");
+    assert_eq!(tr("spent", Language::PtBr), "Gasto");
+    assert_eq!(tr("spent", Language::EnUs), "Spent");
+    assert_eq!(tr("history", Language::PtBr), "Histórico");
+    assert_eq!(tr("history", Language::EnUs), "History");
+    assert_eq!(tr("description", Language::PtBr), "Descrição");
+    assert_eq!(tr("description", Language::EnUs), "Description");
+    assert_eq!(tr("special_rules", Language::PtBr), "Regras Especiais");
+    assert_eq!(tr("special_rules", Language::EnUs), "Special Rules");
+    assert_eq!(tr("combat", Language::PtBr), "Combate");
+    assert_eq!(tr("combat", Language::EnUs), "Combat");
+    assert_eq!(tr("weapon_attack", Language::PtBr), "Arma / Ataque");
+    assert_eq!(tr("weapon_attack", Language::EnUs), "Weapon/Attack");
+    assert_eq!(tr("merit", Language::PtBr), "Qualidade");
+    assert_eq!(tr("merit", Language::EnUs), "Merit");
+    assert_eq!(tr("flaw", Language::PtBr), "Defeito");
+    assert_eq!(tr("flaw", Language::EnUs), "Flaw");
+    assert_eq!(tr("cost", Language::PtBr), "Custo");
+    assert_eq!(tr("cost", Language::EnUs), "Cost");
+    assert_eq!(tr("bonus", Language::PtBr), "Bônus");
+    assert_eq!(tr("bonus", Language::EnUs), "Bonus");
+    assert_eq!(tr("gm_tab_1_title", Language::PtBr), "Atributos & Poderes");
+    assert_eq!(tr("gm_tab_1_title", Language::EnUs), "Attributes & Powers");
+    assert_eq!(tr("gm_tab_2_title", Language::PtBr), "Características & Combate");
+    assert_eq!(tr("gm_tab_2_title", Language::EnUs), "Traits, Rules & Combat");
 }
 

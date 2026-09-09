@@ -9,6 +9,8 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
     let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
     let active_origin_ctx = use_context::<ActiveDotOriginContext>();
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
 
     // Backgrounds helpers (6 standard slots)
     let update_bg = move |name: String, level: Option<i32>, modifier: Option<String>| {
@@ -217,15 +219,15 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
 
     view! {
         <div class="group-box gods-box">
-            <span class="group-title">"Advantages"</span>
+            <span class="group-title">{move || crate::i18n::tr("advantages", lang())}</span>
             <div class="advantages-block gods-advantages-grid">
                 
                 // ── Coluna 1: Charms, Gifts, Gnosis ──
                 <div class="advantage-column">
                     <div class="gods-section-box">
-                        <h3 class="column-title">"Charms"</h3>
+                        <h3 class="column-title">{move || crate::i18n::tr("charms", lang())}</h3>
                         <div class="gods-lines-list">
-                            {(0..6).map(|i| view! { <GodsLineInput key=format!("charm_{}", i) placeholder="Charm..." /> }).collect_view()}
+                            {(0..6).map(|i| view! { <GodsLineInput key=format!("charm_{}", i) placeholder=Signal::derive(move || crate::i18n::tr("charm_ph", lang()).to_string()) /> }).collect_view()}
                             <For
                                 each=move || data.with(|d| d.custom_lists.get("Charms").cloned().unwrap_or_default())
                                 key=|k| k.clone()
@@ -234,21 +236,21 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                                     view! {
                                         <GodsLineInput 
                                             key=k.clone() 
-                                            placeholder="Charm..." 
+                                            placeholder=Signal::derive(move || crate::i18n::tr("charm_ph", lang()).to_string()) 
                                             is_custom=true 
                                             on_remove=Callback::new(move |_| remove_charm(k_remove.clone())) 
                                         />
                                     }
                                 }
                             />
-                            <button type="button" class="add-field-btn" on:click=move |_| add_charm() title="Adicionar Encanto">+</button>
+                            <button type="button" class="add-field-btn" on:click=move |_| add_charm() title=move || crate::i18n::tr("add_charm", lang())>"+"</button>
                         </div>
                     </div>
 
                     <div class="gods-section-box">
-                        <h3 class="column-title">"Gifts"</h3>
+                        <h3 class="column-title">{move || crate::i18n::tr("gifts", lang())}</h3>
                         <div class="gods-lines-list">
-                            {(0..6).map(|i| view! { <GodsLineInput key=format!("gift_{}", i) placeholder="Gift..." /> }).collect_view()}
+                            {(0..6).map(|i| view! { <GodsLineInput key=format!("gift_{}", i) placeholder=Signal::derive(move || crate::i18n::tr("gift_ph", lang()).to_string()) /> }).collect_view()}
                             <For
                                 each=move || data.with(|d| d.custom_lists.get("Gifts").cloned().unwrap_or_default())
                                 key=|k| k.clone()
@@ -257,19 +259,19 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                                     view! {
                                         <GodsLineInput 
                                             key=k.clone() 
-                                            placeholder="Gift..." 
+                                            placeholder=Signal::derive(move || crate::i18n::tr("gift_ph", lang()).to_string()) 
                                             is_custom=true 
                                             on_remove=Callback::new(move |_| remove_gift(k_remove.clone())) 
                                         />
                                     }
                                 }
                             />
-                            <button type="button" class="add-field-btn" on:click=move |_| add_gift() title="Adicionar Dom">+</button>
+                            <button type="button" class="add-field-btn" on:click=move |_| add_gift() title=move || crate::i18n::tr("add_gift", lang())>"+"</button>
                         </div>
                     </div>
 
                     <div class="gods-section-box">
-                        <h3 class="column-title">"Gnosis"</h3>
+                        <h3 class="column-title">{move || crate::i18n::tr("gnosis", lang())}</h3>
                         <div class="gods-gnosis-grid">
                             {(0..10usize).map(|i| {
                                 let dot_idx = (i + 1) as i32;
@@ -301,9 +303,9 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                 // ── Coluna 2: Special Advantages, Willpower, Paradox, Essence ──
                 <div class="advantage-column">
                     <div class="gods-section-box">
-                        <h3 class="column-title">"Special Advantages"</h3>
+                        <h3 class="column-title">{move || crate::i18n::tr("special_advantages", lang())}</h3>
                         <div class="gods-lines-list">
-                            {(0..6).map(|i| view! { <GodsLineInput key=format!("special_adv_{}", i) placeholder="Special Advantage..." /> }).collect_view()}
+                            {(0..6).map(|i| view! { <GodsLineInput key=format!("special_adv_{}", i) placeholder=Signal::derive(move || crate::i18n::tr("special_adv_ph", lang()).to_string()) /> }).collect_view()}
                             <For
                                 each=move || data.with(|d| d.custom_lists.get("Special_Advantages").cloned().unwrap_or_default())
                                 key=|k| k.clone()
@@ -312,19 +314,19 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                                     view! {
                                         <GodsLineInput 
                                             key=k.clone() 
-                                            placeholder="Special Advantage..." 
+                                            placeholder=Signal::derive(move || crate::i18n::tr("special_adv_ph", lang()).to_string()) 
                                             is_custom=true 
                                             on_remove=Callback::new(move |_| remove_special_adv(k_remove.clone())) 
                                         />
                                     }
                                 }
                             />
-                            <button type="button" class="add-field-btn" on:click=move |_| add_special_adv() title="Adicionar Vantagem Especial">+</button>
+                            <button type="button" class="add-field-btn" on:click=move |_| add_special_adv() title=move || crate::i18n::tr("add_special_adv", lang())>"+"</button>
                         </div>
                     </div>
 
                     <div class="gods-section-box">
-                        <h3 class="column-title">"Willpower"</h3>
+                        <h3 class="column-title">{move || crate::i18n::tr("willpower", lang())}</h3>
                         <div class="gods-gnosis-grid">
                             {(0..10usize).map(|i| {
                                 let dot_idx = (i + 1) as i32;
@@ -356,7 +358,7 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                     </div>
 
                     <div class="gods-section-box">
-                        <h3 class="column-title">"Paradox"</h3>
+                        <h3 class="column-title">{move || crate::i18n::tr("paradox", lang())}</h3>
                         <div class="gods-paradox-grid">
                             {(0..20).map(|box_i| {
                                 let is_active = move || {
@@ -379,17 +381,17 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                     <div class="gods-section-box">
                         <div class="essence-header-row">
                             <div class="essence-title-group">
-                                <h3 class="column-title" style="margin-bottom: 0;">"Essence"</h3>
+                                <h3 class="column-title" style="margin-bottom: 0;">{move || crate::i18n::tr("essence", lang())}</h3>
                                 <button 
                                     type="button" 
                                     class="clear-essence-btn" 
                                     on:click=move |_| set_data.update(|s| s.clear_essence())
-                                    title="Limpar Essência"
+                                    title=move || crate::i18n::tr("clear_essence", lang())
                                 >
-                                    "Limpar"
+                                    {move || crate::i18n::tr("clear", lang())}
                                 </button>
                             </div>
-                            <span class="essence-spent-counter">{move || format!("Spent: {}/50", essence_data().0)}</span>
+                            <span class="essence-spent-counter">{move || format!("{}: {}/50", crate::i18n::tr("spent", lang()), essence_data().0)}</span>
                         </div>
                         <div class="gods-essence-50-grid">
                             {(0..50).map(|box_i| {
@@ -414,7 +416,7 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                 // ── Coluna 3: Backgrounds, Health, Experience ──
                 <div class="advantage-column">
                     <div class="gods-section-box">
-                        <h3 class="column-title">"Backgrounds"</h3>
+                        <h3 class="column-title">{move || crate::i18n::tr("backgrounds", lang())}</h3>
                         <div class="gods-bg-list">
                             {(0..6).map(|i| render_bg_field(i)).collect_view()}
                             <For
@@ -422,7 +424,7 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                                 key=|k| k.clone()
                                 children=render_custom_bg_field
                             />
-                            <button type="button" class="add-field-btn" on:click=move |_| add_bg() title="Adicionar Antecedente">+</button>
+                            <button type="button" class="add-field-btn" on:click=move |_| add_bg() title=move || crate::i18n::tr("add_background", lang())>"+"</button>
                         </div>
                     </div>
 
@@ -431,10 +433,10 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                     </div>
 
                     <div class="gods-section-box">
-                        <h3 class="column-title">"Experience"</h3>
+                        <h3 class="column-title">{move || crate::i18n::tr("experience", lang())}</h3>
                         <StableTextArea
                             class="gods-xp-textarea"
-                            placeholder="XP Log / Creation Points..."
+                            placeholder=Signal::derive(move || crate::i18n::tr("xp_ph", lang()).to_string())
                             value=Signal::derive(move || data.with(|d| d.get_label("experience")))
                             on_change=Callback::new(move |v| set_data.update(|s| s.set_label("experience", v)))
                         />
@@ -449,12 +451,14 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
 #[component]
 pub fn GodsLineInput(
     key: String,
-    placeholder: &'static str,
+    #[prop(into, optional)] placeholder: MaybeSignal<String>,
     #[prop(optional)] is_custom: bool,
     #[prop(optional)] on_remove: Option<Callback<()>>,
 ) -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
     let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
     let k_signal = key.clone();
     let val = Signal::derive(move || data.with(|d| d.get_label(&k_signal)));
     let k_change = key;
@@ -476,7 +480,7 @@ pub fn GodsLineInput(
                         type="button" 
                         class="remove-btn" 
                         on:click=move |_| cb.call(()) 
-                        title="Remover linha"
+                        title=move || crate::i18n::tr("remove_line", lang())
                     >
                         "×"
                     </button>

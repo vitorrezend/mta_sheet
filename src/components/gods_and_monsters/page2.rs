@@ -9,6 +9,8 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
     let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
     let active_origin_ctx = use_context::<ActiveDotOriginContext>();
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
 
     // Other Traits (9 slots with 5 dots)
     let update_other_trait = move |name: String, level: Option<i32>, modifier: Option<String>| {
@@ -120,30 +122,30 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
                 // ── Coluna Esquerda: Other Traits & Expanded Powers ──
                 <div class="gods-page2-left-col">
                     <div class="group-box gods-box">
-                        <span class="group-title">"Other Traits"</span>
+                        <span class="group-title">{move || crate::i18n::tr("other_traits", lang())}</span>
                         <div class="gods-traits-list">
                             {(0..9).map(|i| render_other_trait_field(i)).collect_view()}
                         </div>
                     </div>
 
                     <div class="group-box gods-box">
-                        <span class="group-title">"Charms"</span>
+                        <span class="group-title">{move || crate::i18n::tr("charms", lang())}</span>
                         <div class="gods-lines-list">
-                            {(0..10).map(|i| view! { <GodsLineInput key=format!("exp_charm_{}", i) placeholder="Charm..." /> }).collect_view()}
+                            {(0..10).map(|i| view! { <GodsLineInput key=format!("exp_charm_{}", i) placeholder=Signal::derive(move || crate::i18n::tr("charm_ph", lang()).to_string()) /> }).collect_view()}
                         </div>
                     </div>
 
                     <div class="group-box gods-box">
-                        <span class="group-title">"Special Advantages"</span>
+                        <span class="group-title">{move || crate::i18n::tr("special_advantages", lang())}</span>
                         <div class="gods-lines-list">
-                            {(0..10).map(|i| view! { <GodsLineInput key=format!("exp_special_adv_{}", i) placeholder="Special Advantage..." /> }).collect_view()}
+                            {(0..10).map(|i| view! { <GodsLineInput key=format!("exp_special_adv_{}", i) placeholder=Signal::derive(move || crate::i18n::tr("special_adv_ph", lang()).to_string()) /> }).collect_view()}
                         </div>
                     </div>
 
                     <div class="group-box gods-box">
-                        <span class="group-title">"Gifts"</span>
+                        <span class="group-title">{move || crate::i18n::tr("gifts", lang())}</span>
                         <div class="gods-lines-list">
-                            {(0..10).map(|i| view! { <GodsLineInput key=format!("exp_gift_{}", i) placeholder="Gift..." /> }).collect_view()}
+                            {(0..10).map(|i| view! { <GodsLineInput key=format!("exp_gift_{}", i) placeholder=Signal::derive(move || crate::i18n::tr("gift_ph", lang()).to_string()) /> }).collect_view()}
                         </div>
                     </div>
                 </div>
@@ -153,12 +155,12 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
                     
                     // Merits & Flaws
                     <div class="group-box gods-box">
-                        <span class="group-title">"Merits & Flaws"</span>
+                        <span class="group-title">{move || crate::i18n::tr("merits_flaws", lang())}</span>
                         <div class="gods-merits-flaws-grid">
                             <div class="merits-col">
                                 <div class="table-subhead">
-                                    <span>"Merit"</span>
-                                    <span>"Cost"</span>
+                                    <span>{move || crate::i18n::tr("merit", lang())}</span>
+                                    <span>{move || crate::i18n::tr("cost", lang())}</span>
                                 </div>
                                 {(0..7).map(|i| {
                                     let m_name = Signal::derive(move || data.with(|d| d.merits.get(i).map(|m| m.name.clone()).unwrap_or_default()));
@@ -167,7 +169,7 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
                                         <div class="merit-flaw-row">
                                             <StableTextInput 
                                                 class="merit-name-input" 
-                                                placeholder="Merit..."
+                                                placeholder=Signal::derive(move || crate::i18n::tr("merit_ph", lang()).to_string())
                                                 value=m_name 
                                                 on_change=Callback::new(move |val: String| update_merit(i, Some(val), None)) 
                                             />
@@ -187,8 +189,8 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
 
                             <div class="flaws-col">
                                 <div class="table-subhead">
-                                    <span>"Flaw"</span>
-                                    <span>"Bonus"</span>
+                                    <span>{move || crate::i18n::tr("flaw", lang())}</span>
+                                    <span>{move || crate::i18n::tr("bonus", lang())}</span>
                                 </div>
                                 {(0..7).map(|i| {
                                     let f_name = Signal::derive(move || data.with(|d| d.flaws.get(i).map(|f| f.name.clone()).unwrap_or_default()));
@@ -197,7 +199,7 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
                                         <div class="merit-flaw-row">
                                             <StableTextInput 
                                                 class="merit-name-input" 
-                                                placeholder="Flaw..."
+                                                placeholder=Signal::derive(move || crate::i18n::tr("flaw_ph", lang()).to_string())
                                                 value=f_name 
                                                 on_change=Callback::new(move |val: String| update_flaw(i, Some(val), None)) 
                                             />
@@ -219,10 +221,10 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
 
                     // History
                     <div class="group-box gods-box">
-                        <span class="group-title">"History"</span>
+                        <span class="group-title">{move || crate::i18n::tr("history", lang())}</span>
                         <StableTextArea
                             class="gods-large-textarea"
-                            placeholder="Origin story, mystical pact with the Mage, or supernatural nature..."
+                            placeholder=Signal::derive(move || crate::i18n::tr("gods_history_ph", lang()).to_string())
                             value=Signal::derive(move || data.with(|d| d.get_label("gods_history")))
                             on_change=Callback::new(move |v| set_data.update(|s| s.set_label("gods_history", v)))
                         />
@@ -230,10 +232,10 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
 
                     // Description
                     <div class="group-box gods-box">
-                        <span class="group-title">"Description"</span>
+                        <span class="group-title">{move || crate::i18n::tr("description", lang())}</span>
                         <StableTextArea
                             class="gods-large-textarea"
-                            placeholder="Physical appearance, spirit form, size, sounds and peculiar traits..."
+                            placeholder=Signal::derive(move || crate::i18n::tr("gods_desc_ph", lang()).to_string())
                             value=Signal::derive(move || data.with(|d| d.get_label("gods_description")))
                             on_change=Callback::new(move |v| set_data.update(|s| s.set_label("gods_description", v)))
                         />
@@ -241,10 +243,10 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
 
                     // Special Rules
                     <div class="group-box gods-box">
-                        <span class="group-title">"Special Rules"</span>
+                        <span class="group-title">{move || crate::i18n::tr("special_rules", lang())}</span>
                         <StableTextArea
                             class="gods-large-textarea"
-                            placeholder="Materialization rules, feeding restrictions, banes, weaknesses or magical commands..."
+                            placeholder=Signal::derive(move || crate::i18n::tr("gods_rules_ph", lang()).to_string())
                             value=Signal::derive(move || data.with(|d| d.get_label("gods_special_rules")))
                             on_change=Callback::new(move |v| set_data.update(|s| s.set_label("gods_special_rules", v)))
                         />
@@ -252,15 +254,15 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
 
                     // Combat Table
                     <div class="group-box gods-box">
-                        <span class="group-title">"Combat"</span>
+                        <span class="group-title">{move || crate::i18n::tr("combat", lang())}</span>
                         <div class="gods-combat-table">
                             <div class="combat-table-head">
-                                <span class="head-weapon">"Weapon/Attack"</span>
-                                <span class="head-diff">"Diff."</span>
-                                <span class="head-dmg">"Damage"</span>
-                                <span class="head-range">"Range"</span>
-                                <span class="head-rate">"Rate"</span>
-                                <span class="head-clip">"Clip"</span>
+                                <span class="head-weapon">{move || crate::i18n::tr("weapon_attack", lang())}</span>
+                                <span class="head-diff">{move || crate::i18n::tr("diff_header", lang())}</span>
+                                <span class="head-dmg">{move || crate::i18n::tr("dmg_header", lang())}</span>
+                                <span class="head-range">{move || crate::i18n::tr("range_header", lang())}</span>
+                                <span class="head-rate">{move || crate::i18n::tr("rate_header", lang())}</span>
+                                <span class="head-clip">{move || crate::i18n::tr("clip_header", lang())}</span>
                             </div>
                             {(0..6).map(|i| {
                                 let w_name = Signal::derive(move || data.with(|d| d.weapons.get(i).map(|w| w.name.clone()).unwrap_or_default()));
@@ -274,7 +276,7 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
                                     <div class="combat-row">
                                         <StableTextInput 
                                             class="col-weapon-name" 
-                                            placeholder="Weapon..." 
+                                            placeholder=Signal::derive(move || crate::i18n::tr("weapon_ph", lang()).to_string()) 
                                             value=w_name 
                                             on_change=Callback::new(move |val| update_weapon(i, "name", val)) 
                                         />

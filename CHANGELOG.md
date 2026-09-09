@@ -4,6 +4,20 @@ Todas as modificações notáveis no projeto **MTA Sheet** são documentadas nes
 
 ---
 
+## [v0.14.5] - 2026-09-09
+
+### 💎 Características Sobrenaturais
+- **💎 6ª Bolinha em Losango (`| ◇`):** Atributos e habilidades agora suportam expansão para a 6ª bolinha sobrenatural, separada por barra vertical (`|`) e exibida como losango para preservar a identidade visual clássica de 5 bolinhas.
+- **⚡ Atalho Ágil no Hover:** Ao passar o mouse sobre o campo, um losango fantasma (`◇`) surge permitindo ativar a característica sobrenatural com apenas 1 clique direto, além do menu de contexto com botão direito.
+- **🐉 Suporte Unificado:** Disponível tanto na ficha padrão de Mago: A Ascensão quanto na ficha de Deuses & Monstros, com persistência segura no banco de dados e exportação em PDF.
+
+### 🌐 Internacionalização (i18n)
+- **🌐 Suporte Bilíngue em Deuses & Monstros (PT-BR / EN-US):** A ficha de Gods & Monsters agora reage instantaneamente ao seletor de idioma na barra de navegação.
+- **🔄 Tradução Bi-direcional de Atributos e Habilidades:** Mecanismo resiliente em `tr_attr` e `tr_ability` que traduz chaves canônicas em português ou inglês sem alterar as referências de banco de dados.
+- **⚔️ Páginas e Seções Traduzidas:** Cabeçalho, vantagens (Encantos, Dons, Gnose, Vantagens Especiais, Paradoxo, Essência), tabela de combate, qualidades & defeitos, histórico, descrição e abas de navegação 100% traduzidos.
+
+---
+
 ## [v0.14.4] - 2026-09-09
 
 ### 🧙 Salas de Jogo & Crônica

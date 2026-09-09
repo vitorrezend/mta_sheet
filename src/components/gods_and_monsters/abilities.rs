@@ -23,6 +23,8 @@ pub fn GodsAndMonstersAbilities() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
     let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
     let active_origin_ctx = use_context::<ActiveDotOriginContext>();
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
 
     let update_ability = move |name: String, level: Option<i32>, modifier: Option<String>| {
         let current_origin = active_origin_ctx.map(|a| a.origin.get()).unwrap_or(DotOrigin::Base);
@@ -34,6 +36,12 @@ pub fn GodsAndMonstersAbilities() -> impl IntoView {
     let update_ability_dot = move |name: String, dot_idx: usize, origin: DotOrigin| {
         set_data.update(|s| {
             s.set_attribute_dot_origin(&name, dot_idx, origin);
+        });
+    };
+
+    let update_ability_supernatural = move |name: String| {
+        set_data.update(|s| {
+            s.toggle_attribute_supernatural(&name);
         });
     };
 
@@ -78,6 +86,8 @@ pub fn GodsAndMonstersAbilities() -> impl IntoView {
         let n_update_mod = name.clone();
         let n_update_dot = name.clone();
         let n_remove = name.clone();
+        let n_sup = name.clone();
+        let n_toggle_sup = name.clone();
         
         let label = Signal::derive({
             let id = n_label.clone();
@@ -91,7 +101,7 @@ pub fn GodsAndMonstersAbilities() -> impl IntoView {
                         }
                     })
                 } else {
-                    id.clone()
+                    crate::i18n::tr_ability(&id, lang()).to_string()
                 }
             })
         });
@@ -105,12 +115,20 @@ pub fn GodsAndMonstersAbilities() -> impl IntoView {
         });
         let origins = Signal::derive({
             let name = n_origins.clone();
-            move || data.with(|d| d.attributes.get(&name).map(|a| a.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5]))
+            move || data.with(|d| d.attributes.get(&name).map(|a| a.get_origins(6)).unwrap_or_else(|| vec![DotOrigin::Base; 6]))
+        });
+        let is_supernatural = Signal::derive({
+            let name = n_sup.clone();
+            move || data.with(|d| d.is_attribute_supernatural(&name))
         });
 
         let on_dot_origin_change = {
             let name = n_update_dot.clone();
             Callback::new(move |(idx, orig)| update_ability_dot(name.clone(), idx, orig))
+        };
+        let on_toggle_supernatural = {
+            let name = n_toggle_sup.clone();
+            Callback::new(move |_| update_ability_supernatural(name.clone()))
         };
 
         if is_custom {
@@ -122,6 +140,8 @@ pub fn GodsAndMonstersAbilities() -> impl IntoView {
                     level=level
                     modifier=modifier
                     origins=origins
+                    is_supernatural=is_supernatural
+                    on_toggle_supernatural=on_toggle_supernatural
                     on_level_change=move |v| update_ability(n_update_level.clone(), Some(v), None)
                     on_modifier_change=move |m| update_ability(n_update_mod.clone(), None, Some(m))
                     on_dot_origin_change=on_dot_origin_change
@@ -139,6 +159,8 @@ pub fn GodsAndMonstersAbilities() -> impl IntoView {
                     level=level
                     modifier=modifier
                     origins=origins
+                    is_supernatural=is_supernatural
+                    on_toggle_supernatural=on_toggle_supernatural
                     on_level_change=move |v| update_ability(n_update_level.clone(), Some(v), None)
                     on_modifier_change=move |m| update_ability(n_update_mod.clone(), None, Some(m))
                     on_dot_origin_change=on_dot_origin_change
@@ -152,10 +174,10 @@ pub fn GodsAndMonstersAbilities() -> impl IntoView {
 
     view! {
         <div class="group-box gods-box">
-            <span class="group-title">"Abilities"</span>
+            <span class="group-title">{move || crate::i18n::tr("abilities", lang())}</span>
             <div class="attributes-block">
                 <div class="attribute-column">
-                    <h3 class="column-title">"Talents"</h3>
+                    <h3 class="column-title">{move || crate::i18n::tr("talents", lang())}</h3>
                     {TALENTS.iter().map(|&n| render_field(n.to_string(), false, "Talents")).collect_view()}
                     <For
                         each=move || data.with(|d| d.custom_lists.get("Talents").cloned().unwrap_or_default())
@@ -166,7 +188,7 @@ pub fn GodsAndMonstersAbilities() -> impl IntoView {
                 </div>
                 
                 <div class="attribute-column">
-                    <h3 class="column-title">"Skills"</h3>
+                    <h3 class="column-title">{move || crate::i18n::tr("skills", lang())}</h3>
                     {SKILLS.iter().map(|&n| render_field(n.to_string(), false, "Skills")).collect_view()}
                     <For
                         each=move || data.with(|d| d.custom_lists.get("Skills").cloned().unwrap_or_default())
@@ -177,7 +199,7 @@ pub fn GodsAndMonstersAbilities() -> impl IntoView {
                 </div>
 
                 <div class="attribute-column">
-                    <h3 class="column-title">"Knowledges"</h3>
+                    <h3 class="column-title">{move || crate::i18n::tr("knowledges", lang())}</h3>
                     {KNOWLEDGES.iter().map(|&n| render_field(n.to_string(), false, "Knowledges")).collect_view()}
                     <For
                         each=move || data.with(|d| d.custom_lists.get("Knowledges").cloned().unwrap_or_default())

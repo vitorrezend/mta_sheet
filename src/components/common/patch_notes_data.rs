@@ -19,6 +19,33 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.14.5",
+        date: "2026-09-09",
+        tag: "v0.14.5",
+        title: "Características Sobrenaturais (6ª Bolinha em Losango) e Internacionalização Completa de Deuses & Monstros",
+        highlight: "Implementação da 6ª bolinha em formato de losango (| ◇) para características sobrenaturais em atributos e habilidades (Mago e Deuses & Monstros), acompanhada da internacionalização completa (PT-BR e EN-US) da ficha de Deuses & Monstros.",
+        sections: &[
+            PatchSection {
+                category: "Características Sobrenaturais",
+                icon: "💎",
+                items: &[
+                    "💎 6ª Bolinha em Losango (| ◇): Atributos e habilidades agora suportam expansão para a 6ª bolinha sobrenatural, separada por barra vertical (|) e exibida como losango para preservar a identidade visual clássica de 5 bolinhas.",
+                    "⚡ Atalho Ágil no Hover: Ao passar o mouse sobre o campo, um losango fantasma (◇) surge permitindo ativar a característica sobrenatural com apenas 1 clique direto, além do menu de contexto com botão direito.",
+                    "🐉 Suporte Unificado: Disponível tanto na ficha padrão de Mago: A Ascensão quanto na ficha de Deuses & Monstros, com persistência segura no banco de dados e exportação em PDF.",
+                ],
+            },
+            PatchSection {
+                category: "Internacionalização (i18n)",
+                icon: "🌐",
+                items: &[
+                    "🌐 Suporte Bilíngue em Deuses & Monstros (PT-BR / EN-US): A ficha de Gods & Monsters agora reage instantaneamente ao seletor de idioma na barra de navegação.",
+                    "🔄 Tradução Bi-direcional de Atributos e Habilidades: Mecanismo resiliente em tr_attr e tr_ability que traduz chaves canônicas em português ou inglês sem alterar as referências de banco de dados.",
+                    "⚔️ Páginas e Seções Traduzidas: Cabeçalho, vantagens (Encantos, Dons, Gnose, Vantagens Especiais, Paradoxo, Essência), tabela de combate, qualidades & defeitos, histórico, descrição e abas de navegação 100% traduzidos.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.14.4",
         date: "2026-09-09",
         tag: "v0.14.4",

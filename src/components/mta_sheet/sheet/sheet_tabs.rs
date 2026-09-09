@@ -31,22 +31,22 @@ pub fn SheetTabs(
                                 class="sheet-tab-btn"
                                 class:active=move || active_tab.get() == SheetPageTab::Main
                                 on:click=move |_| set_active_tab.set(SheetPageTab::Main)
-                                title="Page 1: Attributes, Abilities & Advantages"
+                                title=move || crate::i18n::tr("gm_tab_1_tooltip", lang())
                             >
                                 <span class="sheet-tab-icon">"🐉"</span>
-                                <span class="sheet-tab-title">"Attributes & Powers"</span>
-                                <span class="sheet-tab-page-tag">"Page 1"</span>
+                                <span class="sheet-tab-title">{move || crate::i18n::tr("gm_tab_1_title", lang())}</span>
+                                <span class="sheet-tab-page-tag">{move || crate::i18n::tr("gm_tab_1_page", lang())}</span>
                             </button>
 
                             <button 
                                 class="sheet-tab-btn"
                                 class:active=move || active_tab.get() == SheetPageTab::MagicCombat
                                 on:click=move |_| set_active_tab.set(SheetPageTab::MagicCombat)
-                                title="Page 2: Other Traits, Merits & Flaws, History, Rules & Combat"
+                                title=move || crate::i18n::tr("gm_tab_2_tooltip", lang())
                             >
                                 <span class="sheet-tab-icon">"⚔️"</span>
-                                <span class="sheet-tab-title">"Traits, Rules & Combat"</span>
-                                <span class="sheet-tab-page-tag">"Page 2"</span>
+                                <span class="sheet-tab-title">{move || crate::i18n::tr("gm_tab_2_title", lang())}</span>
+                                <span class="sheet-tab-page-tag">{move || crate::i18n::tr("gm_tab_2_page", lang())}</span>
                             </button>
                         </div>
                     }.into_view()

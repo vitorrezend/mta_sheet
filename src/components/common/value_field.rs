@@ -21,10 +21,13 @@ pub fn ValueField(
     #[prop(optional)] is_starred: Option<Signal<bool>>,
     #[prop(optional)] on_toggle_star: Option<Callback<()>>,
     #[prop(optional)] star_tooltip: Option<&'static str>,
+    #[prop(optional)] is_supernatural: Option<Signal<bool>>,
+    #[prop(optional)] on_toggle_supernatural: Option<Callback<()>>,
 ) -> impl IntoView {
     let on_level_change = Rc::new(on_level_change);
     let on_modifier_change = Rc::new(on_modifier_change);
     let (open_popover_idx, set_open_popover_idx) = create_signal(Option::<usize>::None);
+    let (show_context_menu, set_show_context_menu) = create_signal(false);
 
     let display_label = move || {
         let l = label.get();
@@ -109,9 +112,31 @@ pub fn ValueField(
         });
     }
 
+    let has_supernatural_toggle = on_toggle_supernatural.is_some();
+    let has_supernatural_support = has_supernatural_toggle || is_supernatural.is_some();
+    let on_toggle_for_menu = on_toggle_supernatural.clone();
+
+    let on_label_right_click = {
+        move |ev: ev::MouseEvent| {
+            if has_supernatural_toggle {
+                ev.prevent_default();
+                ev.stop_propagation();
+                set_show_context_menu.update(|v| *v = !*v);
+            }
+        }
+    };
+
     view! {
         <div class="attribute-row">
-            <div class="tooltip-container">
+            <div 
+                class="tooltip-container label-cell-container"
+                on:contextmenu=on_label_right_click
+                title=move || if has_supernatural_toggle {
+                    "Botão direito no nome: Alternar Característica Sobrenatural (6º Ponto)"
+                } else {
+                    ""
+                }
+            >
                 {on_toggle_star.map(|on_star| {
                     let is_active = move || is_starred.map(|s| s.get()).unwrap_or(false);
                     view! {
@@ -175,6 +200,53 @@ pub fn ValueField(
                     }
                 }
                 <span class="tooltip-text">{tooltip_label}</span>
+
+                {
+                    if let Some(on_toggle_cb) = on_toggle_for_menu.as_ref() {
+                        let is_sup = move || is_supernatural.map(|s| s.get()).unwrap_or(false) || level.get() >= 6;
+                        view! {
+                            <div class="context-menu-wrapper" class:hidden=move || !show_context_menu.get()>
+                                <div 
+                                    class="context-menu-backdrop"
+                                    on:click=move |ev| {
+                                        ev.stop_propagation();
+                                        set_show_context_menu.set(false);
+                                    }
+                                    on:contextmenu=move |ev| {
+                                        ev.prevent_default();
+                                        ev.stop_propagation();
+                                        set_show_context_menu.set(false);
+                                    }
+                                />
+                                <div 
+                                    class="label-context-menu" 
+                                    on:click=move |ev| ev.stop_propagation()
+                                >
+                                    <button 
+                                        type="button" 
+                                        class="label-context-item"
+                                        on:click={
+                                            let cb = on_toggle_cb.clone();
+                                            move |_| {
+                                                set_show_context_menu.set(false);
+                                                cb.call(());
+                                            }
+                                        }
+                                    >
+                                        <span class="context-item-icon">"✦"</span>
+                                        {move || if is_sup() {
+                                            "Desativar Característica Sobrenatural (5)"
+                                        } else {
+                                            "Habilitar Característica Sobrenatural (6º Ponto)"
+                                        }}
+                                    </button>
+                                </div>
+                            </div>
+                        }.into_view()
+                    } else {
+                        view! {}.into_view()
+                    }
+                }
             </div>
 
             <div class="modifier-container tooltip-container">
@@ -325,6 +397,168 @@ pub fn ValueField(
                         </div>
                     }
                 }).collect_view()}
+
+                {
+                    if has_supernatural_support {
+                        let is_sup_active = move || is_supernatural.map(|s| s.get()).unwrap_or(false) || level.get() >= 6;
+                        let sixth_idx = 5usize;
+                        let is_sixth_filled = move || level.get() >= 6;
+                        let sixth_dot_color = move || {
+                            if level.get() >= 6 {
+                                if let Some(sig) = origins {
+                                    let list = sig.get();
+                                    if sixth_idx < list.len() {
+                                        list[sixth_idx].color_class()
+                                    } else {
+                                        "dot-base"
+                                    }
+                                } else {
+                                    "dot-base"
+                                }
+                            } else {
+                                ""
+                            }
+                        };
+
+                        let is_sixth_popover_open = move || open_popover_idx.get() == Some(sixth_idx);
+
+                        let on_dot_change_for_right_click = on_dot_origin_change.clone();
+                        let on_sixth_right_click = move |ev: ev::MouseEvent| {
+                            ev.prevent_default();
+                            if level.get() >= 6 && on_dot_change_for_right_click.is_some() {
+                                set_open_popover_idx.update(|cur| {
+                                    *cur = if *cur == Some(sixth_idx) { None } else { Some(sixth_idx) };
+                                });
+                            }
+                        };
+
+                        let on_dot_change_for_popover = on_dot_origin_change.clone();
+                        let set_sixth_origin_to = move |origin: DotOrigin| {
+                            if let Some(cb) = on_dot_change_for_popover.as_ref() {
+                                cb.call((sixth_idx, origin));
+                            }
+                            set_open_popover_idx.set(None);
+                        };
+
+                        let on_click_level_sixth = on_level_change_click.clone();
+                        let set_base = set_sixth_origin_to.clone();
+                        let set_bonus = set_sixth_origin_to.clone();
+                        let set_xp = set_sixth_origin_to.clone();
+                        let set_temp = set_sixth_origin_to;
+
+                        let set_base_for_popover = set_base.clone();
+                        let set_bonus_for_popover = set_bonus.clone();
+                        let set_xp_for_popover = set_xp.clone();
+                        let set_temp_for_popover = set_temp.clone();
+
+                        let on_ghost_click = {
+                            let cb = on_toggle_for_menu.clone();
+                            let on_lvl = on_click_level_sixth.clone();
+                            move |_| {
+                                if let Some(c) = cb.as_ref() {
+                                    c.call(());
+                                }
+                                on_lvl(6);
+                            }
+                        };
+
+                        view! {
+                            <div class="supernatural-container">
+                                <div 
+                                    class="supernatural-slot" 
+                                    class:hidden=move || !is_sup_active()
+                                >
+                                    <span class="supernatural-separator">"|"</span>
+                                    <div class="dot-wrapper">
+                                        <span 
+                                            class="dot dot-supernatural"
+                                            class:filled=is_sixth_filled
+                                            class=("dot-base", move || is_sixth_filled() && sixth_dot_color() == "dot-base")
+                                            class=("dot-bonus", move || is_sixth_filled() && sixth_dot_color() == "dot-bonus")
+                                            class=("dot-xp", move || is_sixth_filled() && sixth_dot_color() == "dot-xp")
+                                            class=("dot-temp", move || is_sixth_filled() && sixth_dot_color() == "dot-temp")
+                                            on:click={
+                                                let on_click_sixth = on_click_level_sixth.clone();
+                                                move |_| {
+                                                    set_open_popover_idx.set(None);
+                                                    let current = level.get();
+                                                    let new_val = if current >= 6 { 5 } else { 6 };
+                                                    on_click_sixth(new_val);
+                                                }
+                                            }
+                                            on:contextmenu=on_sixth_right_click
+                                            title="6º Ponto Sobrenatural (Losango) | Botão esquerdo: alternar | Botão direito: mudar origem"
+                                        ></span>
+
+                                        {
+                                            let set_base = set_base_for_popover.clone();
+                                            let set_bonus = set_bonus_for_popover.clone();
+                                            let set_xp = set_xp_for_popover.clone();
+                                            let set_temp = set_temp_for_popover.clone();
+                                            move || if is_sixth_popover_open() {
+                                                let set_base = set_base.clone();
+                                                let set_bonus = set_bonus.clone();
+                                                let set_xp = set_xp.clone();
+                                                let set_temp = set_temp.clone();
+                                                view! {
+                                                    <div class="dot-origin-popover" on:click=move |ev| ev.stop_propagation()>
+                                                        <div class="popover-title">"Origem Sobrenatural:"</div>
+                                                        <div class="popover-options">
+                                                            <button 
+                                                                class="popover-btn btn-base" 
+                                                                on:click=move |_| set_base(DotOrigin::Base)
+                                                                title="Criação Base"
+                                                            >
+                                                                <span class="popover-dot dot-base"></span> "Base"
+                                                            </button>
+                                                            <button 
+                                                                class="popover-btn btn-bonus" 
+                                                                on:click=move |_| set_bonus(DotOrigin::Bonus)
+                                                                title="Pontos de Bônus (Freebies)"
+                                                            >
+                                                                <span class="popover-dot dot-bonus"></span> "Bônus"
+                                                            </button>
+                                                            <button 
+                                                                class="popover-btn btn-xp" 
+                                                                on:click=move |_| set_xp(DotOrigin::Experience)
+                                                                title="Experiência (XP)"
+                                                            >
+                                                                <span class="popover-dot dot-xp"></span> "XP"
+                                                            </button>
+                                                            <button 
+                                                                class="popover-btn btn-temp" 
+                                                                on:click=move |_| set_temp(DotOrigin::Temporary)
+                                                                title="Buff / Magia / Wonder"
+                                                            >
+                                                                <span class="popover-dot dot-temp"></span> "Buff"
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                }.into_view()
+                                            } else {
+                                                view! {}.into_view()
+                                            }
+                                        }
+                                    </div>
+                                </div>
+
+                                <div 
+                                    class="supernatural-slot supernatural-ghost"
+                                    class:hidden=move || is_sup_active()
+                                    on:click=on_ghost_click
+                                    title="Clique para desbloquear 6º Ponto Sobrenatural (Losango)"
+                                >
+                                    <span class="supernatural-separator">"|"</span>
+                                    <div class="dot-wrapper">
+                                        <span class="dot dot-supernatural ghost-diamond"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        }.into_view()
+                    } else {
+                        view! {}.into_view()
+                    }
+                }
             </div>
             
             <div class="action-area">
@@ -374,6 +608,31 @@ mod tests {
         assert_eq!(level.get(), 4);
         assert_eq!(modifier.get(), "Especialização");
         assert_eq!(is_starred.get(), true);
+
+        // Test supernatural trait support
+        let (is_supernatural, set_supernatural) = create_signal(false);
+        let (_supernatural_toggled, set_supernatural_toggled) = create_signal(false);
+        let on_toggle_supernatural = Callback::new(move |_| {
+            set_supernatural_toggled.set(true);
+            set_supernatural.update(|s| *s = !*s);
+        });
+
+        let _view_supernatural = view! {
+            <ValueField 
+                label=Signal::derive(|| "Força".to_string())
+                level=level.into()
+                modifier=modifier.into()
+                on_level_change=move |v| set_level.set(v)
+                on_modifier_change=move |m| set_modifier.set(m)
+                is_supernatural=is_supernatural.into()
+                on_toggle_supernatural=on_toggle_supernatural
+            />
+        };
+
+        set_supernatural.set(true);
+        set_level.set(6);
+        assert_eq!(level.get(), 6);
+        assert_eq!(is_supernatural.get(), true);
 
         runtime.dispose();
     }
