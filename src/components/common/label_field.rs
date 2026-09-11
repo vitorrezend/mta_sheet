@@ -9,6 +9,7 @@ pub fn LabelField(
 ) -> impl IntoView {
     let on_change = Rc::new(on_change);
     let on_change_blur = on_change.clone();
+    let on_change_input = on_change.clone();
 
     let input_ref = create_node_ref::<html::Input>();
     let is_focused = create_rw_signal(false);
@@ -34,6 +35,15 @@ pub fn LabelField(
                     class="label-input" 
                     maxlength="30"
                     on:focus=move |_| { let _ = is_focused.try_set(true); }
+                    on:change=move |_| {
+                        if let Some(elem) = input_ref.get() {
+                            let current_val = elem.value();
+                            if current_val != last_synced_value.get_untracked() {
+                                let _ = last_synced_value.try_set(current_val.clone());
+                                on_change_input(current_val);
+                            }
+                        }
+                    }
                     on:blur=move |_| {
                         let _ = is_focused.try_set(false);
                         if let Some(elem) = input_ref.get() {

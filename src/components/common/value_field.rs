@@ -401,7 +401,7 @@ pub fn ValueField(
 
             {
                 if has_supernatural_support {
-                    let is_sup_active = move || is_supernatural.map(|s| s.get()).unwrap_or(false) || level.get() >= 5;
+                    let is_sup_active = move || level.get() >= 5;
                     let sixth_idx = 5usize;
                     let is_sixth_filled = move || level.get() >= 6;
                     let sixth_dot_color = move || {

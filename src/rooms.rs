@@ -265,7 +265,14 @@ static ROOM_CHANNELS: LazyLock<Arc<Mutex<HashMap<String, broadcast::Sender<RoomB
 
 #[cfg(feature = "ssr")]
 pub fn get_or_create_room_channel(room_id: &str) -> broadcast::Sender<RoomBroadcastEvent> {
-    let mut channels = ROOM_CHANNELS.lock().expect("lock room channels");
+    let mut channels = match ROOM_CHANNELS.lock() {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
+    };
+    // Limpeza oportunística: previne vazamento de memória descartando canais inativos sem ouvintes
+    if channels.len() > 30 {
+        channels.retain(|_, sender| sender.receiver_count() > 0);
+    }
     if let Some(sender) = channels.get(room_id) {
         sender.clone()
     } else {
@@ -273,6 +280,24 @@ pub fn get_or_create_room_channel(room_id: &str) -> broadcast::Sender<RoomBroadc
         channels.insert(room_id.to_string(), sender.clone());
         sender
     }
+}
+
+#[cfg(feature = "ssr")]
+pub fn remove_room_channel(room_id: &str) {
+    let mut channels = match ROOM_CHANNELS.lock() {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
+    };
+    channels.remove(room_id);
+}
+
+#[cfg(feature = "ssr")]
+pub fn prune_inactive_room_channels() {
+    let mut channels = match ROOM_CHANNELS.lock() {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
+    };
+    channels.retain(|_, sender| sender.receiver_count() > 0);
 }
 
 #[cfg(feature = "ssr")]
@@ -733,7 +758,15 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         let data_json: String = r.get("data");
         let updated_at: String = r.get("updated_at");
 
-        let char_data: CharacterData = serde_json::from_str(&data_json).unwrap_or_default();
+        let mut char_data = CharacterData::parse_from_db(&id, &data_json).unwrap_or_default();
+        if char_data.id.is_empty() {
+            char_data.id = id.clone();
+        }
+        if char_data.name.is_empty() || (char_data.name == "Novo Mago" && !name.is_empty() && name != "Novo Mago") {
+            char_data.set_display_name(&name);
+        }
+        char_data.sanitize();
+        let display_name = char_data.get_display_name();
         let (wp_total, wp_cur) = char_data.get_willpower();
         let (quint, paradox, _) = char_data.get_quintessence_paradox();
 
@@ -788,7 +821,7 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
 
         RoomSheetSummary {
             id,
-            name,
+            name: display_name,
             player_name: char_data.get_label(crate::state::keys::HEADER_JOGADOR),
             tradition: char_data.get_label(crate::state::keys::HEADER_TRADICAO),
             essence,

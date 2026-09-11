@@ -71,7 +71,22 @@ if !ERRORLEVEL! EQU 0 (
 
 if exist "target\site\pkg\mta_sheet_bg.wasm" copy /Y "target\site\pkg\mta_sheet_bg.wasm" "target\site\pkg\mta_sheet.wasm" >nul
 if exist "target\site\pkg\mta_sheet.wasm" copy /Y "target\site\pkg\mta_sheet.wasm" "target\site\pkg\mta_sheet_bg.wasm" >nul
-copy /Y style.css target\site\pkg\mta_sheet.css >nul
+
+echo   -^> [CSS Bundle] Empacotando suite de estilos em target\site\pkg\mta_sheet.css...
+(
+    type styles\01-variables.css
+    type styles\02-common.css
+    type styles\03-sheet-layout.css
+    type styles\04-page1-main.css
+    type styles\05-page2-magic-combat.css
+    type styles\06-page3-expanded.css
+    type styles\07-page4-history-visuals.css
+    type styles\08-print-pdf.css
+    type styles\09-gods-and-monsters.css
+    type styles\10-page5-grimoire.css
+    type styles\11-page6-notes.css
+    type styles\patch_notes.css
+) > target\site\pkg\mta_sheet.css
 
 echo   -^> [3/3] Compilando Servidor Backend SSR Release...
 cargo build --release --no-default-features --features ssr

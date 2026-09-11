@@ -19,6 +19,44 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.15.0",
+        date: "2026-09-11",
+        tag: "v0.15.0",
+        title: "Arquitetura em Camadas, Clean Code e Sincronização Definitiva de Nome",
+        highlight: "Refatoração estrutural completa do backend em camadas desacopladas (servidor, modelos e regras puras), empacotamento otimizado de CSS de 1 única requisição e sincronização bidirecional do nome do personagem em todos os cards, salas e exportações.",
+        sections: &[
+            PatchSection {
+                category: "Sincronização de Personagem & Cards",
+                icon: "🧙",
+                items: &[
+                    "🏷️ Resolução Definitiva de Nome: O nome digitado na Página 1 agora é sincronizado atomicamente entre o rótulo e a raiz do personagem, eliminando o problema onde os cards ficavam fixos em 'Novo Mago'.",
+                    "🃏 Cards da Home & Mesas Atualizados: Os resumos dos cards e a visualização da cabala na mesa de crônica agora refletem fielmente o nome real do personagem.",
+                    "🌐 Título Dinâmico na Aba: A aba do navegador agora exibe dinamicamente '{Nome do Personagem} | MTA Sheet'.",
+                    "📦 Exportação Fiel de Arquivos: Downloads de JSON e nomes de anexos agora levam o nome real do personagem.",
+                ],
+            },
+            PatchSection {
+                category: "Arquitetura em Camadas & Clean Code",
+                icon: "🏛️",
+                items: &[
+                    "🚀 Desacoplamento HTTP (src/server/): Servidor refatorado em handlers dedicados (auth, media, static_files, sse) e middlewares de segurança, reduzindo main.rs de ~780 para ~79 linhas.",
+                    "📦 Domínio Modular (src/state/models/): Modelo de dados desmembrado em módulos coesos (keys, traits, items, pages, dossier, summary, character).",
+                    "⚖️ Motor Puro de Regras (src/rules/): Regras de vitalidade M20, esteira de quintessência/paradoxo e fórmulas de iniciativa isoladas em módulos puros e testáveis.",
+                    "🧹 Eliminação de Duplicação (DRY): Centralização do mapeamento de resumos de fichas com blindagem contra vazamento de erros de banco para o cliente.",
+                ],
+            },
+            PatchSection {
+                category: "Performance & Infraestrutura",
+                icon: "⚡",
+                items: &[
+                    "🎨 Empacotamento de CSS (Bundle): Build de release agora concatena arquivos modulares em um único mta_sheet.css, eliminando cascata de 13 requisições HTTP.",
+                    "🛡️ Controle de Cache Anti-LinkError: Middleware de segurança força no-cache em modo dev, impedindo dessincronia de cache entre binários WASM e scripts JS.",
+                    "🔄 Gerenciamento Concorrente de Canais: Limpeza inteligente de canais SSE inativos em salas, prevenindo panics e vazamento de memória.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.14.5",
         date: "2026-09-09",
         tag: "v0.14.5",

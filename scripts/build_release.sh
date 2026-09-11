@@ -30,8 +30,9 @@ else
     cargo build --release --no-default-features --features ssr
 fi
 
-# Assegura que style.css e fallback existam em target/site/pkg
-cp style.css target/site/pkg/mta_sheet.css
+# Empacota toda a suite de estilos em um unico arquivo CSS otimizado
+echo "  -> [CSS Bundle] Concatenando suite de estilos em target/site/pkg/mta_sheet.css..."
+cat styles/01-variables.css styles/02-common.css styles/03-sheet-layout.css styles/04-page1-main.css styles/05-page2-magic-combat.css styles/06-page3-expanded.css styles/07-page4-history-visuals.css styles/08-print-pdf.css styles/09-gods-and-monsters.css styles/10-page5-grimoire.css styles/11-page6-notes.css styles/patch_notes.css > target/site/pkg/mta_sheet.css
 if [ -f "target/site/pkg/mta_sheet_bg.wasm" ] && [ ! -f "target/site/pkg/mta_sheet.wasm" ]; then
     cp target/site/pkg/mta_sheet_bg.wasm target/site/pkg/mta_sheet.wasm
 fi

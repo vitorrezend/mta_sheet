@@ -868,6 +868,54 @@ mod tests {
         let json_disabled = serde_json::to_string(&char_data_disabled).unwrap();
         assert!(!json_disabled.contains("\"is_supernatural\""));
     }
+
+    #[test]
+    fn test_character_name_and_label_synchronization() {
+        use crate::state::keys;
+
+        // 1. Criação padrão
+        let mut char_data = CharacterData::new("mago-1".to_string(), "Novo Mago".to_string());
+        assert_eq!(char_data.name, "Novo Mago");
+        assert_eq!(char_data.get_display_name(), "Novo Mago");
+        assert_eq!(char_data.get_label(keys::HEADER_NOME), "Novo Mago");
+
+        // 2. Atualização via set_display_name
+        char_data.set_display_name("Hermes Trismegisto");
+        assert_eq!(char_data.name, "Hermes Trismegisto");
+        assert_eq!(char_data.get_display_name(), "Hermes Trismegisto");
+        assert_eq!(char_data.get_label(keys::HEADER_NOME), "Hermes Trismegisto");
+
+        // 3. Card summary reflete o display_name
+        let summary = char_data.to_summary("2026-09-11 12:00:00".to_string(), false, true);
+        assert_eq!(summary.name, "Hermes Trismegisto");
+
+        // 4. Edição direta em labels (como o usuário faz no input da Página 1)
+        char_data.set_label("Nome", "Mago Merlin".to_string());
+        assert_eq!(char_data.name, "Mago Merlin");
+        assert_eq!(char_data.get_display_name(), "Mago Merlin");
+
+        // 5. Cenário legado: DB tem 'Novo Mago', mas labels tem o nome real digitado
+        let mut legacy_sheet = CharacterData {
+            id: "legacy-1".to_string(),
+            name: "Novo Mago".to_string(),
+            ..Default::default()
+        };
+        legacy_sheet.labels.insert("Nome".to_string(), "Agatha Harkness".to_string());
+        assert_eq!(legacy_sheet.get_display_name(), "Agatha Harkness");
+
+        let legacy_summary = legacy_sheet.to_summary("2026-09-11 12:00:00".to_string(), true, false);
+        assert_eq!(legacy_summary.name, "Agatha Harkness");
+
+        legacy_sheet.sanitize();
+        assert_eq!(legacy_sheet.name, "Agatha Harkness");
+
+        // 6. Gods & Monsters
+        let mut gm_char = CharacterData::new_gods_and_monsters("gm-1".to_string(), "".to_string());
+        assert_eq!(gm_char.get_display_name(), "New Monster / Familiar");
+        gm_char.set_display_name("Gárgula de Pedra");
+        assert_eq!(gm_char.get_display_name(), "Gárgula de Pedra");
+        assert_eq!(gm_char.to_summary("agora".to_string(), false, true).name, "Gárgula de Pedra");
+    }
 }
 
 

@@ -7,6 +7,9 @@ pub mod auth;
 pub mod rooms;
 pub mod logging;
 pub mod i18n;
+pub mod rules;
+#[cfg(feature = "ssr")]
+pub mod server;
 
 #[cfg(test)]
 mod compliance_tests;

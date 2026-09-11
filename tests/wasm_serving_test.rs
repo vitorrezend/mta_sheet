@@ -1,10 +1,3 @@
-﻿#[cfg(feature = "ssr")]
-use axum::{
-    body::Body,
-    http::{Request, StatusCode},
-};
-#[cfg(feature = "ssr")]
-use tower::ServiceExt;
 
 #[cfg(feature = "ssr")]
 #[tokio::test]
@@ -50,4 +43,20 @@ async fn test_auth_form_has_no_raw_action_or_method() {
         auth_page.contains("on:submit=on_submit"),
         "auth_page.rs deve utilizar 'on:submit=on_submit' reativo do Leptos com ev.prevent_default()"
     );
+}
+
+#[cfg(feature = "ssr")]
+#[tokio::test]
+async fn test_wasm_js_glue_code_integrity() {
+    let js_path = "target/site/pkg/mta_sheet.js";
+    if let Ok(js_content) = std::fs::read_to_string(js_path) {
+        assert!(
+            js_content.contains("__wbg_init"),
+            "mta_sheet.js deve exportar a função de inicialização __wbg_init"
+        );
+        assert!(
+            js_content.contains("WebAssembly.instantiate") || js_content.contains("WebAssembly.instantiateStreaming"),
+            "mta_sheet.js deve conter chamadas para WebAssembly.instantiate"
+        );
+    }
 }

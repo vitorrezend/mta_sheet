@@ -11,7 +11,11 @@ pub fn LabelColumn(
 
     let update_label = move |key: String, value: String| {
         set_data.update(|s| {
-            s.labels.insert(key, value);
+            if key == "Nome" || key == crate::state::keys::HEADER_NOME {
+                s.set_display_name(&value);
+            } else {
+                s.labels.insert(key, value);
+            }
         });
     };
 
@@ -23,9 +27,18 @@ pub fn LabelColumn(
             {fields.into_iter().map(|(label, key)| {
                 let key_str = key.to_string();
                 let key_str2 = key.to_string();
+                let is_name_field = key == "Nome" || key == crate::state::keys::HEADER_NOME;
                 let value = Signal::derive({
                     let key = key_str.clone();
-                    move || data.with(|d| d.labels.get(&key).cloned().unwrap_or_default())
+                    move || {
+                        data.with(|d| {
+                            if is_name_field {
+                                d.get_display_name()
+                            } else {
+                                d.labels.get(&key).cloned().unwrap_or_default()
+                            }
+                        })
+                    }
                 });
                 let translated_label = Signal::derive(move || crate::i18n::tr_header_label(label, lang()).to_string());
                 view! {

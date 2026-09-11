@@ -10,7 +10,7 @@ pub fn GodsAndMonstersHeader() -> impl IntoView {
     let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
 
     let update_name = move |new_val: String| {
-        set_data.update(|d| d.name = new_val);
+        set_data.update(|d| d.set_display_name(&new_val));
     };
 
     let update_label = move |key: &'static str, val: String| {
@@ -30,7 +30,7 @@ pub fn GodsAndMonstersHeader() -> impl IntoView {
                 <div class="header-column">
                     <LabelField 
                         label=Signal::derive(move || format!("{}:", crate::i18n::tr_header_label("Nome", lang()))) 
-                        value=Signal::derive(move || data.with(|d| d.name.clone()))
+                        value=Signal::derive(move || data.with(|d| d.get_display_name()))
                         on_change=update_name
                     />
                     <LabelField 

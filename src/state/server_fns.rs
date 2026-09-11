@@ -27,7 +27,7 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
         .await
         .map_err(|e: sqlx::Error| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to fetch sheets from DB", Some(&e.to_string()));
-            ServerFnError::new(format!("Falha ao consultar fichas: {}", e))
+            ServerFnError::new("Falha ao consultar fichas. Tente novamente mais tarde.")
         })?;
 
     let count = rows.len();
@@ -37,90 +37,23 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
         let data_json: String = row.get("data");
         let is_public: bool = row.get::<i32, _>("is_public") == 1;
         let updated_at: String = row.get("updated_at");
+        let sheet_type = row.try_get::<String, _>("sheet_type").unwrap_or_else(|_| "mage".to_string());
 
-        let mut tradition = String::new();
-        let mut essence = String::new();
-        let mut arete = 1;
-        let mut willpower = 5;
-        let mut photo_url = String::new();
-        let mut photo_focus_x = 50;
-        let mut photo_focus_y = 50;
-        let mut spheres = Vec::new();
-        let mut sheet_type = row.try_get::<String, _>("sheet_type").unwrap_or_else(|_| "mage".to_string());
-
-        if let Ok(data) = serde_json::from_str::<CharacterData>(&data_json) {
-            if sheet_type.is_empty() || sheet_type == "mage" {
-                sheet_type = data.sheet_type.clone();
+        if let Some(mut data) = CharacterData::parse_from_db(&id, &data_json) {
+            if data.id.is_empty() {
+                data.id = id;
             }
-            if data.is_gods_and_monsters() {
-                tradition = data.labels.get("Type").cloned().unwrap_or_else(|| "Familiar / Bygone".to_string());
-                essence = data.labels.get("Concept").cloned().unwrap_or_default();
-                arete = data.get_attribute_level("Gnosis", 0);
-            } else {
-                tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
-                essence = data.labels.get("Essência").cloned().unwrap_or_default();
-                arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
+            if data.name.is_empty() || (data.name == "Novo Mago" && !name.is_empty() && name != "Novo Mago") {
+                data.set_display_name(&name);
             }
-            willpower = data.get_attribute_level(crate::state::models::keys::KEY_WILLPOWER_TOTAL, 5);
-            photo_url = if !data.visuals.character_sketch_url.is_empty() {
-                data.visuals.character_sketch_url.clone()
-            } else {
-                data.get_profile_photo()
-            };
-            let (fx, fy) = data.get_photo_focus();
-            photo_focus_x = fx;
-            photo_focus_y = fy;
-            for sphere in crate::state::models::STANDARD_SPHERES {
-                let lvl = data.get_attribute_level(sphere, 0);
-                spheres.push((sphere.to_string(), lvl));
+            data.sanitize();
+            if (data.sheet_type.is_empty() || data.sheet_type == "mage") && !sheet_type.is_empty() && sheet_type != "mage" {
+                data.sheet_type = sheet_type;
             }
-        } else if let Some(data) = CharacterData::from_raw_json_resilient(&id, &data_json) {
-            if sheet_type.is_empty() || sheet_type == "mage" {
-                sheet_type = data.sheet_type.clone();
-            }
-            if data.is_gods_and_monsters() {
-                tradition = data.labels.get("Type").cloned().unwrap_or_else(|| "Familiar / Bygone".to_string());
-                essence = data.labels.get("Concept").cloned().unwrap_or_default();
-                arete = data.get_attribute_level("Gnosis", 0);
-            } else {
-                tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
-                essence = data.labels.get("Essência").cloned().unwrap_or_default();
-                arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
-            }
-            willpower = data.get_attribute_level(crate::state::models::keys::KEY_WILLPOWER_TOTAL, 5);
-            photo_url = if !data.visuals.character_sketch_url.is_empty() {
-                data.visuals.character_sketch_url.clone()
-            } else {
-                data.get_profile_photo()
-            };
-            let (fx, fy) = data.get_photo_focus();
-            photo_focus_x = fx;
-            photo_focus_y = fy;
-            for sphere in crate::state::models::STANDARD_SPHERES {
-                let lvl = data.get_attribute_level(sphere, 0);
-                spheres.push((sphere.to_string(), lvl));
-            }
+            data.to_summary(updated_at, is_public, true)
         } else {
-            for sphere in crate::state::models::STANDARD_SPHERES {
-                spheres.push((sphere.to_string(), 0));
-            }
-        }
-
-        CharacterSummary {
-            id,
-            name,
-            tradition,
-            essence,
-            arete,
-            willpower,
-            photo_url,
-            photo_focus_y,
-            photo_focus_x,
-            spheres,
-            sheet_type,
-            is_public,
-            is_owner: true,
-            updated_at,
+            let clean_name = if name.trim().is_empty() { "Novo Mago".to_string() } else { name };
+            CharacterSummary::fallback(id, clean_name, updated_at, is_public, true)
         }
     }).collect();
 
@@ -150,7 +83,7 @@ pub async fn get_public_sheets() -> Result<Vec<CharacterSummary>, ServerFnError>
         .await
         .map_err(|e: sqlx::Error| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to fetch public sheets from DB", Some(&e.to_string()));
-            ServerFnError::new(format!("Falha ao consultar fichas públicas: {}", e))
+            ServerFnError::new("Falha ao consultar fichas públicas. Tente novamente mais tarde.")
         })?;
 
     let count = rows.len();
@@ -160,91 +93,24 @@ pub async fn get_public_sheets() -> Result<Vec<CharacterSummary>, ServerFnError>
         let name: String = row.get("name");
         let data_json: String = row.get("data");
         let updated_at: String = row.get("updated_at");
+        let sheet_type = row.try_get::<String, _>("sheet_type").unwrap_or_else(|_| "mage".to_string());
         let is_owner = auth_user_id.is_some() && auth_user_id == owner_id;
 
-        let mut tradition = String::new();
-        let mut essence = String::new();
-        let mut arete = 1;
-        let mut willpower = 5;
-        let mut photo_url = String::new();
-        let mut photo_focus_x = 50;
-        let mut photo_focus_y = 50;
-        let mut spheres = Vec::new();
-        let mut sheet_type = row.try_get::<String, _>("sheet_type").unwrap_or_else(|_| "mage".to_string());
-
-        if let Ok(data) = serde_json::from_str::<CharacterData>(&data_json) {
-            if sheet_type.is_empty() || sheet_type == "mage" {
-                sheet_type = data.sheet_type.clone();
+        if let Some(mut data) = CharacterData::parse_from_db(&id, &data_json) {
+            if data.id.is_empty() {
+                data.id = id;
             }
-            if data.is_gods_and_monsters() {
-                tradition = data.labels.get("Type").cloned().unwrap_or_else(|| "Familiar / Bygone".to_string());
-                essence = data.labels.get("Concept").cloned().unwrap_or_default();
-                arete = data.get_attribute_level("Gnosis", 0);
-            } else {
-                tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
-                essence = data.labels.get("Essência").cloned().unwrap_or_default();
-                arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
+            if data.name.is_empty() || (data.name == "Novo Mago" && !name.is_empty() && name != "Novo Mago") {
+                data.set_display_name(&name);
             }
-            willpower = data.get_attribute_level(crate::state::models::keys::KEY_WILLPOWER_TOTAL, 5);
-            photo_url = if !data.visuals.character_sketch_url.is_empty() {
-                data.visuals.character_sketch_url.clone()
-            } else {
-                data.get_profile_photo()
-            };
-            let (fx, fy) = data.get_photo_focus();
-            photo_focus_x = fx;
-            photo_focus_y = fy;
-            for sphere in crate::state::models::STANDARD_SPHERES {
-                let lvl = data.get_attribute_level(sphere, 0);
-                spheres.push((sphere.to_string(), lvl));
+            data.sanitize();
+            if (data.sheet_type.is_empty() || data.sheet_type == "mage") && !sheet_type.is_empty() && sheet_type != "mage" {
+                data.sheet_type = sheet_type;
             }
-        } else if let Some(data) = CharacterData::from_raw_json_resilient(&id, &data_json) {
-            if sheet_type.is_empty() || sheet_type == "mage" {
-                sheet_type = data.sheet_type.clone();
-            }
-            if data.is_gods_and_monsters() {
-                tradition = data.labels.get("Type").cloned().unwrap_or_else(|| "Familiar / Bygone".to_string());
-                essence = data.labels.get("Concept").cloned().unwrap_or_default();
-                arete = data.get_attribute_level("Gnosis", 0);
-            } else {
-                tradition = data.labels.get("Tradição").cloned().unwrap_or_default();
-                essence = data.labels.get("Essência").cloned().unwrap_or_default();
-                arete = data.get_attribute_level(crate::state::models::keys::KEY_ARETE, 1);
-            }
-            willpower = data.get_attribute_level(crate::state::models::keys::KEY_WILLPOWER_TOTAL, 5);
-            photo_url = if !data.visuals.character_sketch_url.is_empty() {
-                data.visuals.character_sketch_url.clone()
-            } else {
-                data.get_profile_photo()
-            };
-            let (fx, fy) = data.get_photo_focus();
-            photo_focus_x = fx;
-            photo_focus_y = fy;
-            for sphere in crate::state::models::STANDARD_SPHERES {
-                let lvl = data.get_attribute_level(sphere, 0);
-                spheres.push((sphere.to_string(), lvl));
-            }
+            data.to_summary(updated_at, true, is_owner)
         } else {
-            for sphere in crate::state::models::STANDARD_SPHERES {
-                spheres.push((sphere.to_string(), 0));
-            }
-        }
-
-        CharacterSummary {
-            id,
-            name,
-            tradition,
-            essence,
-            arete,
-            willpower,
-            photo_url,
-            photo_focus_y,
-            photo_focus_x,
-            spheres,
-            sheet_type,
-            is_public: true,
-            is_owner,
-            updated_at,
+            let clean_name = if name.trim().is_empty() { "Novo Mago".to_string() } else { name };
+            CharacterSummary::fallback(id, clean_name, updated_at, true, is_owner)
         }
     }).collect();
 
@@ -279,7 +145,7 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
         .await
         .map_err(|e: sqlx::Error| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Error querying sheet {}", id), Some(&e.to_string()));
-            ServerFnError::new(format!("Erro ao buscar ficha no banco: {}", e))
+            ServerFnError::new("Erro ao buscar ficha no banco de dados.")
         })?
         .ok_or_else(|| {
             crate::logging::server::write_log(crate::logging::LogCategory::Requests, "WARN", &format!("Sheet with id {} not found", id), None);
@@ -305,24 +171,16 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
     }
 
     let data_json: String = row.get("data");
-    let mut data: CharacterData = match serde_json::from_str(&data_json) {
-        Ok(d) => d,
-        Err(e) => {
+    let mut data: CharacterData = match CharacterData::parse_from_db(&id, &data_json) {
+        Some(d) => d,
+        None => {
             crate::logging::server::write_log(
                 crate::logging::LogCategory::Errors,
-                "WARN",
-                &format!("JSON parsing falhou para ficha {}. Tentando recuperação resiliente...", id),
-                Some(&e.to_string()),
+                "ERROR",
+                &format!("Corrupted JSON for sheet {}", id),
+                None,
             );
-            CharacterData::from_raw_json_resilient(&id, &data_json).ok_or_else(|| {
-                crate::logging::server::write_log(
-                    crate::logging::LogCategory::Errors,
-                    "ERROR",
-                    &format!("Corrupted JSON for sheet {}", id),
-                    Some(&e.to_string()),
-                );
-                ServerFnError::new(format!("Dados da ficha corrompidos: {}", e))
-            })?
+            return Err(ServerFnError::new("Dados da ficha corrompidos no banco de dados."));
         }
     };
 
@@ -454,13 +312,21 @@ pub async fn import_sheet(data: CharacterData) -> Result<String, ServerFnError> 
         let new_id = Uuid::new_v4().to_string();
         let mut imported_data = data;
         imported_data.id = new_id.clone();
+        imported_data.sanitize();
 
-        let raw_name = imported_data.name.trim().to_string();
-        let final_name = if raw_name.is_empty() {
-            "Ficha Importada".to_string()
+        let display_name = imported_data.get_display_name();
+        let final_name = if display_name.is_empty() || display_name == "Novo Mago" || display_name == "Sem Nome" {
+            let raw_name = imported_data.name.trim();
+            if !raw_name.is_empty() && raw_name != "Novo Mago" && raw_name != "Sem Nome" {
+                raw_name.to_string()
+            } else {
+                "Ficha Importada".to_string()
+            }
         } else {
-            raw_name
+            display_name
         };
+        imported_data.name = final_name.clone();
+        imported_data.labels.insert(crate::state::keys::HEADER_NOME.to_string(), final_name.clone());
 
         let s_type = imported_data.sheet_type.clone();
 
@@ -480,7 +346,7 @@ pub async fn import_sheet(data: CharacterData) -> Result<String, ServerFnError> 
 
         let data_json = serde_json::to_string(&imported_data).map_err(|e: serde_json::Error| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Serialization error importing sheet", Some(&e.to_string()));
-            ServerFnError::new(format!("Falha ao serializar dados importados: {}", e))
+            ServerFnError::new("Falha ao serializar dados importados.")
         })?;
 
         // Validação de limite de 5MB por JSON
@@ -498,7 +364,7 @@ pub async fn import_sheet(data: CharacterData) -> Result<String, ServerFnError> 
             .await
             .map_err(|e: sqlx::Error| {
                 crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to insert imported sheet {}", new_id), Some(&e.to_string()));
-                ServerFnError::new(format!("Falha ao salvar ficha importada no banco: {}", e))
+                ServerFnError::new("Falha ao salvar ficha importada no banco de dados.")
             })?;
 
         crate::logging::server::write_log(
@@ -552,29 +418,30 @@ pub async fn create_sheet(name: String, sheet_type: Option<String>) -> Result<St
     } else {
         CharacterData::new(id.clone(), final_name.clone())
     };
+    let resolved_name = initial_data.get_display_name();
 
     let data_json = serde_json::to_string(&initial_data).map_err(|e: serde_json::Error| {
         crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Serialization error creating sheet", Some(&e.to_string()));
-        ServerFnError::new(format!("Falha ao serializar dados iniciais: {}", e))
+        ServerFnError::new("Falha ao serializar dados iniciais da ficha.")
     })?;
 
     sqlx::query("INSERT INTO character_sheets (id, user_id, name, data, sheet_type) VALUES (?, ?, ?, ?, ?)")
         .bind(&id)
         .bind(auth_user_id)
-        .bind(&final_name)
+        .bind(&resolved_name)
         .bind(data_json)
         .bind(&s_type)
         .execute(&pool)
         .await
         .map_err(|e: sqlx::Error| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to insert new sheet {}", id), Some(&e.to_string()));
-            ServerFnError::new(format!("Falha ao salvar nova ficha no banco: {}", e))
+            ServerFnError::new("Falha ao salvar nova ficha no banco de dados.")
         })?;
 
     crate::logging::server::write_log(
         crate::logging::LogCategory::UserActions,
         "INFO",
-        &format!("CREATE SHEET: Nova ficha criada id='{}', tipo='{}', nome='{}' em {}ms", id, s_type, final_name, start.elapsed().as_millis()),
+        &format!("CREATE SHEET: Nova ficha criada id='{}', tipo='{}', nome='{}' em {}ms", id, s_type, resolved_name, start.elapsed().as_millis()),
         None,
     );
 
@@ -589,6 +456,9 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
 
     let mut data = data;
     data.sanitize();
+    let display_name = data.get_display_name();
+    data.name = display_name.clone();
+    data.labels.insert(crate::state::keys::HEADER_NOME.to_string(), display_name.clone());
 
     use sqlx::SqlitePool;
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
@@ -602,7 +472,7 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
     let start = std::time::Instant::now();
     let data_json = serde_json::to_string(&data).map_err(|e: serde_json::Error| {
         crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Serialization error updating sheet {}", id), Some(&e.to_string()));
-        ServerFnError::new(format!("Falha ao serializar dados da ficha: {}", e))
+        ServerFnError::new("Falha ao serializar dados da ficha.")
     })?;
 
     // Limite máximo de 5MB por ficha no banco
@@ -613,7 +483,7 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
     let payload_kb = (data_json.len() as f64) / 1024.0;
     let is_public_int = if data.is_public { 1 } else { 0 };
     let result = sqlx::query("UPDATE character_sheets SET name = ?, data = ?, sheet_type = ?, is_public = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
-        .bind(&data.name)
+        .bind(&display_name)
         .bind(data_json)
         .bind(&data.sheet_type)
         .bind(is_public_int)
@@ -622,7 +492,7 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
         .await
         .map_err(|e: sqlx::Error| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to update sheet {}", id), Some(&e.to_string()));
-            ServerFnError::new(format!("Falha ao atualizar dados da ficha no banco: {}", e))
+            ServerFnError::new("Falha ao atualizar dados da ficha no banco de dados.")
         })?;
 
     if result.rows_affected() == 0 {
@@ -674,7 +544,10 @@ pub async fn get_quiz_questions(sheet_type: Option<String>) -> Result<Vec<QuizQu
         .bind(&splat)
         .fetch_all(&pool)
         .await
-        .map_err(|e| ServerFnError::new(format!("Erro ao buscar perguntas do quiz: {}", e)))?;
+        .map_err(|e| {
+            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to fetch quiz questions", Some(&e.to_string()));
+            ServerFnError::new("Erro ao consultar perguntas do questionário.")
+        })?;
 
     if rows.is_empty() {
         return Ok(crate::state::models::default_quiz_questions());
@@ -716,7 +589,7 @@ pub async fn set_sheet_visibility(id: String, is_public: bool) -> Result<(), Ser
         .await
         .map_err(|e: sqlx::Error| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to update sheet visibility {}", id), Some(&e.to_string()));
-            ServerFnError::new(format!("Falha ao atualizar visibilidade no banco: {}", e))
+            ServerFnError::new("Falha ao atualizar visibilidade no banco de dados.")
         })?;
 
     if result.rows_affected() == 0 {
@@ -755,7 +628,7 @@ pub async fn delete_sheet(id: String) -> Result<(), ServerFnError> {
         .await
         .map_err(|e: sqlx::Error| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to delete sheet {}", id), Some(&e.to_string()));
-            ServerFnError::new(format!("Falha ao excluir ficha do banco: {}", e))
+            ServerFnError::new("Falha ao excluir ficha do banco de dados.")
         })?;
 
     if result.rows_affected() == 0 {

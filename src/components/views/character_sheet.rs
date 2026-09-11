@@ -292,6 +292,7 @@ pub fn CharacterSheet() -> impl IntoView {
 
     view! {
         <div class="sheet-page-container">
+            <leptos_meta::Title text=move || format!("{} | MTA Sheet", data.with(|d| d.get_display_name())) />
             // Barra Superior e Seletor de Modos
             <SheetTopBar 
                 active_origin=active_origin

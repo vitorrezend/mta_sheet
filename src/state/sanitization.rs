@@ -1,5 +1,5 @@
 use super::models::{
-    keys, ArmorItem, AttributeValue, ChantryEntry, CharacterData, CharacterDescriptionData,
+    keys, is_placeholder_name, ArmorItem, AttributeValue, ChantryEntry, CharacterData, CharacterDescriptionData,
     CharacterHistoryData, CharacterNotesData, CharacterVisualsData, DotOrigin, ExpandedBackgroundsData,
     FlawItem, MeritItem, PossessionsData, WeaponItem, WonderItem, GrimoireData, RoteSphereRequirement,
     CharacterQuizData, default_quiz_questions,
@@ -8,8 +8,30 @@ use super::models::{
 impl CharacterData {
     /// Sanitize data: clamp attributes, ensure valid bounds, fix name
     pub fn sanitize(&mut self) {
-        if self.name.trim().is_empty() {
+        let label_name = self.labels.get(keys::HEADER_NOME)
+            .or_else(|| self.labels.get("Name"))
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
+
+        let root_name = self.name.trim().to_string();
+
+        if let Some(lbl) = label_name {
+            if !is_placeholder_name(&lbl) {
+                self.name = lbl.clone();
+                self.labels.insert(keys::HEADER_NOME.to_string(), lbl);
+            } else if !is_placeholder_name(&root_name) {
+                self.name = root_name.clone();
+                self.labels.insert(keys::HEADER_NOME.to_string(), root_name);
+            } else {
+                self.name = lbl.clone();
+                self.labels.insert(keys::HEADER_NOME.to_string(), lbl);
+            }
+        } else if !root_name.is_empty() {
+            self.name = root_name.clone();
+            self.labels.insert(keys::HEADER_NOME.to_string(), root_name);
+        } else {
             self.name = "Sem Nome".to_string();
+            self.labels.insert(keys::HEADER_NOME.to_string(), "Sem Nome".to_string());
         }
 
         // Garante que o questionário tenha todas as perguntas padrão organizadas por categoria
@@ -61,7 +83,7 @@ impl CharacterData {
             }
         }
 
-        // Normalize dot origins for all attributes
+        // Normalize dot origins and supernatural flag for all attributes
         for attr in self.attributes.values_mut() {
             let lvl = attr.level.max(0) as usize;
             while attr.dot_origins.len() < lvl {
@@ -69,6 +91,9 @@ impl CharacterData {
             }
             if attr.dot_origins.len() > lvl {
                 attr.dot_origins.truncate(lvl);
+            }
+            if attr.level < 5 {
+                attr.is_supernatural = false;
             }
         }
 
@@ -209,14 +234,15 @@ impl CharacterData {
     pub fn from_raw_json_resilient(id: &str, raw_json: &str) -> Option<Self> {
         let val: serde_json::Value = serde_json::from_str(raw_json).ok()?;
         let sheet_type = val.get("sheet_type").and_then(|v| v.as_str()).unwrap_or("mage");
+        let initial_name = val.get("name").and_then(|v| v.as_str()).unwrap_or("Personagem Recuperado");
         let mut char_data = if sheet_type == "gods_and_monsters" {
-            CharacterData::new_gods_and_monsters(id.to_string(), "Personagem Recuperado".to_string())
+            CharacterData::new_gods_and_monsters(id.to_string(), initial_name.to_string())
         } else {
-            CharacterData::new(id.to_string(), "Personagem Recuperado".to_string())
+            CharacterData::new(id.to_string(), initial_name.to_string())
         };
 
         if let Some(name) = val.get("name").and_then(|v| v.as_str()) {
-            char_data.name = name.to_string();
+            char_data.set_display_name(name);
         }
 
         if let Some(pub_val) = val.get("is_public").and_then(|v| v.as_bool()) {

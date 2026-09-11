@@ -319,7 +319,17 @@ pub mod server {
         let details_str = details.map(|d| format!(" | {}", d)).unwrap_or_default();
         let line = format!("[{}] [{}] {}{}\n", timestamp, level.to_uppercase(), message, details_str);
 
-        if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&file_path) {
+        // Se estiver executando dentro do runtime assíncrono do Tokio, delega a escrita em disco para o pool bloqueante
+        // evitando travar as threads do reactor sob concorrência
+        if tokio::runtime::Handle::try_current().is_ok() {
+            let fp = file_path.clone();
+            let l = line.clone();
+            tokio::task::spawn_blocking(move || {
+                if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&fp) {
+                    let _ = file.write_all(l.as_bytes());
+                }
+            });
+        } else if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&file_path) {
             let _ = file.write_all(line.as_bytes());
         }
 

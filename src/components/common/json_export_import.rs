@@ -39,7 +39,8 @@ pub fn export_character_json(data: &CharacterData) {
                     if let Ok(url) = web_sys::Url::create_object_url_with_blob(&blob) {
                         if let Ok(element) = document.create_element("a") {
                             if let Ok(a) = element.dyn_into::<web_sys::HtmlAnchorElement>() {
-                                let raw_name = data.name.trim();
+                                let display_name = data.get_display_name();
+                                let raw_name = display_name.trim();
                                 let safe_name = if raw_name.is_empty() {
                                     "ficha_mta".to_string()
                                 } else {

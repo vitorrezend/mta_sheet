@@ -42,152 +42,10 @@ pub async fn get_db() -> SqlitePool {
         .await
         .expect("Failed to connect to SQLite");
 
-    // Initialize tables
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS users (
-            id TEXT PRIMARY KEY,
-            username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            is_admin INTEGER NOT NULL DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )"
-    )
-    .execute(&pool)
-    .await
-    .expect("Failed to create users table");
-
-    // Migration suave para bancos já existentes
-    let _ = sqlx::query("ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0")
-        .execute(&pool)
-        .await;
-
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS sessions (
-            id TEXT PRIMARY KEY,
-            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            expires_at DATETIME NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )"
-    )
-    .execute(&pool)
-    .await
-    .expect("Failed to create sessions table");
-
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS rooms (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            code TEXT UNIQUE NOT NULL,
-            description TEXT DEFAULT '',
-            gm_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )"
-    )
-    .execute(&pool)
-    .await
-    .expect("Failed to create rooms table");
-
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS room_members (
-            room_id TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
-            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            role TEXT NOT NULL DEFAULT 'player',
-            joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (room_id, user_id)
-        )"
-    )
-    .execute(&pool)
-    .await
-    .expect("Failed to create room_members table");
-
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS character_sheets (
-            id TEXT PRIMARY KEY,
-            user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
-            room_id TEXT REFERENCES rooms(id) ON DELETE SET NULL,
-            name TEXT NOT NULL,
-            data TEXT NOT NULL,
-            sheet_type TEXT NOT NULL DEFAULT 'mage',
-            is_public INTEGER NOT NULL DEFAULT 0,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )"
-    )
-    .execute(&pool)
-    .await
-    .expect("Failed to create character_sheets table");
-
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS media_assets (
-            id TEXT PRIMARY KEY,
-            sheet_id TEXT,
-            block TEXT,
-            file_path TEXT NOT NULL,
-            mime_type TEXT NOT NULL,
-            size_bytes INTEGER NOT NULL,
-            data_blob BLOB NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )"
-    )
-    .execute(&pool)
-    .await
-    .expect("Failed to create media_assets table");
-
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS quiz_questions (
-            id TEXT PRIMARY KEY,
-            splat TEXT NOT NULL DEFAULT 'mage',
-            category TEXT NOT NULL DEFAULT 'character',
-            title TEXT NOT NULL,
-            prompt TEXT NOT NULL,
-            sort_order INTEGER NOT NULL DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )"
-    )
-    .execute(&pool)
-    .await
-    .expect("Failed to create quiz_questions table");
-
-    sqlx::query(
-        "CREATE TABLE IF NOT EXISTS character_quiz_answers (
-            character_id TEXT NOT NULL REFERENCES character_sheets(id) ON DELETE CASCADE,
-            question_id TEXT NOT NULL REFERENCES quiz_questions(id) ON DELETE CASCADE,
-            answer TEXT NOT NULL DEFAULT '',
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (character_id, question_id)
-        )"
-    )
-    .execute(&pool)
-    .await
-    .expect("Failed to create character_quiz_answers table");
-
-    // Graceful migrations for existing databases
-    let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN user_id TEXT REFERENCES users(id) ON DELETE SET NULL").execute(&pool).await;
-    let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN room_id TEXT REFERENCES rooms(id) ON DELETE SET NULL").execute(&pool).await;
-    let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN sheet_type TEXT NOT NULL DEFAULT 'mage'").execute(&pool).await;
-    let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN is_public INTEGER NOT NULL DEFAULT 0").execute(&pool).await;
-    let _ = sqlx::query("ALTER TABLE character_sheets ADD COLUMN is_hidden_in_room INTEGER NOT NULL DEFAULT 0").execute(&pool).await;
-    let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN chantry_data TEXT DEFAULT ''").execute(&pool).await;
-    let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN chronicle_notes TEXT DEFAULT ''").execute(&pool).await;
-    let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN initiative_data TEXT DEFAULT ''").execute(&pool).await;
-    let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN map_data TEXT DEFAULT ''").execute(&pool).await;
-    let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN is_public INTEGER NOT NULL DEFAULT 0").execute(&pool).await;
-    let _ = sqlx::query("ALTER TABLE rooms ADD COLUMN password_hash TEXT DEFAULT ''").execute(&pool).await;
-
-    // Índices de alta performance para evitar Full Table Scans no SQLite
-    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_user_id ON character_sheets (user_id)").execute(&pool).await;
-    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_public ON character_sheets (is_public)").execute(&pool).await;
-    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_room_id ON character_sheets (room_id)").execute(&pool).await;
-    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_updated_at ON character_sheets (updated_at DESC)").execute(&pool).await;
-    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id)").execute(&pool).await;
-    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions (expires_at)").execute(&pool).await;
-    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_rooms_code ON rooms (code)").execute(&pool).await;
-    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_rooms_public ON rooms (is_public)").execute(&pool).await;
-    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_room_members_user_id ON room_members (user_id)").execute(&pool).await;
-    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_quiz_questions_splat ON quiz_questions (splat, sort_order)").execute(&pool).await;
-    let _ = sqlx::query("CREATE INDEX IF NOT EXISTS idx_character_quiz_answers_char ON character_quiz_answers (character_id)").execute(&pool).await;
-
-    // Limpeza de sessões expiradas na inicialização
-    let _ = sqlx::query("DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP").execute(&pool).await;
+    // Initialize schema and migrations
+    if let Err(e) = ensure_schema(&pool).await {
+        log::error!("Falha crítica ao inicializar schema do banco de dados: {}", e);
+    }
 
     // Automatic extraction of legacy base64 images from JSON to static uploads and media_assets
     migrate_and_extract_base64_images(&pool).await;
@@ -200,6 +58,147 @@ pub async fn get_db() -> SqlitePool {
     migrate_existing_quiz_answers(&pool).await;
 
     pool
+}
+
+#[cfg(feature = "ssr")]
+async fn ensure_column(pool: &SqlitePool, table: &str, column: &str, definition: &str) -> Result<(), sqlx::Error> {
+    use sqlx::Row;
+    let pragma_query = format!("PRAGMA table_info({})", table);
+    let rows = sqlx::query(&pragma_query).fetch_all(pool).await?;
+    let column_exists = rows.iter().any(|r| {
+        let col_name: String = r.get("name");
+        col_name.eq_ignore_ascii_case(column)
+    });
+    if !column_exists {
+        let alter_query = format!("ALTER TABLE {} ADD COLUMN {} {}", table, column, definition);
+        sqlx::query(&alter_query).execute(pool).await?;
+        log::info!("Schema Migration: Adicionada coluna '{}.{}'", table, column);
+    }
+    Ok(())
+}
+
+#[cfg(feature = "ssr")]
+async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+    // 1. Core Tables
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            is_admin INTEGER NOT NULL DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    ).execute(pool).await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS sessions (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            expires_at DATETIME NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    ).execute(pool).await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS rooms (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            code TEXT UNIQUE NOT NULL,
+            description TEXT DEFAULT '',
+            gm_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    ).execute(pool).await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS room_members (
+            room_id TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            role TEXT NOT NULL DEFAULT 'player',
+            joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (room_id, user_id)
+        )"
+    ).execute(pool).await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS character_sheets (
+            id TEXT PRIMARY KEY,
+            user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+            room_id TEXT REFERENCES rooms(id) ON DELETE SET NULL,
+            name TEXT NOT NULL,
+            data TEXT NOT NULL,
+            sheet_type TEXT NOT NULL DEFAULT 'mage',
+            is_public INTEGER NOT NULL DEFAULT 0,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    ).execute(pool).await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS media_assets (
+            id TEXT PRIMARY KEY,
+            sheet_id TEXT,
+            block TEXT,
+            file_path TEXT NOT NULL,
+            mime_type TEXT NOT NULL,
+            size_bytes INTEGER NOT NULL,
+            data_blob BLOB NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    ).execute(pool).await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS quiz_questions (
+            id TEXT PRIMARY KEY,
+            splat TEXT NOT NULL DEFAULT 'mage',
+            category TEXT NOT NULL DEFAULT 'character',
+            title TEXT NOT NULL,
+            prompt TEXT NOT NULL,
+            sort_order INTEGER NOT NULL DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    ).execute(pool).await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS character_quiz_answers (
+            character_id TEXT NOT NULL REFERENCES character_sheets(id) ON DELETE CASCADE,
+            question_id TEXT NOT NULL REFERENCES quiz_questions(id) ON DELETE CASCADE,
+            answer TEXT NOT NULL DEFAULT '',
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (character_id, question_id)
+        )"
+    ).execute(pool).await?;
+
+    // 2. Colunas evolutivas checadas via PRAGMA (sem erros descartados com let _ =)
+    ensure_column(pool, "users", "is_admin", "INTEGER NOT NULL DEFAULT 0").await?;
+    ensure_column(pool, "character_sheets", "user_id", "TEXT REFERENCES users(id) ON DELETE SET NULL").await?;
+    ensure_column(pool, "character_sheets", "room_id", "TEXT REFERENCES rooms(id) ON DELETE SET NULL").await?;
+    ensure_column(pool, "character_sheets", "sheet_type", "TEXT NOT NULL DEFAULT 'mage'").await?;
+    ensure_column(pool, "character_sheets", "is_public", "INTEGER NOT NULL DEFAULT 0").await?;
+    ensure_column(pool, "character_sheets", "is_hidden_in_room", "INTEGER NOT NULL DEFAULT 0").await?;
+    ensure_column(pool, "rooms", "chantry_data", "TEXT DEFAULT ''").await?;
+    ensure_column(pool, "rooms", "chronicle_notes", "TEXT DEFAULT ''").await?;
+    ensure_column(pool, "rooms", "initiative_data", "TEXT DEFAULT ''").await?;
+    ensure_column(pool, "rooms", "map_data", "TEXT DEFAULT ''").await?;
+    ensure_column(pool, "rooms", "is_public", "INTEGER NOT NULL DEFAULT 0").await?;
+    ensure_column(pool, "rooms", "password_hash", "TEXT DEFAULT ''").await?;
+
+    // 3. Índices de alta performance
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_user_id ON character_sheets (user_id)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_public ON character_sheets (is_public)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_room_id ON character_sheets (room_id)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_updated_at ON character_sheets (updated_at DESC)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions (expires_at)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_rooms_code ON rooms (code)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_rooms_public ON rooms (is_public)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_room_members_user_id ON room_members (user_id)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_quiz_questions_splat ON quiz_questions (splat, sort_order)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_character_quiz_answers_char ON character_quiz_answers (character_id)").execute(pool).await?;
+
+    // 4. Limpeza de sessões expiradas na inicialização
+    sqlx::query("DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP").execute(pool).await?;
+
+    Ok(())
 }
 
 #[cfg(feature = "ssr")]

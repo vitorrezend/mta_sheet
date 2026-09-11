@@ -31,10 +31,12 @@ mkdir -p uploads target/site/pkg styles
 if [ "$1" = "build" ]; then
     echo "[INFO] Compilando no perfil DEV (sem watcher)..."
     cargo leptos build
+    [ -f target/site/pkg/mta_sheet.wasm ] && [ ! -f target/site/pkg/mta_sheet_bg.wasm ] && cp target/site/pkg/mta_sheet.wasm target/site/pkg/mta_sheet_bg.wasm
     exit 0
 fi
 
 # 4. Executa com cargo-leptos watch ou fallback
+[ -f target/site/pkg/mta_sheet.wasm ] && [ ! -f target/site/pkg/mta_sheet_bg.wasm ] && cp target/site/pkg/mta_sheet.wasm target/site/pkg/mta_sheet_bg.wasm
 if command -v cargo-leptos &> /dev/null; then
     echo "[INFO] Iniciando servidor com Hot-Reload (cargo leptos watch)..."
     cargo leptos watch
