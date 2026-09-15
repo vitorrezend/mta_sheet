@@ -796,7 +796,7 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
             char_data.get_profile_photo()
         };
 
-        let essence = char_data.get_label(crate::state::keys::HEADER_ESSENCIA);
+        let essence = char_data.get_essence();
         let sheet_type = if char_data.sheet_type.is_empty() {
             "mage".to_string()
         } else {
@@ -823,7 +823,7 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
             id,
             name: display_name,
             player_name: char_data.get_label(crate::state::keys::HEADER_JOGADOR),
-            tradition: char_data.get_label(crate::state::keys::HEADER_TRADICAO),
+            tradition: char_data.get_tradition(),
             essence,
             concept: char_data.get_label(crate::state::keys::HEADER_CONCEITO),
             sheet_type,

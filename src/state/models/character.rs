@@ -228,14 +228,14 @@ impl CharacterData {
     pub fn to_summary(&self, updated_at: String, is_public: bool, is_owner: bool) -> CharacterSummary {
         let (tradition, essence, arete) = if self.is_gods_and_monsters() {
             (
-                self.labels.get("Type").cloned().unwrap_or_else(|| "Familiar / Bygone".to_string()),
-                self.labels.get("Concept").cloned().unwrap_or_default(),
+                self.get_tradition(),
+                self.get_essence(),
                 self.get_attribute_level("Gnosis", 0),
             )
         } else {
             (
-                self.labels.get("Tradição").cloned().unwrap_or_default(),
-                self.labels.get("Essência").cloned().unwrap_or_default(),
+                self.get_tradition(),
+                self.get_essence(),
                 self.get_attribute_level(keys::KEY_ARETE, 1),
             )
         };
@@ -421,17 +421,118 @@ impl CharacterData {
         }
     }
 
+    pub fn get_tradition(&self) -> String {
+        if self.is_gods_and_monsters() {
+            self.labels.get("Type")
+                .or_else(|| self.labels.get("Tipo"))
+                .map(|s| s.trim())
+                .filter(|s| !s.is_empty())
+                .unwrap_or("Familiar / Bygone")
+                .to_string()
+        } else {
+            self.labels.get(keys::HEADER_TRADICAO)
+                .or_else(|| self.labels.get("Tradição"))
+                .or_else(|| self.labels.get("Tradition"))
+                .map(|s| s.trim())
+                .filter(|s| !s.is_empty())
+                .unwrap_or_default()
+                .to_string()
+        }
+    }
+
+    pub fn set_tradition(&mut self, val: &str) {
+        let clean = val.trim().to_string();
+        if self.is_gods_and_monsters() {
+            self.labels.insert("Type".to_string(), clean);
+        } else {
+            self.labels.insert(keys::HEADER_TRADICAO.to_string(), clean.clone());
+            self.labels.insert("Tradição".to_string(), clean);
+        }
+    }
+
+    pub fn get_essence(&self) -> String {
+        if self.is_gods_and_monsters() {
+            self.labels.get("Concept")
+                .or_else(|| self.labels.get("Conceito"))
+                .map(|s| s.trim())
+                .filter(|s| !s.is_empty())
+                .unwrap_or_default()
+                .to_string()
+        } else {
+            self.labels.get(keys::HEADER_ESSENCIA)
+                .or_else(|| self.labels.get("Essência"))
+                .or_else(|| self.labels.get("Essence"))
+                .map(|s| s.trim())
+                .filter(|s| !s.is_empty())
+                .unwrap_or_default()
+                .to_string()
+        }
+    }
+
+    pub fn set_essence(&mut self, val: &str) {
+        let clean = val.trim().to_string();
+        if self.is_gods_and_monsters() {
+            self.labels.insert("Concept".to_string(), clean);
+        } else {
+            self.labels.insert(keys::HEADER_ESSENCIA.to_string(), clean.clone());
+            self.labels.insert("Essência".to_string(), clean);
+        }
+    }
+
     pub fn get_label(&self, key: &str) -> String {
-        if key == "Nome" || key == keys::HEADER_NOME {
+        if key == "Nome" || key == keys::HEADER_NOME || key == "Name" {
             self.get_display_name()
+        } else if key == keys::HEADER_TRADICAO || key == "Tradição" || key == "Tradition" {
+            self.get_tradition()
+        } else if key == keys::HEADER_ESSENCIA || key == "Essência" || key == "Essence" {
+            self.get_essence()
+        } else if key == keys::HEADER_CRONICA || key == "Crônica" || key == "Chronicle" {
+            self.labels.get(keys::HEADER_CRONICA)
+                .or_else(|| self.labels.get("Crônica"))
+                .or_else(|| self.labels.get("Chronicle"))
+                .cloned()
+                .unwrap_or_default()
+        } else if key == keys::HEADER_NATUREZA || key == "Nature" {
+            self.labels.get(keys::HEADER_NATUREZA)
+                .or_else(|| self.labels.get("Nature"))
+                .cloned()
+                .unwrap_or_default()
+        } else if key == keys::HEADER_COMPORTAMENTO || key == "Demeanor" {
+            self.labels.get(keys::HEADER_COMPORTAMENTO)
+                .or_else(|| self.labels.get("Demeanor"))
+                .cloned()
+                .unwrap_or_default()
+        } else if key == keys::HEADER_CONCEITO || key == "Concept" {
+            self.labels.get(keys::HEADER_CONCEITO)
+                .or_else(|| self.labels.get("Concept"))
+                .cloned()
+                .unwrap_or_default()
+        } else if key == keys::HEADER_CABALA || key == "Cabal" {
+            self.labels.get(keys::HEADER_CABALA)
+                .or_else(|| self.labels.get("Cabal"))
+                .cloned()
+                .unwrap_or_default()
+        } else if key == keys::HEADER_JOGADOR || key == "Player" {
+            self.labels.get(keys::HEADER_JOGADOR)
+                .or_else(|| self.labels.get("Player"))
+                .cloned()
+                .unwrap_or_default()
         } else {
             self.labels.get(key).cloned().unwrap_or_default()
         }
     }
 
     pub fn set_label(&mut self, key: &str, val: String) {
-        if key == "Nome" || key == keys::HEADER_NOME {
+        if key == "Nome" || key == keys::HEADER_NOME || key == "Name" {
             self.set_display_name(&val);
+        } else if key == keys::HEADER_TRADICAO || key == "Tradição" || key == "Tradition" {
+            self.set_tradition(&val);
+        } else if key == keys::HEADER_ESSENCIA || key == "Essência" || key == "Essence" {
+            self.set_essence(&val);
+        } else if key == keys::HEADER_CRONICA || key == "Crônica" || key == "Chronicle" {
+            let clean = val.trim().to_string();
+            self.labels.insert(keys::HEADER_CRONICA.to_string(), clean.clone());
+            self.labels.insert("Crônica".to_string(), clean);
         } else {
             self.labels.insert(key.to_string(), val);
         }

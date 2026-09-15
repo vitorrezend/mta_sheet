@@ -121,7 +121,7 @@ pub fn Abilities() -> impl IntoView {
         });
         let origins = Signal::derive({
             let name = n_origins.clone();
-            move || data.with(|d| d.attributes.get(&name).map(|a| a.get_origins(6)).unwrap_or_else(|| vec![DotOrigin::Base; 6]))
+            move || data.with(|d| d.attributes.get(&name).map(|a| a.get_origins(10)).unwrap_or_else(|| vec![DotOrigin::Base; 10]))
         });
         let is_supernatural = Signal::derive({
             let name = n_sup.clone();

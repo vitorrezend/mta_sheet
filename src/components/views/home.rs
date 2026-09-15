@@ -448,8 +448,8 @@ where
                                             <span class="meta-tag type-badge-mage">{crate::i18n::tr("card_tag_mage", current_lang)}</span>
                                         }.into_view()
                                     }}
-                                    <span class="meta-tag tradition-tag">{tradition_display}</span>
-                                    <span class="meta-tag essence-tag">{essence_display}</span>
+                                    <span class="meta-tag tradition-tag" title=tradition_display.clone()>{tradition_display}</span>
+                                    <span class="meta-tag essence-tag" title=essence_display.clone()>{essence_display}</span>
                                     {if is_owner {
                                         view! {
                                             <button

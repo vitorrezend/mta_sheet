@@ -870,6 +870,47 @@ mod tests {
     }
 
     #[test]
+    fn test_supernatural_levels_6_to_10_and_origin_breakdown() {
+        let mut char_data = CharacterData::new("sup_deus".to_string(), "Hércules Arcano".to_string());
+
+        // Atribuir Força nível 10 (5 Base + 3 XP + 2 Buff/Temp)
+        char_data.set_attribute_with_origin("Força", Some(10), Some("Força Titânica".to_string()), DotOrigin::Base);
+        assert_eq!(char_data.get_attribute_level("Força", 1), 10);
+        assert_eq!(char_data.is_attribute_supernatural("Força"), true);
+
+        // Customizar origens dos pontos 6 a 10
+        // pontos 6, 7, 8 (índices 5, 6, 7) como XP
+        char_data.set_attribute_dot_origin("Força", 5, DotOrigin::Experience);
+        char_data.set_attribute_dot_origin("Força", 6, DotOrigin::Experience);
+        char_data.set_attribute_dot_origin("Força", 7, DotOrigin::Experience);
+        // pontos 9, 10 (índices 8, 9) como Temporary (Buff)
+        char_data.set_attribute_dot_origin("Força", 8, DotOrigin::Temporary);
+        char_data.set_attribute_dot_origin("Força", 9, DotOrigin::Temporary);
+
+        let attr = char_data.attributes.get("Força").unwrap();
+        assert_eq!(attr.level, 10);
+        assert_eq!(attr.is_supernatural, true);
+        assert_eq!(attr.count_origins(), (5, 0, 3, 2));
+
+        let origins = attr.get_origins(10);
+        assert_eq!(origins.len(), 10);
+        assert_eq!(origins[0], DotOrigin::Base);
+        assert_eq!(origins[4], DotOrigin::Base);
+        assert_eq!(origins[5], DotOrigin::Experience);
+        assert_eq!(origins[7], DotOrigin::Experience);
+        assert_eq!(origins[8], DotOrigin::Temporary);
+        assert_eq!(origins[9], DotOrigin::Temporary);
+
+        // Serialização e integridade
+        let json = serde_json::to_string(&char_data).unwrap();
+        let recovered: CharacterData = serde_json::from_str(&json).unwrap();
+        assert_eq!(recovered.get_attribute_level("Força", 1), 10);
+        assert_eq!(recovered.is_attribute_supernatural("Força"), true);
+        let rec_attr = recovered.attributes.get("Força").unwrap();
+        assert_eq!(rec_attr.count_origins(), (5, 0, 3, 2));
+    }
+
+    #[test]
     fn test_character_name_and_label_synchronization() {
         use crate::state::keys;
 
@@ -915,6 +956,58 @@ mod tests {
         gm_char.set_display_name("Gárgula de Pedra");
         assert_eq!(gm_char.get_display_name(), "Gárgula de Pedra");
         assert_eq!(gm_char.to_summary("agora".to_string(), false, true).name, "Gárgula de Pedra");
+    }
+
+    #[test]
+    fn test_tradition_and_essence_summary_persistence_and_aliases() {
+        use crate::state::models::CharacterData;
+        use crate::state::keys;
+
+        // 1. Nova ficha sem tradição: to_summary deve ter tradition vazia
+        let mut char_data = CharacterData::new("mago-trad-1".to_string(), "Novo Mago".to_string());
+        let summary_empty = char_data.to_summary("agora".to_string(), false, true);
+        assert_eq!(summary_empty.tradition, "");
+        assert_eq!(summary_empty.essence, "");
+        assert_eq!(char_data.get_tradition(), "");
+        assert_eq!(char_data.get_essence(), "");
+
+        // 2. Definindo tradição e essência via chaves padrão usadas na UI (Tradicao, Essencia)
+        char_data.set_label("Tradicao", "Ordem de Hermes".to_string());
+        char_data.set_label("Essencia", "Hermética / Estática".to_string());
+        assert_eq!(char_data.get_tradition(), "Ordem de Hermes");
+        assert_eq!(char_data.get_essence(), "Hermética / Estática");
+        assert_eq!(char_data.get_label(keys::HEADER_TRADICAO), "Ordem de Hermes");
+        assert_eq!(char_data.get_label("Tradição"), "Ordem de Hermes");
+        assert_eq!(char_data.get_label("Tradition"), "Ordem de Hermes");
+
+        let summary = char_data.to_summary("agora".to_string(), false, true);
+        assert_eq!(summary.tradition, "Ordem de Hermes");
+        assert_eq!(summary.essence, "Hermética / Estática");
+
+        // 3. Sanitização preserva e sincroniza variantes acentuadas
+        char_data.sanitize();
+        assert_eq!(char_data.labels.get("Tradicao").map(|s| s.as_str()), Some("Ordem de Hermes"));
+        assert_eq!(char_data.labels.get("Tradição").map(|s| s.as_str()), Some("Ordem de Hermes"));
+        assert_eq!(char_data.labels.get("Essencia").map(|s| s.as_str()), Some("Hermética / Estática"));
+        assert_eq!(char_data.labels.get("Essência").map(|s| s.as_str()), Some("Hermética / Estática"));
+
+        // 4. Testando ficha legada que usava "Tradição" diretamente
+        let mut legacy = CharacterData::new("legacy-trad".to_string(), "Feiticeira".to_string());
+        legacy.labels.remove("Tradicao");
+        legacy.labels.insert("Tradição".to_string(), "Verbena".to_string());
+        assert_eq!(legacy.get_tradition(), "Verbena");
+        let leg_summary = legacy.to_summary("agora".to_string(), false, true);
+        assert_eq!(leg_summary.tradition, "Verbena");
+
+        // 5. Gods & Monsters
+        let mut gm = CharacterData::new_gods_and_monsters("gm-trad-1".to_string(), "Basilisco".to_string());
+        gm.set_label("Type", "Bygone Titânico".to_string());
+        gm.set_label("Concept", "Predador Antigo".to_string());
+        assert_eq!(gm.get_tradition(), "Bygone Titânico");
+        assert_eq!(gm.get_essence(), "Predador Antigo");
+        let gm_summary = gm.to_summary("agora".to_string(), false, true);
+        assert_eq!(gm_summary.tradition, "Bygone Titânico");
+        assert_eq!(gm_summary.essence, "Predador Antigo");
     }
 }
 

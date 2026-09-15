@@ -19,6 +19,44 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.16.0",
+        date: "2026-09-15",
+        tag: "v0.16.0",
+        title: "Atributos Sobrenaturais (6-10), Focus-Lock e Resolução de Tradição nos Cards",
+        highlight: "Nova interface compacta para traços sobrenaturais (níveis 6 a 10) com painel flutuante dedicado e identificação de traço, campo de especialização com Focus-Lock e correção definitiva da pílula de Tradição e Essência nos cards.",
+        sections: &[
+            PatchSection {
+                category: "Atributos & Habilidades Sobrenaturais (6-10)",
+                icon: "✦",
+                items: &[
+                    "💎 Design Minimalista e Compacto: Traços sobrenaturais permanecem 100% ocultos em níveis mortais (0-4), eliminando truncamento de nomes de atributos.",
+                    "⚡ Ativação Inteligente no Nível 5: Separador e losango místico clicável surgem apenas ao completar o quinto ponto, abrindo o painel de expansão épica.",
+                    "🔮 Painel Flutuante com Escala de Losangos: Controle dedicado de 6 a 10 (+1 a +5) com seleção direta, botão de reset e menu de origem de pontos.",
+                    "🏷️ Identificação Clara do Traço: Cabeçalho do modal destaca o nome do atributo/habilidade sendo editado e badge dinâmica de nível total.",
+                    "✍️ Modificador / Especialização Integrada: Campo de texto curto para especialização sobrenatural no modal com Focus-Lock (salvamento seguro no blur ou fechamento).",
+                    "🎨 Badges de Alto Contraste: Quando recolhido, o traço sobrenatural exibe botão ultra-compacto (+1 a +5) com cores sólidas indicativas da origem dos pontos (Bônus roxo, XP esmeralda, Buff dourado, Base ardósia).",
+                ],
+            },
+            PatchSection {
+                category: "Sincronização de Tradição & Cards",
+                icon: "🃏",
+                items: &[
+                    "🏷️ Resolução de Tradição e Essência: Resolutores resilientes eliminam o problema onde o card inicial mostrava sempre 'Tradição não definida', sincronizando chaves internas e acentuadas.",
+                    "🏰 Suporte Unificado em Salas: A visão da mesa e membros da cabala agora exibe com fidelidade a Tradição e Essência dos magos e o Tipo dos seres de Gods & Monsters.",
+                    "💬 Tooltip de Leitura: Adicionado atributo title nas tags de metadados dos cards para visualização imediata do texto completo.",
+                ],
+            },
+            PatchSection {
+                category: "Qualidade & Testes",
+                icon: "🧪",
+                items: &[
+                    "✅ 115 Testes Automatizados: Expansão da suíte de testes cobrindo limites 6-10, compatibilidade de esquemas, SSR e persistência de apelidos de traços.",
+                    "🛡️ Zero Warnings: Compilação limpa tanto no backend Axum quanto no frontend WASM Leptos.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.15.0",
         date: "2026-09-11",
         tag: "v0.15.0",

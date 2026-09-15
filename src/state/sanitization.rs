@@ -34,6 +34,18 @@ impl CharacterData {
             self.labels.insert(keys::HEADER_NOME.to_string(), "Sem Nome".to_string());
         }
 
+        // Sincroniza e normaliza chaves de Tradição e Essência caso existam variantes com acento / inglês
+        let trad = self.get_tradition();
+        if !trad.is_empty() && !self.is_gods_and_monsters() {
+            self.labels.insert(keys::HEADER_TRADICAO.to_string(), trad.clone());
+            self.labels.insert("Tradição".to_string(), trad);
+        }
+        let ess = self.get_essence();
+        if !ess.is_empty() && !self.is_gods_and_monsters() {
+            self.labels.insert(keys::HEADER_ESSENCIA.to_string(), ess.clone());
+            self.labels.insert("Essência".to_string(), ess);
+        }
+
         // Garante que o questionário tenha todas as perguntas padrão organizadas por categoria
         let defaults = default_quiz_questions();
         if self.quiz_data.entries.len() < defaults.len() {

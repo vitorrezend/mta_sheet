@@ -28,6 +28,7 @@ pub fn ValueField(
     let on_modifier_change = Rc::new(on_modifier_change);
     let (open_popover_idx, set_open_popover_idx) = create_signal(Option::<usize>::None);
     let (show_context_menu, set_show_context_menu) = create_signal(false);
+    let (show_supernatural_modal, set_show_supernatural_modal) = create_signal(false);
 
     let display_label = move || {
         let l = label.get();
@@ -92,6 +93,22 @@ pub fn ValueField(
                 elem.set_value(&val);
             }
             let _ = last_modifier_value.try_set(val);
+        }
+    });
+
+    // Focus-Lock para o campo de modificador dentro do painel sobrenatural
+    let sup_modifier_ref = create_node_ref::<html::Input>();
+    let is_sup_modifier_focused = create_rw_signal(false);
+    let last_sup_modifier_value = create_rw_signal(String::new());
+
+    create_effect(move |_| {
+        let val = modifier.get();
+        let is_open = show_supernatural_modal.get();
+        if is_open && !is_sup_modifier_focused.get_untracked() {
+            if let Some(elem) = sup_modifier_ref.get() {
+                elem.set_value(&val);
+            }
+            let _ = last_sup_modifier_value.try_set(val);
         }
     });
 
@@ -225,21 +242,38 @@ pub fn ValueField(
                                     <button 
                                         type="button" 
                                         class="label-context-item"
-                                        on:click={
-                                            let cb = on_toggle_cb.clone();
-                                            move |_| {
-                                                set_show_context_menu.set(false);
-                                                cb.call(());
-                                            }
+                                        on:click=move |_| {
+                                            set_show_context_menu.set(false);
+                                            set_show_supernatural_modal.set(true);
                                         }
                                     >
                                         <span class="context-item-icon">"✦"</span>
-                                        {move || if is_sup() {
-                                            "Desativar Característica Sobrenatural (5)"
-                                        } else {
-                                            "Habilitar Característica Sobrenatural (6º Ponto)"
-                                        }}
+                                        "Escala Sobrenatural (6 a 10)"
                                     </button>
+                                    {
+                                        let on_click_level_reset = on_level_change_click.clone();
+                                        let on_toggle_reset = on_toggle_cb.clone();
+                                        move || if is_sup() {
+                                            let on_click_level_reset = on_click_level_reset.clone();
+                                            let on_toggle_reset = on_toggle_reset.clone();
+                                            view! {
+                                                <button 
+                                                    type="button" 
+                                                    class="label-context-item"
+                                                    on:click=move |_| {
+                                                        set_show_context_menu.set(false);
+                                                        on_click_level_reset(5);
+                                                        on_toggle_reset.call(());
+                                                    }
+                                                >
+                                                    <span class="context-item-icon">"↺"</span>
+                                                    "Resetar para Nível 5 (Mortal)"
+                                                </button>
+                                            }.into_view()
+                                        } else {
+                                            view! {}.into_view()
+                                        }
+                                    }
                                 </div>
                             </div>
                         }.into_view()
@@ -401,135 +435,386 @@ pub fn ValueField(
 
             {
                 if has_supernatural_support {
-                    let is_sup_active = move || level.get() >= 5;
-                    let sixth_idx = 5usize;
-                    let is_sixth_filled = move || level.get() >= 6;
-                    let sixth_dot_color = move || {
-                        if level.get() >= 6 {
-                            if let Some(sig) = origins {
-                                let list = sig.get();
-                                if sixth_idx < list.len() {
-                                    list[sixth_idx].color_class()
-                                } else {
-                                    "dot-base"
+                    let supernatural_badge_class = move || {
+                        let cur = level.get();
+                        if cur <= 5 {
+                            return "badge-origin-base";
+                        }
+                        if let Some(sig) = origins {
+                            let list = sig.get();
+                            let sup_slice = (5..cur.min(10) as usize).filter_map(|i| list.get(i));
+                            let mut has_temp = false;
+                            let mut has_xp = false;
+                            let mut has_bonus = false;
+                            for &orig in sup_slice {
+                                match orig {
+                                    DotOrigin::Temporary => has_temp = true,
+                                    DotOrigin::Experience => has_xp = true,
+                                    DotOrigin::Bonus => has_bonus = true,
+                                    DotOrigin::Base => {}
                                 }
+                            }
+                            if has_temp {
+                                "badge-origin-temp"
+                            } else if has_xp {
+                                "badge-origin-xp"
+                            } else if has_bonus {
+                                "badge-origin-bonus"
                             } else {
-                                "dot-base"
+                                "badge-origin-base"
                             }
                         } else {
-                            ""
+                            "badge-origin-base"
                         }
                     };
 
-                    let is_sixth_popover_open = move || open_popover_idx.get() == Some(sixth_idx);
-
+                    let on_click_level_sup = on_level_change_click.clone();
                     let on_dot_change_for_right_click = on_dot_origin_change.clone();
-                    let on_sixth_right_click = move |ev: ev::MouseEvent| {
-                        ev.prevent_default();
-                        if level.get() >= 6 && on_dot_change_for_right_click.is_some() {
-                            set_open_popover_idx.update(|cur| {
-                                *cur = if *cur == Some(sixth_idx) { None } else { Some(sixth_idx) };
-                            });
-                        }
-                    };
-
                     let on_dot_change_for_popover = on_dot_origin_change.clone();
-                    let set_sixth_origin_to = move |origin: DotOrigin| {
-                        if let Some(cb) = on_dot_change_for_popover.as_ref() {
-                            cb.call((sixth_idx, origin));
-                        }
-                        set_open_popover_idx.set(None);
-                    };
-
-                    let on_click_level_sixth = on_level_change_click.clone();
-                    let set_base = set_sixth_origin_to.clone();
-                    let set_bonus = set_sixth_origin_to.clone();
-                    let set_xp = set_sixth_origin_to.clone();
-                    let set_temp = set_sixth_origin_to;
-
-                    let set_base_for_popover = set_base.clone();
-                    let set_bonus_for_popover = set_bonus.clone();
-                    let set_xp_for_popover = set_xp.clone();
-                    let set_temp_for_popover = set_temp.clone();
 
                     view! {
-                        <div 
-                            class="supernatural-container supernatural-slot"
-                            class:hidden=move || !is_sup_active()
-                        >
-                            <span class="supernatural-separator">"|"</span>
-                            <div class="dot-wrapper">
-                                <span 
-                                    class="dot dot-supernatural"
-                                    class:filled=is_sixth_filled
-                                    class=("dot-base", move || is_sixth_filled() && sixth_dot_color() == "dot-base")
-                                    class=("dot-bonus", move || is_sixth_filled() && sixth_dot_color() == "dot-bonus")
-                                    class=("dot-xp", move || is_sixth_filled() && sixth_dot_color() == "dot-xp")
-                                    class=("dot-temp", move || is_sixth_filled() && sixth_dot_color() == "dot-temp")
-                                    on:click={
-                                        let on_click_sixth = on_click_level_sixth.clone();
-                                        move |_| {
-                                            set_open_popover_idx.set(None);
-                                            let current = level.get();
-                                            let new_val = if current >= 6 { 5 } else { 6 };
-                                            on_click_sixth(new_val);
-                                        }
-                                    }
-                                    on:contextmenu=on_sixth_right_click
-                                    title="6º Ponto Sobrenatural (Losango) | Botão esquerdo: alternar | Botão direito: mudar origem"
-                                ></span>
+                        {move || {
+                            let cur_lvl = level.get();
+                            let is_modal_open = show_supernatural_modal.get();
 
-                                {
-                                    let set_base = set_base_for_popover.clone();
-                                    let set_bonus = set_bonus_for_popover.clone();
-                                    let set_xp = set_xp_for_popover.clone();
-                                    let set_temp = set_temp_for_popover.clone();
-                                    move || if is_sixth_popover_open() {
-                                        let set_base = set_base.clone();
-                                        let set_bonus = set_bonus.clone();
-                                        let set_xp = set_xp.clone();
-                                        let set_temp = set_temp.clone();
+                            // 1. Quando nível < 5 e o modal não está aberto: COMPLETAMENTE OCULTO (0px, sem interferir no layout)
+                            if cur_lvl < 5 && !is_modal_open {
+                                return view! {}.into_view();
+                            }
+
+                            let on_click_level_sup = on_click_level_sup.clone();
+                            let on_dot_change_for_right_click = on_dot_change_for_right_click.clone();
+                            let on_dot_change_for_popover = on_dot_change_for_popover.clone();
+
+                            view! {
+                                <div class="supernatural-container supernatural-slot" class:supernatural-empty=move || level.get() == 5>
+                                    // 2. Quando nível >= 6: Exibe "|" e o botão compacto com apenas a escrita +1, +2, +3, +4 ou +5
+                                    {if cur_lvl >= 6 {
+                                        let extra = cur_lvl - 5;
                                         view! {
-                                            <div class="dot-origin-popover" on:click=move |ev| ev.stop_propagation()>
-                                                <div class="popover-title">"Origem Sobrenatural:"</div>
-                                                <div class="popover-options">
-                                                    <button 
-                                                        class="popover-btn btn-base" 
-                                                        on:click=move |_| set_base(DotOrigin::Base)
-                                                        title="Criação Base"
-                                                    >
-                                                        <span class="popover-dot dot-base"></span> "Base"
-                                                    </button>
-                                                    <button 
-                                                        class="popover-btn btn-bonus" 
-                                                        on:click=move |_| set_bonus(DotOrigin::Bonus)
-                                                        title="Pontos de Bônus (Freebies)"
-                                                    >
-                                                        <span class="popover-dot dot-bonus"></span> "Bônus"
-                                                    </button>
-                                                    <button 
-                                                        class="popover-btn btn-xp" 
-                                                        on:click=move |_| set_xp(DotOrigin::Experience)
-                                                        title="Experiência (XP)"
-                                                    >
-                                                        <span class="popover-dot dot-xp"></span> "XP"
-                                                    </button>
-                                                    <button 
-                                                        class="popover-btn btn-temp" 
-                                                        on:click=move |_| set_temp(DotOrigin::Temporary)
-                                                        title="Buff / Magia / Wonder"
-                                                    >
-                                                        <span class="popover-dot dot-temp"></span> "Buff"
-                                                    </button>
+                                            <span class="supernatural-separator">"|"</span>
+                                            <button 
+                                                type="button"
+                                                class="supernatural-badge"
+                                                class=("badge-origin-base", move || supernatural_badge_class() == "badge-origin-base")
+                                                class=("badge-origin-bonus", move || supernatural_badge_class() == "badge-origin-bonus")
+                                                class=("badge-origin-xp", move || supernatural_badge_class() == "badge-origin-xp")
+                                                class=("badge-origin-temp", move || supernatural_badge_class() == "badge-origin-temp")
+                                                on:click=move |ev| {
+                                                    ev.stop_propagation();
+                                                    set_show_supernatural_modal.update(|v| *v = !*v);
+                                                }
+                                                title=format!("Nível Total: {} (+{} Sobrenatural) • Clique para alterar o valor", cur_lvl, extra)
+                                            >
+                                                {format!("+{}", extra)}
+                                            </button>
+                                        }.into_view()
+                                    } else if cur_lvl == 5 {
+                                        // 3. Quando nível == 5: Exibe apenas "|" e o losango clicável vazio
+                                        let on_click_sup = on_click_level_sup.clone();
+                                        view! {
+                                            <span class="supernatural-separator">"|"</span>
+                                            <span 
+                                                class="dot dot-supernatural"
+                                                on:click=move |ev| {
+                                                    ev.stop_propagation();
+                                                    on_click_sup(6);
+                                                    set_show_supernatural_modal.set(true);
+                                                }
+                                                title="Clique para abrir a escala sobrenatural (6 a 10)"
+                                            ></span>
+                                        }.into_view()
+                                    } else {
+                                        view! {}.into_view()
+                                    }}
+
+                                    // 4. Painel Temporário Flutuante com os 5 Losangos (Níveis 6 a 10)
+                                    {if is_modal_open {
+                                        let on_click_level_sup = on_click_level_sup.clone();
+                                        let on_dot_change_for_right_click = on_dot_change_for_right_click.clone();
+                                        let on_dot_change_for_popover = on_dot_change_for_popover.clone();
+                                        let on_modifier_input = on_modifier_input.clone();
+
+                                        let save_pending_modifier = std::rc::Rc::new({
+                                            let on_mod = on_modifier_input.clone();
+                                            move || {
+                                                let _ = is_sup_modifier_focused.try_set(false);
+                                                if let Some(elem) = sup_modifier_ref.get() {
+                                                    let val = elem.value();
+                                                    on_mod(val.clone());
+                                                    let _ = last_sup_modifier_value.try_set(val);
+                                                }
+                                            }
+                                        });
+
+                                        view! {
+                                            <div class="supernatural-modal-wrapper" on:click=move |ev| ev.stop_propagation()>
+                                                <div 
+                                                    class="supernatural-backdrop"
+                                                    on:click={
+                                                        let save_mod = save_pending_modifier.clone();
+                                                        move |ev| {
+                                                            ev.stop_propagation();
+                                                            save_mod();
+                                                            set_show_supernatural_modal.set(false);
+                                                            set_open_popover_idx.set(None);
+                                                        }
+                                                    }
+                                                />
+                                                <div class="supernatural-floating-panel">
+                                                    <div class="supernatural-panel-header">
+                                                        <div class="panel-header-title">
+                                                            <span class="panel-sparkle">"✦"</span>
+                                                            <span class="panel-trait-name" title=move || label.get()>{label.get()}</span>
+                                                        </div>
+                                                        <div class="panel-header-actions">
+                                                            <span class="panel-level-pill">
+                                                                {move || {
+                                                                    let cur = level.get();
+                                                                    let extra = (cur - 5).max(0);
+                                                                    format!("Nível {} (+{})", cur, extra)
+                                                                }}
+                                                            </span>
+                                                            <button 
+                                                                type="button" 
+                                                                class="panel-close-btn"
+                                                                on:click={
+                                                                    let save_mod = save_pending_modifier.clone();
+                                                                    move |_| {
+                                                                        save_mod();
+                                                                        set_show_supernatural_modal.set(false);
+                                                                        set_open_popover_idx.set(None);
+                                                                    }
+                                                                }
+                                                                title="Fechar"
+                                                            >
+                                                                "✕"
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    // Campo de escrita curto (Especialização / Modificador / Nota)
+                                                    <div class="supernatural-modifier-section">
+                                                        <span class="modifier-section-label">"Especialização / Modificador:"</span>
+                                                        <input 
+                                                            type="text" 
+                                                            node_ref=sup_modifier_ref
+                                                            class="supernatural-modifier-input"
+                                                            placeholder="Ex: Musculoso, Titânico..."
+                                                            maxlength="35"
+                                                            on:focus=move |_| { let _ = is_sup_modifier_focused.try_set(true); }
+                                                            on:input=move |ev| {
+                                                                let val = event_target_value(&ev);
+                                                                let _ = last_sup_modifier_value.try_set(val);
+                                                            }
+                                                            on:blur={
+                                                                let on_mod = on_modifier_input.clone();
+                                                                move |_| {
+                                                                    let _ = is_sup_modifier_focused.try_set(false);
+                                                                    if let Some(elem) = sup_modifier_ref.get() {
+                                                                        let val = elem.value();
+                                                                        on_mod(val.clone());
+                                                                        let _ = last_sup_modifier_value.try_set(val);
+                                                                    }
+                                                                }
+                                                            }
+                                                            on:keydown={
+                                                                let on_mod = on_modifier_input.clone();
+                                                                move |ev: ev::KeyboardEvent| {
+                                                                    if ev.key() == "Enter" {
+                                                                        let _ = is_sup_modifier_focused.try_set(false);
+                                                                        if let Some(elem) = sup_modifier_ref.get() {
+                                                                            let val = elem.value();
+                                                                            on_mod(val.clone());
+                                                                            let _ = last_sup_modifier_value.try_set(val);
+                                                                            let _ = elem.blur();
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        />
+                                                    </div>
+
+                                                    <div class="supernatural-slots-track">
+                                                        {(1..=5).map(|extra| {
+                                                            let lvl = 5 + extra;
+                                                            let dot_idx = (lvl - 1) as usize;
+                                                            let is_filled = move || level.get() >= lvl;
+                                                            let dot_color = move || {
+                                                                if level.get() >= lvl {
+                                                                    if let Some(sig) = origins {
+                                                                        let list = sig.get();
+                                                                        if dot_idx < list.len() {
+                                                                            list[dot_idx].color_class()
+                                                                        } else {
+                                                                            "dot-base"
+                                                                        }
+                                                                    } else {
+                                                                        "dot-base"
+                                                                    }
+                                                                } else {
+                                                                    ""
+                                                                }
+                                                            };
+
+                                                            let is_popover_open = move || open_popover_idx.get() == Some(dot_idx);
+
+                                                            let on_dot_change_for_right_click = on_dot_change_for_right_click.clone();
+                                                            let on_right_click = move |ev: ev::MouseEvent| {
+                                                                ev.prevent_default();
+                                                                ev.stop_propagation();
+                                                                if level.get() >= lvl && on_dot_change_for_right_click.is_some() {
+                                                                    set_open_popover_idx.update(|cur| {
+                                                                        *cur = if *cur == Some(dot_idx) { None } else { Some(dot_idx) };
+                                                                    });
+                                                                }
+                                                            };
+
+                                                            let on_dot_change_for_popover = on_dot_change_for_popover.clone();
+                                                            let set_origin_to = move |origin: DotOrigin| {
+                                                                if let Some(cb) = on_dot_change_for_popover.as_ref() {
+                                                                    cb.call((dot_idx, origin));
+                                                                }
+                                                                set_open_popover_idx.set(None);
+                                                            };
+
+                                                            let on_click_level_sup = on_click_level_sup.clone();
+                                                            let set_base = set_origin_to.clone();
+                                                            let set_bonus = set_origin_to.clone();
+                                                            let set_xp = set_origin_to.clone();
+                                                            let set_temp = set_origin_to;
+
+                                                            let save_pending_modifier = save_pending_modifier.clone();
+
+                                                            view! {
+                                                                <div class="supernatural-slot-column">
+                                                                    <span class="slot-extra-badge">{format!("+{}", extra)}</span>
+                                                                    <div class="dot-wrapper">
+                                                                        <span 
+                                                                            class="dot dot-supernatural"
+                                                                            class:filled=is_filled
+                                                                            class=("dot-base", move || is_filled() && dot_color() == "dot-base")
+                                                                            class=("dot-bonus", move || is_filled() && dot_color() == "dot-bonus")
+                                                                            class=("dot-xp", move || is_filled() && dot_color() == "dot-xp")
+                                                                            class=("dot-temp", move || is_filled() && dot_color() == "dot-temp")
+                                                                            on:click={
+                                                                                let on_click_sup = on_click_level_sup.clone();
+                                                                                let save_mod = save_pending_modifier.clone();
+                                                                                move |_| {
+                                                                                    save_mod();
+                                                                                    set_open_popover_idx.set(None);
+                                                                                    let current = level.get();
+                                                                                    let new_val = if current == lvl {
+                                                                                        lvl - 1
+                                                                                    } else {
+                                                                                        lvl
+                                                                                    };
+                                                                                    on_click_sup(new_val);
+                                                                                    set_show_supernatural_modal.set(false);
+                                                                                }
+                                                                            }
+                                                                            on:contextmenu=on_right_click
+                                                                            title=format!("Nível {} (+{} Sobrenatural) | Clique esquerdo: definir nível | Clique direito: mudar origem", lvl, extra)
+                                                                        ></span>
+
+                                                                        {
+                                                                            let set_base = set_base.clone();
+                                                                            let set_bonus = set_bonus.clone();
+                                                                            let set_xp = set_xp.clone();
+                                                                            let set_temp = set_temp.clone();
+                                                                            move || if is_popover_open() {
+                                                                                let set_base = set_base.clone();
+                                                                                let set_bonus = set_bonus.clone();
+                                                                                let set_xp = set_xp.clone();
+                                                                                let set_temp = set_temp.clone();
+                                                                                view! {
+                                                                                    <div class="dot-origin-popover" on:click=move |ev| ev.stop_propagation()>
+                                                                                        <div class="popover-title">{format!("Origem Ponto {}:", lvl)}</div>
+                                                                                        <div class="popover-options">
+                                                                                            <button 
+                                                                                                class="popover-btn btn-base" 
+                                                                                                on:click=move |_| set_base(DotOrigin::Base)
+                                                                                                title="Criação Base"
+                                                                                            >
+                                                                                                <span class="popover-dot dot-base"></span> "Base"
+                                                                                            </button>
+                                                                                            <button 
+                                                                                                class="popover-btn btn-bonus" 
+                                                                                                on:click=move |_| set_bonus(DotOrigin::Bonus)
+                                                                                                title="Pontos de Bônus (Freebies)"
+                                                                                            >
+                                                                                                <span class="popover-dot dot-bonus"></span> "Bônus"
+                                                                                            </button>
+                                                                                            <button 
+                                                                                                class="popover-btn btn-xp" 
+                                                                                                on:click=move |_| set_xp(DotOrigin::Experience)
+                                                                                                title="Experiência (XP)"
+                                                                                            >
+                                                                                                <span class="popover-dot dot-xp"></span> "XP"
+                                                                                            </button>
+                                                                                            <button 
+                                                                                                class="popover-btn btn-temp" 
+                                                                                                on:click=move |_| set_temp(DotOrigin::Temporary)
+                                                                                                title="Buff / Magia / Wonder"
+                                                                                            >
+                                                                                                <span class="popover-dot dot-temp"></span> "Buff"
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                }.into_view()
+                                                                            } else {
+                                                                                view! {}.into_view()
+                                                                            }
+                                                                        }
+                                                                    </div>
+                                                                    <span class="slot-lvl-number">{lvl}</span>
+                                                                </div>
+                                                            }
+                                                        }).collect_view()}
+                                                    </div>
+
+                                                    <div class="supernatural-panel-footer">
+                                                        <button 
+                                                            type="button" 
+                                                            class="panel-reset-btn"
+                                                            on:click={
+                                                                let on_reset = on_click_level_sup.clone();
+                                                                let save_mod = save_pending_modifier.clone();
+                                                                move |_| {
+                                                                    save_mod();
+                                                                    on_reset(5);
+                                                                    set_open_popover_idx.set(None);
+                                                                    set_show_supernatural_modal.set(false);
+                                                                }
+                                                            }
+                                                            title="Reduzir para o limite mortal (5 pontos)"
+                                                        >
+                                                            "↺ Resetar (5)"
+                                                        </button>
+                                                        <button 
+                                                            type="button" 
+                                                            class="panel-done-btn"
+                                                            on:click={
+                                                                let save_mod = save_pending_modifier.clone();
+                                                                move |_| {
+                                                                    save_mod();
+                                                                    set_open_popover_idx.set(None);
+                                                                    set_show_supernatural_modal.set(false);
+                                                                }
+                                                            }
+                                                        >
+                                                            "Concluir"
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         }.into_view()
                                     } else {
                                         view! {}.into_view()
-                                    }
-                                }
-                            </div>
-                        </div>
+                                    }}
+                                </div>
+                            }.into_view()
+                        }}
                     }.into_view()
                 } else {
                     view! {}.into_view()
@@ -614,6 +899,13 @@ mod tests {
         set_level.set(6);
         assert_eq!(level.get(), 6);
         assert_eq!(is_supernatural.get(), true);
+
+        // Test supernatural levels 8 (+3) and 10 (+5)
+        set_level.set(8);
+        assert_eq!(level.get(), 8);
+
+        set_level.set(10);
+        assert_eq!(level.get(), 10);
 
         runtime.dispose();
     }
