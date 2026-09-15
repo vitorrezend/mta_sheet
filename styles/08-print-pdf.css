@@ -66,6 +66,18 @@
         overflow-y: visible !important;
     }
 
+    /* Moldura ornamental M20 nos PDFs / Impressão */
+    .sheet-frame {
+        display: block !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .sheet-patina-wash {
+        box-shadow: none !important;
+        border: 1px solid rgba(184, 134, 11, 0.35) !important;
+    }
+
     /* 2. Ocultar todos os controles de interface, navegação e botões auxiliares */
     .main-navbar,
     .sheet-top-bar,

@@ -16,6 +16,116 @@
     gap: 0.75rem;
 }
 
+/* ─── Moldura & Ornamentos Art Deco M20 ──────────────────────────────── */
+.sheet-frame {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+}
+
+/* Pátina de mármore/pergaminho nas margens perimetrais */
+.sheet-patina-wash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    /* Efeito de vinheta de ouro velho / pergaminho sutil nas bordas */
+    box-shadow: inset 0 0 32px rgba(184, 134, 11, 0.08), inset 0 0 8px rgba(197, 160, 89, 0.12);
+    border: 1px solid rgba(197, 160, 89, 0.3);
+}
+
+/* Cantos em SVG */
+.sheet-corner {
+    position: absolute;
+    width: 75px;
+    height: 75px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.corner-ornament-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.corner-top-left {
+    top: 6px;
+    left: 6px;
+}
+
+.corner-top-right {
+    top: 6px;
+    right: 6px;
+    transform: scaleX(-1);
+}
+
+.corner-bottom-left {
+    bottom: 6px;
+    left: 6px;
+    transform: scaleY(-1);
+}
+
+.corner-bottom-right {
+    bottom: 6px;
+    right: 6px;
+    transform: scale(-1, -1);
+}
+
+/* Filetes dourados que unem os cantos */
+.frame-border {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.frame-border-top {
+    top: 9px;
+    left: 81px;
+    right: 81px;
+    height: 10px;
+    border-top: 1.5px solid #b89347;
+    border-bottom: 0.75px solid #d4b368;
+    opacity: 0.85;
+}
+
+.frame-border-bottom {
+    bottom: 9px;
+    left: 81px;
+    right: 81px;
+    height: 10px;
+    border-bottom: 1.5px solid #b89347;
+    border-top: 0.75px solid #d4b368;
+    opacity: 0.85;
+}
+
+.frame-border-left {
+    left: 9px;
+    top: 81px;
+    bottom: 81px;
+    width: 10px;
+    border-left: 1.5px solid #b89347;
+    border-right: 0.75px solid #d4b368;
+    opacity: 0.85;
+}
+
+.frame-border-right {
+    right: 9px;
+    top: 81px;
+    bottom: 81px;
+    width: 10px;
+    border-right: 1.5px solid #b89347;
+    border-left: 0.75px solid #d4b368;
+    opacity: 0.85;
+}
+
+/* Garante que o conteúdo da ficha fique acima da moldura para interação perfeita */
+.sheet-page-tab-pane {
+    position: relative;
+    z-index: 2;
+}
+
 
 /* ─── Responsive / Mobile Scaling ─────────────────────────────────────── */
 @media (max-width: 800px) {
