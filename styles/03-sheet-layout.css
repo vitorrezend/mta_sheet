@@ -47,11 +47,11 @@
     z-index: 1;
 }
 
-/* Cantos em SVG M20 Art Deco (105x105) */
+/* Cantos em SVG M20 Art Deco (70x70) */
 .sheet-corner {
     position: absolute;
-    width: 105px;
-    height: 105px;
+    width: 70px;
+    height: 70px;
     pointer-events: none;
     z-index: 2;
 }
@@ -85,132 +85,48 @@
     transform: scale(-1, -1);
 }
 
-/* Filetes e faixas que conectam os 4 cantos */
+/* Filetes e faixas que conectam os 4 cantos em SVG contínuo */
 .frame-border {
     position: absolute;
     pointer-events: none;
     z-index: 2;
-    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.frame-line-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 .frame-border-top {
     top: 4px;
-    left: 108px;
-    right: 108px;
-    height: 27px;
-    border-top: 7px solid #a88238;
-}
-
-.frame-border-top::before {
-    content: "";
-    position: absolute;
-    top: 3px;
-    left: 0;
-    right: 0;
-    height: 1.5px;
-    background: #e2c887;
-}
-
-.frame-border-top::after {
-    content: "";
-    position: absolute;
-    top: 13px;
-    left: 0;
-    right: 0;
-    height: 6px;
-    border-top: 1.75px solid #a88238;
-    border-bottom: 0.75px solid #4d370f;
-    box-shadow: inset 0 2px 0 0 #e2c887;
+    left: 74px;
+    right: 74px;
+    height: 28px;
 }
 
 .frame-border-bottom {
     bottom: 4px;
-    left: 108px;
-    right: 108px;
-    height: 27px;
-    border-bottom: 7px solid #a88238;
-}
-
-.frame-border-bottom::before {
-    content: "";
-    position: absolute;
-    bottom: 3px;
-    left: 0;
-    right: 0;
-    height: 1.5px;
-    background: #e2c887;
-}
-
-.frame-border-bottom::after {
-    content: "";
-    position: absolute;
-    bottom: 13px;
-    left: 0;
-    right: 0;
-    height: 6px;
-    border-bottom: 1.75px solid #a88238;
-    border-top: 0.75px solid #4d370f;
-    box-shadow: inset 0 -2px 0 0 #e2c887;
+    left: 74px;
+    right: 74px;
+    height: 28px;
+    transform: scaleY(-1);
 }
 
 .frame-border-left {
     left: 4px;
-    top: 108px;
-    bottom: 108px;
-    width: 27px;
-    border-left: 7px solid #a88238;
-}
-
-.frame-border-left::before {
-    content: "";
-    position: absolute;
-    left: 3px;
-    top: 0;
-    bottom: 0;
-    width: 1.5px;
-    background: #e2c887;
-}
-
-.frame-border-left::after {
-    content: "";
-    position: absolute;
-    left: 13px;
-    top: 0;
-    bottom: 0;
-    width: 6px;
-    border-left: 1.75px solid #a88238;
-    border-right: 0.75px solid #4d370f;
-    box-shadow: inset 2px 0 0 0 #e2c887;
+    top: 74px;
+    bottom: 74px;
+    width: 28px;
 }
 
 .frame-border-right {
     right: 4px;
-    top: 108px;
-    bottom: 108px;
-    width: 27px;
-    border-right: 7px solid #a88238;
-}
-
-.frame-border-right::before {
-    content: "";
-    position: absolute;
-    right: 3px;
-    top: 0;
-    bottom: 0;
-    width: 1.5px;
-    background: #e2c887;
-}
-
-.frame-border-right::after {
-    content: "";
-    position: absolute;
-    right: 13px;
-    top: 0;
-    bottom: 0;
-    width: 6px;
-    border-right: 1.75px solid #a88238;
-    border-left: 0.75px solid #4d370f;
-    box-shadow: inset -2px 0 0 0 #e2c887;
+    top: 74px;
+    bottom: 74px;
+    width: 28px;
+    transform: scaleX(-1);
 }
 
 /* Garante que o conteúdo da ficha fique acima da moldura para interação perfeita */

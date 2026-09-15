@@ -4,7 +4,7 @@ use leptos::*;
 pub fn CornerOrnament() -> impl IntoView {
     view! {
         <svg 
-            viewBox="0 0 105 105" 
+            viewBox="0 0 70 70" 
             class="corner-ornament-svg" 
             xmlns="http://www.w3.org/2000/svg" 
             aria-hidden="true"
@@ -28,42 +28,69 @@ pub fn CornerOrnament() -> impl IntoView {
                 </linearGradient>
             </defs>
 
-            // 1. Bloco chanfrado dourado base
-            <polygon points="0,0 105,0 105,7 28,7 7,28 7,105 0,105" fill="url(#m20GoldCore)" />
+            // 1. Bloco chanfrado dourado base (borda externa)
+            <polygon points="0,0 70,0 70,7 28,7 7,28 7,70 0,70" fill="url(#m20GoldCore)" />
 
-            // 2. Filete externo com brilho
-            <path d="M105,10 L31,10 L10,31 L10,105" fill="none" stroke="url(#m20GoldLight)" stroke-width="1.5" />
+            // 2. Filete externo com brilho (hairline)
+            <path d="M70,10 L31,10 L10,31 L10,70" fill="none" stroke="url(#m20GoldLight)" stroke-width="1.5" />
 
-            // 3. FAIXA BRANCA DIAGONAL MARCANTE M20 (corta a moldura em 45 graus)
-            <polygon points="40,7 48,7 7,48 7,40" fill="#ffffff" stroke="url(#m20GoldDark)" stroke-width="0.75" />
+            // 3. FAIXA BRANCA DIAGONAL MARCANTE M20 (corta o canto a 45 graus)
+            <polygon points="36,7 44,7 7,44 7,36" fill="#ffffff" stroke="url(#m20GoldDark)" stroke-width="0.75" />
 
-            // 4. Faixa dourada sólida chanfrada
-            <polygon points="49,7 57,7 7,57 7,49" fill="url(#m20GoldCore)" />
+            // 4. Segunda faixa branca chanfrada fina
+            <polygon points="46,7 50,7 7,50 7,46" fill="#ffffff" stroke="url(#m20GoldDark)" stroke-width="0.5" />
 
-            // 5. Segunda faixa branca chanfrada
-            <polygon points="58,7 63,7 7,63 7,58" fill="#ffffff" stroke="url(#m20GoldDark)" stroke-width="0.5" />
+            // 5. Linha dourada intermediária entre as faixas brancas e os filetes
+            <line x1="53" y1="7" x2="7" y2="53" stroke="url(#m20GoldLight)" stroke-width="1" />
 
-            // 6. PIRÂMIDE / TRIÂNGULO ART DECO M20 apontando para o centro da folha
-            // Triângulo dourado externo
-            <polygon points="66,7 7,66 42,42" fill="url(#m20GoldCore)" stroke="url(#m20GoldDark)" stroke-width="1" />
-            
-            // Faixa branca interna do triângulo
-            <polygon points="73,11 11,73 47,47" fill="#ffffff" stroke="url(#m20GoldDark)" stroke-width="0.75" />
-            
-            // Triângulo médio dourado
-            <polygon points="79,15 15,79 50,50" fill="url(#m20GoldCore)" stroke="url(#m20GoldLight)" stroke-width="0.75" />
-            
-            // Linha branca fina concêntrica
-            <polygon points="85,19 19,85 53,53" fill="none" stroke="#ffffff" stroke-width="1.25" />
+            // 6. FILETES TRIPLOS INTERNOS QUE SE CONECTAM ÀS BORDAS DA PÁGINA (sem losango, sem invasão de texto)
+            <path d="M70,20 L38,20 L20,38 L20,70" fill="none" stroke="url(#m20GoldCore)" stroke-width="1.75" />
+            <path d="M70,23 L41,23 L23,41 L23,70" fill="none" stroke="url(#m20GoldLight)" stroke-width="1" />
+            <path d="M70,26 L44,26 L26,44 L26,70" fill="none" stroke="url(#m20GoldDark)" stroke-width="0.75" opacity="0.85" />
+        </svg>
+    }
+}
 
-            // 7. LOSANGO CENTRAL LAPIDADO M20
-            <polygon points="53,53 59,59 53,65 47,59" fill="url(#m20GoldLight)" stroke="url(#m20GoldDark)" stroke-width="1" />
-            <circle cx="53" cy="59" r="1.5" fill="#3b2b0e" />
+#[component]
+pub fn FrameHorizontalLine() -> impl IntoView {
+    view! {
+        <svg viewBox="0 0 100 28" preserveAspectRatio="none" class="frame-line-svg" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="m20GoldCoreH" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#ecd79e"/>
+                    <stop offset="25%" stop-color="#c5a059"/>
+                    <stop offset="50%" stop-color="#a88238"/>
+                    <stop offset="75%" stop-color="#c5a059"/>
+                    <stop offset="100%" stop-color="#7a5b20"/>
+                </linearGradient>
+            </defs>
+            <rect x="0" y="0" width="100" height="7" fill="url(#m20GoldCoreH)" />
+            <line x1="0" y1="10" x2="100" y2="10" stroke="#e2c887" stroke-width="1.5" />
+            <line x1="0" y1="20" x2="100" y2="20" stroke="#a88238" stroke-width="1.75" />
+            <line x1="0" y1="23" x2="100" y2="23" stroke="#e2c887" stroke-width="1" />
+            <line x1="0" y1="26" x2="100" y2="26" stroke="#4d370f" stroke-width="0.75" opacity="0.85" />
+        </svg>
+    }
+}
 
-            // 8. FILETES TRIPLOS INTERNOS QUE SE CONECTAM ÀS BORDAS DA PÁGINA
-            <path d="M105,20 L37,20 L20,37 L20,105" fill="none" stroke="url(#m20GoldCore)" stroke-width="1.75" />
-            <path d="M105,23 L40,23 L23,40 L23,105" fill="none" stroke="url(#m20GoldLight)" stroke-width="1" />
-            <path d="M105,26 L42,26 L26,42 L26,105" fill="none" stroke="url(#m20GoldDark)" stroke-width="0.75" opacity="0.85" />
+#[component]
+pub fn FrameVerticalLine() -> impl IntoView {
+    view! {
+        <svg viewBox="0 0 28 100" preserveAspectRatio="none" class="frame-line-svg" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="m20GoldCoreV" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#ecd79e"/>
+                    <stop offset="25%" stop-color="#c5a059"/>
+                    <stop offset="50%" stop-color="#a88238"/>
+                    <stop offset="75%" stop-color="#c5a059"/>
+                    <stop offset="100%" stop-color="#7a5b20"/>
+                </linearGradient>
+            </defs>
+            <rect x="0" y="0" width="7" height="100" fill="url(#m20GoldCoreV)" />
+            <line x1="10" y1="0" x2="10" y2="100" stroke="#e2c887" stroke-width="1.5" />
+            <line x1="20" y1="0" x2="20" y2="100" stroke="#a88238" stroke-width="1.75" />
+            <line x1="23" y1="0" x2="23" y2="100" stroke="#e2c887" stroke-width="1" />
+            <line x1="26" y1="0" x2="26" y2="100" stroke="#4d370f" stroke-width="0.75" opacity="0.85" />
         </svg>
     }
 }
@@ -78,7 +105,7 @@ pub fn SheetFrame() -> impl IntoView {
             // Linha externa fina dourada
             <div class="frame-outer-hairline"></div>
             
-            // 4 Cantos Art Deco M20 com peso marcante
+            // 4 Cantos Art Deco M20 com proporção equilibrada (70x70)
             <div class="sheet-corner corner-top-left">
                 <CornerOrnament />
             </div>
@@ -92,11 +119,19 @@ pub fn SheetFrame() -> impl IntoView {
                 <CornerOrnament />
             </div>
 
-            // Filetes triplos dourados que unem os cantos
-            <div class="frame-border frame-border-top"></div>
-            <div class="frame-border frame-border-bottom"></div>
-            <div class="frame-border frame-border-left"></div>
-            <div class="frame-border frame-border-right"></div>
+            // Filetes triplos vetoriais com alinhamento pixel-perfect contínuo
+            <div class="frame-border frame-border-top">
+                <FrameHorizontalLine />
+            </div>
+            <div class="frame-border frame-border-bottom">
+                <FrameHorizontalLine />
+            </div>
+            <div class="frame-border frame-border-left">
+                <FrameVerticalLine />
+            </div>
+            <div class="frame-border frame-border-right">
+                <FrameVerticalLine />
+            </div>
         </div>
     }
 }
