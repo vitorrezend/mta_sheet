@@ -4,49 +4,66 @@ use leptos::*;
 pub fn CornerOrnament() -> impl IntoView {
     view! {
         <svg 
-            viewBox="0 0 90 90" 
+            viewBox="0 0 105 105" 
             class="corner-ornament-svg" 
             xmlns="http://www.w3.org/2000/svg" 
             aria-hidden="true"
         >
             <defs>
-                <linearGradient id="m20GoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#dfc588"/>
-                    <stop offset="50%" stop-color="#b89347"/>
-                    <stop offset="100%" stop-color="#7d5e23"/>
+                <linearGradient id="m20GoldCore" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ecd79e"/>
+                    <stop offset="25%" stop-color="#c5a059"/>
+                    <stop offset="50%" stop-color="#a88238"/>
+                    <stop offset="75%" stop-color="#c5a059"/>
+                    <stop offset="100%" stop-color="#7a5b20"/>
                 </linearGradient>
-                <linearGradient id="m20GoldGradLight" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#f7ecd0"/>
-                    <stop offset="60%" stop-color="#d4b368"/>
-                    <stop offset="100%" stop-color="#997732"/>
+                <linearGradient id="m20GoldLight" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#fff4d9"/>
+                    <stop offset="50%" stop-color="#e2c887"/>
+                    <stop offset="100%" stop-color="#b08b3c"/>
+                </linearGradient>
+                <linearGradient id="m20GoldDark" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#99752f"/>
+                    <stop offset="100%" stop-color="#4d370f"/>
                 </linearGradient>
             </defs>
 
-            // Borda externa sólida chanfrada
-            <polygon points="0,0 90,0 90,3.5 16,3.5 3.5,16 3.5,90 0,90" fill="url(#m20GoldGrad)" />
+            // 1. Bloco chanfrado dourado base
+            <polygon points="0,0 105,0 105,7 28,7 7,28 7,105 0,105" fill="url(#m20GoldCore)" />
 
-            // Linha externa chanfrada com brilho
-            <path d="M90,6.5 L19,6.5 L6.5,19 L6.5,90" fill="none" stroke="url(#m20GoldGradLight)" stroke-width="1.2" />
+            // 2. Filete externo com brilho
+            <path d="M105,10 L31,10 L10,31 L10,105" fill="none" stroke="url(#m20GoldLight)" stroke-width="1.5" />
 
-            // Faixas diagonais Art Deco em relevo
-            <polygon points="26,6.5 31,6.5 6.5,31 6.5,26" fill="url(#m20GoldGrad)" />
-            <polygon points="36,6.5 41,6.5 6.5,41 6.5,36" fill="url(#m20GoldGrad)" />
-            <polygon points="46,6.5 50,6.5 6.5,50 6.5,46" fill="url(#m20GoldGrad)" />
+            // 3. FAIXA BRANCA DIAGONAL MARCANTE M20 (corta a moldura em 45 graus)
+            <polygon points="40,7 48,7 7,48 7,40" fill="#ffffff" stroke="url(#m20GoldDark)" stroke-width="0.75" />
 
-            // Linha divisória intermediária
-            <line x1="55" y1="6.5" x2="6.5" y2="55" stroke="url(#m20GoldGradLight)" stroke-width="1" />
+            // 4. Faixa dourada sólida chanfrada
+            <polygon points="49,7 57,7 7,57 7,49" fill="url(#m20GoldCore)" />
 
-            // Triângulo Art Deco central voltado para o centro da folha
-            <polygon points="63,6.5 6.5,63 36,36" fill="url(#m20GoldGrad)" stroke="url(#m20GoldGradLight)" stroke-width="0.8" />
-            <polygon points="69,11 11,69 41,41" fill="none" stroke="url(#m20GoldGradLight)" stroke-width="1.2" />
-            <polygon points="75,15 15,75 45,45" fill="url(#m20GoldGrad)" opacity="0.9" />
+            // 5. Segunda faixa branca chanfrada
+            <polygon points="58,7 63,7 7,63 7,58" fill="#ffffff" stroke="url(#m20GoldDark)" stroke-width="0.5" />
 
-            // Losango central lapidado
-            <polygon points="45,45 50,50 45,55 40,50" fill="url(#m20GoldGradLight)" stroke="#664c18" stroke-width="0.8" />
+            // 6. PIRÂMIDE / TRIÂNGULO ART DECO M20 apontando para o centro da folha
+            // Triângulo dourado externo
+            <polygon points="66,7 7,66 42,42" fill="url(#m20GoldCore)" stroke="url(#m20GoldDark)" stroke-width="1" />
+            
+            // Faixa branca interna do triângulo
+            <polygon points="73,11 11,73 47,47" fill="#ffffff" stroke="url(#m20GoldDark)" stroke-width="0.75" />
+            
+            // Triângulo médio dourado
+            <polygon points="79,15 15,79 50,50" fill="url(#m20GoldCore)" stroke="url(#m20GoldLight)" stroke-width="0.75" />
+            
+            // Linha branca fina concêntrica
+            <polygon points="85,19 19,85 53,53" fill="none" stroke="#ffffff" stroke-width="1.25" />
 
-            // Linhas internas que conectam ao restante da moldura
-            <path d="M90,13.5 L27,13.5 L13.5,27 L13.5,90" fill="none" stroke="url(#m20GoldGrad)" stroke-width="1" opacity="0.95" />
-            <path d="M90,16 L29.5,16 L16,29.5 L16,90" fill="none" stroke="url(#m20GoldGradLight)" stroke-width="0.75" opacity="0.85" />
+            // 7. LOSANGO CENTRAL LAPIDADO M20
+            <polygon points="53,53 59,59 53,65 47,59" fill="url(#m20GoldLight)" stroke="url(#m20GoldDark)" stroke-width="1" />
+            <circle cx="53" cy="59" r="1.5" fill="#3b2b0e" />
+
+            // 8. FILETES TRIPLOS INTERNOS QUE SE CONECTAM ÀS BORDAS DA PÁGINA
+            <path d="M105,20 L37,20 L20,37 L20,105" fill="none" stroke="url(#m20GoldCore)" stroke-width="1.75" />
+            <path d="M105,23 L40,23 L23,40 L23,105" fill="none" stroke="url(#m20GoldLight)" stroke-width="1" />
+            <path d="M105,26 L42,26 L26,42 L26,105" fill="none" stroke="url(#m20GoldDark)" stroke-width="0.75" opacity="0.85" />
         </svg>
     }
 }
@@ -55,9 +72,13 @@ pub fn CornerOrnament() -> impl IntoView {
 pub fn SheetFrame() -> impl IntoView {
     view! {
         <div class="sheet-frame" aria-hidden="true">
+            // Moldura perimetral de mármore dourado envelhecido
             <div class="sheet-patina-wash"></div>
+
+            // Linha externa fina dourada
+            <div class="frame-outer-hairline"></div>
             
-            // 4 Cantos Art Deco M20
+            // 4 Cantos Art Deco M20 com peso marcante
             <div class="sheet-corner corner-top-left">
                 <CornerOrnament />
             </div>
@@ -71,7 +92,7 @@ pub fn SheetFrame() -> impl IntoView {
                 <CornerOrnament />
             </div>
 
-            // Filetes dourados que unem os cantos
+            // Filetes triplos dourados que unem os cantos
             <div class="frame-border frame-border-top"></div>
             <div class="frame-border frame-border-bottom"></div>
             <div class="frame-border frame-border-left"></div>

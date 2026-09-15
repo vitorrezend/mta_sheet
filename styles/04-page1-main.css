@@ -29,12 +29,13 @@
 }
 
 .attribute-label {
-    font-size: 0.67rem;
-    font-weight: 600;
+    font-family: var(--font-serif, 'Cinzel', 'Garamond', 'Palatino Linotype', 'Georgia', serif);
+    font-size: 0.68rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: -0.015em;
+    letter-spacing: 0.02em;
     white-space: nowrap;
-    color: #4b5563;
+    color: #2b241a;
     cursor: help;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -132,27 +133,68 @@
 
 
 .group-box {
-    border: 1px solid #bdc3c7;
-    border-radius: 4px;
-    padding: 0.8rem 0.6rem 0.6rem 0.6rem;
+    border: none;
+    border-top: 2px solid #a88238;
+    border-radius: 0;
+    padding: 0.9rem 0.4rem 0.4rem 0.4rem;
     position: relative;
-    margin-top: 0.8rem; /* Reduzido para economizar espaço */
+    margin-top: 1.25rem;
     width: 100%;
     box-sizing: border-box;
 }
 
+/* Filete decorativo superior do divisor M20 */
+.group-box::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, #d4b368 15%, #a88238 50%, #d4b368 85%, transparent 100%);
+    pointer-events: none;
+}
+
+/* Filete decorativo inferior do divisor M20 */
+.group-box::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 8%;
+    right: 8%;
+    height: 0.75px;
+    background: linear-gradient(90deg, transparent 0%, rgba(184, 147, 71, 0.45) 25%, rgba(184, 147, 71, 0.45) 75%, transparent 100%);
+    pointer-events: none;
+}
+
 .group-title {
     position: absolute;
-    top: -10px;
+    top: -12px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: var(--paper-bg);
-    padding: 0 12px;
+    background-color: var(--paper-bg, #ffffff);
+    padding: 0 16px;
+    font-family: var(--font-serif, 'Cinzel', 'Garamond', 'Palatino Linotype', 'Georgia', serif);
     font-weight: 800;
     text-transform: uppercase;
-    font-size: 0.85rem;
-    color: var(--primary-color);
-    letter-spacing: 0.15em;
+    font-size: 1.02rem;
+    color: #241c14;
+    letter-spacing: 0.22em;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 3;
+    text-shadow: 0 0 1px rgba(184, 147, 71, 0.25);
+}
+
+.group-title::before,
+.group-title::after {
+    content: "◆";
+    font-size: 0.65rem;
+    color: #a88238;
+    vertical-align: middle;
+    opacity: 0.9;
 }
 
 .attributes-block {
@@ -173,14 +215,27 @@
 }
 
 .column-title {
-    font-size: 0.8rem;
-    color: #95a5a6;
-    border-bottom: 1px solid #eee;
-    margin-bottom: 0.4rem;
-    padding-bottom: 0.1rem;
+    font-family: var(--font-serif, 'Cinzel', 'Garamond', 'Palatino Linotype', 'Georgia', serif);
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #4a3e2c;
+    border-bottom: 1.5px solid rgba(184, 147, 71, 0.4);
+    margin-bottom: 0.45rem;
+    padding-bottom: 0.2rem;
     text-align: center;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.12em;
+    position: relative;
+}
+
+.column-title::after {
+    content: "";
+    position: absolute;
+    bottom: -3px;
+    left: 20%;
+    right: 20%;
+    height: 0.5px;
+    background: rgba(184, 147, 71, 0.25);
 }
 
 /* Posicionamento do grupo na ficha (Obsoleto após o grid, mas mantido para referência) */
@@ -227,10 +282,12 @@
 }
 
 .label-text {
-    font-size: 0.75rem;
+    font-family: var(--font-serif, 'Cinzel', 'Garamond', 'Palatino Linotype', 'Georgia', serif);
+    font-size: 0.72rem;
     font-weight: 700;
     text-transform: uppercase;
-    color: #7f8c8d;
+    letter-spacing: 0.06em;
+    color: #4a3e2c;
     white-space: nowrap;
     padding-bottom: 2px;
     text-align: left;
@@ -242,21 +299,21 @@
     width: 0;
     min-width: 0;
     border: none;
-    border-bottom: 1px solid #bdc3c7;
+    border-bottom: 1px solid #c5a059;
     background: transparent;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     color: var(--primary-color);
     padding: 2px 4px;
     font-family: inherit;
     transition: border-color 0.2s;
-    text-overflow: ellipsis; /* Adiciona "..." se o texto for longo */
+    text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
 }
 
 .label-input:focus {
     outline: none;
-    border-bottom-color: var(--primary-color);
+    border-bottom-color: #8e44ad;
 }
 
 
