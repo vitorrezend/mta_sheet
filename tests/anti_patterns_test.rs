@@ -254,6 +254,49 @@ fn test_no_reactive_anti_patterns_in_components() {
                 }
             }
         }
+
+        // Regra 11: Prevenção de avisos 'You are setting the NodeRef ..., which has already been filled'
+        // Um 'create_node_ref' declarado no escopo do componente NÃO deve ter seu identificador
+        // associado como 'node_ref=...' dentro de uma closure dinâmica ('move ||' ou 'move |_|').
+        // Elementos dentro de closures dinâmicas são recriados ao longo do ciclo de vida, o que faz com
+        // que o Leptos tente preencher novamente o mesmo NodeRef que já contém valor, emitindo avisos no console.
+        if content.contains("create_node_ref") && content.contains("node_ref=") {
+            let mut node_refs = Vec::new();
+            for line in content.lines() {
+                if line.contains("create_node_ref") && line.contains("let ") {
+                    if let Some(var_name) = line.split("let ").nth(1).and_then(|s| s.split('=').next()).map(|s| s.trim()) {
+                        node_refs.push(var_name.to_string());
+                    }
+                }
+            }
+
+            for nr in &node_refs {
+                let target_ref = format!("node_ref={}", nr);
+                let mut search_idx = 0;
+                while let Some(rel_idx) = content[search_idx..].find(&target_ref) {
+                    let ref_pos = search_idx + rel_idx;
+                    search_idx = ref_pos + target_ref.len();
+
+                    if let Some(view_pos) = content[..ref_pos].rfind("view! {") {
+                        let inner_view = &content[view_pos..ref_pos];
+                        if let Some(closure_rel) = inner_view.rfind("move |") {
+                            let after_closure = &inner_view[closure_rel..];
+                            let open_braces = after_closure.chars().filter(|&c| c == '{').count();
+                            let close_braces = after_closure.chars().filter(|&c| c == '}').count();
+                            if open_braces > close_braces {
+                                let line_num = content[..ref_pos].lines().count();
+                                violations.push(format!(
+                                    "[{:?}:L{}] Violação da Regra 11: 'node_ref={}' utilizado dentro de uma closure dinâmica 'move ||'. \
+                                     Isso causa o aviso 'You are setting the NodeRef defined at ..., which has already been filled' \
+                                     quando a closure for reexecutada. Use 'prop:value' / Focus-Lock reativo ou mantenha o elemento em DOM estável.",
+                                    file_path, line_num, nr
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     if !violations.is_empty() {

@@ -2,6 +2,8 @@
    01: VARIÁVEIS, RESET, TIPOGRAFIA E PÁGINAS GLOBAIS (HOME, AUTH, ROOMS, LOGS)
    ========================================================================== */
 
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&display=swap');
+
 :root {
     --page-width: 210mm;
     --page-height: 297mm;
@@ -10,6 +12,11 @@
     --text-color: #333333;
     --primary-color: #2c3e50;
     --shadow: 0 10px 25px rgba(0,0,0,0.1);
+    --font-serif: 'Cinzel', 'Garamond', 'Palatino Linotype', 'Book Antiqua', 'Georgia', serif;
+    --gold-primary: #b89347;
+    --gold-light: #ecd79e;
+    --gold-dark: #7a5b20;
+    --gold-line: rgba(184, 147, 71, 0.45);
 }
 
 body {

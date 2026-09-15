@@ -19,6 +19,43 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.17.0",
+        date: "2026-09-15",
+        tag: "v0.17.0",
+        title: "Aura Visual Autêntica M20: Moldura Art Deco, Divisores Dourados e Tipografia Clássica",
+        highlight: "Recriação fiel da estética original do livro físico de Mago: A Ascensão (20th Anniversary Edition) com moldura ornamental vetorial, cantos Art Deco de 70px com faixas chanfradas, divisores dourados triplos sem caixotes cinzas, tipografia clássica Cinzel/Garamond e arquitetura anti-patterns aprimorada.",
+        sections: &[
+            PatchSection {
+                category: "Moldura Ornamental & Cantos Art Deco M20",
+                icon: "🏛️",
+                items: &[
+                    "✨ Cantos Art Deco Vetoriais (70px × 70px): Redesenhados com geometria de precisão, faixas brancas chanfradas a 45º e filetes triplos que abraçam os cantos sem invadir os campos de texto.",
+                    "📏 Conectores Vetoriais Pixel-Perfect: Barras horizontais e verticais em SVG unificam os 4 cantos de ponta a ponta sem degraus, quebras ou desníveis.",
+                    "📜 Pátina Perimetral de Ouro Velho: Suave vinheta de pergaminho antigo e mármore dourado nos 26px das margens perimetrais com hairline exterior, preservando a pureza e legibilidade do miolo da página.",
+                    "🖱️ Usabilidade 100% Preservada: Moldura e ornamentos com cliques transparentes ('pointer-events: none'), mantendo bolinhas, inputs e modais totalmente acessíveis.",
+                ],
+            },
+            PatchSection {
+                category: "Divisores Dourados Triplos & Tipografia",
+                icon: "✒️",
+                items: &[
+                    "💎 Fim dos Caixotes Cinzas: Eliminação completa das caixas retangulares estilo formulário web nos blocos principais (Atributos, Habilidades, Esferas, Vantagens).",
+                    "⚜️ Divisores Triplos com Losangos: Cada seção agora conta com um divisor triplo horizontal em ouro antigo ladeado por diamantes lapidados (◆ ATRIBUTOS ◆).",
+                    "📖 Tipografia Clássica Serifada: Importação da fonte 'Cinzel' com fallback nativo elegante para 'Garamond' e 'Georgia', títulos de colunas em âmbar nobre (#4a3e2c) e sublinhado duplo clássico.",
+                ],
+            },
+            PatchSection {
+                category: "Estabilidade Reativa & Qualidade de Código",
+                icon: "🛡️",
+                items: &[
+                    "🎯 Correção de NodeRef em Modais: Eliminação do aviso de 'NodeRef already been filled' no input de especialização do modal sobrenatural através de Focus-Lock desacoplado.",
+                    "🧪 Regra 11 de Anti-Patterns: Nova validação arquitetural automatizada em tests/anti_patterns_test.rs garantindo que nenhum NodeRef estático seja associado dentro de closures dinâmicas.",
+                    "✅ 118 Testes Automatizados: Suíte completa aprovada com zero warnings no backend Axum e frontend WASM.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.16.0",
         date: "2026-09-15",
         tag: "v0.16.0",

@@ -97,7 +97,6 @@ pub fn ValueField(
     });
 
     // Focus-Lock para o campo de modificador dentro do painel sobrenatural
-    let sup_modifier_ref = create_node_ref::<html::Input>();
     let is_sup_modifier_focused = create_rw_signal(false);
     let last_sup_modifier_value = create_rw_signal(String::new());
 
@@ -105,9 +104,6 @@ pub fn ValueField(
         let val = modifier.get();
         let is_open = show_supernatural_modal.get();
         if is_open && !is_sup_modifier_focused.get_untracked() {
-            if let Some(elem) = sup_modifier_ref.get() {
-                elem.set_value(&val);
-            }
             let _ = last_sup_modifier_value.try_set(val);
         }
     });
@@ -539,11 +535,8 @@ pub fn ValueField(
                                             let on_mod = on_modifier_input.clone();
                                             move || {
                                                 let _ = is_sup_modifier_focused.try_set(false);
-                                                if let Some(elem) = sup_modifier_ref.get() {
-                                                    let val = elem.value();
-                                                    on_mod(val.clone());
-                                                    let _ = last_sup_modifier_value.try_set(val);
-                                                }
+                                                let val = last_sup_modifier_value.get_untracked();
+                                                on_mod(val);
                                             }
                                         });
 
@@ -598,11 +591,23 @@ pub fn ValueField(
                                                         <span class="modifier-section-label">"Especialização / Modificador:"</span>
                                                         <input 
                                                             type="text" 
-                                                            node_ref=sup_modifier_ref
                                                             class="supernatural-modifier-input"
                                                             placeholder="Ex: Musculoso, Titânico..."
                                                             maxlength="35"
-                                                            on:focus=move |_| { let _ = is_sup_modifier_focused.try_set(true); }
+                                                            prop:value=move || {
+                                                                if is_sup_modifier_focused.get() {
+                                                                    last_sup_modifier_value.get()
+                                                                } else {
+                                                                    modifier.get()
+                                                                }
+                                                            }
+                                                            on:focus={
+                                                                let val = modifier.get_untracked();
+                                                                move |_| { 
+                                                                    let _ = is_sup_modifier_focused.try_set(true); 
+                                                                    let _ = last_sup_modifier_value.try_set(val.clone());
+                                                                }
+                                                            }
                                                             on:input=move |ev| {
                                                                 let val = event_target_value(&ev);
                                                                 let _ = last_sup_modifier_value.try_set(val);
@@ -611,11 +616,8 @@ pub fn ValueField(
                                                                 let on_mod = on_modifier_input.clone();
                                                                 move |_| {
                                                                     let _ = is_sup_modifier_focused.try_set(false);
-                                                                    if let Some(elem) = sup_modifier_ref.get() {
-                                                                        let val = elem.value();
-                                                                        on_mod(val.clone());
-                                                                        let _ = last_sup_modifier_value.try_set(val);
-                                                                    }
+                                                                    let val = last_sup_modifier_value.get_untracked();
+                                                                    on_mod(val);
                                                                 }
                                                             }
                                                             on:keydown={
@@ -623,11 +625,13 @@ pub fn ValueField(
                                                                 move |ev: ev::KeyboardEvent| {
                                                                     if ev.key() == "Enter" {
                                                                         let _ = is_sup_modifier_focused.try_set(false);
-                                                                        if let Some(elem) = sup_modifier_ref.get() {
-                                                                            let val = elem.value();
-                                                                            on_mod(val.clone());
-                                                                            let _ = last_sup_modifier_value.try_set(val);
-                                                                            let _ = elem.blur();
+                                                                        let val = last_sup_modifier_value.get_untracked();
+                                                                        on_mod(val);
+                                                                        if let Some(target) = ev.target() {
+                                                                            use wasm_bindgen::JsCast;
+                                                                            if let Ok(elem) = target.dyn_into::<web_sys::HtmlElement>() {
+                                                                                let _ = elem.blur();
+                                                                            }
                                                                         }
                                                                     }
                                                                 }
