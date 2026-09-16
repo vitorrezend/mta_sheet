@@ -22,13 +22,13 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(79, 70, 229, 0.03) 100%);
-    border: 1px solid #ddd6fe;
-    border-left: 4px solid #7c3aed;
+    background: linear-gradient(135deg, rgba(184, 147, 71, 0.08) 0%, rgba(122, 91, 32, 0.03) 100%);
+    border: 1px solid #dfd4be;
+    border-left: 4px solid var(--gold-primary, #b89347);
     border-radius: 8px;
     padding: 0.75rem 0.9rem;
     margin-bottom: 1rem;
-    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.05);
+    box-shadow: 0 1px 4px rgba(184, 147, 71, 0.08);
 }
 
 .paradigm-header-wrap {
@@ -52,19 +52,20 @@
     font-size: 0.72rem;
     font-weight: 800;
     text-transform: uppercase;
-    color: #5b21b6;
-    letter-spacing: 0.04em;
+    color: #634b1e;
+    letter-spacing: 0.05em;
+    font-family: var(--font-serif, serif);
 }
 
 .paradigm-sub-title {
     font-size: 0.62rem;
-    color: #64748b;
+    color: #7d6b56;
     font-style: italic;
 }
 
 .grimoire-paradigm-input {
     width: 100%;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #d8cdba;
     border-radius: 5px;
     background: #ffffff;
     font-size: 0.85rem;
@@ -78,8 +79,8 @@
 
 .grimoire-paradigm-input:focus {
     outline: none;
-    border-color: #7c3aed;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+    border-color: var(--gold-primary, #b89347);
+    box-shadow: 0 0 0 3px rgba(184, 147, 71, 0.18);
     background: #ffffff;
 }
 
@@ -96,8 +97,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: #faf8f5;
+    border: 1px solid #e5ded2;
     border-radius: 8px;
     padding: 0.75rem;
     box-sizing: border-box;
@@ -107,7 +108,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1.5px solid #e2e8f0;
+    border-bottom: 1.5px solid #e8e1d5;
     padding-bottom: 0.4rem;
 }
 
@@ -119,7 +120,7 @@
 
 .col-header-icon {
     font-size: 0.8rem;
-    color: #7c3aed;
+    color: var(--gold-primary, #b89347);
 }
 
 .grimoire-col-header .column-title {
@@ -129,14 +130,15 @@
     text-align: left;
     font-size: 0.72rem;
     font-weight: 800;
-    color: #334155;
-    letter-spacing: 0.03em;
+    color: #4a3e2c;
+    letter-spacing: 0.04em;
+    font-family: var(--font-serif, serif);
 }
 
 .add-grimoire-pill-btn {
     background: #ffffff;
-    border: 1px solid #cbd5e1;
-    color: #475569;
+    border: 1px solid #d4c8b4;
+    color: #634b1e;
     border-radius: 9999px;
     font-size: 0.62rem;
     font-weight: 700;
@@ -147,11 +149,11 @@
 }
 
 .add-grimoire-pill-btn:hover {
-    background: #7c3aed;
+    background: var(--gold-primary, #b89347);
     color: #ffffff;
-    border-color: #7c3aed;
+    border-color: var(--gold-primary, #b89347);
     transform: scale(1.04);
-    box-shadow: 0 2px 5px rgba(124, 58, 237, 0.25);
+    box-shadow: 0 2px 6px rgba(184, 147, 71, 0.3);
 }
 
 .grimoire-items-list {
@@ -165,25 +167,26 @@
     align-items: center;
     gap: 0.4rem;
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e8e2d6;
     border-radius: 5px;
     padding: 3px 6px;
     transition: all 0.15s ease;
 }
 
 .grimoire-list-item-row:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    border-color: #d4c8b4;
+    box-shadow: 0 1px 3px rgba(184, 147, 71, 0.08);
 }
 
 .grimoire-item-tag {
     font-size: 0.58rem;
     font-weight: 800;
-    color: #94a3b8;
-    background: #f1f5f9;
-    padding: 2px 4px;
+    color: #7d6b56;
+    background: #f2ece1;
+    padding: 2px 5px;
     border-radius: 3px;
     flex-shrink: 0;
+    font-family: monospace;
 }
 
 .grimoire-item-input {
@@ -237,7 +240,7 @@
     margin-top: 0.35rem;
     margin-bottom: 1rem;
     padding-bottom: 0.6rem;
-    border-bottom: 1.5px solid #e2e8f0;
+    border-bottom: 1.5px solid #e8e1d5;
 }
 
 .rotes-header-info {
@@ -249,27 +252,28 @@
 .rotes-main-badge {
     font-size: 0.75rem;
     font-weight: 800;
-    color: #475569;
+    color: #4a3e2c;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
+    font-family: var(--font-serif, serif);
 }
 
 .rotes-hint {
     font-size: 0.65rem;
-    color: #64748b;
+    color: #7d6b56;
     font-style: italic;
 }
 
 .add-rote-card-btn {
-    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+    background: linear-gradient(135deg, #b89347 0%, #8a6825 100%);
     color: #ffffff;
-    border: none;
+    border: 1px solid #a27e32;
     border-radius: 9999px;
     font-size: 0.72rem;
     font-weight: 700;
     padding: 5px 14px;
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.25);
+    box-shadow: 0 2px 6px rgba(184, 147, 71, 0.28);
     transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
@@ -277,8 +281,8 @@
 }
 
 .add-rote-card-btn:hover {
-    background: linear-gradient(135deg, #6d28d9 0%, #4338ca 100%);
-    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+    background: linear-gradient(135deg, #c5a059 0%, #9e7930 100%);
+    box-shadow: 0 4px 12px rgba(184, 147, 71, 0.38);
     transform: translateY(-1px);
 }
 
@@ -295,8 +299,8 @@
     align-items: center;
     justify-content: center;
     padding: 2.5rem 1rem;
-    background: #f8fafc;
-    border: 2px dashed #cbd5e1;
+    background: #faf8f5;
+    border: 2px dashed #dcd1be;
     border-radius: 8px;
     text-align: center;
 }
@@ -310,21 +314,22 @@
 .empty-rotes-title {
     font-size: 0.88rem;
     font-weight: 700;
-    color: #334155;
+    color: #4a3e2c;
     margin: 0 0 0.25rem 0;
+    font-family: var(--font-serif, serif);
 }
 
 .empty-rotes-desc {
     font-size: 0.72rem;
-    color: #64748b;
+    color: #7d6b56;
     margin: 0;
 }
 
 /* Card Individual de Rotina */
 .rote-card {
     background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-left: 4px solid #7c3aed;
+    border: 1px solid #dcd3c3;
+    border-left: 4px solid var(--gold-primary, #b89347);
     border-radius: 8px;
     padding: 0.85rem 1rem;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
@@ -337,15 +342,15 @@
 }
 
 .rote-card:hover {
-    border-color: #94a3b8;
-    border-left-color: #6d28d9;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+    border-color: #c5b8a0;
+    border-left-color: #8a6825;
+    box-shadow: 0 4px 14px rgba(184, 147, 71, 0.12);
 }
 
 .rote-card.collapsed {
     padding: 0.6rem 0.9rem;
     gap: 0.4rem;
-    background: #fafafa;
+    background: #faf8f5;
 }
 
 .rote-card-header {
@@ -353,7 +358,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 0.6rem;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #ede7dc;
     padding-bottom: 0.45rem;
 }
 
@@ -370,10 +375,10 @@
 }
 
 .rote-collapse-btn {
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
+    background: #f4eee2;
+    border: 1px solid #dbcfbb;
     border-radius: 4px;
-    color: #64748b;
+    color: #634b1e;
     font-size: 0.65rem;
     padding: 3px 6px;
     cursor: pointer;
@@ -382,21 +387,22 @@
 }
 
 .rote-collapse-btn:hover {
-    background: #7c3aed;
+    background: var(--gold-primary, #b89347);
     color: #ffffff;
-    border-color: #7c3aed;
+    border-color: var(--gold-primary, #b89347);
 }
 
 .rote-number-tag {
     font-size: 0.65rem;
     font-weight: 800;
-    background: #f5f3ff;
-    color: #7c3aed;
-    border: 1px solid #ddd6fe;
+    background: #fbf7ee;
+    color: #7a5b20;
+    border: 1px solid #dfd1b8;
     padding: 2px 7px;
     border-radius: 4px;
     flex-shrink: 0;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.03em;
+    font-family: var(--font-serif, serif);
 }
 
 .rote-name-input {
@@ -414,8 +420,8 @@
 
 .rote-name-input:focus {
     outline: none;
-    border-bottom-color: #7c3aed;
-    background: rgba(124, 58, 237, 0.04);
+    border-bottom-color: var(--gold-primary, #b89347);
+    background: rgba(184, 147, 71, 0.05);
     border-radius: 4px;
 }
 
@@ -467,33 +473,33 @@
 }
 
 .preview-spheres {
-    background: #f5f3ff;
-    color: #7c3aed;
-    border: 1px solid #ddd6fe;
+    background: #fbf7ee;
+    color: #7a5b20;
+    border: 1px solid #dfd1b8;
 }
 
 .preview-ability {
-    background: #fdf4ff;
-    color: #a21caf;
-    border: 1px solid #f5d0fe;
+    background: #fdf8eb;
+    color: #8c6218;
+    border: 1px solid #ebdcb5;
 }
 
 .preview-practice {
-    background: #eff6ff;
-    color: #2563eb;
-    border: 1px solid #bfdbfe;
+    background: #f5f4f0;
+    color: #4a4339;
+    border: 1px solid #d9d2c5;
 }
 
 .preview-focus {
     background: #fefce8;
-    color: #ca8a04;
+    color: #926309;
     border: 1px solid #fef08a;
 }
 
 .preview-diff-tag {
-    background: #f1f5f9;
-    color: #334155;
-    border: 1px solid #cbd5e1;
+    background: #f4efe4;
+    color: #4a3e2c;
+    border: 1px solid #dcd1be;
     font-weight: 800;
 }
 
@@ -510,8 +516,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: #faf8f5;
+    border: 1px solid #e5ded2;
     border-radius: 6px;
     padding: 6px 10px;
     gap: 8px;
@@ -523,9 +529,10 @@
 .diff-matrix-title {
     font-size: 0.62rem;
     font-weight: 800;
-    color: #475569;
-    letter-spacing: 0.04em;
+    color: #5a4935;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
+    font-family: var(--font-serif, serif);
 }
 
 .diff-pills-wrap {
@@ -614,12 +621,13 @@
 .rote-meta-label {
     font-size: 0.62rem;
     font-weight: 800;
-    color: #475569;
+    color: #5a4935;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.04em;
     display: flex;
     align-items: center;
     gap: 3px;
+    font-family: var(--font-serif, serif);
 }
 
 .meta-icon {
@@ -627,9 +635,9 @@
 }
 
 .rote-meta-input {
-    border: 1px solid #cbd5e1;
+    border: 1px solid #d8cdba;
     border-radius: 5px;
-    background: #f8fafc;
+    background: #faf8f5;
     font-size: 0.78rem;
     color: var(--primary-color, #1e293b);
     padding: 5px 8px;
@@ -641,9 +649,9 @@
 
 .rote-meta-input:focus {
     outline: none;
-    border-color: #7c3aed;
+    border-color: var(--gold-primary, #b89347);
     background: #ffffff;
-    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12);
+    box-shadow: 0 0 0 2px rgba(184, 147, 71, 0.16);
 }
 
 /* ─── Bloco Interativo de Esferas Utilizadas ─────────────────────────── */
@@ -651,8 +659,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-    background: #faf5ff;
-    border: 1px solid #ddd6fe;
+    background: linear-gradient(135deg, rgba(184, 147, 71, 0.05) 0%, rgba(250, 248, 245, 0.8) 100%);
+    border: 1px solid #e0d4be;
     border-radius: 6px;
     padding: 0.55rem 0.7rem;
     box-sizing: border-box;
@@ -672,19 +680,20 @@
     align-items: center;
     gap: 4px;
     background: #ffffff;
-    border: 1px solid #7c3aed;
-    color: #6d28d9;
+    border: 1px solid #c2a15c;
+    color: #634b1e;
     border-radius: 9999px;
     padding: 2px 7px 2px 8px;
     font-size: 0.68rem;
     font-weight: 700;
-    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.12);
+    box-shadow: 0 1px 3px rgba(184, 147, 71, 0.12);
     transition: all 0.15s ease;
 }
 
 .rote-sphere-pill-tag:hover {
     transform: translateY(-1px);
-    box-shadow: 0 2px 5px rgba(124, 58, 237, 0.2);
+    border-color: #a27e32;
+    box-shadow: 0 2px 5px rgba(184, 147, 71, 0.22);
 }
 
 .sphere-pill-icon {
@@ -696,7 +705,7 @@
 }
 
 .sphere-pill-lvl {
-    background: #7c3aed;
+    background: linear-gradient(135deg, #b89347 0%, #8a6825 100%);
     color: #ffffff;
     border-radius: 50%;
     width: 15px;
@@ -741,12 +750,12 @@
 .sphere-select-dropdown {
     flex: 1.5;
     min-width: 115px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #d8cdba;
     border-radius: 4px;
     background: #ffffff;
     font-size: 0.72rem;
     font-weight: 600;
-    color: #334155;
+    color: #4a3e2c;
     padding: 3px 6px;
     font-family: inherit;
     outline: none;
@@ -754,18 +763,18 @@
 }
 
 .sphere-select-dropdown:focus {
-    border-color: #7c3aed;
+    border-color: var(--gold-primary, #b89347);
 }
 
 .sphere-level-dropdown {
     flex: 1;
     min-width: 75px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #d8cdba;
     border-radius: 4px;
     background: #ffffff;
     font-size: 0.72rem;
     font-weight: 600;
-    color: #334155;
+    color: #4a3e2c;
     padding: 3px 6px;
     font-family: inherit;
     outline: none;
@@ -773,13 +782,13 @@
 }
 
 .sphere-level-dropdown:focus {
-    border-color: #7c3aed;
+    border-color: var(--gold-primary, #b89347);
 }
 
 .btn-add-sphere-tag {
-    background: #7c3aed;
+    background: linear-gradient(135deg, #b89347 0%, #8a6825 100%);
     color: #ffffff;
-    border: none;
+    border: 1px solid #a27e32;
     border-radius: 4px;
     font-size: 0.68rem;
     font-weight: 700;
@@ -787,16 +796,18 @@
     cursor: pointer;
     transition: all 0.15s ease;
     flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(184, 147, 71, 0.2);
 }
 
 .btn-add-sphere-tag:hover {
-    background: #6d28d9;
+    background: linear-gradient(135deg, #c5a059 0%, #9e7930 100%);
     transform: scale(1.03);
+    box-shadow: 0 2px 5px rgba(184, 147, 71, 0.3);
 }
 
 .no-spheres-hint {
     font-size: 0.65rem;
-    color: #94a3b8;
+    color: #9c8a74;
     font-style: italic;
 }
 
@@ -812,12 +823,13 @@
 .rote-desc-label {
     font-size: 0.62rem;
     font-weight: 800;
-    color: #475569;
+    color: #5a4935;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.04em;
     display: flex;
     align-items: center;
     gap: 3px;
+    font-family: var(--font-serif, serif);
 }
 
 .desc-icon {
@@ -827,9 +839,9 @@
 .rote-desc-textarea {
     width: 100%;
     min-height: 65px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #d8cdba;
     border-radius: 5px;
-    background: #fbfbfe;
+    background: #faf8f5;
     font-size: 0.78rem;
     line-height: 1.45;
     color: var(--primary-color, #1e293b);
@@ -842,9 +854,9 @@
 
 .rote-desc-textarea:focus {
     outline: none;
-    border-color: #7c3aed;
+    border-color: var(--gold-primary, #b89347);
     background: #ffffff;
-    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12);
+    box-shadow: 0 0 0 2px rgba(184, 147, 71, 0.16);
 }
 
 
@@ -858,9 +870,9 @@
 .grimoire-notes-textarea {
     width: 100%;
     min-height: 130px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #d8cdba;
     border-radius: 6px;
-    background: #fbfbfe;
+    background: #faf8f5;
     font-size: 0.8rem;
     line-height: 1.5;
     color: var(--primary-color, #1e293b);
@@ -873,7 +885,7 @@
 
 .grimoire-notes-textarea:focus {
     outline: none;
-    border-color: #7c3aed;
+    border-color: var(--gold-primary, #b89347);
     background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+    box-shadow: 0 0 0 3px rgba(184, 147, 71, 0.18);
 }

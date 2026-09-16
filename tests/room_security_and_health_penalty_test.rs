@@ -88,6 +88,7 @@ fn test_room_summary_and_details_public_and_password_serialization() {
     assert!(des_details.has_password);
 }
 
+#[cfg(feature = "ssr")]
 #[test]
 fn test_room_password_bcrypt_hashing_and_verification() {
     let password = "ArcanumPassword2026!";
