@@ -58,11 +58,22 @@ async fn main() {
     let _ = tokio::fs::create_dir_all("uploads").await;
     mta_sheet::logging::server::cleanup_old_logs(30);
 
-    // Sincroniza mta_sheet.wasm <-> mta_sheet_bg.wasm caso algum tenha sido gerado com nome alternativo
+    // Sincroniza mta_sheet.wasm <-> mta_sheet_bg.wasm para que ambos existam e estejam sempre atualizados
     let wasm_file = std::path::Path::new("target/site/pkg/mta_sheet.wasm");
     let wasm_bg_file = std::path::Path::new("target/site/pkg/mta_sheet_bg.wasm");
-    if wasm_file.exists() && !wasm_bg_file.exists() {
-        let _ = tokio::fs::copy(wasm_file, wasm_bg_file).await;
+    if wasm_file.exists() {
+        let need_copy = match (wasm_file.metadata(), wasm_bg_file.metadata()) {
+            (Ok(src), Ok(dst)) => {
+                src.len() != dst.len()
+                    || src.modified().unwrap_or(std::time::SystemTime::UNIX_EPOCH)
+                        > dst.modified().unwrap_or(std::time::SystemTime::UNIX_EPOCH)
+            }
+            (Ok(_), Err(_)) => true,
+            _ => false,
+        };
+        if need_copy {
+            let _ = tokio::fs::copy(wasm_file, wasm_bg_file).await;
+        }
     } else if wasm_bg_file.exists() && !wasm_file.exists() {
         let _ = tokio::fs::copy(wasm_bg_file, wasm_file).await;
     }

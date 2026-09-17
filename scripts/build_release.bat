@@ -85,6 +85,7 @@ echo   -^> [CSS Bundle] Empacotando suite de estilos em target\site\pkg\mta_shee
     type styles\09-gods-and-monsters.css
     type styles\10-page5-grimoire.css
     type styles\11-page6-notes.css
+    type styles\12-compendium.css
     type styles\patch_notes.css
 ) > target\site\pkg\mta_sheet.css
 

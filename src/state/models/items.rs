@@ -83,6 +83,8 @@ pub struct WeaponItem {
     pub clip: String,
     #[serde(default, skip_serializing_if = "is_empty_str")]
     pub conceal: String,
+    #[serde(default, skip_serializing_if = "is_empty_str")]
+    pub notes: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]

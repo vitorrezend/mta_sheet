@@ -78,7 +78,7 @@ async fn ensure_column(pool: &SqlitePool, table: &str, column: &str, definition:
 }
 
 #[cfg(feature = "ssr")]
-async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+pub async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     // 1. Core Tables
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS users (
@@ -129,6 +129,7 @@ async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
             data TEXT NOT NULL,
             sheet_type TEXT NOT NULL DEFAULT 'mage',
             is_public INTEGER NOT NULL DEFAULT 0,
+            summary_json TEXT,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )"
     ).execute(pool).await?;
@@ -168,13 +169,41 @@ async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         )"
     ).execute(pool).await?;
 
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS sheet_folders (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            parent_id TEXT REFERENCES sheet_folders(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            icon TEXT NOT NULL DEFAULT '📁',
+            color TEXT NOT NULL DEFAULT '#b89347',
+            sort_order INTEGER NOT NULL DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    ).execute(pool).await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS folder_acls (
+            id TEXT PRIMARY KEY,
+            folder_id TEXT NOT NULL REFERENCES sheet_folders(id) ON DELETE CASCADE,
+            grantee_type TEXT NOT NULL,
+            grantee_id TEXT,
+            permission TEXT NOT NULL DEFAULT 'read',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (folder_id, grantee_type, grantee_id)
+        )"
+    ).execute(pool).await?;
+
     // 2. Colunas evolutivas checadas via PRAGMA (sem erros descartados com let _ =)
     ensure_column(pool, "users", "is_admin", "INTEGER NOT NULL DEFAULT 0").await?;
+    ensure_column(pool, "sheet_folders", "parent_id", "TEXT REFERENCES sheet_folders(id) ON DELETE CASCADE").await?;
     ensure_column(pool, "character_sheets", "user_id", "TEXT REFERENCES users(id) ON DELETE SET NULL").await?;
     ensure_column(pool, "character_sheets", "room_id", "TEXT REFERENCES rooms(id) ON DELETE SET NULL").await?;
+    ensure_column(pool, "character_sheets", "folder_id", "TEXT REFERENCES sheet_folders(id) ON DELETE SET NULL").await?;
     ensure_column(pool, "character_sheets", "sheet_type", "TEXT NOT NULL DEFAULT 'mage'").await?;
     ensure_column(pool, "character_sheets", "is_public", "INTEGER NOT NULL DEFAULT 0").await?;
     ensure_column(pool, "character_sheets", "is_hidden_in_room", "INTEGER NOT NULL DEFAULT 0").await?;
+    ensure_column(pool, "character_sheets", "summary_json", "TEXT").await?;
     ensure_column(pool, "rooms", "chantry_data", "TEXT DEFAULT ''").await?;
     ensure_column(pool, "rooms", "chronicle_notes", "TEXT DEFAULT ''").await?;
     ensure_column(pool, "rooms", "initiative_data", "TEXT DEFAULT ''").await?;
@@ -186,6 +215,11 @@ async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_user_id ON character_sheets (user_id)").execute(pool).await?;
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_public ON character_sheets (is_public)").execute(pool).await?;
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_room_id ON character_sheets (room_id)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_folder_id ON character_sheets (folder_id)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheet_folders_user ON sheet_folders (user_id, sort_order, created_at)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheet_folders_parent ON sheet_folders (parent_id)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_folder_acls_folder ON folder_acls (folder_id)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_folder_acls_grantee ON folder_acls (grantee_type, grantee_id)").execute(pool).await?;
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_updated_at ON character_sheets (updated_at DESC)").execute(pool).await?;
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id)").execute(pool).await?;
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions (expires_at)").execute(pool).await?;

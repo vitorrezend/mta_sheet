@@ -2,6 +2,20 @@ use leptos::*;
 use std::collections::HashSet;
 use crate::components::{Callback, StableTextArea, StableTextInput};
 use crate::state::{CharacterData, GrimoireRoteItem, RoteSphereRequirement};
+use crate::compendium::practices::get_practice_names;
+
+pub mod practice_compendium_modal;
+pub use practice_compendium_modal::{PracticeCompendiumModal, CompendiumSection, ArchetypeTarget};
+
+#[derive(Clone)]
+pub struct PracticeCompendiumContext {
+    pub open: Callback<(Option<usize>, String)>,
+    pub open_practice: Callback<(Option<usize>, String)>,
+    pub open_instrument: Callback<(Option<usize>, String)>,
+    pub open_archetype: Callback<(Option<ArchetypeTarget>, String)>,
+    pub open_attribute: Callback<(Option<usize>, String)>,
+    pub open_weapon: Callback<(Option<usize>, String)>,
+}
 
 #[component]
 pub fn PageGrimoire() -> impl IntoView {
@@ -68,6 +82,37 @@ pub fn PageGrimoire() -> impl IntoView {
             }
             s.grimoire.practices[idx] = val;
         });
+    };
+
+    // Contexto para o Modal de Compêndio M20 (renderizado na raiz da ficha para isolamento de z-index)
+    let compendium_ctx = use_context::<PracticeCompendiumContext>();
+
+    let ctx_for_p_slot = compendium_ctx.clone();
+    let open_practice_compendium_for_slot = Callback::new(move |(idx, initial_val): (usize, String)| {
+        if let Some(ref ctx) = ctx_for_p_slot {
+            ctx.open_practice.call((Some(idx), initial_val));
+        }
+    });
+
+    let ctx_for_p_general = compendium_ctx.clone();
+    let open_general_practice_compendium = move |_| {
+        if let Some(ref ctx) = ctx_for_p_general {
+            ctx.open_practice.call((None, String::new()));
+        }
+    };
+
+    let ctx_for_i_slot = compendium_ctx.clone();
+    let open_instrument_compendium_for_slot = Callback::new(move |(idx, initial_val): (usize, String)| {
+        if let Some(ref ctx) = ctx_for_i_slot {
+            ctx.open_instrument.call((Some(idx), initial_val));
+        }
+    });
+
+    let ctx_for_i_general = compendium_ctx;
+    let open_general_instrument_compendium = move |_| {
+        if let Some(ref ctx) = ctx_for_i_general {
+            ctx.open_instrument.call((None, String::new()));
+        }
     };
 
     // Instrumentos Mágicos
@@ -202,20 +247,33 @@ pub fn PageGrimoire() -> impl IntoView {
                                 <span class="col-header-icon">"✦"</span>
                                 <h3 class="column-title">{move || crate::i18n::tr("practices_label", lang())}</h3>
                             </div>
-                            <button 
-                                type="button"
-                                class="add-grimoire-pill-btn" 
-                                on:click=add_practice
-                                title=move || match lang() {
-                                    crate::i18n::Language::PtBr => "Adicionar nova Prática",
-                                    crate::i18n::Language::EnUs => "Add new Practice",
-                                }
-                            >
-                                {move || match lang() {
-                                    crate::i18n::Language::PtBr => "+ Prática",
-                                    crate::i18n::Language::EnUs => "+ Practice",
-                                }}
-                            </button>
+                            <div class="grimoire-col-actions">
+                                <button
+                                    type="button"
+                                    class="compendium-grimoire-btn"
+                                    on:click=open_general_practice_compendium
+                                    title=move || match lang() {
+                                        crate::i18n::Language::PtBr => "Consultar Compêndio M20 de Práticas",
+                                        crate::i18n::Language::EnUs => "Browse M20 Magickal Practices Compendium",
+                                    }
+                                >
+                                    "📖 M20"
+                                </button>
+                                <button 
+                                    type="button"
+                                    class="add-grimoire-pill-btn" 
+                                    on:click=add_practice
+                                    title=move || match lang() {
+                                        crate::i18n::Language::PtBr => "Adicionar nova Prática",
+                                        crate::i18n::Language::EnUs => "Add new Practice",
+                                    }
+                                >
+                                    {move || match lang() {
+                                        crate::i18n::Language::PtBr => "+ Prática",
+                                        crate::i18n::Language::EnUs => "+ Practice",
+                                    }}
+                                </button>
+                            </div>
                         </div>
 
                         <div class="grimoire-items-list">
@@ -226,18 +284,31 @@ pub fn PageGrimoire() -> impl IntoView {
                                         let val = val.clone();
                                         move || val.clone()
                                     });
+                                    let val_for_rule = val.clone();
+                                    let open_slot = open_practice_compendium_for_slot.clone();
                                     view! {
                                         <div class="grimoire-list-item-row">
                                             <span class="grimoire-item-tag">{format!("{:02}", idx + 1)}</span>
                                             <StableTextInput 
                                                 class="grimoire-item-input"
                                                 placeholder=Signal::derive(move || match lang() {
-                                                    crate::i18n::Language::PtBr => "Ex: Alquimia, Alta Magia Ritual, Bruxaria, Cybernética...".to_string(),
-                                                    crate::i18n::Language::EnUs => "Ex: Alchemy, High Ritual Magick, Witchcraft, Cybernetics...".to_string(),
+                                                    crate::i18n::Language::PtBr => "Ex: Bruxaria, Alta Magia Ritual, Hipertecnologia...".to_string(),
+                                                    crate::i18n::Language::EnUs => "Ex: Witchcraft, High Ritual Magick, Hypertech...".to_string(),
                                                 })
                                                 value=val_sig
                                                 on_change=Callback::new(move |new_val| update_practice(idx, new_val))
                                             />
+                                            <button 
+                                                type="button" 
+                                                class="grimoire-rule-btn" 
+                                                on:click=move |_| open_slot.call((idx, val_for_rule.clone()))
+                                                title=move || match lang() {
+                                                    crate::i18n::Language::PtBr => "Consultar regras M20 desta Prática",
+                                                    crate::i18n::Language::EnUs => "View M20 rules for this Practice",
+                                                }
+                                            >
+                                                "📖"
+                                            </button>
                                             <button 
                                                 type="button" 
                                                 class="remove-grimoire-btn" 
@@ -247,7 +318,7 @@ pub fn PageGrimoire() -> impl IntoView {
                                                     crate::i18n::Language::EnUs => "Remove Practice",
                                                 }
                                             >
-                                                "×"
+                                                "✕"
                                             </button>
                                         </div>
                                     }
@@ -263,20 +334,33 @@ pub fn PageGrimoire() -> impl IntoView {
                                 <span class="col-header-icon">"✧"</span>
                                 <h3 class="column-title">{move || crate::i18n::tr("instruments_label", lang())}</h3>
                             </div>
-                            <button 
-                                type="button"
-                                class="add-grimoire-pill-btn" 
-                                on:click=add_instrument
-                                title=move || match lang() {
-                                    crate::i18n::Language::PtBr => "Adicionar novo Instrumento",
-                                    crate::i18n::Language::EnUs => "Add new Instrument",
-                                }
-                            >
-                                {move || match lang() {
-                                    crate::i18n::Language::PtBr => "+ Instrumento",
-                                    crate::i18n::Language::EnUs => "+ Instrument",
-                                }}
-                            </button>
+                            <div class="grimoire-col-actions">
+                                <button
+                                    type="button"
+                                    class="compendium-grimoire-btn"
+                                    on:click=open_general_instrument_compendium
+                                    title=move || match lang() {
+                                        crate::i18n::Language::PtBr => "Consultar Compêndio M20 de Instrumentos",
+                                        crate::i18n::Language::EnUs => "Browse M20 Magickal Instruments Compendium",
+                                    }
+                                >
+                                    "📖 M20"
+                                </button>
+                                <button 
+                                    type="button"
+                                    class="add-grimoire-pill-btn" 
+                                    on:click=add_instrument
+                                    title=move || match lang() {
+                                        crate::i18n::Language::PtBr => "Adicionar novo Instrumento",
+                                        crate::i18n::Language::EnUs => "Add new Instrument",
+                                    }
+                                >
+                                    {move || match lang() {
+                                        crate::i18n::Language::PtBr => "+ Instrumento",
+                                        crate::i18n::Language::EnUs => "+ Instrument",
+                                    }}
+                                </button>
+                            </div>
                         </div>
 
                         <div class="grimoire-items-list">
@@ -287,6 +371,8 @@ pub fn PageGrimoire() -> impl IntoView {
                                         let val = val.clone();
                                         move || val.clone()
                                     });
+                                    let val_for_rule = val.clone();
+                                    let open_i_slot = open_instrument_compendium_for_slot.clone();
                                     view! {
                                         <div class="grimoire-list-item-row">
                                             <span class="grimoire-item-tag">{format!("{:02}", idx + 1)}</span>
@@ -299,6 +385,17 @@ pub fn PageGrimoire() -> impl IntoView {
                                                 value=val_sig
                                                 on_change=Callback::new(move |new_val| update_instrument(idx, new_val))
                                             />
+                                            <button 
+                                                type="button" 
+                                                class="grimoire-rule-btn" 
+                                                on:click=move |_| open_i_slot.call((idx, val_for_rule.clone()))
+                                                title=move || match lang() {
+                                                    crate::i18n::Language::PtBr => "Consultar regras M20 deste Instrumento",
+                                                    crate::i18n::Language::EnUs => "View M20 rules for this Instrument",
+                                                }
+                                            >
+                                                "📖"
+                                            </button>
                                             <button 
                                                 type="button" 
                                                 class="remove-grimoire-btn" 
@@ -399,6 +496,36 @@ pub fn PageGrimoire() -> impl IntoView {
                 />
             </div>
         </div>
+    }
+}
+
+pub fn sphere_slug(sphere: &str) -> &'static str {
+    match sphere.trim() {
+        "Correspondência" | "Correspondence" => "sphere-correspondence",
+        "Entropia" | "Entropy" => "sphere-entropy",
+        "Espírito" | "Spirit" => "sphere-spirit",
+        "Forças" | "Forces" => "sphere-forces",
+        "Matéria" | "Matter" => "sphere-matter",
+        "Mente" | "Mind" => "sphere-mind",
+        "Primórdio" | "Prime" => "sphere-prime",
+        "Tempo" | "Time" => "sphere-time",
+        "Vida" | "Life" => "sphere-life",
+        _ => "sphere-generic",
+    }
+}
+
+pub fn sphere_icon(sphere: &str) -> &'static str {
+    match sphere.trim() {
+        "Correspondência" | "Correspondence" => "🌀",
+        "Entropia" | "Entropy" => "💀",
+        "Espírito" | "Spirit" => "👻",
+        "Forças" | "Forces" => "⚡",
+        "Matéria" | "Matter" => "🧱",
+        "Mente" | "Mind" => "🧠",
+        "Primórdio" | "Prime" => "✨",
+        "Tempo" | "Time" => "⏳",
+        "Vida" | "Life" => "🌿",
+        _ => "🔮",
     }
 }
 
@@ -538,9 +665,12 @@ fn RoteCardComponent(
                         <div class="preview-pills-row">
                             {sphere_list.into_iter().map(|s| {
                                 let sphere_name = crate::i18n::tr_sphere(&s.sphere, current_lang);
+                                let slug = sphere_slug(&s.sphere);
+                                let lvl_cls = format!("sphere-lvl-{}", s.level.clamp(1, 5));
+                                let icon = sphere_icon(&s.sphere);
                                 view! {
-                                    <span class="preview-pill preview-spheres">
-                                        {format!("🔮 {} {}", sphere_name, s.level)}
+                                    <span class=format!("preview-pill preview-spheres {} {}", slug, lvl_cls)>
+                                        {format!("{} {} {}", icon, sphere_name, s.level)}
                                     </span>
                                 }
                             }).collect_view()}
@@ -629,10 +759,13 @@ fn RoteCardComponent(
                                         list.into_iter().enumerate().map(|(s_idx, s_req)| {
                                             let s_req_name = s_req.sphere.clone();
                                             let translated_sphere = crate::i18n::tr_sphere(&s_req_name, current_lang).to_string();
+                                            let slug = sphere_slug(&s_req_name);
+                                            let lvl_cls = format!("sphere-lvl-{}", s_req.level.clamp(1, 5));
+                                            let icon = sphere_icon(&s_req_name);
                                             let remove_action = remove_sphere_tag.clone();
                                             view! {
-                                                <span class="rote-sphere-pill-tag">
-                                                    <span class="sphere-pill-icon">"🔮"</span>
+                                                <span class=format!("rote-sphere-pill-tag {} {}", slug, lvl_cls)>
+                                                    <span class="sphere-pill-icon">{icon}</span>
                                                     <span class="sphere-pill-name">{translated_sphere.clone()}</span>
                                                     <strong class="sphere-pill-lvl">{format!("{}", s_req.level)}</strong>
                                                     <button 
@@ -657,15 +790,15 @@ fn RoteCardComponent(
                                     on:change=move |ev| set_new_sphere.set(event_target_value(&ev))
                                     prop:value=new_sphere
                                 >
-                                    <option value="Correspondência">{move || crate::i18n::tr_sphere("Correspondência", lang())}</option>
-                                    <option value="Entropia">{move || crate::i18n::tr_sphere("Entropia", lang())}</option>
-                                    <option value="Espírito">{move || crate::i18n::tr_sphere("Espírito", lang())}</option>
-                                    <option value="Forças">{move || crate::i18n::tr_sphere("Forças", lang())}</option>
-                                    <option value="Matéria">{move || crate::i18n::tr_sphere("Matéria", lang())}</option>
-                                    <option value="Mente">{move || crate::i18n::tr_sphere("Mente", lang())}</option>
-                                    <option value="Primórdio">{move || crate::i18n::tr_sphere("Primórdio", lang())}</option>
-                                    <option value="Tempo">{move || crate::i18n::tr_sphere("Tempo", lang())}</option>
-                                    <option value="Vida">{move || crate::i18n::tr_sphere("Vida", lang())}</option>
+                                    <option value="Correspondência">{move || format!("🌀 {}", crate::i18n::tr_sphere("Correspondência", lang()))}</option>
+                                    <option value="Entropia">{move || format!("💀 {}", crate::i18n::tr_sphere("Entropia", lang()))}</option>
+                                    <option value="Espírito">{move || format!("👻 {}", crate::i18n::tr_sphere("Espírito", lang()))}</option>
+                                    <option value="Forças">{move || format!("⚡ {}", crate::i18n::tr_sphere("Forças", lang()))}</option>
+                                    <option value="Matéria">{move || format!("🧱 {}", crate::i18n::tr_sphere("Matéria", lang()))}</option>
+                                    <option value="Mente">{move || format!("🧠 {}", crate::i18n::tr_sphere("Mente", lang()))}</option>
+                                    <option value="Primórdio">{move || format!("✨ {}", crate::i18n::tr_sphere("Primórdio", lang()))}</option>
+                                    <option value="Tempo">{move || format!("⏳ {}", crate::i18n::tr_sphere("Tempo", lang()))}</option>
+                                    <option value="Vida">{move || format!("🌿 {}", crate::i18n::tr_sphere("Vida", lang()))}</option>
                                 </select>
 
                                 <select 

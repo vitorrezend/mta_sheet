@@ -9,6 +9,15 @@ pub struct UserInfo {
 }
 
 #[cfg(feature = "ssr")]
+fn mask_token(token: &str) -> String {
+    if token.len() > 8 {
+        format!("{}...{}", &token[..4], &token[token.len() - 4..])
+    } else {
+        "***".to_string()
+    }
+}
+
+#[cfg(feature = "ssr")]
 pub async fn extract_session_token() -> Option<String> {
     use http::HeaderMap;
     let headers: HeaderMap = if let Ok(h) = leptos_axum::extract().await {
@@ -21,13 +30,13 @@ pub async fn extract_session_token() -> Option<String> {
     };
 
     let cookie_header = headers.get(http::header::COOKIE)?.to_str().ok()?;
-    log::info!("Received Cookie header: {}", cookie_header);
+    log::trace!("Cookie header present in request");
     for pair in cookie_header.split(';') {
         let mut parts = pair.trim().splitn(2, '=');
         if let (Some(key), Some(value)) = (parts.next(), parts.next()) {
             if key.trim() == "session_token" {
                 let token = value.trim().to_string();
-                log::info!("Extracted session_token: {}", token);
+                log::debug!("Extracted session_token: {}", mask_token(&token));
                 return Some(token);
             }
         }
@@ -48,7 +57,7 @@ pub fn set_session_cookie(token: &str, max_age_secs: i64) {
         );
         if let Ok(header_val) = http::HeaderValue::from_str(&cookie_str) {
             res_options.insert_header(http::header::SET_COOKIE, header_val);
-            log::info!("Set-Cookie registered: {}", cookie_str);
+            log::debug!("Set-Cookie registered: session_token={}; Max-Age={}", mask_token(token), max_age_secs);
         }
     } else {
         log::warn!("ResponseOptions not found in context when setting cookie");

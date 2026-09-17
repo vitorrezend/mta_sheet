@@ -135,6 +135,37 @@
     font-family: var(--font-serif, serif);
 }
 
+.grimoire-col-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.compendium-grimoire-btn {
+    background: #fbf7ee;
+    border: 1px solid #d4c8b4;
+    color: #634b1e;
+    border-radius: 9999px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    line-height: 1.2;
+}
+
+.compendium-grimoire-btn:hover {
+    background: var(--gold-primary, #b89347);
+    color: #ffffff;
+    border-color: var(--gold-primary, #b89347);
+    transform: scale(1.04);
+    box-shadow: 0 2px 6px rgba(184, 147, 71, 0.3);
+}
+
 .add-grimoire-pill-btn {
     background: #ffffff;
     border: 1px solid #d4c8b4;
@@ -475,7 +506,16 @@
 .preview-spheres {
     background: #fbf7ee;
     color: #7a5b20;
-    border: 1px solid #dfd1b8;
+    border: 1.5px solid #dfd1b8;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 700;
+    transition: all 0.15s ease;
+}
+
+.preview-spheres:hover {
+    transform: scale(1.06);
 }
 
 .preview-ability {
@@ -680,33 +720,33 @@
     align-items: center;
     gap: 4px;
     background: #ffffff;
-    border: 1px solid #c2a15c;
+    border: 1.5px solid #c2a15c;
     color: #634b1e;
     border-radius: 9999px;
     padding: 2px 7px 2px 8px;
     font-size: 0.68rem;
     font-weight: 700;
-    box-shadow: 0 1px 3px rgba(184, 147, 71, 0.12);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     transition: all 0.15s ease;
 }
 
 .rote-sphere-pill-tag:hover {
-    transform: translateY(-1px);
-    border-color: #a27e32;
-    box-shadow: 0 2px 5px rgba(184, 147, 71, 0.22);
+    transform: translateY(-1px) scale(1.02);
 }
 
 .sphere-pill-icon {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
 }
 
 .sphere-pill-name {
     font-weight: 700;
+    letter-spacing: 0.01em;
 }
 
 .sphere-pill-lvl {
-    background: linear-gradient(135deg, #b89347 0%, #8a6825 100%);
-    color: #ffffff;
     border-radius: 50%;
     width: 15px;
     height: 15px;
@@ -714,13 +754,15 @@
     align-items: center;
     justify-content: center;
     font-size: 0.58rem;
+    font-weight: 900;
+    font-family: ui-monospace, SFMono-Regular, monospace;
     margin-left: 2px;
+    line-height: 1;
 }
 
 .sphere-pill-remove-btn {
     border: none;
     background: transparent;
-    color: #94a3b8;
     font-size: 0.9rem;
     cursor: pointer;
     padding: 0 2px;
@@ -730,11 +772,142 @@
     align-items: center;
     justify-content: center;
     transition: all 0.15s ease;
+    margin-left: 2px;
 }
 
-.sphere-pill-remove-btn:hover {
+/* Níveis Gerais de Intensidade: Badges Internos e Botões */
+.sphere-lvl-1 .sphere-pill-lvl,
+.sphere-lvl-2 .sphere-pill-lvl {
+    background: rgba(0, 0, 0, 0.08);
+    color: inherit;
+}
+
+.sphere-lvl-3 .sphere-pill-lvl {
+    background: rgba(0, 0, 0, 0.16);
+    color: inherit;
+    font-weight: 900;
+}
+
+.sphere-lvl-4 .sphere-pill-lvl,
+.sphere-lvl-5 .sphere-pill-lvl {
+    background: rgba(255, 255, 255, 0.32);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.sphere-lvl-1 .sphere-pill-remove-btn,
+.sphere-lvl-2 .sphere-pill-remove-btn,
+.sphere-lvl-3 .sphere-pill-remove-btn {
+    color: inherit;
+    opacity: 0.6;
+}
+.sphere-lvl-1 .sphere-pill-remove-btn:hover,
+.sphere-lvl-2 .sphere-pill-remove-btn:hover,
+.sphere-lvl-3 .sphere-pill-remove-btn:hover {
     color: #ffffff;
     background: #ef4444;
+    opacity: 1;
+}
+
+.sphere-lvl-4 .sphere-pill-remove-btn,
+.sphere-lvl-5 .sphere-pill-remove-btn {
+    color: #ffffff;
+    opacity: 0.8;
+}
+.sphere-lvl-4 .sphere-pill-remove-btn:hover,
+.sphere-lvl-5 .sphere-pill-remove-btn:hover {
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   1. CORRESPONDÊNCIA (Violeta Cósmico / Espaço & Portais)
+   ───────────────────────────────────────────────────────────────────── */
+.sphere-correspondence.sphere-lvl-1 { background: #f5f3ff; border: 1.5px solid #ddd6fe; color: #5b21b6; }
+.sphere-correspondence.sphere-lvl-2 { background: #ede9fe; border: 1.5px solid #c4b5fd; color: #5b21b6; }
+.sphere-correspondence.sphere-lvl-3 { background: #ddd6fe; border: 1.5px solid #a78bfa; color: #4c1d95; }
+.sphere-correspondence.sphere-lvl-4 { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); border: 1.5px solid #6d28d9; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); box-shadow: 0 2px 8px rgba(124, 58, 237, 0.35); }
+.sphere-correspondence.sphere-lvl-5 { background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%); border: 2px solid #c4b5fd; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.45); box-shadow: 0 0 14px rgba(124, 58, 237, 0.6); }
+
+/* ─────────────────────────────────────────────────────────────────────
+   2. ENTROPIA (Cinza Escuro / Obsidiana & Morte & Caos)
+   ───────────────────────────────────────────────────────────────────── */
+.sphere-entropy.sphere-lvl-1 { background: #f8fafc; border: 1.5px solid #e2e8f0; color: #334155; }
+.sphere-entropy.sphere-lvl-2 { background: #f1f5f9; border: 1.5px solid #cbd5e1; color: #1e293b; }
+.sphere-entropy.sphere-lvl-3 { background: #e2e8f0; border: 1.5px solid #94a3b8; color: #0f172a; }
+.sphere-entropy.sphere-lvl-4 { background: linear-gradient(135deg, #475569 0%, #334155 100%); border: 1.5px solid #334155; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); box-shadow: 0 2px 8px rgba(51, 65, 85, 0.35); }
+.sphere-entropy.sphere-lvl-5 { background: linear-gradient(135deg, #1e293b 0%, #020617 100%); border: 2px solid #94a3b8; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.5); box-shadow: 0 0 14px rgba(15, 23, 42, 0.7); }
+
+/* ─────────────────────────────────────────────────────────────────────
+   3. ESPÍRITO (Ciano Etéreo / Umbra & Almas)
+   ───────────────────────────────────────────────────────────────────── */
+.sphere-spirit.sphere-lvl-1 { background: #ecfeff; border: 1.5px solid #cffafe; color: #0e7490; }
+.sphere-spirit.sphere-lvl-2 { background: #cffafe; border: 1.5px solid #a5f3fc; color: #0891b2; }
+.sphere-spirit.sphere-lvl-3 { background: #a5f3fc; border: 1.5px solid #67e8f9; color: #155e75; }
+.sphere-spirit.sphere-lvl-4 { background: linear-gradient(135deg, #06b6d4 0%, #0e7490 100%); border: 1.5px solid #0e7490; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); box-shadow: 0 2px 8px rgba(6, 182, 212, 0.35); }
+.sphere-spirit.sphere-lvl-5 { background: linear-gradient(135deg, #0891b2 0%, #155e75 100%); border: 2px solid #67e8f9; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.45); box-shadow: 0 0 14px rgba(6, 182, 212, 0.65); }
+
+/* ─────────────────────────────────────────────────────────────────────
+   4. FORÇAS (Laranja Chamas / Eletricidade & Fogo)
+   ───────────────────────────────────────────────────────────────────── */
+.sphere-forces.sphere-lvl-1 { background: #fff7ed; border: 1.5px solid #ffedd5; color: #c2410c; }
+.sphere-forces.sphere-lvl-2 { background: #ffedd5; border: 1.5px solid #fed7aa; color: #c2410c; }
+.sphere-forces.sphere-lvl-3 { background: #fed7aa; border: 1.5px solid #fb923c; color: #9a3412; }
+.sphere-forces.sphere-lvl-4 { background: linear-gradient(135deg, #f97316 0%, #c2410c 100%); border: 1.5px solid #c2410c; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); box-shadow: 0 2px 8px rgba(249, 115, 22, 0.4); }
+.sphere-forces.sphere-lvl-5 { background: linear-gradient(135deg, #ea580c 0%, #9a3412 100%); border: 2px solid #fed7aa; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.45); box-shadow: 0 0 14px rgba(234, 88, 12, 0.7); }
+
+/* ─────────────────────────────────────────────────────────────────────
+   5. MATÉRIA (Bronze & Âmbar Terroso / Metais & Sólidos)
+   ───────────────────────────────────────────────────────────────────── */
+.sphere-matter.sphere-lvl-1 { background: #fefce8; border: 1.5px solid #fef08a; color: #854d0e; }
+.sphere-matter.sphere-lvl-2 { background: #fef9c3; border: 1.5px solid #fde047; color: #854d0e; }
+.sphere-matter.sphere-lvl-3 { background: #fef08a; border: 1.5px solid #eab308; color: #713f12; }
+.sphere-matter.sphere-lvl-4 { background: linear-gradient(135deg, #d97706 0%, #92400e 100%); border: 1.5px solid #92400e; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35); }
+.sphere-matter.sphere-lvl-5 { background: linear-gradient(135deg, #b45309 0%, #78350f 100%); border: 2px solid #fef08a; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.45); box-shadow: 0 0 14px rgba(180, 83, 9, 0.65); }
+
+/* ─────────────────────────────────────────────────────────────────────
+   6. MENTE (Azul Safira / Consciência & Telepatia)
+   ───────────────────────────────────────────────────────────────────── */
+.sphere-mind.sphere-lvl-1 { background: #eff6ff; border: 1.5px solid #dbeafe; color: #1d4ed8; }
+.sphere-mind.sphere-lvl-2 { background: #dbeafe; border: 1.5px solid #bfdbfe; color: #1d4ed8; }
+.sphere-mind.sphere-lvl-3 { background: #bfdbfe; border: 1.5px solid #60a5fa; color: #1e40af; }
+.sphere-mind.sphere-lvl-4 { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border: 1.5px solid #1d4ed8; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4); }
+.sphere-mind.sphere-lvl-5 { background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%); border: 2px solid #bfdbfe; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.45); box-shadow: 0 0 14px rgba(37, 99, 235, 0.65); }
+
+/* ─────────────────────────────────────────────────────────────────────
+   7. PRIMÓRDIO (Dourado Solar / Quintessência Pura)
+   ───────────────────────────────────────────────────────────────────── */
+.sphere-prime.sphere-lvl-1 { background: #fffbeb; border: 1.5px solid #fef3c7; color: #b45309; }
+.sphere-prime.sphere-lvl-2 { background: #fef3c7; border: 1.5px solid #fde68a; color: #b45309; }
+.sphere-prime.sphere-lvl-3 { background: #fde68a; border: 1.5px solid #f59e0b; color: #78350f; }
+.sphere-prime.sphere-lvl-4 { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); border: 1.5px solid #d97706; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); box-shadow: 0 2px 8px rgba(251, 191, 36, 0.4); }
+.sphere-prime.sphere-lvl-5 { background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); border: 2px solid #fef3c7; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.45); box-shadow: 0 0 14px rgba(245, 158, 11, 0.7); }
+
+/* ─────────────────────────────────────────────────────────────────────
+   8. TEMPO (Carmesim / Rosa Profundo & Chronos)
+   ───────────────────────────────────────────────────────────────────── */
+.sphere-time.sphere-lvl-1 { background: #fff1f2; border: 1.5px solid #ffe4e6; color: #be123c; }
+.sphere-time.sphere-lvl-2 { background: #ffe4e6; border: 1.5px solid #fecdd3; color: #be123c; }
+.sphere-time.sphere-lvl-3 { background: #fecdd3; border: 1.5px solid #fb7185; color: #881337; }
+.sphere-time.sphere-lvl-4 { background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); border: 1.5px solid #be123c; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); box-shadow: 0 2px 8px rgba(244, 63, 94, 0.4); }
+.sphere-time.sphere-lvl-5 { background: linear-gradient(135deg, #e11d48 0%, #881337 100%); border: 2px solid #fecdd3; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.45); box-shadow: 0 0 14px rgba(225, 29, 72, 0.7); }
+
+/* ─────────────────────────────────────────────────────────────────────
+   9. VIDA (Verde Esmeralda / Biologia & Cura & Flora)
+   ───────────────────────────────────────────────────────────────────── */
+.sphere-life.sphere-lvl-1 { background: #f0fdf4; border: 1.5px solid #dcfce7; color: #15803d; }
+.sphere-life.sphere-lvl-2 { background: #dcfce7; border: 1.5px solid #bbf7d0; color: #15803d; }
+.sphere-life.sphere-lvl-3 { background: #bbf7d0; border: 1.5px solid #4ade80; color: #14532d; }
+.sphere-life.sphere-lvl-4 { background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); border: 1.5px solid #15803d; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4); }
+.sphere-life.sphere-lvl-5 { background: linear-gradient(135deg, #16a34a 0%, #14532d 100%); border: 2px solid #bbf7d0; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.45); box-shadow: 0 0 14px rgba(22, 163, 74, 0.7); }
+
+/* Fallback genérico para esferas customizadas */
+.sphere-generic {
+    background: #fbf7ee;
+    border: 1.5px solid #dfd1b8;
+    color: #7a5b20;
 }
 
 .add-sphere-inline-control {
@@ -889,3 +1062,28 @@
     background: #ffffff;
     box-shadow: 0 0 0 3px rgba(184, 147, 71, 0.18);
 }
+
+/* ==========================================================================
+   COMPÊNDIO M20: MODAL PRINCIPAL & SEÇÕES CANÔNICAS
+   (Práticas, Instrumentos, Arquétipos, Atributos & Armas)
+   ========================================================================== */
+
+.grimoire-rule-btn {
+    background: transparent;
+    border: 1px solid #dfd5c2;
+    border-radius: 4px;
+    color: #8c7853;
+    font-size: 0.85rem;
+    line-height: 1;
+    padding: 3px 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.grimoire-rule-btn:hover {
+    background: rgba(184, 147, 71, 0.14);
+    border-color: #d4c8b4;
+    color: #634b1e;
+    transform: scale(1.1);
+}
+
