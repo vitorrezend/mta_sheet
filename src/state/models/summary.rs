@@ -109,7 +109,50 @@ pub struct CharacterSummary {
     pub is_public: bool,
     #[serde(default)]
     pub is_owner: bool,
+    #[serde(default)]
+    pub folder_id: Option<String>,
     pub updated_at: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
+pub struct SheetFolder {
+    pub id: String,
+    pub user_id: String,
+    #[serde(default)]
+    pub parent_id: Option<String>,
+    pub name: String,
+    #[serde(default = "default_folder_icon")]
+    pub icon: String,
+    #[serde(default = "default_folder_color")]
+    pub color: String,
+    #[serde(default)]
+    pub sort_order: i32,
+    #[serde(default)]
+    pub sheet_count: i64,
+    #[serde(default)]
+    pub created_at: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
+pub struct FolderAclEntry {
+    pub id: String,
+    pub folder_id: String,
+    pub grantee_type: String,
+    #[serde(default)]
+    pub grantee_id: Option<String>,
+    #[serde(default)]
+    pub grantee_name: String,
+    pub permission: String,
+    #[serde(default)]
+    pub created_at: String,
+}
+
+pub fn default_folder_icon() -> String {
+    "📁".to_string()
+}
+
+pub fn default_folder_color() -> String {
+    "#b89347".to_string()
 }
 
 pub fn default_sheet_type() -> String {
@@ -148,6 +191,7 @@ impl CharacterSummary {
             sheet_type: "mage".to_string(),
             is_public,
             is_owner,
+            folder_id: None,
             updated_at,
         }
     }

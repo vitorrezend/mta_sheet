@@ -3,13 +3,29 @@ use leptos_router::*;
 use crate::rooms::{
     get_room_details, assign_sheet_to_room, remove_sheet_from_room,
     toggle_sheet_room_visibility, update_room_chantry, update_room_chronicle_notes,
-    clone_and_assign_sheet_to_member, update_room_settings, ChantryPoolData, RoomMemberInfo,
-    RoomDetails,
+    clone_and_assign_sheet_to_member, update_room_settings, update_room_sheet_stats,
+    QuickStatAction, ChantryPoolData, RoomMemberInfo, RoomDetails,
 };
 use crate::state::get_sheets;
 use crate::components::Navbar;
 use crate::components::rooms::{InitiativeDrawer, BattleGrid};
 use crate::rooms::RoomMapData;
+
+fn get_qp_box_coords(index: usize) -> (f64, f64) {
+    let cx = 85.0;
+    let cy = 85.0;
+    let r = 67.0;
+    let angle_deg: f64 = if index < 10 {
+        180.0 - (index as f64 + 0.5) * 18.0
+    } else {
+        let step = (19 - index) as f64;
+        180.0 + (step + 0.5) * 18.0
+    };
+    let rad = angle_deg.to_radians();
+    let x = cx + r * rad.cos() - 6.5;
+    let y = cy - r * rad.sin() - 6.5;
+    (x, y)
+}
 
 #[component]
 pub fn RoomView() -> impl IntoView {
@@ -247,6 +263,28 @@ pub fn RoomView() -> impl IntoView {
         });
     };
 
+    let on_quick_stat = move |sheet_id: String, action: QuickStatAction| {
+        let r_id = room_id();
+        if r_id.is_empty() { return; }
+
+        spawn_local(async move {
+            match update_room_sheet_stats(r_id, sheet_id.clone(), action).await {
+                Ok(updated_summary) => {
+                    set_room_data.update(|data| {
+                        if let Some(room) = data {
+                            if let Some(s) = room.sheets.iter_mut().find(|s| s.id == sheet_id) {
+                                *s = updated_summary;
+                            }
+                        }
+                    });
+                }
+                Err(e) => {
+                    set_error_msg.set(Some(e.to_string()));
+                }
+            }
+        });
+    };
+
     let is_gm_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.is_gm).unwrap_or(false)));
     let room_name_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.name.clone()).unwrap_or_default()));
     let room_code_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.code.clone()).unwrap_or_default()));
@@ -402,15 +440,66 @@ pub fn RoomView() -> impl IntoView {
                                                             } else {
                                                                 crate::i18n::tr("card_tradition_undefined", current_lang).to_string()
                                                             };
-                                                            let essence_display = if !sheet.essence.is_empty() {
-                                                                sheet.essence.clone()
-                                                            } else if !sheet.concept.is_empty() {
-                                                                sheet.concept.clone()
-                                                            } else if is_gm_char {
-                                                                "Gods & Monsters".to_string()
+
+                                                            let title_tradition = crate::i18n::tr_header_label("Tradicao", current_lang).to_string();
+                                                            let title_essence = crate::i18n::tr_header_label("Essencia", current_lang).to_string();
+                                                            let title_concept = crate::i18n::tr_header_label("Conceito", current_lang).to_string();
+                                                            let title_demeanor = crate::i18n::tr_header_label("Comportamento", current_lang).to_string();
+                                                            let tradition_unspec = crate::i18n::tr("card_tradition_undefined", current_lang).to_string();
+
+                                                            let tradition_pill = if !sheet.tradition.is_empty() || is_gm_char {
+                                                                let icon = if is_gm_char { "🐉" } else { "🏛️" };
+                                                                view! {
+                                                                    <span class="party-pill pill-tradition" title=title_tradition>
+                                                                        <span class="pill-icon">{icon}</span>
+                                                                        <span class="pill-text">{tradition_display.clone()}</span>
+                                                                    </span>
+                                                                }.into_view()
                                                             } else {
-                                                                crate::i18n::tr("card_essence_awakened", current_lang).to_string()
+                                                                view! {
+                                                                    <span class="party-pill pill-tradition pill-empty" title=tradition_unspec.clone()>
+                                                                        <span class="pill-icon">"🏛️"</span>
+                                                                        <span class="pill-text">{tradition_unspec}</span>
+                                                                    </span>
+                                                                }.into_view()
                                                             };
+
+                                                            let concept_pill = if !sheet.concept.is_empty() {
+                                                                let conc = sheet.concept.clone();
+                                                                view! {
+                                                                    <span class="party-pill pill-concept" title=title_concept>
+                                                                        <span class="pill-icon">"💡"</span>
+                                                                        <span class="pill-text">{conc}</span>
+                                                                    </span>
+                                                                }.into_view()
+                                                            } else {
+                                                                ().into_view()
+                                                            };
+
+                                                            let demeanor_pill = if !sheet.demeanor.is_empty() {
+                                                                let dem = sheet.demeanor.clone();
+                                                                view! {
+                                                                    <span class="party-pill pill-demeanor" title=title_demeanor>
+                                                                        <span class="pill-icon">"🎭"</span>
+                                                                        <span class="pill-text">{dem}</span>
+                                                                    </span>
+                                                                }.into_view()
+                                                            } else {
+                                                                ().into_view()
+                                                            };
+
+                                                            let essence_pill = if !sheet.essence.is_empty() {
+                                                                let ess = sheet.essence.clone();
+                                                                view! {
+                                                                    <span class="party-pill pill-essence" title=title_essence>
+                                                                        <span class="pill-icon">"✨"</span>
+                                                                        <span class="pill-text">{ess}</span>
+                                                                    </span>
+                                                                }.into_view()
+                                                            } else {
+                                                                ().into_view()
+                                                            };
+
                                                             let arete_val = sheet.arete;
                                                             let wp_tot = sheet.willpower_total.clamp(1, 10);
                                                             let wp_cur = sheet.willpower_current.clamp(0, wp_tot);
@@ -492,36 +581,286 @@ pub fn RoomView() -> impl IntoView {
                                                                     <div class="card-content">
                                                                         <div class="card-header-info">
                                                                             <h3 class="card-name">{sheet.name.clone()}</h3>
-                                                                            <span class="card-tradition">{tradition_display}</span>
+                                                                            <div class="party-card-pills">
+                                                                                {tradition_pill}
+                                                                                {concept_pill}
+                                                                                {demeanor_pill}
+                                                                                {essence_pill}
+                                                                            </div>
                                                                         </div>
 
                                                                         <div class="party-card-details">
-                                                                            <div class="party-detail-row">
-                                                                                <span class="party-detail-label">"Conceito / Essência"</span>
-                                                                                <span class="party-detail-val">{essence_display}</span>
-                                                                            </div>
                                                                             
-                                                                            // 3. Quick Stats Grid
-                                                                            <div class="party-stats-grid">
-                                                                                <div class="party-stat-box">
-                                                                                    <span class="stat-box-label">"Arete"</span>
-                                                                                    <span class="stat-box-num">{arete_val}</span>
-                                                                                </div>
-                                                                                <div class="party-stat-box">
-                                                                                    <span class="stat-box-label">"Vontade"</span>
-                                                                                    <span class="stat-box-num">{wp_cur}"/"{wp_tot}</span>
-                                                                                </div>
-                                                                                <div class="party-stat-box">
-                                                                                    <span class="stat-box-label">"Jogador"</span>
-                                                                                    <span class="stat-box-val-text">{if !sheet.player_name.is_empty() { sheet.player_name.clone() } else { "—".to_string() }}</span>
-                                                                                </div>
-                                                                            </div>
+                                                                            // 3. Stats & GM Tactical HUD (Only visible to Storyteller/GM)
+                                                                            {if is_gm_sig.get() {
+                                                                                let s_id_gm = sheet.id.clone();
+                                                                                let s_id_heal_all = sheet.id.clone();
+                                                                                let s_id_q_sub = sheet.id.clone();
+                                                                                let s_id_q_add = sheet.id.clone();
+                                                                                let s_id_p_sub = sheet.id.clone();
+                                                                                let s_id_p_add = sheet.id.clone();
+                                                                                let qp_track = sheet.quintessence_paradox_track.clone();
 
-                                                                            // 4. Health Status Pill
-                                                                            <div class="party-vitality-row">
-                                                                                <span class="vitality-label">"Vitalidade:"</span>
-                                                                                <span class=badge_cls>{sheet.health_label.clone()}</span>
-                                                                            </div>
+                                                                                let health_boxes_view = sheet.health_boxes.iter().enumerate().map(|(idx, dmg_key)| {
+                                                                                    let s_id_box = s_id_gm.clone();
+                                                                                    let s_id_box_heal = s_id_gm.clone();
+                                                                                    let dmg_symbol = match dmg_key.as_str() {
+                                                                                        "bashing" => "/",
+                                                                                        "lethal" => "X",
+                                                                                        "aggravated" => "*",
+                                                                                        _ => "",
+                                                                                    };
+                                                                                    view! {
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            class=format!("health-mini-box dmg-{}", dmg_key)
+                                                                                            title=format!("Nível #{}: {} (Esq: alternar dano | Dir: curar)", idx + 1, dmg_key)
+                                                                                            on:click=move |ev: ev::MouseEvent| {
+                                                                                                ev.stop_propagation();
+                                                                                                on_quick_stat(s_id_box.clone(), QuickStatAction::CycleHealthBox { index: idx });
+                                                                                            }
+                                                                                            on:contextmenu=move |ev: ev::MouseEvent| {
+                                                                                                ev.prevent_default();
+                                                                                                ev.stop_propagation();
+                                                                                                on_quick_stat(s_id_box_heal.clone(), QuickStatAction::HealHealthBox { index: idx });
+                                                                                            }
+                                                                                        >
+                                                                                            {dmg_symbol}
+                                                                                        </button>
+                                                                                    }
+                                                                                }).collect_view();
+
+                                                                                let qp_wheel_boxes = (0..20).map(|i| {
+                                                                                    let (x, y) = get_qp_box_coords(i);
+                                                                                    let state_char = qp_track.chars().nth(i).unwrap_or('0');
+                                                                                    let is_quint = state_char == '1';
+                                                                                    let is_paradox = state_char == '2';
+                                                                                    let s_id_wheel_click = s_id_gm.clone();
+                                                                                    let s_id_wheel_right = s_id_gm.clone();
+                                                                                    let box_title = match state_char {
+                                                                                        '1' => format!("✦ Quintessência (Slot #{}) | Clique: alternar | Dir: limpar", i + 1),
+                                                                                        '2' => format!("⚡ Paradoxo (Slot #{}) | Clique: alternar | Dir: limpar", 20 - i),
+                                                                                        _ => format!("○ Slot Livre #{} | Clique: alternar | Dir: limpar", i + 1),
+                                                                                    };
+                                                                                    view! {
+                                                                                        <rect
+                                                                                            x=format!("{:.1}", x)
+                                                                                            y=format!("{:.1}", y)
+                                                                                            width="13"
+                                                                                            height="13"
+                                                                                            rx="2"
+                                                                                            ry="2"
+                                                                                            class="qp-wheel-box"
+                                                                                            class:qp-box-quintessence=is_quint
+                                                                                            class:qp-box-paradox=is_paradox
+                                                                                            on:click=move |ev: ev::MouseEvent| {
+                                                                                                ev.stop_propagation();
+                                                                                                on_quick_stat(s_id_wheel_click.clone(), QuickStatAction::CycleQuintessenceParadoxBox { index: i });
+                                                                                            }
+                                                                                            on:contextmenu=move |ev: ev::MouseEvent| {
+                                                                                                ev.prevent_default();
+                                                                                                ev.stop_propagation();
+                                                                                                on_quick_stat(s_id_wheel_right.clone(), QuickStatAction::ClearQuintessenceParadoxBox { index: i });
+                                                                                            }
+                                                                                        >
+                                                                                            <title>{box_title}</title>
+                                                                                        </rect>
+                                                                                    }
+                                                                                }).collect_view();
+
+                                                                                view! {
+                                                                                    <div class="gm-tactical-hud" on:click=move |ev: ev::MouseEvent| ev.stop_propagation()>
+                                                                                        // Top bar with Arete & Jogador
+                                                                                        <div class="party-stats-grid party-stats-grid-gm">
+                                                                                            <div class="party-stat-box">
+                                                                                                <span class="stat-box-label">"Arete"</span>
+                                                                                                <span class="stat-box-num">{arete_val}</span>
+                                                                                            </div>
+                                                                                            <div class="party-stat-box party-stat-box-wide">
+                                                                                                <span class="stat-box-label">"Jogador"</span>
+                                                                                                <span class="stat-box-val-text">{if !sheet.player_name.is_empty() { sheet.player_name.clone() } else { "—".to_string() }}</span>
+                                                                                            </div>
+                                                                                        </div>
+
+                                                                                        // 1. Força de Vontade: Linha de Bolinhas (Total) + Linha de Quadradinhos (Atual)
+                                                                                        <div class="gm-hud-section gm-hud-willpower">
+                                                                                            <div class="gm-hud-header-row">
+                                                                                                <span class="gm-hud-label">"Força de Vontade"</span>
+                                                                                                <span class="gm-stat-badge">{wp_cur} " / " {wp_tot}</span>
+                                                                                            </div>
+
+                                                                                            // Linha Total: 10 Bolinhas
+                                                                                            <div class="gm-wp-line">
+                                                                                                <span class="gm-wp-line-tag">"Total"</span>
+                                                                                                <div class="dots-container gm-dots-row">
+                                                                                                    {(1..=10).map(|i| {
+                                                                                                        let is_filled = wp_tot >= i;
+                                                                                                        let s_id_dot = s_id_gm.clone();
+                                                                                                        view! {
+                                                                                                            <span
+                                                                                                                class="dot"
+                                                                                                                class:filled=is_filled
+                                                                                                                title=format!("Força de Vontade Total: {} (Clique para definir)", i)
+                                                                                                                on:click=move |ev: ev::MouseEvent| {
+                                                                                                                    ev.stop_propagation();
+                                                                                                                    let new_val = if wp_tot == i { (i - 1).max(1) } else { i };
+                                                                                                                    on_quick_stat(s_id_dot.clone(), QuickStatAction::SetWillpowerTotal { value: new_val });
+                                                                                                                }
+                                                                                                            ></span>
+                                                                                                        }
+                                                                                                    }).collect_view()}
+                                                                                                </div>
+                                                                                            </div>
+
+                                                                                            // Linha Atual: 10 Quadradinhos
+                                                                                            <div class="gm-wp-line">
+                                                                                                <span class="gm-wp-line-tag">"Atual"</span>
+                                                                                                <div class="dots-container gm-squares-row">
+                                                                                                    {(1..=10).map(|i| {
+                                                                                                        let is_filled = wp_cur >= i;
+                                                                                                        let is_over = i > wp_tot;
+                                                                                                        let s_id_sq = s_id_gm.clone();
+                                                                                                        view! {
+                                                                                                            <span
+                                                                                                                class="square"
+                                                                                                                class:filled=is_filled
+                                                                                                                class:disabled=is_over
+                                                                                                                title=format!("Força de Vontade Atual: {}/{} (Clique para alterar)", i, wp_tot)
+                                                                                                                on:click=move |ev: ev::MouseEvent| {
+                                                                                                                    ev.stop_propagation();
+                                                                                                                    let new_val = if wp_cur == i { i - 1 } else { i };
+                                                                                                                    on_quick_stat(s_id_sq.clone(), QuickStatAction::SetWillpowerCurrent { value: new_val });
+                                                                                                                }
+                                                                                                            ></span>
+                                                                                                        }
+                                                                                                    }).collect_view()}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+
+                                                                                        // 2. Quintessência & Paradoxo (Roda Circular M20)
+                                                                                        <div class="gm-hud-section gm-hud-qp-wheel">
+                                                                                            <div class="gm-hud-header-row" style="margin-bottom: 2px;">
+                                                                                                <span class="gm-hud-label">"Quintessência / Paradoxo"</span>
+                                                                                                <div class="gm-stat-badge">
+                                                                                                    <span style="color: #0284c7; font-weight: 800;">"✨ " {sheet.quintessence}</span>
+                                                                                                    <span style="color: #94a3b8; margin: 0 4px;">"/"</span>
+                                                                                                    <span style="color: #dc2626; font-weight: 800;">"⚡ " {sheet.paradox}</span>
+                                                                                                </div>
+                                                                                            </div>
+
+                                                                                            <div class="qp-wheel-wrapper gm-card-wheel">
+                                                                                                <svg
+                                                                                                    class="qp-wheel-svg"
+                                                                                                    viewBox="0 0 170 170"
+                                                                                                    width="160"
+                                                                                                    height="160"
+                                                                                                >
+                                                                                                    <circle cx="85" cy="85" r="67" class="qp-track-ring" />
+                                                                                                    <g class="qp-origin-marker" title="Ponto de Origem (9h)">
+                                                                                                        <line x1="9" y1="85" x2="20" y2="85" class="qp-origin-line" />
+                                                                                                        <circle cx="8" cy="85" r="2" class="qp-origin-dot" />
+                                                                                                        <text x="1" y="87.5" class="qp-origin-text">"9h"</text>
+                                                                                                    </g>
+                                                                                                    {qp_wheel_boxes}
+                                                                                                </svg>
+
+                                                                                                // Núcleo Central Interativo com Botões de Ação Rápida
+                                                                                                <div class="qp-center-hub" on:click=move |ev: ev::MouseEvent| ev.stop_propagation()>
+                                                                                                    <div class="qp-hub-row qp-hub-quint">
+                                                                                                        <span class="qp-hub-title">"Quintessência"</span>
+                                                                                                        <div class="qp-hub-controls">
+                                                                                                            <button
+                                                                                                                type="button"
+                                                                                                                class="qp-btn qp-btn-minus qp-btn-quint"
+                                                                                                                title="Remover 1 ponto de Quintessência"
+                                                                                                                on:click=move |ev: ev::MouseEvent| {
+                                                                                                                    ev.stop_propagation();
+                                                                                                                    on_quick_stat(s_id_q_sub.clone(), QuickStatAction::RemoveQuintessence);
+                                                                                                                }
+                                                                                                            >"−"</button>
+                                                                                                            <span class="qp-count-badge qp-badge-quint">{sheet.quintessence}</span>
+                                                                                                            <button
+                                                                                                                type="button"
+                                                                                                                class="qp-btn qp-btn-plus qp-btn-quint"
+                                                                                                                title="Adicionar 1 ponto de Quintessência (sentido horário)"
+                                                                                                                on:click=move |ev: ev::MouseEvent| {
+                                                                                                                    ev.stop_propagation();
+                                                                                                                    on_quick_stat(s_id_q_add.clone(), QuickStatAction::AddQuintessence);
+                                                                                                                }
+                                                                                                            >"+"</button>
+                                                                                                        </div>
+                                                                                                    </div>
+
+                                                                                                    <div class="qp-hub-divider"></div>
+
+                                                                                                    <div class="qp-hub-row qp-hub-paradox">
+                                                                                                        <span class="qp-hub-title">"Paradoxo"</span>
+                                                                                                        <div class="qp-hub-controls">
+                                                                                                            <button
+                                                                                                                type="button"
+                                                                                                                class="qp-btn qp-btn-minus qp-btn-paradox"
+                                                                                                                title="Remover 1 ponto de Paradoxo"
+                                                                                                                on:click=move |ev: ev::MouseEvent| {
+                                                                                                                    ev.stop_propagation();
+                                                                                                                    on_quick_stat(s_id_p_sub.clone(), QuickStatAction::RemoveParadox);
+                                                                                                                }
+                                                                                                            >"−"</button>
+                                                                                                            <span class="qp-count-badge qp-badge-paradox">{sheet.paradox}</span>
+                                                                                                            <button
+                                                                                                                type="button"
+                                                                                                                class="qp-btn qp-btn-plus qp-btn-paradox"
+                                                                                                                title="Adicionar 1 ponto de Paradoxo (sentido anti-horário)"
+                                                                                                                on:click=move |ev: ev::MouseEvent| {
+                                                                                                                    ev.stop_propagation();
+                                                                                                                    on_quick_stat(s_id_p_add.clone(), QuickStatAction::AddParadox);
+                                                                                                                }
+                                                                                                            >"+"</button>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+
+                                                                                        // 3. Vitalidade Header & Mini Track
+                                                                                        <div class="gm-hud-section gm-hud-vitality">
+                                                                                            <div class="gm-hud-header-row">
+                                                                                                <div class="gm-hud-title-group">
+                                                                                                    <span class="gm-hud-label">"Vitalidade:"</span>
+                                                                                                    <span class=badge_cls>{sheet.health_label.clone()}" ("{sheet.health_penalty.clone()}")"</span>
+                                                                                                </div>
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    class="gm-hud-heal-btn"
+                                                                                                    title="Curar todos os ferimentos"
+                                                                                                    on:click=move |ev: ev::MouseEvent| {
+                                                                                                        ev.stop_propagation();
+                                                                                                        on_quick_stat(s_id_heal_all.clone(), QuickStatAction::ClearHealth);
+                                                                                                    }
+                                                                                                >
+                                                                                                    "↺ Curar"
+                                                                                                </button>
+                                                                                            </div>
+                                                                                            <div class="health-mini-track">
+                                                                                                {health_boxes_view}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                }.into_view()
+                                                                            } else {
+                                                                                view! {
+                                                                                    <div class="party-stats-grid party-stats-grid-player">
+                                                                                        <div class="party-stat-box">
+                                                                                            <span class="stat-box-label">"Arete"</span>
+                                                                                            <span class="stat-box-num">{arete_val}</span>
+                                                                                        </div>
+                                                                                        <div class="party-stat-box party-stat-box-wide">
+                                                                                            <span class="stat-box-label">"Jogador"</span>
+                                                                                            <span class="stat-box-val-text">{if !sheet.player_name.is_empty() { sheet.player_name.clone() } else { "—".to_string() }}</span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                }.into_view()
+                                                                            }}
                                                                         </div>
 
                                                                         // 5. Card Footer

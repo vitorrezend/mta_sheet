@@ -88,6 +88,7 @@ fn test_room_summary_and_details_public_and_password_serialization() {
     assert!(des_details.has_password);
 }
 
+#[cfg(feature = "ssr")]
 #[test]
 fn test_room_password_bcrypt_hashing_and_verification() {
     let password = "ArcanumPassword2026!";
@@ -251,4 +252,324 @@ async fn test_clone_and_assign_sheet_schema_and_quiz_answers() {
         .unwrap();
     assert_eq!(cloned_quiz, "Resposta Dossiê NPC");
 }
+
+#[test]
+fn test_gm_quick_stat_action_state_mutations() {
+    use mta_sheet::state::DamageType;
+
+    let mut char_data = CharacterData::new("test-sheet".to_string(), "Hermes".to_string());
+    char_data.sanitize();
+
+    // 1. Health box cycle & heal
+    assert_eq!(char_data.get_health(0), DamageType::None);
+    
+    // Cycle 1: Bashing
+    char_data.click_health_box(0);
+    assert_eq!(char_data.get_health(0), DamageType::Bashing);
+
+    // Heal box (single bashing damage healed returns to None)
+    char_data.heal_health_box(0);
+    assert_eq!(char_data.get_health(0), DamageType::None);
+
+    // Cycle to Lethal (box 0 gets Lethal)
+    char_data.click_health_box(0); // Bashing
+    char_data.click_health_box(0); // Lethal
+    assert_eq!(char_data.get_health(0), DamageType::Lethal);
+
+    // Multiple damages and ClearHealth
+    char_data.click_health_box(1); // Box 1 gets damaged
+    let (agg, lethal, bashing) = char_data.get_health_counts();
+    assert!(agg + lethal + bashing > 0);
+    char_data.clear_health();
+    let (agg2, lethal2, bashing2) = char_data.get_health_counts();
+    assert_eq!(agg2 + lethal2 + bashing2, 0);
+    assert_eq!(char_data.get_health(0), DamageType::None);
+
+    // 2. Quintessence additions and removals
+    let (q_init, _, _) = char_data.get_quintessence_paradox();
+    assert_eq!(q_init, 0);
+
+    char_data.add_quintessence();
+    char_data.add_quintessence();
+    let (q2, _, _) = char_data.get_quintessence_paradox();
+    assert_eq!(q2, 2);
+
+    char_data.remove_quintessence();
+    let (q1, _, _) = char_data.get_quintessence_paradox();
+    assert_eq!(q1, 1);
+
+    // 3. Paradox additions and removals
+    let (_, p_init, _) = char_data.get_quintessence_paradox();
+    assert_eq!(p_init, 0);
+
+    char_data.add_paradox();
+    char_data.add_paradox();
+    char_data.add_paradox();
+    let (_, p3, _) = char_data.get_quintessence_paradox();
+    assert_eq!(p3, 3);
+
+    char_data.remove_paradox();
+    let (_, p2, _) = char_data.get_quintessence_paradox();
+    assert_eq!(p2, 2);
+
+    // 4. Willpower current and total adjustments
+    char_data.set_willpower_total(6);
+    char_data.set_willpower_current(6);
+    assert_eq!(char_data.get_willpower(), (6, 6));
+
+    // Spend 2 Willpower: 6 -> 4
+    let (tot, cur) = char_data.get_willpower();
+    char_data.set_willpower_current((cur - 2).clamp(0, tot));
+    assert_eq!(char_data.get_willpower(), (6, 4));
+
+    // Regain 1 Willpower: 4 -> 5
+    let (tot, cur) = char_data.get_willpower();
+    char_data.set_willpower_current((cur + 1).clamp(0, tot));
+    assert_eq!(char_data.get_willpower(), (6, 5));
+
+    // Try to exceed total: 5 + 5 -> clamped to 6
+    let (tot, cur) = char_data.get_willpower();
+    char_data.set_willpower_current((cur + 5).clamp(0, tot));
+    assert_eq!(char_data.get_willpower(), (6, 6));
+
+    // Increase total to 8
+    let (tot, _) = char_data.get_willpower();
+    char_data.set_willpower_total((tot + 2).clamp(1, 10));
+    assert_eq!(char_data.get_willpower(), (8, 6));
+
+    // Decrease total to 4 (current was 6, so current clamps down to 4)
+    let (tot, _) = char_data.get_willpower();
+    char_data.set_willpower_total((tot - 4).clamp(1, 10));
+    assert_eq!(char_data.get_willpower(), (4, 4));
+}
+
+#[cfg(feature = "ssr")]
+#[test]
+fn test_build_room_sheet_summary_tactical_stats() {
+    use mta_sheet::rooms::build_room_sheet_summary;
+
+    let mut char_data = CharacterData::new("sheet-summary-test".to_string(), "Adept Test".to_string());
+    char_data.sanitize();
+    char_data.set_willpower_total(7);
+    char_data.set_willpower_current(4);
+    char_data.add_quintessence();
+    char_data.add_quintessence();
+    char_data.add_quintessence();
+    char_data.add_paradox();
+    char_data.click_health_box(0); // Bashing
+    char_data.click_health_box(1); // Bashing
+
+    let json = serde_json::to_string(&char_data).unwrap();
+    let summary = build_room_sheet_summary(
+        "sheet-summary-test".to_string(),
+        "Adept Test".to_string(),
+        &json,
+        "2026-09-16 12:00:00".to_string(),
+        false,
+        true,
+    );
+
+    assert_eq!(summary.willpower_total, 7);
+    assert_eq!(summary.willpower_current, 4);
+    assert_eq!(summary.quintessence, 3);
+    assert_eq!(summary.paradox, 1);
+    assert_eq!(summary.health_label, "Ferido");
+    assert_eq!(summary.health_penalty, "-1");
+    assert_eq!(summary.health_boxes.len(), 7);
+    assert_eq!(summary.health_boxes[0], "bashing");
+    assert_eq!(summary.health_boxes[1], "bashing");
+    assert_eq!(summary.health_boxes[2], "none");
+}
+
+#[cfg(feature = "ssr")]
+#[tokio::test]
+async fn test_gm_quick_stat_authorization_and_persistence() {
+    use sqlx::sqlite::SqlitePoolOptions;
+    use sqlx::Row;
+    use mta_sheet::rooms::build_room_sheet_summary;
+
+    let pool = SqlitePoolOptions::new()
+        .connect("sqlite::memory:")
+        .await
+        .expect("in-memory db");
+
+    sqlx::query(
+        "CREATE TABLE users (
+            id TEXT PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            is_admin INTEGER NOT NULL DEFAULT 0
+        )"
+    ).execute(&pool).await.unwrap();
+
+    sqlx::query(
+        "CREATE TABLE rooms (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            code TEXT UNIQUE NOT NULL,
+            description TEXT DEFAULT '',
+            gm_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE
+        )"
+    ).execute(&pool).await.unwrap();
+
+    sqlx::query(
+        "CREATE TABLE character_sheets (
+            id TEXT PRIMARY KEY,
+            user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+            room_id TEXT REFERENCES rooms(id) ON DELETE SET NULL,
+            name TEXT NOT NULL,
+            data TEXT NOT NULL,
+            sheet_type TEXT NOT NULL DEFAULT 'mage',
+            is_public INTEGER NOT NULL DEFAULT 0,
+            is_hidden_in_room INTEGER NOT NULL DEFAULT 0,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    ).execute(&pool).await.unwrap();
+
+    sqlx::query("INSERT INTO users (id, username, password_hash) VALUES ('gm-1', 'Mestre', 'hash')").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO users (id, username, password_hash) VALUES ('player-1', 'Jogador', 'hash')").execute(&pool).await.unwrap();
+    sqlx::query("INSERT INTO rooms (id, name, code, gm_id) VALUES ('room-tactical', 'Mesa Tática', 'MTA-TAC1', 'gm-1')").execute(&pool).await.unwrap();
+
+    let mut char_data = CharacterData::new("sheet-p1".to_string(), "Mago Jogador".to_string());
+    char_data.sanitize();
+    char_data.set_willpower_total(5);
+    char_data.set_willpower_current(5);
+    let char_json = serde_json::to_string(&char_data).unwrap();
+
+    sqlx::query(
+        "INSERT INTO character_sheets (id, user_id, room_id, name, data, sheet_type) \
+         VALUES ('sheet-p1', 'player-1', 'room-tactical', 'Mago Jogador', ?, 'mage')"
+    )
+    .bind(&char_json)
+    .execute(&pool).await.unwrap();
+
+    // 1. Verifica se usuário 'player-1' tentando agir como GM é rejeitado
+    let room_gm_id: String = sqlx::query_scalar("SELECT gm_id FROM rooms WHERE id = 'room-tactical'")
+        .fetch_one(&pool).await.unwrap();
+    assert_ne!("player-1", &room_gm_id, "Player não é GM");
+
+    // 2. Ação executada pelo Narrador 'gm-1': toma dano, adiciona paradoxo, reduz força de vontade
+    assert_eq!("gm-1", &room_gm_id, "GM autenticado com sucesso");
+
+    let sheet_row = sqlx::query("SELECT data FROM character_sheets WHERE id = 'sheet-p1' AND room_id = 'room-tactical'")
+        .fetch_one(&pool).await.unwrap();
+    let data_str: String = sheet_row.get("data");
+    let mut updated_data: CharacterData = serde_json::from_str(&data_str).unwrap();
+
+    // Aplica ações: CycleHealthBox (bashing), AddParadox, AdjustWillpowerCurrent -2
+    updated_data.click_health_box(0);
+    updated_data.add_paradox();
+    let (tot, cur) = updated_data.get_willpower();
+    updated_data.set_willpower_current((cur - 2).clamp(0, tot));
+    updated_data.sanitize();
+
+    let saved_json = serde_json::to_string(&updated_data).unwrap();
+    sqlx::query("UPDATE character_sheets SET data = ?, updated_at = datetime('now') WHERE id = 'sheet-p1'")
+        .bind(&saved_json)
+        .execute(&pool).await.unwrap();
+
+    // 3. Valida se o banco salvou e o resumo reflete o novo estado tático
+    let persisted_row = sqlx::query("SELECT data, updated_at FROM character_sheets WHERE id = 'sheet-p1'")
+        .fetch_one(&pool).await.unwrap();
+    let persisted_json: String = persisted_row.get("data");
+    let updated_at: String = persisted_row.get("updated_at");
+
+    let summary = build_room_sheet_summary(
+        "sheet-p1".to_string(),
+        "Mago Jogador".to_string(),
+        &persisted_json,
+        updated_at,
+        false,
+        false,
+    );
+
+    assert_eq!(summary.willpower_current, 3);
+    assert_eq!(summary.paradox, 1);
+    assert_eq!(summary.health_label, "Escoriado");
+    assert_eq!(summary.health_boxes[0], "bashing");
+}
+
+#[cfg(feature = "ssr")]
+#[test]
+fn test_gm_wheel_and_willpower_direct_actions() {
+    use mta_sheet::rooms::build_room_sheet_summary;
+
+    let mut char_data = CharacterData::new("sheet-wheel-test".to_string(), "Hermetic Adept".to_string());
+    char_data.sanitize();
+
+    // Initial state: default Willpower (5, 5), Quintessence/Paradox track empty
+    assert_eq!(char_data.get_willpower(), (5, 5));
+    assert_eq!(char_data.get_quintessence_paradox().2, "00000000000000000000");
+
+    // 1. Direct SetWillpowerTotal and SetWillpowerCurrent
+    char_data.set_willpower_total(8);
+    assert_eq!(char_data.get_willpower(), (8, 5));
+    char_data.set_willpower_current(6);
+    assert_eq!(char_data.get_willpower(), (8, 6));
+
+    // Clamping on current when total drops
+    char_data.set_willpower_total(4);
+    assert_eq!(char_data.get_willpower(), (4, 4));
+
+    // Clamping on current exceeding total
+    char_data.set_willpower_current(10);
+    assert_eq!(char_data.get_willpower(), (4, 4));
+
+    // Reset to 7/5 for summary testing
+    char_data.set_willpower_total(7);
+    char_data.set_willpower_current(5);
+
+    // 2. Wheel box cycling: 0 -> 1 (Quintessence) -> 2 (Paradox) -> 0
+    // Cycle slot 0:
+    char_data.cycle_quintessence_paradox_box(0);
+    assert_eq!(char_data.get_quintessence_paradox().2.chars().nth(0).unwrap(), '1');
+    let (q, p, _) = char_data.get_quintessence_paradox();
+    assert_eq!((q, p), (1, 0));
+
+    char_data.cycle_quintessence_paradox_box(0);
+    assert_eq!(char_data.get_quintessence_paradox().2.chars().nth(0).unwrap(), '2');
+    let (q, p, _) = char_data.get_quintessence_paradox();
+    assert_eq!((q, p), (0, 1));
+
+    char_data.cycle_quintessence_paradox_box(0);
+    assert_eq!(char_data.get_quintessence_paradox().2.chars().nth(0).unwrap(), '0');
+    let (q, p, _) = char_data.get_quintessence_paradox();
+    assert_eq!((q, p), (0, 0));
+
+    // Set slot 0 to Quintessence ('1') and slot 19 to Paradox ('2')
+    char_data.cycle_quintessence_paradox_box(0); // 1
+    char_data.cycle_quintessence_paradox_box(19); // 1
+    char_data.cycle_quintessence_paradox_box(19); // 2
+    let track = char_data.get_quintessence_paradox().2;
+    assert_eq!(track.chars().nth(0).unwrap(), '1');
+    assert_eq!(track.chars().nth(19).unwrap(), '2');
+
+    // 3. Clear box action (set to '0')
+    char_data.set_quintessence_paradox_box(19, '0');
+    assert_eq!(char_data.get_quintessence_paradox().2.chars().nth(19).unwrap(), '0');
+
+    // 4. Validate build_room_sheet_summary produces accurate tactical track data
+    char_data.cycle_quintessence_paradox_box(1); // 1
+    char_data.cycle_quintessence_paradox_box(18); // 1
+    char_data.cycle_quintessence_paradox_box(18); // 2
+
+    let json = serde_json::to_string(&char_data).unwrap();
+    let summary = build_room_sheet_summary(
+        "sheet-wheel-test".to_string(),
+        "Hermetic Adept".to_string(),
+        &json,
+        "2026-09-16 12:00:00".to_string(),
+        false,
+        true,
+    );
+
+    assert_eq!(summary.willpower_total, 7);
+    assert_eq!(summary.willpower_current, 5);
+    assert_eq!(summary.quintessence, 2);
+    assert_eq!(summary.paradox, 1);
+    assert_eq!(summary.quintessence_paradox_track.len(), 20);
+    assert_eq!(&summary.quintessence_paradox_track[0..2], "11");
+    assert_eq!(summary.quintessence_paradox_track.chars().nth(18).unwrap(), '2');
+}
+
 

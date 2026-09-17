@@ -8,6 +8,7 @@ pub mod rooms;
 pub mod logging;
 pub mod i18n;
 pub mod rules;
+pub mod compendium;
 #[cfg(feature = "ssr")]
 pub mod server;
 

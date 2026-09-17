@@ -509,6 +509,7 @@ mod tests {
             is_public: true,
             is_owner: true,
             updated_at: "2026-08-21 17:00:00".to_string(),
+            folder_id: None,
         };
 
         let json = serde_json::to_string(&summary).unwrap();
@@ -555,33 +556,28 @@ mod tests {
         assert_eq!(data.get_health(2), DamageType::Bashing);
         assert_eq!(data.get_health(3), DamageType::None);
 
-        // 2. Click on index 1 (Machucado / 2nd box with Bashing) -> marks 2 Lethal, pushing 3 Bashing down
+        // 2. Click on index 1 (Machucado / 2nd box with Bashing) -> upgrades 1 Bashing to Lethal
         data.click_health_box(1);
-        assert_eq!(data.get_health_counts(), (0, 2, 3));
+        assert_eq!(data.get_health_counts(), (0, 1, 2));
         assert_eq!(data.get_health(0), DamageType::Lethal);
-        assert_eq!(data.get_health(1), DamageType::Lethal);
+        assert_eq!(data.get_health(1), DamageType::Bashing);
         assert_eq!(data.get_health(2), DamageType::Bashing);
-        assert_eq!(data.get_health(3), DamageType::Bashing);
-        assert_eq!(data.get_health(4), DamageType::Bashing);
-        assert_eq!(data.get_health(5), DamageType::None);
+        assert_eq!(data.get_health(3), DamageType::None);
 
-        // 3. Click on index 0 (Lethal) -> marks 1 Aggravated, pushing Lethal and Bashing down
+        // 3. Click on index 0 (Lethal) -> upgrades 1 Lethal to Aggravated
         data.click_health_box(0);
-        assert_eq!(data.get_health_counts(), (1, 2, 3));
+        assert_eq!(data.get_health_counts(), (1, 0, 2));
         assert_eq!(data.get_health(0), DamageType::Aggravated);
-        assert_eq!(data.get_health(1), DamageType::Lethal);
-        assert_eq!(data.get_health(2), DamageType::Lethal);
-        assert_eq!(data.get_health(3), DamageType::Bashing);
-        assert_eq!(data.get_health(4), DamageType::Bashing);
-        assert_eq!(data.get_health(5), DamageType::Bashing);
-        assert_eq!(data.get_health(6), DamageType::None);
+        assert_eq!(data.get_health(1), DamageType::Bashing);
+        assert_eq!(data.get_health(2), DamageType::Bashing);
+        assert_eq!(data.get_health(3), DamageType::None);
 
         // 4. Click index 0 (Aggravated) -> heals 1 Aggravated, shifting damage up
         data.click_health_box(0);
-        assert_eq!(data.get_health_counts(), (0, 2, 3));
-        assert_eq!(data.get_health(0), DamageType::Lethal);
-        assert_eq!(data.get_health(1), DamageType::Lethal);
-        assert_eq!(data.get_health(2), DamageType::Bashing);
+        assert_eq!(data.get_health_counts(), (0, 0, 2));
+        assert_eq!(data.get_health(0), DamageType::Bashing);
+        assert_eq!(data.get_health(1), DamageType::Bashing);
+        assert_eq!(data.get_health(2), DamageType::None);
 
         // 5. Overflow test: Fill track with 4 Lethal and 3 Bashing (total 7 boxes full)
         data.set_health_counts(0, 4, 3);
@@ -603,6 +599,68 @@ mod tests {
         data.clear_health();
         assert_eq!(data.get_health_counts(), (0, 0, 0));
         assert_eq!(data.get_health(0), DamageType::None);
+    }
+
+    #[test]
+    fn test_single_damage_cycle_and_exact_aggravated() {
+        use crate::state::models::{CharacterData, DamageType};
+
+        let mut data = CharacterData::new("test_single_dmg".to_string(), "Adept".to_string());
+        assert_eq!(data.get_health_counts(), (0, 0, 0));
+
+        // 1. Click on index 0 on clean sheet: marks 1 Bashing (without pushing extra damage)
+        data.click_health_box(0);
+        assert_eq!(data.get_health_counts(), (0, 0, 1));
+        assert_eq!(data.get_health(0), DamageType::Bashing);
+        assert_eq!(data.get_health(1), DamageType::None);
+
+        // 2. Click on index 0 again: changes from Bashing to Lethal (still 1 damage)
+        data.click_health_box(0);
+        assert_eq!(data.get_health_counts(), (0, 1, 0));
+        assert_eq!(data.get_health(0), DamageType::Lethal);
+        assert_eq!(data.get_health(1), DamageType::None);
+
+        // 3. Click on index 0 again: changes from Lethal to Aggravated (still 1 damage)
+        data.click_health_box(0);
+        assert_eq!(data.get_health_counts(), (1, 0, 0));
+        assert_eq!(data.get_health(0), DamageType::Aggravated);
+        assert_eq!(data.get_health(1), DamageType::None);
+
+        // 4. Click on index 0 again: cycles back to Bashing
+        data.click_health_box(0);
+        assert_eq!(data.get_health_counts(), (0, 0, 1));
+        assert_eq!(data.get_health(0), DamageType::Bashing);
+        assert_eq!(data.get_health(1), DamageType::None);
+
+        // 5. Right-click on index 0: heals completely
+        data.heal_health_box(0);
+        assert_eq!(data.get_health_counts(), (0, 0, 0));
+        assert_eq!(data.get_health(0), DamageType::None);
+
+        // 6. Set exactly 3 Aggravated without any ghost Bashing
+        // Box 0: None -> Bashing -> Lethal -> Aggravated
+        data.click_health_box(0);
+        data.click_health_box(0);
+        data.click_health_box(0);
+        assert_eq!(data.get_health_counts(), (1, 0, 0));
+
+        // Box 1: None -> Bashing -> Lethal -> Aggravated
+        data.click_health_box(1); // None -> Bashing
+        data.click_health_box(1); // Bashing -> Lethal
+        data.click_health_box(1); // Lethal -> Aggravated
+        assert_eq!(data.get_health_counts(), (2, 0, 0));
+
+        // Box 2: None -> Bashing -> Lethal -> Aggravated
+        data.click_health_box(2); // None -> Bashing
+        data.click_health_box(2); // Bashing -> Lethal
+        data.click_health_box(2); // Lethal -> Aggravated
+        assert_eq!(data.get_health_counts(), (3, 0, 0));
+
+        // Confirm exactly 3 Aggravated, 0 Lethal, 0 Bashing
+        assert_eq!(data.get_health(0), DamageType::Aggravated);
+        assert_eq!(data.get_health(1), DamageType::Aggravated);
+        assert_eq!(data.get_health(2), DamageType::Aggravated);
+        assert_eq!(data.get_health(3), DamageType::None);
     }
 
     #[test]

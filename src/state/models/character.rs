@@ -274,6 +274,7 @@ impl CharacterData {
             sheet_type,
             is_public,
             is_owner,
+            folder_id: None,
             updated_at,
         }
     }
@@ -673,25 +674,31 @@ impl CharacterData {
 
         let (mut agg, mut lethal, mut bashing) = self.get_health_counts();
         let current_dmg = self.get_health(index);
+        let total_current = agg + lethal + bashing;
 
         match current_dmg {
             DamageType::None => {
-                let total_current = agg + lethal + bashing;
                 let target_total = index + 1;
                 if target_total > total_current {
                     bashing += target_total - total_current;
                 }
             }
             DamageType::Bashing => {
-                let new_lethal = (index + 1).saturating_sub(agg).max(lethal + 1);
-                lethal = new_lethal;
+                bashing = bashing.saturating_sub(1);
+                lethal += 1;
             }
             DamageType::Lethal => {
-                let new_agg = (index + 1).max(agg + 1);
-                agg = new_agg;
+                lethal = lethal.saturating_sub(1);
+                agg += 1;
             }
             DamageType::Aggravated => {
-                agg = agg.saturating_sub(1);
+                if total_current == 1 {
+                    // Quando há apenas 1 ponto de dano colocado, cicla de volta para Contusivo
+                    agg = 0;
+                    bashing = 1;
+                } else {
+                    agg = agg.saturating_sub(1);
+                }
             }
         }
 

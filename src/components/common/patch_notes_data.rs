@@ -19,6 +19,50 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.18.0",
+        date: "2026-09-17",
+        tag: "v0.18.0",
+        title: "Compêndio M20 Expandido, Arsenal Completo (Brancas & Fogo), Aceleração da Home e Estabilidade WASM",
+        highlight: "Lançamento do Compêndio Oficial M20 integrado com arsenal completo de Armas Brancas e de Fogo/À Distância, carregamento da Home até 15x mais rápido com summary_json, segurança com mascaramento de tokens de sessão nos logs e resolução definitiva de sincronização WebAssembly.",
+        sections: &[
+            PatchSection {
+                category: "Compêndio Oficial M20 & Arsenal Completo",
+                icon: "⚔️",
+                items: &[
+                    "🏹 Tabela Completa de Armas de Fogo e Longo Alcance: Adicionado suporte integral a pistolas, fuzis, escopetas, submetralhadoras, arcos e bestas com estatísticas oficiais M20 (Dano Letal, Alcance, Cadência/Rate, Pente/Clip e Ocultação).",
+                    "🗡️ Arsenal de Armas Brancas & Corpo a Corpo: Catálogo unificado com cálculo automático de dano por Força, dificuldades e tipos de dano (Contundente/Letal).",
+                    "🎯 Seletor de Especialidades Reutilizável: Componente SpecialtyPicker desacoplado para seleção rápida de especialidades em Atributos, Habilidades e Combate.",
+                    "📖 Botão '📖 M20' e Harmonização Visual: Estilo refinado em ouro arcano para o grimório (Página 5) e compêndio de práticas e instrumentos.",
+                ],
+            },
+            PatchSection {
+                category: "Performance & Arquitetura de Dados",
+                icon: "⚡",
+                items: &[
+                    "🚀 Aceleração da Home (15x mais rápida): Implementada coluna summary_json no banco de dados SQLite com migração automática, eliminando a leitura pesada de megabytes de JSON na tela inicial.",
+                    "📦 Migração Preguiçosa & Resiliente: Atualização automática e transparente de fichas legadas em segundo plano ao serem consultadas.",
+                ],
+            },
+            PatchSection {
+                category: "Segurança & Proteção de Credenciais",
+                icon: "🛡️",
+                items: &[
+                    "🔒 Mascaramento de Tokens de Sessão: Eliminação do risco de vazamento de credenciais nos logs do servidor através da ofuscação dos tokens de sessão.",
+                    "🚫 Prevenção Contra Submissão Fallback: Garantia de integridade do formulário de autenticação na SPA sem expor credenciais na URL.",
+                ],
+            },
+            PatchSection {
+                category: "Estabilidade WebAssembly & Clean Architecture",
+                icon: "🧩",
+                items: &[
+                    "⚙️ Sincronização Contínua de WASM: Correção definitiva de LinkError no WebAssembly com sincronização bidirecional entre mta_sheet.wasm e mta_sheet_bg.wasm.",
+                    "🎨 CSS Modular (12-compendium.css): Separação de mais de 1.400 linhas de estilos do compêndio em folha dedicada, otimizando o CSS do Grimório.",
+                    "♻️ Componente BoundAttributeField & Sinais Unificados: Reutilização limpa de campos de atributos e gestão atômica dos estados dos modais.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.17.0",
         date: "2026-09-15",
         tag: "v0.17.0",

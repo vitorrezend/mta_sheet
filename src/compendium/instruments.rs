@@ -1,0 +1,853 @@
+//! M20 (Mage: The Ascension 20th Anniversary Edition) - Compendium of Magickal Instruments
+//!
+//! Unabridged canonical reference text from Chapter 10 (Focus and Arts, pp. 586-608),
+//! with full bilingual support (English & Portuguese), page numbers, categories, aliases,
+//! theory articles, and rules for Standard, Personalized, Unique, and Significant Instruments.
+
+use serde::Serialize;
+use crate::i18n::Language;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub struct InstrumentTheoryArticle {
+    pub id: &'static str,
+    pub title: &'static str,
+    pub title_pt: &'static str,
+    pub page_ref: &'static str,
+    pub content: &'static str,
+    pub content_pt: &'static str,
+}
+
+impl InstrumentTheoryArticle {
+    pub fn title(&self, lang: Language) -> &'static str {
+        match lang {
+            Language::PtBr => self.title_pt,
+            Language::EnUs => self.title,
+        }
+    }
+
+    pub fn content(&self, lang: Language) -> &'static str {
+        match lang {
+            Language::PtBr => self.content_pt,
+            Language::EnUs => self.content,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub struct InstrumentDefinition {
+    pub id: &'static str,
+    pub name: &'static str,
+    pub name_pt: &'static str,
+    pub aliases: &'static [&'static str],
+    pub page_ref: &'static str,
+    pub category: &'static str,
+    pub description: &'static str,
+    pub description_pt: &'static str,
+}
+
+impl InstrumentDefinition {
+    pub fn name(&self, lang: Language) -> &'static str {
+        match lang {
+            Language::PtBr => self.name_pt,
+            Language::EnUs => self.name,
+        }
+    }
+
+    pub fn description(&self, lang: Language) -> &'static str {
+        match lang {
+            Language::PtBr => self.description_pt,
+            Language::EnUs => self.description,
+        }
+    }
+}
+
+// ============================================================================
+// Artigos Teóricos e Regras Fundamentais dos Instrumentos (M20, pp. 586-588)
+// ============================================================================
+
+pub const THEORY_TOOLS_OF_FOCUS: InstrumentTheoryArticle = InstrumentTheoryArticle {
+    id: "tools_of_focus",
+    title: "Instruments: The Tools of Focus",
+    title_pt: "Instrumentos: As Ferramentas do Foco",
+    page_ref: "M20, pp. 586-587",
+    content: "Belief envisions, practice inspires, and tools perform. All three elements allow a mage to focus Will and knowledge into Effects. And although any human activity can provide a tool for an imaginative mage – so long as that instrument fits the mage’s beliefs and practices – certain tools hold honored and popular places in magickal practices of all kinds.\n\nAs suggested by its root word instruere (“to prepare”), an instrument is a tool or set of tools that prepares an act of magick or hypertech. That instrument doesn’t have to be a physical object – it could be an activity, a process, a place, a person, an animal, a song, an element, or even a concept like money or mathematics. If a mage thinks, “I need X to accomplish Y,” then X is an instrument. If he can’t do Y without X, then X is a necessary instrument.\n\nSymbolic Power:\nEssentially, an instrument is an anchor for the mage’s mind and Avatar. To work magick, you need to understand it on a gut-deep level. Tools build bridges between human consciousness and metaphysical power. By using an instrument that possesses symbolic connections to a certain phenomenon, the mage concentrates upon that phenomenon, envisions the change he wants to make, focuses on that desire, and then works the change. A mirror, for example, has deep symbolic connections with reflections, clarity, and alternate realities. When a witch, Hermetic, or Virtual Adept looks into a mirror, that tool focuses her Will and knowledge upon seeing things that are invisible to the naked eye. In a very literal sense, the instrument is a conduit for power.\n\nTools and Time:\nBecause focus requires tools, and because tools take time to prepare and employ, an act of true magick often demands extra time. It’s hard to shoot from the hip when your Arts demand chanting, circle-casting, or programming. In game terms, an instrument usually takes at least three turns to set up and use, and possibly more. Unless a player spends a Willpower point to speed up the process, or has an instrument that can be used fast (like a blade or a gun), a mage cannot perform true magick in a single turn without significant penalties or prior preparation.",
+    content_pt: "A crença concebe, a prática inspira e as ferramentas executam. Todos os três elementos permitem que o mago concentre sua Vontade e conhecimento em Efeitos mágicos. E embora qualquer atividade humana possa fornecer uma ferramenta para um mago imaginativo — desde que esse instrumento se encaixe nas crenças e práticas do mago —, certas ferramentas ocupam lugares honrados e populares em práticas mágicas de todos os tipos.\n\nComo sugere sua palavra-raiz instruere ('preparar'), um instrumento é uma ferramenta ou conjunto de ferramentas que prepara um ato de magia ou hipertecnologia. Esse instrumento não precisa ser necessariamente um objeto físico — pode ser uma atividade, um processo, um lugar, uma pessoa, um animal, uma canção, um elemento ou até mesmo um conceito abstrato como dinheiro ou matemática. Se um mago pensa: 'Eu preciso de X para realizar Y', então X é um instrumento. Se ele não consegue realizar Y sem X, então X é um instrumento necessário.\n\nPoder Simbólico:\nEssencialmente, um instrumento é uma âncora para a mente e o Avatar do mago. Para realizar a verdadeira magia, você precisa compreendê-la em um nível visceral e profundo. As ferramentas constroem pontes entre a consciência humana e o poder metafísico. Ao utilizar um instrumento que possui conexões simbólicas com um determinado fenômeno, o mago se concentra nesse fenômeno, visualiza a transformação que deseja manifestar, foca nessa intenção e então opera a mudança. Um espelho, por exemplo, tem profundas conexões simbólicas com reflexos, clareza e realidades alternativas. Quando uma bruxa, um hermético ou um Adepto da Virtualidade fita um espelho, essa ferramenta foca sua Vontade e conhecimento para enxergar aquilo que é invisível a olho nu. Em um sentido muito literal, o instrumento é um canal de condução para o poder.\n\nFerramentas e Tempo:\nComo o foco requer ferramentas, e como as ferramentas levam tempo para serem preparadas e empregadas, um ato de verdadeira magia frequentemente exige tempo adicional. É difícil agir no calor do momento quando suas Artes exigem entoação de cânticos, traçado de círculos ou programação de códigos. Em termos de regras de jogo, um instrumento geralmente leva pelo menos três turnos para ser configurado e utilizado, e possivelmente mais. A menos que o jogador gaste um ponto de Força de Vontade para acelerar o processo, ou possua um instrumento de uso rápido e instantâneo (como uma lâmina ou uma arma de fogo), um mago não pode realizar a verdadeira magia em um único turno sem penalidades severas ou preparação prévia.",
+};
+
+pub const THEORY_CLASSIFICATIONS: InstrumentTheoryArticle = InstrumentTheoryArticle {
+    id: "classifications",
+    title: "Classifications: Standard, Personalized, and Unique",
+    title_pt: "Classificações: Instrumentos Padrão, Personalizados e Únicos",
+    page_ref: "M20, pp. 587-588",
+    content: "Instruments fall into three general classifications in M20:\n\n• Standard Instruments: Readily available tools that fit the mage’s paradigm and practices. Any laptop, sword, stick of chalk, or ritual blade will do, so long as it fulfills the functional and symbolic requirements. Standard instruments provide no direct mechanical dice modifiers, but can easily be replaced if lost, broken, or confiscated.\n\n• Personalized Instruments: A specific tool that has been crafted, attuned, consecrated, or bonded to the mage over significant time and effort. A consecrated athame inscribed with personal runes, a custom-soldered cyberdeck with handcrafted drivers, a hand-carved rowan staff, or an heirloom violin. When a mage employs a personalized instrument for casting within her Affinity Sphere, the difficulty of the roll is reduced by -1.\n\n• Unique Instruments: Irreplaceable items possessing immense personal, historical, or metaphysical significance. A legendary grimoire penned by an archmage, an ancient relic blade passed down through generations of masters, or a one-of-a-kind prototype tachyon matrix. A unique instrument reduces casting difficulty by -1 (or -2 if it is both personalized and unique, at the Storyteller's discretion). However, if a unique instrument is damaged, stolen, or destroyed, the mage suffers severe psychic disorientation, potentially facing the harsh penalties for Operating Without Focus (M20, pp. 566-567) until a suitable spiritual reconciliation or replacement is attained.",
+    content_pt: "Os instrumentos dividem-se em três classificações gerais nas regras de M20:\n\n• Instrumentos Padrão (Standard): Ferramentas comuns e prontamente disponíveis que se alinham ao paradigma e às práticas do mago. Qualquer laptop, espada, pedaço de giz ou lâmina ritual serve, desde que atenda aos requisitos funcionais e simbólicos. Instrumentos padrão não concedem modificadores diretos na parada de dados, mas podem ser facilmente substituídos caso sejam perdidos, destruídos ou confiscados.\n\n• Instrumentos Personalizados (Personalized): Uma ferramenta específica que foi confeccionada, consagrada, sintonizada ou vinculada ao mago mediante tempo e esforço significativos. Um athame consagrado com o próprio sangue e gravado com runas pessoais, um cyberdeck soldado sob medida com drivers customizados, um cajado esculpido à mão ou um violino de estimação. Quando um mago emprega um instrumento personalizado em um lançamento que utilize sua Esfera de Afinidade, a dificuldade da jogada é reduzida em -1.\n\n• Instrumentos Únicos (Unique): Itens verdadeiramente insubstituíveis que carregam imenso peso pessoal, histórico ou metafísico. Um grimório lendário escrito por um arquimago, uma lâmina relíquia ancestral transmitida por gerações de mestres ou uma matriz quântica protótipo única no cosmos. Um instrumento único reduz a dificuldade do lançamento em -1 (ou -2 caso seja simultaneamente personalizado e único, a critério do Narrador). Contudo, se um instrumento único for danificado, roubado ou destruído, o mago sofre profunda desorientação psíquica, ficando sujeito às duras penalidades de Operar Sem Foco (M20, pp. 566-567) até que alcance uma reconciliação espiritual ou encontre um substituto à altura.",
+};
+
+pub const THEORY_SIGNIFICANT_RULE: InstrumentTheoryArticle = InstrumentTheoryArticle {
+    id: "significant_instruments",
+    title: "Optional Rule: Significant Instruments",
+    title_pt: "Regra Opcional: Instrumentos Significativos",
+    page_ref: "M20, p. 588",
+    content: "In story terms, certain instruments carry deeper metaphysical resonance than a mere tool. Under this optional rule, a Significant Instrument represents an item with extraordinary symbolic, emotional, or mythic weight in the narrative.\n\nWhen a mage employs a Significant Instrument, the Storyteller may allow the player to draw upon Mythic Threads. This can be manifested as:\n1. A -1 reduction to the casting difficulty of an appropriate Effect;\n2. OR transforming an otherwise Vulgar Effect into a Coincidental Effect, provided the instrument’s mythic narrative and presentation make the phenomenon feel natural, inevitable, or plausible to Witnesses within that dramatic context.\n\nThis benefit reflects the profound truth that belief shapes reality, and when that belief is anchored in a tool of mythic proportion, Reality itself bows to the resonance of the symbol.",
+    content_pt: "Em termos narrativos e dramáticos, certos instrumentos carregam uma ressonância metafísica muito mais profunda do que uma simples ferramenta cotidiana. Sob esta regra opcional, um Instrumento Significativo representa um item de extraordinário peso simbólico, emocional ou mítico na crônica.\n\nQuando um mago emprega um Instrumento Significativo, o Narrador pode permitir que o jogador puxe Fios Míticos (Mythic Threads). Isso pode se manifestar das seguintes formas:\n1. Uma redução de -1 na dificuldade de lançamento para um Efeito apropriado;\n2. OU transformar um Efeito que de outra forma seria Vulgar em um Efeito Coincidente, desde que a narrativa mítica e a apresentação do instrumento façam o fenômeno parecer natural, inevitável ou plausível para as Testemunhas naquele contexto dramático.\n\nEste benefício reflete a verdade profunda de que a crença molda a realidade e, quando essa crença é ancorada em uma ferramenta de proporções míticas, a própria Realidade se curva diante da ressonância do símbolo.",
+};
+
+pub const ALL_THEORY_ARTICLES: &[InstrumentTheoryArticle] = &[
+    THEORY_TOOLS_OF_FOCUS,
+    THEORY_CLASSIFICATIONS,
+    THEORY_SIGNIFICANT_RULE,
+];
+
+// ============================================================================
+// Os 54 Instrumentos Comuns Canônicos de M20 (pp. 588-608)
+// ============================================================================
+
+pub const ARMOR: InstrumentDefinition = InstrumentDefinition {
+    id: "armor",
+    name: "Armor",
+    name_pt: "Armadura",
+    aliases: &["Armor", "Armadura", "Body Armor", "Armaduras", "Shield", "Escudo", "Traje de Proteção"],
+    page_ref: "M20, p. 588",
+    category: "common",
+    description: "Protection, whether archaic plate, riot gear, a HAZMAT suit, or heavy leather, armor provides more than just kinetic defense – it symbolizes boundary, invulnerability, and spiritual separation from external corruption. For martial mages, tech-priests, and Void Engineers, armor represents the threshold between self and hostile environments, allowing the manipulation of Life, Forces, and Matter to deflect energies, seal physiological integrity, or manifest impenetrable forcefields.",
+    description_pt: "Proteção física — seja uma cota de placas arcaica, equipamento antimotim, um traje HAZMAT ou couro pesado —, a armadura fornece muito mais do que mera defesa cinética: ela simboliza limiar, invulnerabilidade e separação espiritual contra a corrupção exterior. Para magos marciais, tecno-sacerdotes e Engenheiros do Vácuo, a armadura representa o escudo hermético entre o eu e os ambientes hostis, permitindo a manipulação de Vida, Forças e Matéria para defletir energias, selar a integridade fisiológica ou manifestar campos de força impenetráveis.",
+};
+
+pub const ARTWORK: InstrumentDefinition = InstrumentDefinition {
+    id: "artwork",
+    name: "Artwork",
+    name_pt: "Obras de Arte",
+    aliases: &["Artwork", "Obras de Arte", "Arte", "Pinturas", "Esculturas", "Paintings", "Art", "Desenhos"],
+    page_ref: "M20, pp. 588-589",
+    category: "common",
+    description: "Paintings, sculptures, photographs, murals, and digital art capture the essence of imagination made tangible. An artist channels Passion and Mind to alter emotions, implant subconscious suggestions, or create hyper-dimensional gateways using Correspondence. The piece of art acts as a resonance battery, holding feelings, memories, and spirits within its canvas, marble, or pixels.",
+    description_pt: "Pinturas, esculturas, fotografias, murais e arte digital capturam a essência da imaginação tornada palpável. Um artista canaliza Paixão e Mente para alterar emoções, implantar sugestões subconscientes ou criar portais hiperdimensionais usando Correspondência. A obra de arte atua como uma bateria de ressonância, aprisionando sentimentos, memórias e espíritos em sua tela, mármore ou pixels.",
+};
+
+pub const BLESSINGS_CURSES: InstrumentDefinition = InstrumentDefinition {
+    id: "blessings_curses",
+    name: "Blessings and Curses",
+    name_pt: "Bênçãos e Maldições",
+    aliases: &["Blessings and Curses", "Blessings & Curses", "Blessings", "Curses", "Bênçãos e Maldições", "Bênçãos", "Maldições", "Pragas", "Praga"],
+    page_ref: "M20, p. 589",
+    category: "common",
+    description: "Spoken or written pronouncements of divine favor or damnation. By invoking higher powers, ancestor spirits, or raw karmic backlash, the mage directs Entropy, Prime, or Spirit toward a target. A blessing uplifts luck and vitality; a curse binds misfortune, sickness, or doom upon generations.",
+    description_pt: "Pronunciamentos orais ou escritos de favor divino ou condenação irrevogável. Ao invocar poderes superiores, espíritos ancestrais ou a pura retaliação cármica, o mago direciona Entropia, Primórdio ou Espírito contra um alvo. Uma bênção eleva a sorte e a vitalidade; uma maldição ata o azar, o adoecimento ou a ruína sobre gerações inteiras.",
+};
+
+pub const BLOOD_FLUIDS: InstrumentDefinition = InstrumentDefinition {
+    id: "blood_fluids",
+    name: "Blood and Other Fluids",
+    name_pt: "Sangue e Outros Fluidos Corporais",
+    aliases: &["Blood and Other Fluids", "Blood & Fluids", "Blood", "Fluids", "Sangue", "Fluidos", "Sangue e Fluidos", "Fluidos Corporais", "Humores", "Humores Vitais"],
+    page_ref: "M20, p. 589",
+    category: "common",
+    description: "The vital ichor of existence. Blood carries the spark of life, genetic code, and primordial quintessence. Alchemists, shamans, hermetics, and blood-priests use bodily fluids (tears, saliva, semen, bile, blood) as the supreme sympathetic link to control Life, seal pacts with Spirits, or power brutal Prime workings.",
+    description_pt: "O líquor vital da existência. O sangue transporta a centelha da vida, o código genético e a quintessência primordial. Alquimistas, xamãs, herméticos e sacerdotes do sangue utilizam fluidos corporais (lágrimas, saliva, sêmen, bile e sangue) como o supremo elo simpático para controlar a Vida, selar pactos com Espíritos ou alimentar ritos vigorosos de Primórdio.",
+};
+
+pub const BODYWORK: InstrumentDefinition = InstrumentDefinition {
+    id: "bodywork",
+    name: "Bodywork",
+    name_pt: "Modificação Corporal e Trabalho Corporal",
+    aliases: &["Bodywork", "Modificação Corporal", "Trabalho Corporal", "Massagem", "Tatuagens", "Piercings", "Tattoos", "Acupuntura", "Scarification", "Escarificação"],
+    page_ref: "M20, p. 589",
+    category: "common",
+    description: "Acupuncture, massage, chiropractic adjustment, scarification, tattoos, and piercing. By manipulating the flesh, fascia, and energetic meridians (chi, prana), the practitioner alters Life and Mind. Pain and sensory stimulation shatter mental blockages, align physical balance, or awaken dormant psychic reserves.",
+    description_pt: "Acupuntura, massagem, quiropraxia, escarificação, tatuagens rituais e piercings. Ao manipular a carne, a fáscia e os meridianos energéticos (chi, prana), o praticante altera a Vida e a Mente. A dor e o estímulo sensorial rompem bloqueios mentais, alinham o equilíbrio fisiológico ou despertam reservas psíquicas latentes.",
+};
+
+pub const BONES_REMAINS: InstrumentDefinition = InstrumentDefinition {
+    id: "bones_remains",
+    name: "Bones, Skins, Organs, and Other Remains",
+    name_pt: "Ossos, Peles, Órgãos e Outros Restos",
+    aliases: &["Bones, Skins, Organs, and Other Remains", "Bones & Remains", "Bones", "Remains", "Ossos e Restos", "Ossos", "Peles", "Crânios", "Restos Mortais", "Órgãos"],
+    page_ref: "M20, p. 589",
+    category: "common",
+    description: "Physical remnants of dead creatures and humans. Skulls, bone needles, cured skins, dried organs, and grave dust carry profound resonant echoes of mortality, decay, and spiritual transition. Vital for Entropy, Spirit, and Matter when summoning ghosts, necromantic manipulation, or crafting fetish tools.",
+    description_pt: "Vestígios físicos de criaturas falecidas e humanos. Crânios, agulhas de osso, peles curtidas, órgãos desidratados e pó de sepultura carregam profundos ecos de mortalidade, decadência e transição espiritual. Instrumento fundamental para Entropia, Espírito e Matéria na evocação de espectros, ritos necromânticos ou forja de fetiches.",
+};
+
+pub const BOOKS: InstrumentDefinition = InstrumentDefinition {
+    id: "books",
+    name: "Books, Scrolls, and Periodicals",
+    name_pt: "Livros, Pergaminhos e Periódicos",
+    aliases: &["Books, Scrolls, and Periodicals", "Books & Scrolls", "Books", "Scrolls", "Livros", "Pergaminhos", "Grimórios", "Livros e Manuscritos", "Periódicos", "Tomes", "Grimoires", "Manuscritos"],
+    page_ref: "M20, pp. 589-590",
+    category: "common",
+    description: "Ancient tomes, illuminated scrolls, grimoires, textbooks, newspapers, and scientific journals. The printed word preserves human consciousness across time and space. Reading, writing, or burning texts focuses Mind, Time, and Correspondence, drawing upon centuries of gathered knowledge, secret cipher keys, and collective belief.",
+    description_pt: "Tomos ancestrais, pergaminhos iluminados, grimórios, manuais técnicos, jornais e periódicos científicos. A palavra impressa preserva a consciência humana através do tempo e do espaço. Ler, escrever ou queimar textos foca a Mente, o Tempo e a Correspondência, drenando séculos de conhecimento acumulado, cifras secretas e crença coletiva.",
+};
+
+pub const BCI: InstrumentDefinition = InstrumentDefinition {
+    id: "bci",
+    name: "Brain/Computer Interface",
+    name_pt: "Interface Cérebro-Computador (ICC)",
+    aliases: &["Brain/Computer Interface", "Brain-Computer Interface", "BCI", "Interface Cérebro-Computador", "Cyberware", "Implantes Neurais", "Neural Interface", "Bio-chips", "Cérebro-Computador"],
+    page_ref: "M20, p. 590",
+    category: "common",
+    description: "Neural jacks, wetware chips, EEG headsets, and direct neuro-synaptic taps. By fusing organic synapses with digital processing, technomancers and Iteration X operatives process data at the speed of thought, bypass physical limitations using Mind, Matter, and Forces, and inhabit the Digital Web natively.",
+    description_pt: "Conectores neurais diretos, implantes bioeletrônicos (wetware), capacetes de EEG e conexões neurosinápticas. Ao fundir sinapses orgânicas com o processamento digital de dados, tecnomantes e operativos da Iteração X processam informações na velocidade do pensamento, superam limitações carnais através de Mente, Matéria e Forças, e navegam nativamente na Rede Digital.",
+};
+
+pub const BREWS_POTIONS: InstrumentDefinition = InstrumentDefinition {
+    id: "brews_potions",
+    name: "Brews, Potions, Powders, and Other Concoctions",
+    name_pt: "Misturas, Poções, Pós e Outras Concocções",
+    aliases: &["Brews, Potions, Powders, and Other Concoctions", "Brews & Potions", "Brews", "Potions", "Poções e Preparados", "Misturas e Poções", "Poções", "Misturas", "Pós", "Concocções", "Elixires", "Preparados"],
+    page_ref: "M20, pp. 590-591",
+    category: "common",
+    description: "Alchemical elixirs, herbal infusions, mystic teas, synthesized compounds, and enchanted dusts. The alchemist or herbalist distills metaphysical properties into ingestible or topical form. Upon consumption, the potion triggers potent transformations of Life, Mind, Forces, or Prime inside the biological vessel.",
+    description_pt: "Elixires alquímicos, infusões de ervas, chás místicos, compostos sintetizados e pós encantados. O alquimista ou ervanário destila propriedades metafísicas em formato ingerível ou tópico. Ao ser consumida, a poção desencadeia intensas transformações de Vida, Mente, Forças ou Primórdio no interior do recipiente biológico.",
+};
+
+pub const CARDS_DICE: InstrumentDefinition = InstrumentDefinition {
+    id: "cards_dice",
+    name: "Cards, Dice, and Other Instruments of Chance",
+    name_pt: "Cartas, Dados e Outros Instrumentos de Azar",
+    aliases: &["Cards, Dice, and Other Instruments of Chance", "Cards & Dice", "Cards", "Dice", "Cartas e Dados", "Cartas", "Dados", "Tarô", "Tarot", "Moedas", "Jogos de Azar", "Instrumentos de Azar"],
+    page_ref: "M20, p. 591",
+    category: "common",
+    description: "Tarot decks, playing cards, bone dice, runic lots, coin tosses, and roulette wheels. These items embody probability, fate, and quantum indeterminacy. By shuffling, rolling, or drawing, the mystic reads or bends Entropy, Time, and Mind to foresee outcomes, rig destiny, or inject chaos into order.",
+    description_pt: "Baralhos de tarô, cartas de baralho comuns, dados de osso, tabuinhas rúnicas, lançamentos de moedas e roletas. Esses itens personificam a probabilidade, o fado e a indeterminação quântica. Ao embaralhar, rolar ou puxar, o místico lê ou distorce Entropia, Tempo e Mente para antever resultados, manipular o destino ou injetar caos na ordem.",
+};
+
+pub const CELESTIAL_ALIGNMENTS: InstrumentDefinition = InstrumentDefinition {
+    id: "celestial_alignments",
+    name: "Celestial Alignments",
+    name_pt: "Alinhamentos Celestiais",
+    aliases: &["Celestial Alignments", "Alinhamentos Celestiais", "Astrologia", "Constelações", "Fases da Lua", "Astrology", "Stars", "Estrelas", "Planetas", "Zodíaco"],
+    page_ref: "M20, p. 591",
+    category: "common",
+    description: "Planetary conjunctions, lunar phases, solstices, eclipses, and stellar alignments. Celestial movements resonate with the macrocosm and microcosm. Astrologers and ritualists wait for the precise astrological moment to channel massive Time, Correspondence, and Prime energies into major workings.",
+    description_pt: "Conjunções planetárias, fases lunares, solstícios, eclipses e alinhamentos estelares. Os movimentos celestes ressoam com o macrocosmo e o microcosmo. Astrólogos e ritualistas aguardam o momento astrológico exato para canalizar colossais energias de Tempo, Correspondência e Primórdio em grandes ritos.",
+};
+
+pub const CIRCLES_DESIGNS: InstrumentDefinition = InstrumentDefinition {
+    id: "circles_designs",
+    name: "Circles, Pentacles, and Other Geometric Designs",
+    name_pt: "Círculos, Pentáculos e Outros Desenhos Geométricos",
+    aliases: &["Circles, Pentacles, and Other Geometric Designs", "Designs & Circles", "Circles & Designs", "Circles", "Pentacles", "Círculos e Desenhos", "Círculos", "Pentáculos", "Geometria Sagrada", "Mandalas", "Desenhos Geométricos"],
+    page_ref: "M20, pp. 591-592",
+    category: "common",
+    description: "Chalk circles, salt barriers, silver cords, pentagrams, mandalas, and Sacred Geometry patterns. The boundary creates sacred space, enclosing quintessence and keeping outside entities at bay. Indispensable for Prime, Spirit, and Correspondence to bind spirits, anchor portals, or stabilize reality.",
+    description_pt: "Círculos de giz, barreiras de sal, cordas de prata, pentagramas, mandalas e padrões de Geometria Sagrada. O traçado cria um espaço sagrado inviolável, enclausurando quintessência e repelindo entidades exteriores. Indispensável para Primórdio, Espírito e Correspondência para aprisionar espíritos, ancorar portais ou estabilizar a realidade.",
+};
+
+pub const COMPUTERS_IT: InstrumentDefinition = InstrumentDefinition {
+    id: "computers_it",
+    name: "Computers and IT Gear",
+    name_pt: "Computadores e Equipamentos de TI",
+    aliases: &["Computers and IT Gear", "Computers & IT", "Computers", "IT Gear", "Computadores", "Equipamentos de TI", "Laptops", "Smartphones", "Hardware", "Cyberdeck", "Dispositivos de TI"],
+    page_ref: "M20, p. 592",
+    category: "common",
+    description: "Laptops, mainframe terminals, smartphones, servers, networks, and routers. Technomancers view the universe as a vast computational matrix. Through code, algorithms, and data streams, they manipulate Correspondence (networking), Mind (AI), Forces (electricity), and Matter (hardware).",
+    description_pt: "Laptops, terminais de grande porte, smartphones, servidores, redes e roteadores. Os tecnomantes enxergam o universo como uma vasta matriz computacional. Através de código, algoritmos e fluxos de dados, manipulam Correspondência (redes de dados), Mente (IA), Forças (eletricidade) e Matéria (hardware).",
+};
+
+pub const CROSSROADS: InstrumentDefinition = InstrumentDefinition {
+    id: "crossroads",
+    name: "Crossroads and Crossing-Days",
+    name_pt: "Encruzilhadas e Dias de Passagem",
+    aliases: &["Crossroads and Crossing-Days", "Crossroads & Crossing-Days", "Crossroads", "Encruzilhadas", "Dias de Passagem", "Limiares", "Thresholds", "Solstícios", "Equinócios", "Cruzamentos"],
+    page_ref: "M20, p. 592",
+    category: "common",
+    description: "Physical road intersections, doorways, borders, liminal spaces, and seasonal transition days (Halloween, Beltane, Leap Days). These locations and dates exist between standard worlds, thinning the Gauntlet and making Spirit and Correspondence crossings extraordinarily fluid.",
+    description_pt: "Interseções físicas de estradas, portais, fronteiras, espaços liminares e datas sazonais de transição (Samhain, Beltane, anos bissextos). Esses locais e momentos residem 'entre os mundos', afinando a Película e tornando as passagens com Espírito e Correspondência extraordinariamente fluidas.",
+};
+
+pub const CUPS_VESSELS: InstrumentDefinition = InstrumentDefinition {
+    id: "cups_vessels",
+    name: "Cups, Chalices, Cauldrons, and Other Vessels",
+    name_pt: "Taças, Cálices, Caldeirões e Outros Recipientes",
+    aliases: &["Cups, Chalices, Cauldrons, and Other Vessels", "Cups & Cauldrons", "Cups & Vessels", "Cups", "Chalices", "Cauldrons", "Vessels", "Taças", "Cálices", "Caldeirões", "Recipientes", "Cálice", "Caldeirão"],
+    page_ref: "M20, pp. 592-593",
+    category: "common",
+    description: "Chalices of brass, silver, or horn; cast-iron cauldrons; beakers and jars. Vessels symbolize containment, gestation, the womb, and the Graal. They receive and retain Prime quintessence, blend alchemical elements with Matter, or hold scrying fluids for Correspondence visions.",
+    description_pt: "Cálices de latão, prata ou chifre; caldeirões de ferro fundido; béqueres e frascos. Recipientes simbolizam contenção, gestação, o útero primordial e o Graal. Eles recebem e retêm quintessência de Primórdio, misturam elementos com Matéria ou acolhem líquidos de vidência para visões de Correspondência.",
+};
+
+pub const DANCES_MOVEMENT: InstrumentDefinition = InstrumentDefinition {
+    id: "dances_movement",
+    name: "Dances, Gestures, Postures, and Other Movement Practices",
+    name_pt: "Danças, Gestos, Posturas e Movimento Corporal",
+    aliases: &["Dances, Gestures, Postures, and Other Movement Practices", "Dances & Movement", "Dances", "Gestures", "Movement", "Danças", "Gestos", "Posturas", "Movimento Corporal", "Katas", "Mudras", "Asanas", "Tai Chi"],
+    page_ref: "M20, p. 593",
+    category: "common",
+    description: "Ecstatic trance dancing, formal ballet, mudras, martial art katas, yoga asanas, and deliberate pacing. The moving body channels subtle currents of chi and psychic tension. By directing kinetic energy, the practitioner manipulates Forces, Life, and Mind without physical props.",
+    description_pt: "Danças extáticas de transe, balé cerimonial, mudras esotéricos, katas de artes marciais, asanas do yoga e passos rituais deliberados. O corpo em movimento conduz correntes sutis de chi e tensão psíquica. Ao direcionar energia cinética, o praticante manipula Forças, Vida e Mente sem necessidade de ferramentas materiais.",
+};
+
+pub const DEVICES_MACHINES: InstrumentDefinition = InstrumentDefinition {
+    id: "devices_machines",
+    name: "Devices and Machines",
+    name_pt: "Aparelhos, Dispositivos e Máquinas",
+    aliases: &["Devices and Machines", "Devices & Machines", "Devices", "Machines", "Dispositivos", "Aparelhos", "Máquinas", "Engenhocas Tecnológicas", "Instrumentos Científicos", "Mecanismos"],
+    page_ref: "M20, pp. 593-594",
+    category: "common",
+    description: "Gears, engines, clockwork mechanisms, hydraulic presses, dynamos, and industrial machinery. Technocrats, Sons of Ether, and Mechanists channel Forces, Matter, and Time through calibrated mechanisms, applying physical laws of thermodynamics and kinetics to enforce reality.",
+    description_pt: "Engrenagens, motores de combustão, relógios mecânicos, prensas hidráulicas, dínamos e maquinário industrial pesado. Tecnocratas, Filhos do Éter e Mecanicistas canalizam Forças, Matéria e Tempo através de mecanismos calibrados, aplicando leis físicas da termodinâmica para dobrar a realidade.",
+};
+
+pub const DRUGS_POISONS: InstrumentDefinition = InstrumentDefinition {
+    id: "drugs_poisons",
+    name: "Drugs and Poisons",
+    name_pt: "Drogas, Venenos e Intoxicantes",
+    aliases: &["Drugs and Poisons", "Drugs & Poisons", "Drugs", "Poisons", "Drogas e Reagentes", "Drogas e Venenos", "Drogas", "Venenos", "Intoxicantes", "Enteógenos", "Psicoativos", "Substâncias"],
+    page_ref: "M20, p. 594",
+    category: "common",
+    description: "Hallucinogens, narcotics, stimulants, plant poisons, venom, and synthetic neurotoxins. By chemical disruption of normal consciousness and metabolic equilibrium, drugs unlock Mind, reveal Spirit dimensions, or deliver devastating attacks against Life and Entropy.",
+    description_pt: "Alucinógenos, narcóticos, estimulantes, venenos botânicos, peçonhas animais e neurotoxinas sintéticas. Pela ruptura química do estado habitual de vigília e homeostase corporal, as substâncias destravam a Mente, revelam planos de Espírito ou desferem agressões devastadoras contra Vida e Entropia.",
+};
+
+pub const ELEMENTS: InstrumentDefinition = InstrumentDefinition {
+    id: "elements",
+    name: "Elements",
+    name_pt: "Elementos da Natureza",
+    aliases: &["Elements", "Elementos", "Elementos da Natureza", "Fogo", "Água", "Terra", "Ar", "Fire", "Water", "Earth", "Air", "Quatro Elementos"],
+    page_ref: "M20, pp. 594-595",
+    category: "common",
+    description: "Earth, air, fire, water, metal, and wood. The foundational building blocks of classical cosmology. The elementalist summons or shapes Forces, Matter, and Life by communing directly with natural fires, ocean tides, wind currents, and mountain minerals.",
+    description_pt: "Terra, ar, fogo, água, metal e madeira. Os blocos estruturais basilares da cosmologia clássica. O elementalista conjura ou molda Forças, Matéria e Vida através da comunhão direta com labaredas naturais, marés oceânicas, correntes eólicas e minerais telúricos.",
+};
+
+pub const ENERGY: InstrumentDefinition = InstrumentDefinition {
+    id: "energy",
+    name: "Energy",
+    name_pt: "Energia e Eletricidade",
+    aliases: &["Energy", "Energia", "Eletricidade", "Raio", "Laser", "Radiação", "Magnetismo", "Electricity", "Fontes de Energia"],
+    page_ref: "M20, p. 595",
+    category: "common",
+    description: "Electricity, laser light, radiation, magnetic flux, thermal conduits, and plasma arcs. Contemporary technomancers and etherites view energy as the purest physical manifestation of Quintessence, employing it to power Forces, Matter, and Correspondence networks.",
+    description_pt: "Eletricidade, feixes laser, radiação ionizante, fluxo magnético, dutos térmicos e arcos de plasma. Tecnomantes contemporâneos e eteristas consideram a energia como a mais pura expressão física da Quintessência, utilizando-a para energizar Forças, Matéria e redes de Correspondência.",
+};
+
+pub const EYE_CONTACT: InstrumentDefinition = InstrumentDefinition {
+    id: "eye_contact",
+    name: "Eye Contact",
+    name_pt: "Contato Visual e o Olhar",
+    aliases: &["Eye Contact", "Contato Visual", "O Olhar", "Olhar Fixado", "Gaze", "Olhos", "Visão", "Fixação Ocular"],
+    page_ref: "M20, p. 595",
+    category: "common",
+    description: "Locking eyes, the evil eye, hypnotic stares, and flashing glances. The eyes are the windows to the soul. Locking gaze bridges consciousness, enabling immediate telepathic assault or emotional projection via Mind, or asserting dominance and cursing via Entropy.",
+    description_pt: "Olhar nos olhos, o mau-olhado, fixação hipnótica e lampejos oculares diretos. Os olhos são as janelas da alma. Sustentar o olhar abre uma ponte direta entre consciências, possibilitando incursões telepáticas imediatas ou projeção afetiva via Mente, além de comandar e amaldiçoar com Entropia.",
+};
+
+pub const FASHION: InstrumentDefinition = InstrumentDefinition {
+    id: "fashion",
+    name: "Fashion",
+    name_pt: "Moda, Vestimentas e Aparência",
+    aliases: &["Fashion", "Moda", "Vestimentas", "Trajes", "Aparência", "Roupas", "Costumes", "Clothing", "Vestuário"],
+    page_ref: "M20, pp. 595-596",
+    category: "common",
+    description: "Designer suits, leather jackets, ritual robes, subcultural attire, lab coats, and uniforms. Clothes project persona, social caste, authority, and archetype. Fashion influences Mind and Life by altering perceptions, inspiring obedience, or donning mystical masks.",
+    description_pt: "Ternos de alta costura, jaquetas de couro, túnicas sacerdotais, vestes de subculturas urbanas, jalecos laboratoriais e uniformes. A indumentária projeta persona, casta social, autoridade e arquétipos. A moda influencia Mente e Vida ao transformar percepções alheias e inspirar obediência.",
+};
+
+pub const FOOD_DRINK: InstrumentDefinition = InstrumentDefinition {
+    id: "food_drink",
+    name: "Food and Drink",
+    name_pt: "Comida e Bebida",
+    aliases: &["Food and Drink", "Food & Drink", "Food", "Drink", "Comida e Bebida", "Comida", "Bebida", "Banquete", "Vinho", "Pão", "Alimentos", "Refeição"],
+    page_ref: "M20, p. 596",
+    category: "common",
+    description: "Bread, wine, roasted meats, honey, milk, sacred banquets, and communal meals. Sharing nourishment bonds individuals into a social unit and transmits Life and Prime. Offering food invites communion, while poisoned or enchanted meals subjugate Mind.",
+    description_pt: "Pão, vinho, carnes assadas, mel silvestre, leite, banquetes sagrados e refeições comunitárias. Compartilhar alimento une indivíduos em um pacto social e transmite Vida e Primórdio. Oferecer sustento sela alianças, enquanto manjares enfeitiçados subjugam a Mente.",
+};
+
+pub const FORMULAE_MATH: InstrumentDefinition = InstrumentDefinition {
+    id: "formulae_math",
+    name: "Formulae, Equations, and Sacred or Advanced Mathematics",
+    name_pt: "Fórmulas, Equações e Matemática Sagrada ou Avançada",
+    aliases: &["Formulae, Equations, and Sacred or Advanced Mathematics", "Formulae & Math", "Formulas", "Formulae", "Mathematics", "Fórmulas", "Equações", "Matemática Sagrada", "Matemática", "Algoritmos", "Equações e Fórmulas"],
+    page_ref: "M20, pp. 596-597",
+    category: "common",
+    description: "Differential equations, quantum mechanics formulas, golden ratio ratios, fractals, and Kabbalistic mathematics. Math is the code of universal architecture. Practitioners use numerical calculations to restructure Matter, compute Time shifts, and bypass Correspondence distances.",
+    description_pt: "Equações diferenciais, formalismo de mecânica quântica, proporção áurea, fractais e matemática cabalística. A matemática é o código estrutural da arquitetura universal. O praticante utiliza cálculos formais para reestruturar Matéria, computar distorções de Tempo e anular distâncias com Correspondência.",
+};
+
+pub const GADGETS_INVENTIONS: InstrumentDefinition = InstrumentDefinition {
+    id: "gadgets_inventions",
+    name: "Gadgets and Inventions",
+    name_pt: "Engenhocas e Invenções",
+    aliases: &["Gadgets and Inventions", "Gadgets & Inventions", "Gadgets", "Inventions", "Engenhocas", "Invenções", "Dispositivos Customizados", "Protótipos", "Aparelhos Inventados"],
+    page_ref: "M20, p. 597",
+    category: "common",
+    description: "Etheric resonators, tachyon sensors, hyper-velocity grappling hooks, personal cloaking emitters, and jury-rigged contraptions. Sons of Ether and inventive mages channel Forces, Matter, and Prime into weird gadgets that defy conventional consensus technology.",
+    description_pt: "Ressonadores etéricos, sensores de táquions, arpéus de hipervelocidade, emissores de camuflagem pessoal e geringonças montadas no improviso. Filhos do Éter e inventores canalizam Forças, Matéria e Primórdio em engenhocas que desafiam a tecnologia convencional do Consenso.",
+};
+
+pub const GEMS_STONES: InstrumentDefinition = InstrumentDefinition {
+    id: "gems_stones",
+    name: "Gems, Stones, and Minerals",
+    name_pt: "Gemas, Pedras e Minerais",
+    aliases: &["Gems, Stones, and Minerals", "Gems & Stones", "Gems", "Stones", "Minerals", "Gemas e Pedras", "Gemas", "Pedras", "Minerais", "Cristais", "Crystals", "Quartzo"],
+    page_ref: "M20, pp. 597-598",
+    category: "common",
+    description: "Quartz crystals, rubies, diamonds, jade, lodestones, and raw granite. Minerals hold static earth resonance, store Quintessence (Prime), focus light and lasers (Forces), and act as durable vessels for spirits and warding matrixes (Matter, Spirit).",
+    description_pt: "Cristais de quartzo, rubis, diamantes, jade, magnetitas e granito bruto. Minerais conservam a ressonância estática da terra, armazenam Quintessência (Primórdio), focam feixes de luz e lasers (Forças) e funcionam como receptáculos estáveis para espíritos e proteções (Matéria, Espírito).",
+};
+
+pub const GROUP_RITES: InstrumentDefinition = InstrumentDefinition {
+    id: "group_rites",
+    name: "Group Rites",
+    name_pt: "Ritos em Grupo e Cerimônias Coletivas",
+    aliases: &["Group Rites", "Ritos em Grupo", "Ritos Coletivos", "Cerimônias Coletivas", "Covens", "Congregações", "Coros", "Rituais em Grupo", "Trabalho de Grupo"],
+    page_ref: "M20, p. 598",
+    category: "common",
+    description: "Covens, cabals, choirs, fraternal lodges, and technocratic strike teams working in unison. Multiple minds synchronize their Willpower and Quintessence, dramatically scaling up successes and enabling monumental ritual workings in Prime, Spirit, and Mind.",
+    description_pt: "Círculos de bruxaria (covens), cabalas, coros sagrados, lojas maçônicas e esquadrões de ataque tecnocráticos trabalhando em uníssono. Múltiplas mentes sincronizam sua Força de Vontade e Quintessência, multiplicando sucessos e viabilizando monumentais ritos de Primórdio, Espírito e Mente.",
+};
+
+pub const HERBS_PLANTS: InstrumentDefinition = InstrumentDefinition {
+    id: "herbs_plants",
+    name: "Herbs, Roots, Seeds, Flowers, and Plants",
+    name_pt: "Ervas, Raízes, Sementes, Flores e Plantas",
+    aliases: &["Herbs, Roots, Seeds, Flowers, and Plants", "Herbs & Plants", "Herbs", "Plants", "Ervas e Plantas", "Ervas", "Plantas", "Raízes", "Sementes", "Flores", "Botânica", "Vegetais"],
+    page_ref: "M20, pp. 598-599",
+    category: "common",
+    description: "Mandrake roots, sage smudges, belladonna, oak branches, lotus seeds, and rowan wood. Plants possess innate spirits, medicinal alkaloids, and sympathetic affinities with Life, Spirit, and Matter, utilized for healing, purification, and herbal wards.",
+    description_pt: "Raízes de mandrágora, ramos de sálvia, beladona, galhos de carvalho, sementes de lótus e madeira de freixo. As plantas possuem espíritos inatos, alcaloides medicinais e afinidades simpáticas com Vida, Espírito e Matéria, sendo vitais para cura, purificação e defumações de banimento.",
+};
+
+pub const HOUSEHOLD_TOOLS: InstrumentDefinition = InstrumentDefinition {
+    id: "household_tools",
+    name: "Household Tools",
+    name_pt: "Utensílios Domésticos e Ferramentas Caseiras",
+    aliases: &["Household Tools", "Utensílios Domésticos", "Ferramentas Caseiras", "Vassoura", "Agulha", "Fuso", "Panela", "Broom", "Needle", "Objetos Caseiros"],
+    page_ref: "M20, p. 599",
+    category: "common",
+    description: "Brooms, sewing needles, distaffs, iron kettles, mirrors, shears, and hearth pokers. Hearth witches and cunning folk disguise mighty workings as mundane chores: sweeping away malicious spirits (Spirit), stitching wounds (Life), or cutting ties (Entropy).",
+    description_pt: "Vassouras, agulhas de costura, fusos, panelas de ferro, espelhos caseiros, tesouras e atiçadores de brasa. Bruvers e curandeiros populares disfarçam grandes magias como lides domésticas: varrer espíritos malignos (Espírito), costurar ferimentos (Vida) ou cortar laços cármicos (Entropia).",
+};
+
+pub const KNOTS_ROPES: InstrumentDefinition = InstrumentDefinition {
+    id: "knots_ropes",
+    name: "Knots and Ropes",
+    name_pt: "Nós, Cordas e Amarras",
+    aliases: &["Knots and Ropes", "Knots & Ropes", "Knots", "Ropes", "Nós e Cordas", "Nós", "Cordas", "Amarras", "Fios", "Linhas", "Laços"],
+    page_ref: "M20, pp. 599-600",
+    category: "common",
+    description: "Knotted cords, macramé, sailors' wind knots, quipus, and woven tapestries. Tying a knot traps a concept, wind, energy, or curse; untying releases the stored effect. Exemplary for storing Forces, binding spirits with Spirit, and weaving destiny with Time and Entropy.",
+    description_pt: "Cordões com nós, macramê, nós de marinheiro para aprisionar ventos, quipos incas e tapeçarias tecidas. Dar um nó aprisiona um conceito, vento tempestuoso, energia ou maldição; desatar libera o efeito acumulado. Excelente para aprisionar Forças, atar espíritos e tecer o destino com Tempo e Entropia.",
+};
+
+pub const LABORATORIES: InstrumentDefinition = InstrumentDefinition {
+    id: "laboratories",
+    name: "Laboratories and Lab Gear",
+    name_pt: "Laboratórios e Equipamentos Científicos",
+    aliases: &["Laboratories and Lab Gear", "Laboratories & Lab Gear", "Laboratories & Alembics", "Laboratories", "Labs", "Laboratórios", "Laboratórios e Alambiques", "Equipamentos de Laboratório", "Alambiques", "Aparelhagem Científica"],
+    page_ref: "M20, p. 600",
+    category: "common",
+    description: "Bunsen burners, centrifuges, autoclaves, fume hoods, mass spectrometers, and sterile chambers. Essential for iterative scientific research. The sterile, controlled environment allows exact manipulation of Matter, Forces, and Life under controlled reproducible protocols.",
+    description_pt: "Bicos de Bunsen, centrífugas, autoclaves, capelas de exaustão, espectrômetros de massa e câmaras estéreis. Ambiente essencial para pesquisa científica e replicação rigorosa. A esterilidade controlada permite manipulações milimétricas de Matéria, Forças e Vida.",
+};
+
+pub const LANGUAGES: InstrumentDefinition = InstrumentDefinition {
+    id: "languages",
+    name: "Languages",
+    name_pt: "Idiomas, Dialetos e Glifos Secretos",
+    aliases: &["Languages", "Idiomas", "Línguas", "Dialetos", "Glifos Secretos", "Língua Enoquiana", "Latim", "Grego", "Línguas Antigas", "Dialetos Místicos"],
+    page_ref: "M20, pp. 600-601",
+    category: "common",
+    description: "Enochian, ancient Greek, Classical Latin, Sanskrit, mathematical notation, and machine machine code. Sacred languages hold structural links to higher reality matrices. Uttering or penning phrases shifts the perceptions of Mind and commands Spirit hierarchies.",
+    description_pt: "Língua Enoquiana, grego arcaico, latim clássico, sânscrito védico, notação formal e código binário. Idiomas sagrados e técnicos possuem conexões estruturais diretas com as matrizes da realidade. Enunciar ou registrar sentenças altera a Mente e comanda hierarquias de Espírito.",
+};
+
+pub const MASS_MEDIA: InstrumentDefinition = InstrumentDefinition {
+    id: "mass_media",
+    name: "Mass Media",
+    name_pt: "Mídia de Massa e Redes Sociais",
+    aliases: &["Mass Media", "Mídia de Massa", "Mídia", "Redes Sociais", "Televisão", "Rádio", "Internet", "Imprensa", "Jornais", "Transmissão", "Propaganda"],
+    page_ref: "M20, p. 601",
+    category: "common",
+    description: "Television broadcasts, podcasts, virality algorithms, social media trends, and billboard advertisements. The New World Order and media manipulators sway public consensus and mass subconscious Mind across planetary distances via Correspondence.",
+    description_pt: "Transmissões televisivas, podcasts, algoritmos de viralização, redes sociais e outdoors. A Nova Ordem Mundial e manipuladores culturais moldam o consenso coletivo e o subconsciente das massas através da Mente em escalas globais com Correspondência.",
+};
+
+pub const MEDITATION: InstrumentDefinition = InstrumentDefinition {
+    id: "meditation",
+    name: "Meditation",
+    name_pt: "Meditação e Transe Interior",
+    aliases: &["Meditation", "Meditação", "Transe Interior", "Contemplação", "Zazen", "Mindfulness", "Visualização", "Quietude Mental"],
+    page_ref: "M20, p. 601",
+    category: "common",
+    description: "Stillness, breath control (pranayama), Zen contemplation, mindfulness, and sensory withdrawal. Silencing the chatter of the ego allows the Avatar and Will to emerge unimpeded. Clears mental delusions (Mind), detects subtle temporal ripples (Time), and circulates inner Quintessence (Prime).",
+    description_pt: "Quietude, controle da respiração (pranayama), contemplação zen, mindfulness e retração sensorial. Silenciar o ruído constante do ego permite que o Avatar e a Vontade emerjam sem filtros. Dissipa ilusões com a Mente, detecta ondulações sutis de Tempo e circula a Quintessência interior com Primórdio.",
+};
+
+pub const MONEY_WEALTH: InstrumentDefinition = InstrumentDefinition {
+    id: "money_wealth",
+    name: "Money and Wealth",
+    name_pt: "Dinheiro, Riqueza e Ativos Financeiros",
+    aliases: &["Money and Wealth", "Money & Wealth", "Money", "Wealth", "Dinheiro e Riqueza", "Dinheiro", "Riqueza", "Moedas", "Ativos Financeiros", "Crédito", "Criptomoedas", "Capital"],
+    page_ref: "M20, pp. 601-602",
+    category: "common",
+    description: "Cold hard cash, offshore bank accounts, stock portfolios, credit limits, and cryptocurrency transactions. Syndicate bankers and wealthy mages recognize currency as pure social Quintessence and collective faith made liquid, commanding worldly power and manipulating Mind and Entropy.",
+    description_pt: "Papel-moeda vivo, contas bancárias offshore, carteiras de ações, linhas de crédito e criptomoedas. Banqueiros do Sindicato e magos afortunados reconhecem o capital financeiro como pura Quintessência social e fé coletiva tornada líquida, manipulando Mente e Entropia no mercado global.",
+};
+
+pub const MUSIC: InstrumentDefinition = InstrumentDefinition {
+    id: "music",
+    name: "Music",
+    name_pt: "Música, Instrumentos Musicais e Sons",
+    aliases: &["Music", "Música", "Instrumentos Musicais", "Sons", "Ritmo", "Canções", "Tambores", "Flautas", "Guitarras", "Sons Harmônicos"],
+    page_ref: "M20, p. 602",
+    category: "common",
+    description: "Drums, flutes, electric guitars, synthesizers, singing bowls, and vocal harmonics. Sonic resonance vibrates directly through matter and soul. Music bridges Mind to inspire emotion or hysteria, vibrates air and matter with Forces, and attunes with spirits (Spirit).",
+    description_pt: "Tambores rituais, flautas, guitarras elétricas, sintetizadores, taças tibetanas e harmônicos vocais. A ressonância sônica vibra diretamente através da matéria e da alma. A música toca a Mente para suscitar êxtase ou catarse, vibra partículas com Forças e sintoniza com frequências do Espírito.",
+};
+
+pub const NANOTECH: InstrumentDefinition = InstrumentDefinition {
+    id: "nanotech",
+    name: "Nanotech",
+    name_pt: "Nanotecnologia e Micromáquinas",
+    aliases: &["Nanotech", "Nanotecnologia", "Micromáquinas", "Nanobots", "Enxames Nanotecnológicos", "Nanomateriais", "Microscopia"],
+    page_ref: "M20, p. 602",
+    category: "common",
+    description: "Microscopic assemblers, carbon nanotube lattices, smart dust, and cellular repair swarms. By deploying billions of molecular machines, modern technocrats remodel Matter atom by atom, alter living tissue via Life, and install cyber-telepathic mesh links (Mind).",
+    description_pt: "Montadores moleculares microscópicos, nanotubos de carbono, poeira inteligente e enxames de microrreparo celular. Ao injetar bilhões de micromáquinas, tecnocratas remodelam a Matéria átomo a átomo, alteram tecidos biológicos via Vida e constroem malhas cibertelepáticas com Mente.",
+};
+
+pub const NUMBERS_NUMEROLOGY: InstrumentDefinition = InstrumentDefinition {
+    id: "numbers_numerology",
+    name: "Numbers and Numerology",
+    name_pt: "Números e Numerologia",
+    aliases: &["Numbers and Numerology", "Numbers & Numerology", "Numbers", "Numerology", "Números e Numerologia", "Números", "Numerologia", "Gematria", "Constantes Matemáticas", "Cálculos Numéricos"],
+    page_ref: "M20, pp. 602-603",
+    category: "common",
+    description: "The cosmic geometry of 3, 7, 9, 13, the golden ratio (phi), pi, and Gematria valuations. Numbers are not merely counts, but archetypal forces governing creation. Employed to time rituals (Time), measure spatial vectors (Correspondence), and unravel karmic chances (Entropy).",
+    description_pt: "A geometria cósmica dos numerais 3, 7, 9, 13, a proporção áurea (phi), pi e os cálculos da Gematria. Os números não são meras contagens, mas forças arquetípicas da criação. Empregados para calendarizar ritos com Tempo, medir vetores com Correspondência e desvendar probabilidades com Entropia.",
+};
+
+pub const OFFERINGS_SACRIFICES: InstrumentDefinition = InstrumentDefinition {
+    id: "offerings_sacrifices",
+    name: "Offerings and Sacrifices",
+    name_pt: "Oferendas, Libações e Sacrifícios",
+    aliases: &["Offerings and Sacrifices", "Offerings & Sacrifices", "Offerings", "Sacrifices", "Oferendas e Sacrifícios", "Oferendas", "Sacrifícios", "Libações", "Hóstias", "Tributos", "Dízimos"],
+    page_ref: "M20, p. 603",
+    category: "common",
+    description: "Incense smoke, burnt coins, poured wine, slaughtered animals, and life energy. Sacrificing something of value demonstrates devotion, feeds Umbral entities, and releases bottled Quintessence for Prime and Spirit workings.",
+    description_pt: "Fumaça de incenso aromático, moedas queimadas, libações de vinho, animais consagrados e energia vital. Renunciar a algo de valor comprova devoção, alimenta entidades umbrais e libera Quintessência comprimida para operações magnas de Primórdio e Espírito.",
+};
+
+pub const ORDEALS_EXERTION: InstrumentDefinition = InstrumentDefinition {
+    id: "ordeals_exertion",
+    name: "Ordeals and Exertion",
+    name_pt: "Ordálios, Provações e Esforço Físico Extremo",
+    aliases: &["Ordeals and Exertion", "Ordeals & Exertion", "Ordeals", "Exertion", "Ordálios e Provações", "Ordálios", "Provações", "Esforço Físico", "Privação Sensorial", "Dor", "Jejum", "Flagelação"],
+    page_ref: "M20, pp. 603-604",
+    category: "common",
+    description: "Prolonged fasting, exposure to freezing cold, marathon running, suspension hooks, and sleep deprivation. Pushing the human body past normal physiological breaking points strips away subconscious fear, unlocking profound reservoirs of Mind, Life, and Will.",
+    description_pt: "Jejuns prolongados, exposição ao frio ártico, corridas de exaustão extrema, suspensão corporal por ganchos e privação severa do sono. Conduzir o corpo além dos limites biológicos extirpa os medos do ego, destravando reservatórios profundos de Mente, Vida e Força de Vontade.",
+};
+
+pub const PRAYERS_INVOCATIONS: InstrumentDefinition = InstrumentDefinition {
+    id: "prayers_invocations",
+    name: "Prayers and Invocations",
+    name_pt: "Orações, Preces e Invocações Divinas",
+    aliases: &["Prayers and Invocations", "Prayers & Invocations", "Prayers", "Invocations", "Orações e Invocações", "Orações", "Preces", "Invocações", "Salmos", "Ladainhas", "Preces Religiosas"],
+    page_ref: "M20, p. 604",
+    category: "common",
+    description: "Liturgical chants, the Lord’s Prayer, Vedic mantras, invocations of angels and Orishas. Through devout prayer, the celestial servant aligns his ego with Almighty Will, channeling Prime, Spirit, and Forces as miracles bestowed by the Divine.",
+    description_pt: "Cânticos litúrgicos, a Oração do Senhor, mantras védicos, invocações de arcanjos e orixás. Pela prece fervorosa, o servo piedoso alinha seu ego à Vontade Suprema, canalizando Primórdio, Espírito e Forças sob a forma de milagres concedidos pela Divindade.",
+};
+
+pub const SACRED_ICONOGRAPHY: InstrumentDefinition = InstrumentDefinition {
+    id: "sacred_iconography",
+    name: "Sacred Iconography",
+    name_pt: "Iconografia Sagrada, Símbolos Religiosos e Ícones",
+    aliases: &["Sacred Iconography", "Iconography", "Iconografia Sagrada", "Iconografia", "Símbolos Religiosos", "Ícones", "Imagens Sagradas", "Cruzes", "Estátuas Sagradas", "Relíquias Sagradas"],
+    page_ref: "M20, p. 604",
+    category: "common",
+    description: "Crucifixes, statues of the Buddha, eye of Horus, icons of saints, and holy thangkas. These sanctified representations channel the accumulated faith of millions of believers. Used for Prime, Spirit, and Mind to banish demons, sanctify sanctuaries, and grant solace.",
+    description_pt: "Crucifixos, estátuas do Buda, o Olho de Hórus, ícones de santos e thangkas consagradas. Essas representações canalizam a fé acumulada de milhões de fiéis ao longo dos séculos. Utilizadas com Primórdio, Espírito e Mente para banir demônios, abençoar santuários e amparar almas.",
+};
+
+pub const SEX_SENSUALITY: InstrumentDefinition = InstrumentDefinition {
+    id: "sex_sensuality",
+    name: "Sex and Sensuality",
+    name_pt: "Sexo, Sensualidade e Magia Sexual",
+    aliases: &["Sex and Sensuality", "Sex & Sensuality", "Sex", "Sensuality", "Sexo e Sensualidade", "Sexo", "Sensualidade", "Magia Sexual", "Tantra", "Orgônio", "Erótico"],
+    page_ref: "M20, pp. 604-605",
+    category: "common",
+    description: "Tantric intercourse, sensory pleasure, orgone accumulation, sacred prostitution, and ecstatic climax. The creative energy of sexual release mirrors the primordial Big Bang. Generates Quintessence (Prime), binds two souls together (Mind), and revitalizes bodies (Life).",
+    description_pt: "União tântrica, êxtase sensorial, acúmulo de energia orgônica, sensualidade sagrada e clímax orgástico. A energia criadora da liberação sexual espelha a centelha primordial da Criação. Gera Quintessência abundante (Primórdio), entrelaça almas (Mente) e regenera corpos (Vida).",
+};
+
+pub const SOCIAL_DOMINATION: InstrumentDefinition = InstrumentDefinition {
+    id: "social_domination",
+    name: "Social Domination",
+    name_pt: "Dominação Social, Autoridade e Oratória",
+    aliases: &["Social Domination", "Dominação Social", "Autoridade", "Oratória", "Persuasão", "Comando", "Hierarquia Social", "Controle Psicológico", "Retórica"],
+    page_ref: "M20, p. 605",
+    category: "common",
+    description: "Command voice, executive hierarchy, bureaucratic procedure, peer pressure, and psychological intimidation. Enforcing one’s place at the top of the social food chain commands Mind and alters Entropy, bending individuals and organizations to your agenda.",
+    description_pt: "Voz de comando, hierarquia corporativa, protocolo burocrático, pressão social dos pares e intimidação psicológica deliberada. Fazer valer sua autoridade no topo da cadeia social subjuga a Mente e direciona a Entropia, dobrando pessoas e burocracias à sua agenda.",
+};
+
+pub const SYMBOLS: InstrumentDefinition = InstrumentDefinition {
+    id: "symbols",
+    name: "Symbols",
+    name_pt: "Símbolos e Sigilos Sagrados",
+    aliases: &["Symbols", "Símbolos", "Sigilos", "Emblemas", "Marcas Místicas", "Sigils", "Glifos", "Símbolos Sagrados"],
+    page_ref: "M20, p. 605",
+    category: "common",
+    description: "Logos, corporate branding, occult sigils, coats of arms, and heraldic crests. A symbol compresses an entire ideological paradigm into a single recognizable glyph. Evokes immediate subconscious responses (Mind) and anchors energetic resonance (Prime, Correspondence).",
+    description_pt: "Logotipos, marcas corporativas, sigilos ocultos, brasões heráldicos e emblemas de poder. Um símbolo comprime um sistema ideológico inteiro em um único glifo instantaneamente reconhecível. Desperta respostas subconscientes imediatas com a Mente e ancora ressonância com Primórdio e Correspondência.",
+};
+
+pub const THOUGHT_FORMS: InstrumentDefinition = InstrumentDefinition {
+    id: "thought_forms",
+    name: "Thought Forms",
+    name_pt: "Formas de Pensamento e Projeções Psíquicas",
+    aliases: &["Thought Forms", "Formas de Pensamento", "Projeções Psíquicas", "Tulpas", "Construções Mentais", "Projeção Astral", "Formas Mentais"],
+    page_ref: "M20, pp. 605-606",
+    category: "common",
+    description: "Tulpas, astral constructs, imaginary companions, and concentrated psychic projections. Through sheer focused visualization, the mage crafts a mental entity with Mind and Prime, eventually granting it tangible physical presence with Matter or Forces.",
+    description_pt: "Tulpas tibetanos, construtos astrais, companheiros imaginários e projeções psíquicas densas. Pela visualização inabalável, o mago gera uma entidade mental através de Mente e Primórdio, podendo conferir-lhe presença física densa via Matéria ou Forças.",
+};
+
+pub const TOYS: InstrumentDefinition = InstrumentDefinition {
+    id: "toys",
+    name: "Toys",
+    name_pt: "Brinquedos, Bonecas e Objetos Lúdicos",
+    aliases: &["Toys", "Brinquedos", "Bonecas", "Objetos Lúdicos", "Bonecos de Vodu", "Jogos", "Dolls", "Ursinhos", "Figuras de Ação"],
+    page_ref: "M20, p. 606",
+    category: "common",
+    description: "Poppets, porcelain dolls, teddy bears, action figures, and jack-in-the-boxes. Toys evoke innocence, childhood memories, or chilling uncanny terror. Ideal as sympathetic effigies for Life and Mind (voodoo dolls) or housing trapped spirits with Spirit.",
+    description_pt: "Bonecos de cera (poppets), bonecas de porcelana, ursinhos de pelúcia, figuras de ação e caixas de surpresa. Brinquedos evocam inocência, memórias da infância ou um estranho terror psicológico. Ideais como efígies simpáticas para Vida e Mente (bonecos de vodu) ou receptáculos para aprisionar Espíritos.",
+};
+
+pub const TRICKS_ILLUSIONS: InstrumentDefinition = InstrumentDefinition {
+    id: "tricks_illusions",
+    name: "Tricks and Illusions",
+    name_pt: "Truques, Ilusões e Ilusionismo",
+    aliases: &["Tricks and Illusions", "Tricks & Illusions", "Tricks", "Illusions", "Truques e Ilusões", "Truques", "Ilusões", "Ilusionismo", "Prestidigitação", "Fintas", "Mágica de Palco"],
+    page_ref: "M20, p. 606",
+    category: "common",
+    description: "Sleight of hand, misdirection, smoke and mirrors, stage magic props, and card flourishes. The trickster deceives human perception, creating an opening in the Consensus where true Forces, Mind, and Matter effects appear as mere theatrical illusions.",
+    description_pt: "Prestidigitação, fintas de desvio de atenção, fumaça e espelhos, aparelhos de mágica de palco e manipulação de cartas. O trapaceiro engana a percepção humana, abrindo uma brecha no Consenso onde efeitos reais de Forças, Mente e Matéria passam desapercebidos como mero espetáculo.",
+};
+
+pub const TRUE_NAMES: InstrumentDefinition = InstrumentDefinition {
+    id: "true_names",
+    name: "True Names",
+    name_pt: "Nomes Verdadeiros",
+    aliases: &["True Names", "Nomes Verdadeiros", "Nome Verdadeiro", "Onomástica", "Palavras Secretas", "Nome Espiritual"],
+    page_ref: "M20, p. 606",
+    category: "common",
+    description: "The secret, primordial vibrational designation of a being, place, or spirit. Knowing a target's True Name provides supreme sympathetic leverage, bypassing defenses and allowing irresistible manipulation across Correspondence, Mind, Life, and Spirit.",
+    description_pt: "A designação vibracional secreta e primordial de um ser vivo, lugar sagrado ou espírito. Conhecer o Nome Verdadeiro de um alvo confere vantagem simpática absoluta, contornando defesas e permitindo manipulações irresistíveis através de Correspondência, Mente, Vida e Espírito.",
+};
+
+pub const VEHICLES: InstrumentDefinition = InstrumentDefinition {
+    id: "vehicles",
+    name: "Vehicles",
+    name_pt: "Veículos e Meios de Transporte",
+    aliases: &["Vehicles", "Veículos", "Carros", "Motos", "Naves", "Aviões", "Transporte", "Barcos", "Espaçonaves", "Meios de Transporte"],
+    page_ref: "M20, p. 607",
+    category: "common",
+    description: "Muscle cars, racing motorcycles, aircraft, submersibles, spaceships, and chariots. Vehicles embody velocity, freedom, and technological dominance over space and time. Pilots merge with their craft to bend Correspondence, Forces, and Matter at breakneck speeds.",
+    description_pt: "Carros esportivos turbinados, motocicletas velozes, aeronaves, submarinos, naves estelares e carruagens. Veículos personificam velocidade, liberdade e domínio tecnológico sobre o tempo e o espaço. Pilotos se fundem à máquina para curvar Correspondência, Forças e Matéria em alta velocidade.",
+};
+
+pub const VOICE: InstrumentDefinition = InstrumentDefinition {
+    id: "voice",
+    name: "Voice and Vocalizations",
+    name_pt: "Voz, Vocalizações e Cantos",
+    aliases: &["Voice and Vocalizations", "Voice & Vocalizations", "Voice", "Vocalizations", "Voz e Vocalizações", "Voz", "Vocalizações", "Cantos", "Gritos", "Entoações", "Palavras de Poder", "Vocalizações e Voz"],
+    page_ref: "M20, p. 607",
+    category: "common",
+    description: "Shouts, whispers, operatic singing, gutter chanting, kiai shouts, and words of power. The human voice projects inner intention directly into reality. Modulating frequency and tone commands Mind, commands spirits (Spirit), or creates acoustic shockwaves (Forces).",
+    description_pt: "Gritos passionais, sussurros penetrantes, canto operístico lírico, entoações rituais, brados de kiai marcial e palavras de poder. A voz humana projeta a intenção interior diretamente sobre o éter. Modular timbre e volume subjuga a Mente, comanda o Espírito ou deflagra ondas de choque com Forças.",
+};
+
+pub const WANDS_STAVES: InstrumentDefinition = InstrumentDefinition {
+    id: "wands_staves",
+    name: "Wands, Rods, and Staves",
+    name_pt: "Varinhas, Cetros, Cajados e Bastões",
+    aliases: &["Wands, Rods, and Staves", "Wands & Staves", "Wands", "Staves", "Rods", "Varinhas e Cajados", "Varinhas", "Cajados", "Cetros", "Bastões", "Varinha", "Cajado", "Cetro"],
+    page_ref: "M20, pp. 607-608",
+    category: "common",
+    description: "Polished wooden wands, metallic rods, crystal-tipped staves, and scepters. The rod acts as a lightning rod and pointer for the mage's focused Will. Extends personal reach, directs beams of Forces, channels Quintessence via Prime, and marks magical boundaries.",
+    description_pt: "Varinhas de madeira polida, cetros de metal, cajados de madeira nobre encimados por cristais e bastões de comando. O bastão atua como um para-raios e condutor milimétrico da Vontade do mago. Amplia o alcance físico, dispara raios de Forças, canaliza Quintessência via Primórdio e demarca limites mágicos.",
+};
+
+pub const WEAPONS: InstrumentDefinition = InstrumentDefinition {
+    id: "weapons",
+    name: "Weapons",
+    name_pt: "Armas Marciais e Lâminas",
+    aliases: &["Weapons", "Armas", "Lâminas", "Espadas", "Adagas", "Armas de Fogo", "Guns", "Swords", "Knives", "Armas Marciais", "Pistolas", "Lâmina"],
+    page_ref: "M20, p. 608",
+    category: "common",
+    description: "Swords, ritual daggers (athames), bows, sniper rifles, handguns, and combat knives. A weapon is an instrument of finality, severance, and mortal combat. Channels Forces into kinetic strikes, inflicts irreversible damage via Life and Entropy, or severs mystical ties.",
+    description_pt: "Espadas forjadas, adagas rituais (athames), arcos, fuzis de precisão, pistolas semiautomáticas e lâminas de combate. A arma é o instrumento supremo de terminação, corte e confronto mortal. Canaliza Forças em impactos cinéticos, inflige dano devastador via Vida e Entropia ou corta laços místicos.",
+};
+
+pub const WRITINGS_RUNES: InstrumentDefinition = InstrumentDefinition {
+    id: "writings_runes",
+    name: "Writings, Inscriptions, and Runes",
+    name_pt: "Escritas, Inscrições e Runas",
+    aliases: &["Writings, Inscriptions, and Runes", "Writings & Runes", "Writings", "Runes", "Inscriptions", "Escritas e Runas", "Escritas", "Inscrições", "Runas", "Pergaminhos Escritos", "Caligrafia", "Inscrições Rúnicas"],
+    page_ref: "M20, p. 608",
+    category: "common",
+    description: "Carved Futhark runes, calligraphic kanji, graffiti tags, computer scripts, and etched inscriptions. Written glyphs freeze dynamic intent into enduring physical reality. Inscribing symbols anchors wards with Matter and Prime, programs logic with Mind, or seals curses with Entropy.",
+    description_pt: "Runas esculpidas em pedra ou madeira (Futhark), kanjis caligráficos, marcas de grafite urbano, scripts de programação e inscrições gravadas. Glifos gráficos cristalizam a intenção volitiva em realidade física duradoura. Gravar símbolos ancora proteções com Matéria e Primórdio, programa rotinas com Mente ou sela maldições com Entropia.",
+};
+
+pub const ALL_INSTRUMENTS: &[InstrumentDefinition] = &[
+    ARMOR,
+    ARTWORK,
+    BLESSINGS_CURSES,
+    BLOOD_FLUIDS,
+    BODYWORK,
+    BONES_REMAINS,
+    BOOKS,
+    BCI,
+    BREWS_POTIONS,
+    CARDS_DICE,
+    CELESTIAL_ALIGNMENTS,
+    CIRCLES_DESIGNS,
+    COMPUTERS_IT,
+    CROSSROADS,
+    CUPS_VESSELS,
+    DANCES_MOVEMENT,
+    DEVICES_MACHINES,
+    DRUGS_POISONS,
+    ELEMENTS,
+    ENERGY,
+    EYE_CONTACT,
+    FASHION,
+    FOOD_DRINK,
+    FORMULAE_MATH,
+    GADGETS_INVENTIONS,
+    GEMS_STONES,
+    GROUP_RITES,
+    HERBS_PLANTS,
+    HOUSEHOLD_TOOLS,
+    KNOTS_ROPES,
+    LABORATORIES,
+    LANGUAGES,
+    MASS_MEDIA,
+    MEDITATION,
+    MONEY_WEALTH,
+    MUSIC,
+    NANOTECH,
+    NUMBERS_NUMEROLOGY,
+    OFFERINGS_SACRIFICES,
+    ORDEALS_EXERTION,
+    PRAYERS_INVOCATIONS,
+    SACRED_ICONOGRAPHY,
+    SEX_SENSUALITY,
+    SOCIAL_DOMINATION,
+    SYMBOLS,
+    THOUGHT_FORMS,
+    TOYS,
+    TRICKS_ILLUSIONS,
+    TRUE_NAMES,
+    VEHICLES,
+    VOICE,
+    WANDS_STAVES,
+    WEAPONS,
+    WRITINGS_RUNES,
+];
+
+/// Busca um instrumento de forma resiliente por id, nome EN, nome PT, aliases ou substrings.
+pub fn find_instrument(query: &str) -> Option<&'static InstrumentDefinition> {
+    let clean = query.trim();
+    if clean.is_empty() {
+        return None;
+    }
+    let lower = clean.to_lowercase();
+
+    // 1. Casamento exato por ID
+    if let Some(inst) = ALL_INSTRUMENTS.iter().find(|i| i.id.eq_ignore_ascii_case(&lower)) {
+        return Some(inst);
+    }
+
+    // 2. Casamento exato por nome EN ou PT
+    if let Some(inst) = ALL_INSTRUMENTS.iter().find(|i| {
+        i.name.eq_ignore_ascii_case(&lower) || i.name_pt.eq_ignore_ascii_case(&lower)
+    }) {
+        return Some(inst);
+    }
+
+    // 3. Casamento exato por alias
+    if let Some(inst) = ALL_INSTRUMENTS.iter().find(|i| {
+        i.aliases.iter().any(|a| a.eq_ignore_ascii_case(&lower))
+    }) {
+        return Some(inst);
+    }
+
+    // 4. Casamento por prefixo ou contenção de substring
+    ALL_INSTRUMENTS.iter().find(|i| {
+        i.name.to_lowercase().contains(&lower)
+            || i.name_pt.to_lowercase().contains(&lower)
+            || i.aliases.iter().any(|a| a.to_lowercase().contains(&lower))
+    })
+}
+
+/// Busca um artigo teórico por ID ou query.
+pub fn find_theory_article(query: &str) -> Option<&'static InstrumentTheoryArticle> {
+    let clean = query.trim();
+    if clean.is_empty() {
+        return None;
+    }
+    let lower = clean.to_lowercase();
+
+    ALL_THEORY_ARTICLES.iter().find(|art| {
+        art.id.eq_ignore_ascii_case(&lower)
+            || art.title.to_lowercase().contains(&lower)
+            || art.title_pt.to_lowercase().contains(&lower)
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_all_instruments_count_and_uniqueness() {
+        assert_eq!(ALL_INSTRUMENTS.len(), 54);
+        let mut ids = std::collections::HashSet::new();
+        for inst in ALL_INSTRUMENTS {
+            assert!(ids.insert(inst.id), "Duplicate instrument ID: {}", inst.id);
+            assert!(inst.page_ref.starts_with("M20, p"), "Invalid page_ref for {}: {}", inst.name, inst.page_ref);
+            assert!(!inst.description.is_empty(), "Missing EN description for {}", inst.name);
+            assert!(!inst.description_pt.is_empty(), "Missing PT description for {}", inst.name_pt);
+            assert!(!inst.aliases.is_empty(), "Missing aliases for {}", inst.name);
+        }
+    }
+
+    #[test]
+    fn test_all_theory_articles_integrity() {
+        assert_eq!(ALL_THEORY_ARTICLES.len(), 3);
+        for art in ALL_THEORY_ARTICLES {
+            assert!(art.page_ref.starts_with("M20, p"), "Invalid theory page_ref: {}", art.page_ref);
+            assert!(!art.content.is_empty());
+            assert!(!art.content_pt.is_empty());
+        }
+    }
+
+    #[test]
+    fn test_find_instrument_exact_and_aliases() {
+        assert_eq!(find_instrument("Armor").unwrap().id, "armor");
+        assert_eq!(find_instrument("Armadura").unwrap().id, "armor");
+        assert_eq!(find_instrument("Books").unwrap().id, "books");
+        assert_eq!(find_instrument("Livros").unwrap().id, "books");
+        assert_eq!(find_instrument("Brews & Potions").unwrap().id, "brews_potions");
+        assert_eq!(find_instrument("Poções e Preparados").unwrap().id, "brews_potions");
+        assert_eq!(find_instrument("Wands").unwrap().id, "wands_staves");
+        assert_eq!(find_instrument("Varinhas").unwrap().id, "wands_staves");
+        assert_eq!(find_instrument("Nanotech").unwrap().id, "nanotech");
+        assert_eq!(find_instrument("Nanotecnologia").unwrap().id, "nanotech");
+    }
+
+    #[test]
+    fn test_theory_articles_lookup() {
+        assert_eq!(find_theory_article("tools_of_focus").unwrap().id, "tools_of_focus");
+        assert_eq!(find_theory_article("classifications").unwrap().id, "classifications");
+        assert_eq!(find_theory_article("significant_instruments").unwrap().id, "significant_instruments");
+    }
+}

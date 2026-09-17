@@ -1,16 +1,20 @@
 #![allow(unused_imports)]
 
 pub mod common;
+pub mod compendium;
 pub mod gods_and_monsters;
 pub mod mta_sheet;
 pub mod profile;
 pub mod rooms;
 pub mod views;
 
+// Re-export compendium components
+pub use compendium::{CompendiumModal, CompendiumSection};
+
 // Re-export common UI components
 pub use common::{
     Callback, LabelColumn, LabelField, Navbar, PatchNotesModal, SafeCallback, Sheet,
-    StableTextArea, StableTextInput, ValueField,
+    StableTextArea, StableTextInput, ValueField, BoundAttributeField,
 };
 
 // Re-export MTA sheet components

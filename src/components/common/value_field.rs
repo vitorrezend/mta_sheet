@@ -2,6 +2,7 @@ use leptos::*;
 use std::rc::Rc;
 use crate::state::DotOrigin;
 use super::callback::Callback;
+use super::specialty_picker::SpecialtyPicker;
 
 #[component]
 pub fn ValueField(
@@ -23,12 +24,23 @@ pub fn ValueField(
     #[prop(optional)] star_tooltip: Option<&'static str>,
     #[prop(optional)] is_supernatural: Option<Signal<bool>>,
     #[prop(optional)] on_toggle_supernatural: Option<Callback<()>>,
+    #[prop(optional)] suggested_specialties: Option<Signal<Vec<&'static str>>>,
+    #[prop(optional)] on_open_compendium: Option<Callback<()>>,
+    #[prop(into, optional)] compendium_page_ref: Option<MaybeSignal<String>>,
 ) -> impl IntoView {
     let on_level_change = Rc::new(on_level_change);
     let on_modifier_change = Rc::new(on_modifier_change);
     let (open_popover_idx, set_open_popover_idx) = create_signal(Option::<usize>::None);
     let (show_context_menu, set_show_context_menu) = create_signal(false);
     let (show_supernatural_modal, set_show_supernatural_modal) = create_signal(false);
+
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
+
+    let page_ref_str = Signal::derive({
+        let pr = compendium_page_ref.clone();
+        move || pr.as_ref().map(|p| p.get()).unwrap_or_else(|| "M20, p. 273".to_string())
+    });
 
     let display_label = move || {
         let l = label.get();
@@ -270,6 +282,28 @@ pub fn ValueField(
                                             view! {}.into_view()
                                         }
                                     }
+                                    {
+                                        if let Some(on_open_comp) = on_open_compendium.clone() {
+                                            view! {
+                                                <button 
+                                                    type="button" 
+                                                    class="label-context-item"
+                                                    on:click=move |_| {
+                                                        set_show_context_menu.set(false);
+                                                        on_open_comp.call(());
+                                                    }
+                                                >
+                                                    <span class="context-item-icon">"📖"</span>
+                                                    {move || match lang() {
+                                                        crate::i18n::Language::PtBr => "Compêndio M20 (Atributo)",
+                                                        crate::i18n::Language::EnUs => "M20 Compendium (Attribute)",
+                                                    }}
+                                                </button>
+                                            }.into_view()
+                                        } else {
+                                            view! {}.into_view()
+                                        }
+                                    }
                                 </div>
                             </div>
                         }.into_view()
@@ -279,13 +313,13 @@ pub fn ValueField(
                 }
             </div>
 
-            <div class="modifier-container tooltip-container">
+            <div class="modifier-container tooltip-container" class:has-specialty-picker=suggested_specialties.is_some()>
                 <input 
                     type="text" 
                     node_ref=modifier_ref
                     class="field-modifier" 
                     placeholder="..."
-                    maxlength="30"
+                    maxlength="60"
                     on:focus=move |_| { let _ = is_modifier_focused.try_set(true); }
                     on:input=move |ev| {
                         let val = event_target_value(&ev);
@@ -308,6 +342,30 @@ pub fn ValueField(
                 >
                     {modifier}
                 </span>
+
+                {if let Some(specs_signal) = suggested_specialties {
+                    let on_open_comp_cb = on_open_compendium.clone();
+                    let on_modifier_input_spec = on_modifier_input.clone();
+                    let on_change = Callback::new(move |new_val: String| {
+                        let _ = last_modifier_value.try_set(new_val.clone());
+                        on_modifier_input_spec(new_val);
+                    });
+
+                    view! {
+                        <SpecialtyPicker
+                            level=level
+                            modifier=modifier
+                            label=label
+                            page_ref_str=page_ref_str
+                            suggested_specialties=specs_signal
+                            on_change=on_change
+                            on_open_compendium=on_open_comp_cb
+                            modifier_ref=modifier_ref
+                        />
+                    }.into_view()
+                } else {
+                    view! { <span></span> }.into_view()
+                }}
             </div>
 
             <div class="dots-container">
@@ -558,7 +616,7 @@ pub fn ValueField(
                                                     <div class="supernatural-panel-header">
                                                         <div class="panel-header-title">
                                                             <span class="panel-sparkle">"✦"</span>
-                                                            <span class="panel-trait-name" title=move || label.get()>{label.get()}</span>
+                                                            <span class="panel-trait-name" title=move || label.get()>{move || label.get()}</span>
                                                         </div>
                                                         <div class="panel-header-actions">
                                                             <span class="panel-level-pill">
@@ -637,6 +695,153 @@ pub fn ValueField(
                                                                 }
                                                             }
                                                         />
+                                                        {if let Some(specs_signal) = suggested_specialties {
+                                                            let on_modifier_input_sup_spec = on_modifier_input.clone();
+                                                            let on_open_comp_sup = on_open_compendium.clone();
+                                                            let save_pending_modifier_comp = save_pending_modifier.clone();
+                                                            view! {
+                                                                <div class="supernatural-specialties-block">
+                                                                    <div class="specialty-pills-list">
+                                                                        {
+                                                                            let on_modifier_input_sup_spec = on_modifier_input_sup_spec.clone();
+                                                                            move || {
+                                                                                let specs = specs_signal.get();
+                                                                                let current_mod = if is_sup_modifier_focused.get() {
+                                                                                    last_sup_modifier_value.get()
+                                                                                } else {
+                                                                                    modifier.get()
+                                                                                };
+                                                                                let current_parts: Vec<&str> = current_mod
+                                                                                    .split(',')
+                                                                                    .map(|s| s.trim())
+                                                                                    .filter(|s| !s.is_empty())
+                                                                                    .collect();
+
+                                                                                specs.into_iter().map(|spec| {
+                                                                                    let is_selected = current_parts.iter().any(|part| part.eq_ignore_ascii_case(spec));
+                                                                                    let on_mod = on_modifier_input_sup_spec.clone();
+                                                                                    view! {
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            class="specialty-pill-btn"
+                                                                                            class:active=is_selected
+                                                                                            on:click={
+                                                                                                let on_mod = on_mod.clone();
+                                                                                                move |ev| {
+                                                                                                    ev.stop_propagation();
+                                                                                                    let cur = if is_sup_modifier_focused.get_untracked() {
+                                                                                                        last_sup_modifier_value.get_untracked()
+                                                                                                    } else {
+                                                                                                        modifier.get_untracked()
+                                                                                                    };
+                                                                                                    let mut parts: Vec<String> = cur
+                                                                                                        .split(',')
+                                                                                                        .map(|s| s.trim().to_string())
+                                                                                                        .filter(|s| !s.is_empty())
+                                                                                                        .collect();
+
+                                                                                                    if let Some(pos) = parts.iter().position(|p| p.eq_ignore_ascii_case(spec)) {
+                                                                                                        parts.remove(pos);
+                                                                                                    } else {
+                                                                                                        parts.push(spec.to_string());
+                                                                                                    }
+
+                                                                                                    let new_val = parts.join(", ");
+                                                                                                    let _ = last_sup_modifier_value.try_set(new_val.clone());
+                                                                                                    let _ = is_sup_modifier_focused.try_set(false);
+                                                                                                    if let Some(elem) = modifier_ref.get() {
+                                                                                                        elem.set_value(&new_val);
+                                                                                                    }
+                                                                                                    let _ = last_modifier_value.try_set(new_val.clone());
+                                                                                                    on_mod(new_val);
+                                                                                                }
+                                                                                            }
+                                                                                            title=if is_selected {
+                                                                                                "Clique para desmarcar"
+                                                                                            } else {
+                                                                                                "Clique para selecionar"
+                                                                                            }
+                                                                                        >
+                                                                                            {if is_selected { "✓ " } else { "+ " }}
+                                                                                            {spec}
+                                                                                        </button>
+                                                                                    }
+                                                                                }).collect_view()
+                                                                            }
+                                                                        }
+                                                                    </div>
+
+                                                                    <div class="supernatural-specialties-actions">
+                                                                        {
+                                                                            let on_mod_clear = on_modifier_input_sup_spec.clone();
+                                                                            view! {
+                                                                                <button
+                                                                                    type="button"
+                                                                                    class="specialty-clear-btn"
+                                                                                    class:hidden=move || modifier.get().trim().is_empty()
+                                                                                    on:click={
+                                                                                        let on_mod = on_mod_clear.clone();
+                                                                                        move |ev| {
+                                                                                            ev.stop_propagation();
+                                                                                            let _ = last_sup_modifier_value.try_set(String::new());
+                                                                                            let _ = is_sup_modifier_focused.try_set(false);
+                                                                                            if let Some(elem) = modifier_ref.get() {
+                                                                                                elem.set_value("");
+                                                                                            }
+                                                                                            let _ = last_modifier_value.try_set(String::new());
+                                                                                            on_mod(String::new());
+                                                                                        }
+                                                                                    }
+                                                                                    title="Limpar especialidades"
+                                                                                >
+                                                                                    "✕ " {move || match lang() {
+                                                                                        crate::i18n::Language::PtBr => "Limpar",
+                                                                                        crate::i18n::Language::EnUs => "Clear",
+                                                                                    }}
+                                                                                </button>
+                                                                            }
+                                                                        }
+
+                                                                        {
+                                                                            if let Some(on_open_comp) = on_open_comp_sup.clone() {
+                                                                                let save_mod = save_pending_modifier_comp.clone();
+                                                                                view! {
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        class="specialty-compendium-btn"
+                                                                                        on:click={
+                                                                                            let save_mod = save_mod.clone();
+                                                                                            let on_open_comp = on_open_comp.clone();
+                                                                                            move |ev| {
+                                                                                                ev.stop_propagation();
+                                                                                                save_mod();
+                                                                                                set_show_supernatural_modal.set(false);
+                                                                                                set_open_popover_idx.set(None);
+                                                                                                on_open_comp.call(());
+                                                                                            }
+                                                                                        }
+                                                                                        title=move || format!("Consultar {} no Compêndio M20 ({})", label.get(), page_ref_str.get())
+                                                                                    >
+                                                                                        <span class="compendium-btn-icon">"📖"</span>
+                                                                                        <span class="compendium-btn-text">
+                                                                                            {move || match lang() {
+                                                                                                crate::i18n::Language::PtBr => "Compêndio M20",
+                                                                                                crate::i18n::Language::EnUs => "M20 Compendium",
+                                                                                            }}
+                                                                                        </span>
+                                                                                        <span class="compendium-btn-page">{page_ref_str}</span>
+                                                                                    </button>
+                                                                                }.into_view()
+                                                                            } else {
+                                                                                view! {}.into_view()
+                                                                            }
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                            }.into_view()
+                                                        } else {
+                                                            view! {}.into_view()
+                                                        }}
                                                     </div>
 
                                                     <div class="supernatural-slots-track">
@@ -913,4 +1118,41 @@ mod tests {
 
         runtime.dispose();
     }
+
+    #[test]
+    fn test_value_field_with_specialties_and_compendium_page_ref() {
+        let runtime = create_runtime();
+        let (level, set_level) = create_signal(4);
+        let (modifier, set_modifier) = create_signal("Musculoso".to_string());
+        let (compendium_opened, set_compendium_opened) = create_signal(false);
+        let on_open_compendium = Callback::new(move |_| {
+            set_compendium_opened.set(true);
+        });
+
+        let specs = Signal::derive(|| vec!["Musculoso", "Atlético", "Resistente"]);
+
+        let _view = view! {
+            <ValueField 
+                label=Signal::derive(|| "Força".to_string())
+                level=level.into()
+                modifier=modifier.into()
+                on_level_change=move |v| set_level.set(v)
+                on_modifier_change=move |m| set_modifier.set(m)
+                suggested_specialties=specs
+                compendium_page_ref="M20, p. 273"
+                on_open_compendium=on_open_compendium.clone()
+                is_supernatural=Signal::derive(|| true)
+            />
+        };
+
+        assert_eq!(level.get(), 4);
+        assert_eq!(modifier.get(), "Musculoso");
+        assert_eq!(compendium_opened.get(), false);
+
+        on_open_compendium.call(());
+        assert_eq!(compendium_opened.get(), true);
+
+        runtime.dispose();
+    }
 }
+

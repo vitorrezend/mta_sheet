@@ -1,4 +1,6 @@
-use mta_sheet::auth::{UserInfo, is_username_in_admin_env};
+use mta_sheet::auth::UserInfo;
+#[cfg(feature = "ssr")]
+use mta_sheet::auth::is_username_in_admin_env;
 
 #[test]
 fn test_user_info_admin_serialization() {

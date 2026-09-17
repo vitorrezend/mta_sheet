@@ -43,6 +43,8 @@ pub struct RoomSheetSummary {
     #[serde(default)]
     pub essence: String,
     pub concept: String,
+    #[serde(default)]
+    pub demeanor: String,
     #[serde(default = "default_sheet_type_str")]
     pub sheet_type: String,
     pub arete: i32,
@@ -50,6 +52,8 @@ pub struct RoomSheetSummary {
     pub willpower_current: i32,
     pub quintessence: i32,
     pub paradox: i32,
+    #[serde(default = "default_qp_track")]
+    pub quintessence_paradox_track: String,
     pub photo_url: String,
     #[serde(default = "default_photo_focus_i32")]
     pub photo_focus_y: i32,
@@ -80,9 +84,30 @@ fn default_sheet_type_str() -> String {
     "mage".to_string()
 }
 
+fn default_qp_track() -> String {
+    "0".repeat(20)
+}
+
 fn default_initiative_attr() -> i32 { 1 }
 fn default_initiative_base() -> i32 { 2 }
 fn default_photo_focus_i32() -> i32 { 50 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum QuickStatAction {
+    CycleHealthBox { index: usize },
+    HealHealthBox { index: usize },
+    ClearHealth,
+    AddQuintessence,
+    RemoveQuintessence,
+    AddParadox,
+    RemoveParadox,
+    CycleQuintessenceParadoxBox { index: usize },
+    ClearQuintessenceParadoxBox { index: usize },
+    SetWillpowerTotal { value: i32 },
+    SetWillpowerCurrent { value: i32 },
+    AdjustWillpowerCurrent { delta: i32 },
+    AdjustWillpowerTotal { delta: i32 },
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
 pub struct InitiativeEntry {
@@ -661,6 +686,111 @@ pub async fn update_room_settings(
     Ok(())
 }
 
+#[cfg(feature = "ssr")]
+pub fn build_room_sheet_summary(
+    id: String,
+    name: String,
+    data_json: &str,
+    updated_at: String,
+    is_hidden: bool,
+    is_owner: bool,
+) -> RoomSheetSummary {
+    use crate::state::CharacterData;
+    let mut char_data = CharacterData::parse_from_db(&id, data_json).unwrap_or_default();
+    if char_data.id.is_empty() {
+        char_data.id = id.clone();
+    }
+    if char_data.name.is_empty() || (char_data.name == "Novo Mago" && !name.is_empty() && name != "Novo Mago") {
+        char_data.set_display_name(&name);
+    }
+    char_data.sanitize();
+    let display_name = char_data.get_display_name();
+    let (wp_total, wp_cur) = char_data.get_willpower();
+    let (quint, paradox, raw_qp) = char_data.get_quintessence_paradox();
+
+    // Calculate health status & penalty
+    let (agg, lethal, bashing) = char_data.get_health_counts();
+    let total_dmg = agg + lethal + bashing;
+    let (health_label, health_penalty, health_badge_class, penalty_num) = match total_dmg {
+        0 => ("Íntegro", "0", "health-full", 0),
+        1 => ("Escoriado", "-0", "health-bruised", 0),
+        2 => ("Ferido", "-1", "health-hurt", 1),
+        3 => ("Gravemente Ferido", "-1", "health-injured", 1),
+        4 => ("Espancado", "-2", "health-wounded", 2),
+        5 => ("Estropiado", "-2", "health-mauled", 2),
+        6 => ("Aleijado", "-5", "health-crippled", 5),
+        _ => ("Incapacitado", "☠️", "health-incapacitated", 10),
+    };
+
+    let mut dmg_parts = Vec::new();
+    if agg > 0 { dmg_parts.push(format!("{} Agravado", agg)); }
+    if lethal > 0 { dmg_parts.push(format!("{} Letal", lethal)); }
+    if bashing > 0 { dmg_parts.push(format!("{} Contundente", bashing)); }
+    let health_damage_str = if dmg_parts.is_empty() { "Sem dano".to_string() } else { dmg_parts.join(", ") };
+
+    let photo_url = if !char_data.visuals.character_sketch_url.is_empty() {
+        char_data.visuals.character_sketch_url.clone()
+    } else {
+        char_data.get_profile_photo()
+    };
+
+    let essence = char_data.get_essence();
+    let sheet_type = if char_data.sheet_type.is_empty() {
+        "mage".to_string()
+    } else {
+        char_data.sheet_type.clone()
+    };
+    let total_boxes = char_data.get_total_health_boxes();
+    let health_boxes: Vec<String> = (0..total_boxes)
+        .map(|i| char_data.get_health(i).to_key().to_string())
+        .collect();
+    let spheres: Vec<(String, i32)> = crate::state::STANDARD_SPHERES
+        .iter()
+        .map(|&s| (s.to_string(), char_data.get_attribute_level(s, 0)))
+        .collect();
+
+    let dexterity = char_data.get_attribute_level("Destreza", 1);
+    let wits = char_data.get_attribute_level("Raciocínio", 1);
+    let raw_base = dexterity + wits;
+    // Aplica a penalidade de dano com piso mínimo de 2
+    let initiative_base = (raw_base - penalty_num).max(2);
+
+    let (focus_x, focus_y) = char_data.get_photo_focus();
+
+    RoomSheetSummary {
+        id,
+        name: display_name,
+        player_name: char_data.get_label(crate::state::keys::HEADER_JOGADOR),
+        tradition: char_data.get_tradition(),
+        essence,
+        concept: char_data.get_label(crate::state::keys::HEADER_CONCEITO),
+        demeanor: char_data.get_label(crate::state::keys::HEADER_COMPORTAMENTO),
+        sheet_type,
+        arete: char_data.get_arete(),
+        willpower_total: wp_total,
+        willpower_current: wp_cur,
+        quintessence: quint,
+        paradox,
+        quintessence_paradox_track: raw_qp,
+        photo_url,
+        photo_focus_y: focus_y,
+        photo_focus_x: focus_x,
+        health_label: health_label.to_string(),
+        health_penalty: health_penalty.to_string(),
+        health_badge_class: health_badge_class.to_string(),
+        health_damage_str,
+        health_boxes,
+        spheres,
+        is_hidden,
+        is_owner,
+        dexterity,
+        wits,
+        initiative_base,
+        health_penalty_val: penalty_num,
+        updated_at,
+    }
+}
+
 #[server(endpoint = "get_room_details")]
 pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnError> {
     if room_id.trim().is_empty() {
@@ -669,7 +799,6 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
 
     use sqlx::{SqlitePool, Row};
     use crate::auth::get_auth_user_id;
-    use crate::state::CharacterData;
 
     let current_user_id = get_auth_user_id().await?.unwrap_or_default();
 
@@ -758,97 +887,7 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         let data_json: String = r.get("data");
         let updated_at: String = r.get("updated_at");
 
-        let mut char_data = CharacterData::parse_from_db(&id, &data_json).unwrap_or_default();
-        if char_data.id.is_empty() {
-            char_data.id = id.clone();
-        }
-        if char_data.name.is_empty() || (char_data.name == "Novo Mago" && !name.is_empty() && name != "Novo Mago") {
-            char_data.set_display_name(&name);
-        }
-        char_data.sanitize();
-        let display_name = char_data.get_display_name();
-        let (wp_total, wp_cur) = char_data.get_willpower();
-        let (quint, paradox, _) = char_data.get_quintessence_paradox();
-
-        // Calculate health status & penalty
-        let (agg, lethal, bashing) = char_data.get_health_counts();
-        let total_dmg = agg + lethal + bashing;
-        let (health_label, health_penalty, health_badge_class, penalty_num) = match total_dmg {
-            0 => ("Íntegro", "0", "health-full", 0),
-            1 => ("Escoriado", "-0", "health-bruised", 0),
-            2 => ("Ferido", "-1", "health-hurt", 1),
-            3 => ("Gravemente Ferido", "-1", "health-injured", 1),
-            4 => ("Espancado", "-2", "health-wounded", 2),
-            5 => ("Estropiado", "-2", "health-mauled", 2),
-            6 => ("Aleijado", "-5", "health-crippled", 5),
-            _ => ("Incapacitado", "☠️", "health-incapacitated", 10),
-        };
-
-        let mut dmg_parts = Vec::new();
-        if agg > 0 { dmg_parts.push(format!("{} Agravado", agg)); }
-        if lethal > 0 { dmg_parts.push(format!("{} Letal", lethal)); }
-        if bashing > 0 { dmg_parts.push(format!("{} Contundente", bashing)); }
-        let health_damage_str = if dmg_parts.is_empty() { "Sem dano".to_string() } else { dmg_parts.join(", ") };
-
-        let photo_url = if !char_data.visuals.character_sketch_url.is_empty() {
-            char_data.visuals.character_sketch_url.clone()
-        } else {
-            char_data.get_profile_photo()
-        };
-
-        let essence = char_data.get_essence();
-        let sheet_type = if char_data.sheet_type.is_empty() {
-            "mage".to_string()
-        } else {
-            char_data.sheet_type.clone()
-        };
-        let total_boxes = char_data.get_total_health_boxes();
-        let health_boxes: Vec<String> = (0..total_boxes)
-            .map(|i| char_data.get_health(i).to_key().to_string())
-            .collect();
-        let spheres: Vec<(String, i32)> = crate::state::STANDARD_SPHERES
-            .iter()
-            .map(|&s| (s.to_string(), char_data.get_attribute_level(s, 0)))
-            .collect();
-
-        let dexterity = char_data.get_attribute_level("Destreza", 1);
-        let wits = char_data.get_attribute_level("Raciocínio", 1);
-        let raw_base = dexterity + wits;
-        // Aplica a penalidade de dano com piso mínimo de 2
-        let initiative_base = (raw_base - penalty_num).max(2);
-
-        let (focus_x, focus_y) = char_data.get_photo_focus();
-
-        RoomSheetSummary {
-            id,
-            name: display_name,
-            player_name: char_data.get_label(crate::state::keys::HEADER_JOGADOR),
-            tradition: char_data.get_tradition(),
-            essence,
-            concept: char_data.get_label(crate::state::keys::HEADER_CONCEITO),
-            sheet_type,
-            arete: char_data.get_arete(),
-            willpower_total: wp_total,
-            willpower_current: wp_cur,
-            quintessence: quint,
-            paradox,
-            photo_url,
-            photo_focus_y: focus_y,
-            photo_focus_x: focus_x,
-            health_label: health_label.to_string(),
-            health_penalty: health_penalty.to_string(),
-            health_badge_class: health_badge_class.to_string(),
-            health_damage_str,
-            health_boxes,
-            spheres,
-            is_hidden,
-            is_owner,
-            dexterity,
-            wits,
-            initiative_base,
-            health_penalty_val: penalty_num,
-            updated_at,
-        }
+        build_room_sheet_summary(id, name, &data_json, updated_at, is_hidden, is_owner)
     }).collect();
 
     Ok(RoomDetails {
@@ -1158,9 +1197,12 @@ pub async fn clone_and_assign_sheet_to_member(
     updated_data.id = new_sheet_id.clone();
     let updated_json = serde_json::to_string(&updated_data).unwrap_or(sheet_json);
 
+    let summary = updated_data.to_summary(String::new(), false, true);
+    let summary_json = serde_json::to_string(&summary).unwrap_or_default();
+
     sqlx::query(
-        "INSERT INTO character_sheets (id, user_id, room_id, name, data, sheet_type, is_public, is_hidden_in_room, updated_at) \
-         VALUES (?, ?, ?, ?, ?, ?, 0, 0, datetime('now'))"
+        "INSERT INTO character_sheets (id, user_id, room_id, name, data, sheet_type, is_public, is_hidden_in_room, summary_json, updated_at) \
+         VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?, datetime('now'))"
     )
     .bind(&new_sheet_id)
     .bind(&target_user_id)
@@ -1168,6 +1210,7 @@ pub async fn clone_and_assign_sheet_to_member(
     .bind(&sheet_name)
     .bind(&updated_json)
     .bind(&sheet_type)
+    .bind(&summary_json)
     .execute(&pool)
     .await
     .map_err(|e| ServerFnError::new(format!("Erro ao criar ficha clonada: {}", e)))?;
@@ -1201,6 +1244,149 @@ pub async fn clone_and_assign_sheet_to_member(
     );
 
     Ok(new_sheet_id)
+}
+
+#[server(endpoint = "update_room_sheet_stats")]
+pub async fn update_room_sheet_stats(
+    room_id: String,
+    sheet_id: String,
+    action: QuickStatAction,
+) -> Result<RoomSheetSummary, ServerFnError> {
+    use sqlx::{SqlitePool, Row};
+    use crate::auth::get_auth_user_id;
+    use crate::state::CharacterData;
+
+    let caller_user_id = get_auth_user_id().await?.ok_or_else(|| {
+        ServerFnError::new("Você precisa estar logado para realizar esta ação")
+    })?;
+
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        ServerFnError::new("Conexão com o banco de dados indisponível")
+    })?;
+
+    // 1. Valida se o chamador é o Narrador da sala
+    let is_gm_row = sqlx::query("SELECT gm_id FROM rooms WHERE id = ?")
+        .bind(&room_id)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(format!("Erro ao verificar sala: {}", e)))?;
+
+    let gm_row = is_gm_row.ok_or_else(|| ServerFnError::new("Sala não encontrada"))?;
+    let room_gm_id: String = gm_row.get("gm_id");
+
+    if room_gm_id != caller_user_id {
+        return Err(ServerFnError::new("Apenas o Narrador da sala pode alterar os atributos táticos da ficha"));
+    }
+
+    // 2. Busca a ficha associada à sala
+    let sheet_row = sqlx::query(
+        "SELECT id, name, data, user_id, is_hidden_in_room, updated_at \
+         FROM character_sheets WHERE id = ? AND room_id = ?"
+    )
+    .bind(&sheet_id)
+    .bind(&room_id)
+    .fetch_optional(&pool)
+    .await
+    .map_err(|e| ServerFnError::new(format!("Erro ao buscar ficha na sala: {}", e)))?;
+
+    let sheet_record = sheet_row.ok_or_else(|| ServerFnError::new("Ficha não encontrada nesta sala"))?;
+    let sheet_name: String = sheet_record.get("name");
+    let sheet_json: String = sheet_record.get("data");
+    let sheet_user_id: Option<String> = sheet_record.get("user_id");
+    let is_hidden_val: i64 = sheet_record.get("is_hidden_in_room");
+    let is_hidden = is_hidden_val == 1;
+    let is_owner = sheet_user_id.as_deref() == Some(&caller_user_id);
+
+    let mut char_data = CharacterData::parse_from_db(&sheet_id, &sheet_json)
+        .unwrap_or_else(|| CharacterData::new(sheet_id.clone(), sheet_name.clone()));
+
+    // 3. Aplica a ação tática
+    match action {
+        QuickStatAction::CycleHealthBox { index } => {
+            char_data.click_health_box(index);
+        }
+        QuickStatAction::HealHealthBox { index } => {
+            char_data.heal_health_box(index);
+        }
+        QuickStatAction::ClearHealth => {
+            char_data.clear_health();
+        }
+        QuickStatAction::AddQuintessence => {
+            char_data.add_quintessence();
+        }
+        QuickStatAction::RemoveQuintessence => {
+            char_data.remove_quintessence();
+        }
+        QuickStatAction::AddParadox => {
+            char_data.add_paradox();
+        }
+        QuickStatAction::RemoveParadox => {
+            char_data.remove_paradox();
+        }
+        QuickStatAction::CycleQuintessenceParadoxBox { index } => {
+            char_data.cycle_quintessence_paradox_box(index);
+        }
+        QuickStatAction::ClearQuintessenceParadoxBox { index } => {
+            char_data.set_quintessence_paradox_box(index, '0');
+        }
+        QuickStatAction::SetWillpowerTotal { value } => {
+            char_data.set_willpower_total(value);
+        }
+        QuickStatAction::SetWillpowerCurrent { value } => {
+            char_data.set_willpower_current(value);
+        }
+        QuickStatAction::AdjustWillpowerCurrent { delta } => {
+            let (tot, cur) = char_data.get_willpower();
+            let new_cur = (cur + delta).clamp(0, tot);
+            char_data.set_willpower_current(new_cur);
+        }
+        QuickStatAction::AdjustWillpowerTotal { delta } => {
+            let (tot, _) = char_data.get_willpower();
+            let new_tot = (tot + delta).clamp(1, 10);
+            char_data.set_willpower_total(new_tot);
+        }
+    }
+
+    char_data.sanitize();
+    let updated_json = serde_json::to_string(&char_data)
+        .map_err(|e| ServerFnError::new(format!("Erro ao serializar ficha: {}", e)))?;
+
+    let summary = char_data.to_summary(String::new(), char_data.is_public, true);
+    let summary_json = serde_json::to_string(&summary).unwrap_or_default();
+
+    // 4. Salva no banco de dados SQLite
+    sqlx::query("UPDATE character_sheets SET data = ?, summary_json = ?, updated_at = datetime('now') WHERE id = ?")
+        .bind(&updated_json)
+        .bind(&summary_json)
+        .bind(&sheet_id)
+        .execute(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(format!("Erro ao salvar alterações na ficha: {}", e)))?;
+
+    // Busca o updated_at atualizado
+    let updated_at: String = sqlx::query_scalar("SELECT updated_at FROM character_sheets WHERE id = ?")
+        .bind(&sheet_id)
+        .fetch_one(&pool)
+        .await
+        .unwrap_or_default();
+
+    let summary = build_room_sheet_summary(
+        sheet_id,
+        sheet_name,
+        &updated_json,
+        updated_at,
+        is_hidden,
+        is_owner,
+    );
+
+    crate::logging::server::write_log(
+        crate::logging::LogCategory::UserActions,
+        "INFO",
+        &format!("GM QUICK STAT UPDATE: Ficha '{}' ({}) atualizada pelo Narrador na sala '{}'", summary.name, summary.id, room_id),
+        None,
+    );
+
+    Ok(summary)
 }
 
 #[cfg(test)]
@@ -1347,12 +1533,14 @@ mod tests {
             tradition: "Ordem de Hermes".to_string(),
             essence: "Dinâmica".to_string(),
             concept: "Erudito".to_string(),
+            demeanor: "Visionário".to_string(),
             sheet_type: "mage".to_string(),
             arete: 3,
             willpower_total: 7,
             willpower_current: 5,
             quintessence: 4,
             paradox: 1,
+            quintessence_paradox_track: "11110000000000000002".to_string(),
             photo_url: "https://example.com/photo.png".to_string(),
             photo_focus_y: 20,
             photo_focus_x: 50,

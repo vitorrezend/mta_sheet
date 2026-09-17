@@ -41,7 +41,7 @@ if not exist "styles" mkdir styles
 if /i "%1"=="build" (
     echo [INFO] Compilando no perfil DEV sem watcher...
     cargo leptos build
-    if exist "target\site\pkg\mta_sheet.wasm" if not exist "target\site\pkg\mta_sheet_bg.wasm" copy /Y "target\site\pkg\mta_sheet.wasm" "target\site\pkg\mta_sheet_bg.wasm" >nul
+    if exist "target\site\pkg\mta_sheet.wasm" copy /Y "target\site\pkg\mta_sheet.wasm" "target\site\pkg\mta_sheet_bg.wasm" >nul
     goto :fim
 )
 
@@ -55,7 +55,7 @@ if !ERRORLEVEL! EQU 0 (
     powershell -NoProfile -Command "irm https://github.com/leptos-rs/cargo-leptos/releases/download/v0.3.7/cargo-leptos-installer.ps1 | iex"
 )
 
-if exist "target\site\pkg\mta_sheet.wasm" if not exist "target\site\pkg\mta_sheet_bg.wasm" copy /Y "target\site\pkg\mta_sheet.wasm" "target\site\pkg\mta_sheet_bg.wasm" >nul
+if exist "target\site\pkg\mta_sheet.wasm" copy /Y "target\site\pkg\mta_sheet.wasm" "target\site\pkg\mta_sheet_bg.wasm" >nul
 echo [INFO] Iniciando servidor com Hot-Reload [cargo leptos watch]...
 cargo leptos watch
 goto :fim

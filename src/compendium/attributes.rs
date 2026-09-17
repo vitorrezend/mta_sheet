@@ -1,0 +1,680 @@
+//! M20 (Mage: The Ascension 20th Anniversary Edition) - Compendium of Attributes & Specialties
+//!
+//! Canonical reference text from Chapter Six (Creating the Character, pp. 273-275),
+//! including the 10s-doubled mechanics for Specialties, scale descriptions for 1-5 dots,
+//! and suggested specialties in both English and Portuguese.
+
+use serde::Serialize;
+use crate::i18n::Language;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub struct AttributeRating {
+    pub dots: i32,
+    pub title: &'static str,
+    pub title_pt: &'static str,
+    pub description: &'static str,
+    pub description_pt: &'static str,
+}
+
+impl AttributeRating {
+    pub fn title(&self, lang: Language) -> &'static str {
+        match lang {
+            Language::PtBr => self.title_pt,
+            Language::EnUs => self.title,
+        }
+    }
+
+    pub fn description(&self, lang: Language) -> &'static str {
+        match lang {
+            Language::PtBr => self.description_pt,
+            Language::EnUs => self.description,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub struct AttributeDefinition {
+    pub id: &'static str,
+    pub name: &'static str,
+    pub name_pt: &'static str,
+    pub category: &'static str,
+    pub page_ref: &'static str,
+    pub description: &'static str,
+    pub description_pt: &'static str,
+    pub ratings: &'static [AttributeRating],
+    pub suggested_specialties: &'static [&'static str],
+    pub suggested_specialties_pt: &'static [&'static str],
+}
+
+impl AttributeDefinition {
+    pub fn name(&self, lang: Language) -> &'static str {
+        match lang {
+            Language::PtBr => self.name_pt,
+            Language::EnUs => self.name,
+        }
+    }
+
+    pub fn secondary_name(&self, lang: Language) -> &'static str {
+        match lang {
+            Language::PtBr => self.name,
+            Language::EnUs => self.name_pt,
+        }
+    }
+
+    pub fn category_name(&self, lang: Language) -> &'static str {
+        match (self.category, lang) {
+            ("physical", Language::PtBr) => "Físico",
+            ("physical", Language::EnUs) => "Physical",
+            ("social", Language::PtBr) => "Social",
+            ("social", Language::EnUs) => "Social",
+            ("mental", Language::PtBr) => "Mental",
+            ("mental", Language::EnUs) => "Mental",
+            _ => self.category,
+        }
+    }
+
+    pub fn description(&self, lang: Language) -> &'static str {
+        match lang {
+            Language::PtBr => self.description_pt,
+            Language::EnUs => self.description,
+        }
+    }
+
+    pub fn specialties(&self, lang: Language) -> &'static [&'static str] {
+        match lang {
+            Language::PtBr => self.suggested_specialties_pt,
+            Language::EnUs => self.suggested_specialties,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub struct SpecialtyRuleArticle {
+    pub title: &'static str,
+    pub title_pt: &'static str,
+    pub page_ref: &'static str,
+    pub content: &'static str,
+    pub content_pt: &'static str,
+}
+
+impl SpecialtyRuleArticle {
+    pub fn title(&self, lang: Language) -> &'static str {
+        match lang {
+            Language::PtBr => self.title_pt,
+            Language::EnUs => self.title,
+        }
+    }
+
+    pub fn content(&self, lang: Language) -> &'static str {
+        match lang {
+            Language::PtBr => self.content_pt,
+            Language::EnUs => self.content,
+        }
+    }
+}
+
+// ============================================================================
+// Regra Oficial de Especialidades (M20, p. 273)
+// ============================================================================
+
+pub const SPECIALTIES_RULE: SpecialtyRuleArticle = SpecialtyRuleArticle {
+    title: "Specialties (Attributes & Abilities)",
+    title_pt: "Especialidades (Atributos & Habilidades)",
+    page_ref: "M20, p. 273",
+    content: "Attribute and Ability Traits have an additional element that can enhance their effectiveness: specialties.\n\nWhen a character has a rating of 4 or higher in a given Trait, the player can select a specialty for the Trait in question. On rolls that determine the success of an activity related to that Trait specialty, the player counts every 10 rolled as two successes, not just one.\n\nExample:\nSpider Chase, a Verbena flow-artist, has Athletics 4. She’s especially good at spinning fiery gear, so her player selects Fire-Spinning as a specialty. During a show, Spider executes a double-handed spinning toss with two flaming staves. The player rolls Spider’s Dexterity (three dots) + Athletics (four dots), for a total of seven dice. Four of the dice come up as successes, but two of the four successes are 10s. Spider, then, has six successes, thanks to her specialty. The staves spin high into the air; Spider pauses, cocks her head, makes a 'Come on…' gesture to her audience, and raises her hands just in time to perfectly catch both flaming staves and continue her dance. The crowd goes wild.\n\nOriginal Specialties:\nYou can invent new specialties along the lines of the suggested ones, so long as the Storyteller approves that new specialty. Original specialties should not be too broad ('Keyboards' for a Computer specialty) or potentially abused ('Inflicting Damage' as a Strength specialty).\n\nSpecialties Before Rating 4:\nEven if you don’t start off with 4 dots or more in a given Trait, you can still choose a specialty for it; certain Traits – like Crafts – actually require you to choose a particular specialty. That specialty won’t grant the additional-success bonus until you reach a rating of 4, but it can flesh out your character by showing areas of expertise that will eventually help your mage excel in future tasks.",
+    content_pt: "Os Traços de Atributo e Habilidade possuem um elemento adicional capaz de potencializar sua eficácia: as especialidades.\n\nQuando um personagem possui uma pontuação de 4 ou mais em um determinado Traço, o jogador pode selecionar uma especialidade para o Traço em questão. Em jogadas que determinem o sucesso de uma atividade relacionada à especialidade daquele Traço, o jogador conta cada resultado 10 obtido nos dados como DOIS sucessos, em vez de apenas um.\n\nExemplo:\nSpider Chase, uma artista de malabarismo do fogo Verbena, possui Atletismo 4. Ela é especialmente talentosa em girar equipamentos em chamas, então sua jogadora escolhe Giro de Fogo como especialidade. Durante uma apresentação, Spider executa um arremesso duplo giratório com dois bastões flamejantes. A jogadora rola a Destreza de Spider (três bolinhas) + Atletismo (quatro bolinhas), totalizando sete dados. Quatro dos dados resultam em sucessos, mas dois desses quatro sucessos são 10s. Spider, portanto, acumula seis sucessos graças à sua especialidade. Os bastões voam alto no ar; Spider faz uma pausa dramática, inclina a cabeça, gesticula para a plateia e ergue as mãos no momento exato para agarrar perfeitamente os dois bastões em chamas e continuar sua dança. O público vai ao delírio.\n\nEspecialidades Originais:\nVocê pode criar novas especialidades seguindo as diretrizes das sugeridas, desde que o Narrador aprove a especialidade criada. Especialidades originais não devem ser excessivamente amplas ('Teclados' para uma especialidade de Computador) nem potencialmente abusivas ('Causar Dano' como especialidade de Força).\n\nEspecialidades Antes do Nível 4:\nMesmo que você não comece com 4 bolinhas ou mais em um determinado Traço, você ainda pode definir uma especialidade para ele; certos Traços — como Ofícios — inclusive exigem a escolha de uma especialização específica. Essa especialidade não concederá o bônus de sucesso duplo até que você alcance a classificação 4, mas ajuda a detalhar o personagem ao demonstrar áreas de perícia que futuramente farão o mago brilhar.",
+};
+
+// ============================================================================
+// Os 9 Atributos Canônicos de M20 (pp. 273-275)
+// ============================================================================
+
+// 1. FORÇA (STRENGTH)
+pub const STRENGTH: AttributeDefinition = AttributeDefinition {
+    id: "strength",
+    name: "Strength",
+    name_pt: "Força",
+    category: "physical",
+    page_ref: "M20, p. 273",
+    description: "A measure of sheer physical might, this Trait reflects your ability to move obstacles, lift things, and deal out damage with your fists and feet alone. High-Strength characters tend to be muscular and massive; that said, wiry folks can be surprisingly, even deceptively, strong.",
+    description_pt: "Uma medida de puro poder físico, este Traço reflete sua habilidade de remover obstáculos, erguer peso e desferir dano apenas com seus punhos e pés. Personagens com Força elevada tendem a ser musculosos e corpulentos; contudo, indivíduos magros e esbeltos podem ser surpreendentemente, ou até enganosamente, fortes.",
+    ratings: &[
+        AttributeRating {
+            dots: 1,
+            title: "Poor",
+            title_pt: "Fraco",
+            description: "You can lift roughly 40 lb. (about 20 kg).",
+            description_pt: "Você consegue levantar cerca de 20 kg (40 lb).",
+        },
+        AttributeRating {
+            dots: 2,
+            title: "Average",
+            title_pt: "Médio",
+            description: "You lift around 100 lb. (about 50 kg).",
+            description_pt: "Você levanta em torno de 50 kg (100 lb).",
+        },
+        AttributeRating {
+            dots: 3,
+            title: "Good",
+            title_pt: "Bom",
+            description: "You lift around 250 lb. (a little over 100 kg).",
+            description_pt: "Você levanta cerca de 100 kg (250 lb).",
+        },
+        AttributeRating {
+            dots: 4,
+            title: "Exceptional",
+            title_pt: "Excepcional",
+            description: "You can lift 400 lb. (close to 200 kg).",
+            description_pt: "Você consegue erguer quase 200 kg (400 lb).",
+        },
+        AttributeRating {
+            dots: 5,
+            title: "Outstanding",
+            title_pt: "Extraordinário",
+            description: "You can lift 650 lb. (nearly 300 kg).",
+            description_pt: "Você ergue cerca de 300 kg (650 lb).",
+        },
+    ],
+    suggested_specialties: &["Lean", "Deceptive Strength", "Raw Power", "Iron Grip"],
+    suggested_specialties_pt: &["Magro / Esbelto", "Força Enganosa", "Poder Bruto", "Pegada de Ferro"],
+};
+
+// 2. DESTREZA (DEXTERITY)
+pub const DEXTERITY: AttributeDefinition = AttributeDefinition {
+    id: "dexterity",
+    name: "Dexterity",
+    name_pt: "Destreza",
+    category: "physical",
+    page_ref: "M20, p. 273",
+    description: "A vital attribute for conjurers, dancers, martial artists, and street survivors, this Trait measures agility, coordination, reflexes, and physical grace. High-Dexterity individuals seem poised and flexible even at rest, whereas low-Dexterity folks trip – figuratively and literally – over their own feet.",
+    description_pt: "Um atributo vital para prestidigitadores, dançarinos, artistas marciais e sobreviventes das ruas, este Traço mede agilidade, coordenação motora, reflexos e graça física. Indivíduos de alta Destreza parecem equilibrados e flexíveis mesmo em repouso, enquanto pessoas de baixa Destreza tropeçam — figurativa e literalmente — em seus próprios pés.",
+    ratings: &[
+        AttributeRating {
+            dots: 1,
+            title: "Poor",
+            title_pt: "Fraco",
+            description: "Fumble-fingers!",
+            description_pt: "Dedos desajeitados!",
+        },
+        AttributeRating {
+            dots: 2,
+            title: "Average",
+            title_pt: "Médio",
+            description: "Coordinated enough for everyday life.",
+            description_pt: "Coordenado o suficiente para o dia a dia.",
+        },
+        AttributeRating {
+            dots: 3,
+            title: "Good",
+            title_pt: "Bom",
+            description: "Quick-fingered and sure-footed.",
+            description_pt: "Dedos rápidos e passos firmes.",
+        },
+        AttributeRating {
+            dots: 4,
+            title: "Exceptional",
+            title_pt: "Excepcional",
+            description: "Flowing poise and animal grace.",
+            description_pt: "Postura fluida e graça animal.",
+        },
+        AttributeRating {
+            dots: 5,
+            title: "Outstanding",
+            title_pt: "Extraordinário",
+            description: "Cats regard you with envy.",
+            description_pt: "Os gatos olham para você com inveja.",
+        },
+    ],
+    suggested_specialties: &["Smooth", "Graceful", "Nimble", "Feline Reflexes", "Hand-Eye Coordination"],
+    suggested_specialties_pt: &["Suave", "Gracioso", "Ágil", "Reflexos Felinos", "Coordenação Motora Fina"],
+};
+
+// 3. VIGOR (STAMINA)
+pub const STAMINA: AttributeDefinition = AttributeDefinition {
+    id: "stamina",
+    name: "Stamina",
+    name_pt: "Vigor",
+    category: "physical",
+    page_ref: "M20, pp. 273-274",
+    description: "Reflecting toughness, endurance, and your tolerance for pain, disease, and fatigue, Stamina is a helpful Trait for mages on the go. Although the stereotypical tough customer is a massive human tank, wiry folks can be amazingly resilient.",
+    description_pt: "Refletindo rigidez corporal, resistência física e tolerância à dor, doenças e fadiga, o Vigor é um Traço fundamental para magos em movimento constante. Embora o estereótipo do sujeito durão seja um tanque humano maciço, pessoas magras podem ser incrivelmente resilientes.",
+    ratings: &[
+        AttributeRating {
+            dots: 1,
+            title: "Poor",
+            title_pt: "Fraco",
+            description: "Frail and sickly.",
+            description_pt: "Frágil e doentio.",
+        },
+        AttributeRating {
+            dots: 2,
+            title: "Average",
+            title_pt: "Médio",
+            description: "Typically healthy.",
+            description_pt: "Tipicamente saudável.",
+        },
+        AttributeRating {
+            dots: 3,
+            title: "Good",
+            title_pt: "Bom",
+            description: "Hardy and tenacious.",
+            description_pt: "Resistente e tenaz.",
+        },
+        AttributeRating {
+            dots: 4,
+            title: "Exceptional",
+            title_pt: "Excepcional",
+            description: "Built for the long haul.",
+            description_pt: "Feito para longas jornadas.",
+        },
+        AttributeRating {
+            dots: 5,
+            title: "Outstanding",
+            title_pt: "Extraordinário",
+            description: "Nothing seems to wear you down.",
+            description_pt: "Nada parece ser capaz de desgastar você.",
+        },
+    ],
+    suggested_specialties: &["Tireless", "Tough", "Tenacious", "Inexhaustible", "Energizer Bunny"],
+    suggested_specialties_pt: &["Incansável", "Resistente", "Tenaz", "Inexaurível", "Pique sem Fim"],
+};
+
+// 4. CARISMA (CHARISMA)
+pub const CHARISMA: AttributeDefinition = AttributeDefinition {
+    id: "charisma",
+    name: "Charisma",
+    name_pt: "Carisma",
+    category: "social",
+    page_ref: "M20, p. 274",
+    description: "Rooted in the Greek word for grace and favor, Charisma reflects the indefinable it that makes some folks stand out in a crowd. Game-wise, this Trait measures your presence and appeal. You might not be pretty if you have a high Charisma, but by all the gods, people notice you!",
+    description_pt: "Enraizado na palavra grega para graça e favor, o Carisma reflete aquele magnetismo indefinível que faz certas pessoas se destacarem em qualquer multidão. Em termos de jogo, este Traço mede sua presença e apelo pessoal. Você pode até não ser bonito com Carisma alto, mas por todos os deuses, as pessoas reparam em você!",
+    ratings: &[
+        AttributeRating {
+            dots: 1,
+            title: "Poor",
+            title_pt: "Fraco",
+            description: "Faint flower on bland wallpaper.",
+            description_pt: "Uma flor desbotada em um papel de parede sem graça.",
+        },
+        AttributeRating {
+            dots: 2,
+            title: "Average",
+            title_pt: "Médio",
+            description: "You seem likeable enough.",
+            description_pt: "Você parece agradável o suficiente.",
+        },
+        AttributeRating {
+            dots: 3,
+            title: "Good",
+            title_pt: "Bom",
+            description: "Folks feel drawn to you.",
+            description_pt: "As pessoas se sentem naturalmente atraídas por você.",
+        },
+        AttributeRating {
+            dots: 4,
+            title: "Exceptional",
+            title_pt: "Excepcional",
+            description: "Shiny!",
+            description_pt: "Radiante!",
+        },
+        AttributeRating {
+            dots: 5,
+            title: "Outstanding",
+            title_pt: "Extraordinário",
+            description: "Your mere presence inspires trust, lust, and devotion.",
+            description_pt: "Sua mera presença inspira confiança, desejo e devoção.",
+        },
+    ],
+    suggested_specialties: &["Charming", "Sexy", "Bold", "Inspirational", "Sophisticated", "Regal"],
+    suggested_specialties_pt: &["Charmoso", "Sedutor", "Audacioso", "Inspirador", "Sofisticado", "Régio"],
+};
+
+// 5. MANIPULAÇÃO (MANIPULATION)
+pub const MANIPULATION: AttributeDefinition = AttributeDefinition {
+    id: "manipulation",
+    name: "Manipulation",
+    name_pt: "Manipulação",
+    category: "social",
+    page_ref: "M20, p. 274",
+    description: "Life’s filled with players and pawns. A high-Manipulation character knows how to work her end of that spectrum for maximum effect. Whereas Charisma measures presence and Appearance reflects looks, Manipulation describes social cunning and innate psychology. We manipulate each other all the time, but no one likes to actually see the strings attached. As a result, a blown roll with this Trait can be disastrous.",
+    description_pt: "A vida é repleta de jogadores e peões. Um personagem com alta Manipulação sabe como operar sua ponta desse espectro para obter o efeito máximo. Enquanto o Carisma mede a presença e a Aparência reflete o visual, a Manipulação descreve a astúcia social e a psicologia inata. Todos manipulamos uns aos outros o tempo todo, mas ninguém gosta de ver os fios da marionete à mostra. Consequentemente, uma falha crítica em uma jogada com este Traço pode ser desastrosa.",
+    ratings: &[
+        AttributeRating {
+            dots: 1,
+            title: "Poor",
+            title_pt: "Fraco",
+            description: "No one buys your bullshit.",
+            description_pt: "Ninguém engole suas histórias.",
+        },
+        AttributeRating {
+            dots: 2,
+            title: "Average",
+            title_pt: "Médio",
+            description: "Folks tend to trust what you tell them.",
+            description_pt: "As pessoas tendem a confiar no que você diz.",
+        },
+        AttributeRating {
+            dots: 3,
+            title: "Good",
+            title_pt: "Bom",
+            description: "You’re a smooth operator when you want to be.",
+            description_pt: "Você é um negociador suave quando deseja ser.",
+        },
+        AttributeRating {
+            dots: 4,
+            title: "Exceptional",
+            title_pt: "Excepcional",
+            description: "When you speak, folks listen.",
+            description_pt: "Quando você fala, todos escutam.",
+        },
+        AttributeRating {
+            dots: 5,
+            title: "Outstanding",
+            title_pt: "Extraordinário",
+            description: "“Dance, my puppets – dance!”",
+            description_pt: "“Dancem, minhas marionetes — dancem!”",
+        },
+    ],
+    suggested_specialties: &["Guile", "Charm", "Eloquence", "Emotional Appeals", "True Believer"],
+    suggested_specialties_pt: &["Astúcia", "Charme", "Eloquência", "Apelos Emocionais", "Verdadeiro Crente"],
+};
+
+// 6. APARÊNCIA (APPEARANCE)
+pub const APPEARANCE: AttributeDefinition = AttributeDefinition {
+    id: "appearance",
+    name: "Appearance",
+    name_pt: "Aparência",
+    category: "social",
+    page_ref: "M20, p. 274",
+    description: "Never underestimate the power of a pretty face! This Trait captures the appeal of sheer physical beauty… or the painful lack of it. Appearances can be deceiving, of course, especially among mages. Still, we’re hard-wired to respond well to a cute butt or a captivating grin.",
+    description_pt: "Nunca subestime o poder de um belo rosto! Este Traço captura o apelo da pura beleza física… ou a dolorosa ausência dela. Aparências podem enganar, é claro, especialmente entre magos. Ainda assim, nossa biologia é programada para reagir positivamente a um sorriso cativante ou a feições atraentes.",
+    ratings: &[
+        AttributeRating {
+            dots: 1,
+            title: "Poor",
+            title_pt: "Fraco",
+            description: "“Ew.”",
+            description_pt: "“Eca.”",
+        },
+        AttributeRating {
+            dots: 2,
+            title: "Average",
+            title_pt: "Médio",
+            description: "“You’re okay.”",
+            description_pt: "“Você é normal / arrumadinho.”",
+        },
+        AttributeRating {
+            dots: 3,
+            title: "Good",
+            title_pt: "Bom",
+            description: "“Are you a model?”",
+            description_pt: "“Você trabalha como modelo?”",
+        },
+        AttributeRating {
+            dots: 4,
+            title: "Exceptional",
+            title_pt: "Excepcional",
+            description: "“Here’s my number.”",
+            description_pt: "“Toma aqui o meu número.”",
+        },
+        AttributeRating {
+            dots: 5,
+            title: "Outstanding",
+            title_pt: "Extraordinário",
+            description: "“Make me your love-slave!”",
+            description_pt: "“Me faça seu escravo de amor!”",
+        },
+    ],
+    suggested_specialties: &["Cute", "Hawt", "Captivating", "Roguish", "Adorable", "Classic Hollywood Beauty"],
+    suggested_specialties_pt: &["Fofo", "Atraente", "Cativante", "Sedutor / Malicioso", "Adorável", "Beleza Clássica de Hollywood"],
+};
+
+// 7. PERCEPÇÃO (PERCEPTION)
+pub const PERCEPTION: AttributeDefinition = AttributeDefinition {
+    id: "perception",
+    name: "Perception",
+    name_pt: "Percepção",
+    category: "mental",
+    page_ref: "M20, p. 274",
+    description: "Magick demands clarity, so a high-Perception mage excels. This Trait measures your attention to detail, spatial awareness, sensual acuity, and that indefinable instinct that picks up the cues your conscious mind has not yet noticed. A reflection of intuition and awareness, the Perception Trait reveals clues more than it analyzes causes; that scent of roses nearby might be a rosebush, perfume, or a love spell’s lingering Resonance – Perception alone won’t tell you which one it is.",
+    description_pt: "A magia exige clareza, portanto um mago com Percepção elevada se destaca. Este Traço mede sua atenção a detalhes, consciência espacial, acuidade sensorial e aquele instinto indefinível que capta pistas que sua mente consciente ainda não notou. Reflexo de intuição e vigília, a Percepção revela pistas mais do que analisa causas; aquele cheiro de rosas por perto pode ser uma roseira, perfume ou a Ressonância residual de um feitiço de amor — a Percepção por si só não dirá qual deles é.",
+    ratings: &[
+        AttributeRating {
+            dots: 1,
+            title: "Poor",
+            title_pt: "Fraco",
+            description: "“Huh? What…?”",
+            description_pt: "“Hã? O que...?”",
+        },
+        AttributeRating {
+            dots: 2,
+            title: "Average",
+            title_pt: "Médio",
+            description: "A typical eye for obvious things.",
+            description_pt: "Um olhar comum para coisas óbvias.",
+        },
+        AttributeRating {
+            dots: 3,
+            title: "Good",
+            title_pt: "Bom",
+            description: "Unusually sensitive to the world nearby.",
+            description_pt: "Incomumente sensível ao ambiente ao redor.",
+        },
+        AttributeRating {
+            dots: 4,
+            title: "Exceptional",
+            title_pt: "Excepcional",
+            description: "A keen sense of your surroundings.",
+            description_pt: "Aguda consciência do que cerca você.",
+        },
+        AttributeRating {
+            dots: 5,
+            title: "Outstanding",
+            title_pt: "Extraordinário",
+            description: "More animal than man.",
+            description_pt: "Mais animal do que homem.",
+        },
+    ],
+    suggested_specialties: &["Uncanny Insight", "Astute", "Intuitive", "Sharp Senses", "Hawkeye"],
+    suggested_specialties_pt: &["Faro Sobrenatural", "Astuto", "Intuitivo", "Sentidos Aguçados", "Olho de Falcão"],
+};
+
+// 8. INTELIGÊNCIA (INTELLIGENCE)
+pub const INTELLIGENCE: AttributeDefinition = AttributeDefinition {
+    id: "intelligence",
+    name: "Intelligence",
+    name_pt: "Inteligência",
+    category: "mental",
+    page_ref: "M20, pp. 274-275",
+    description: "Perhaps the most vital tool a mage can possess, this Trait reflects your ability to process information, retain impressions, envision possibilities, and think not merely outside the box but perhaps without a box at all. A low-Intelligence character might not be exactly stupid, but she’s blind to the complexities of life; one with a high Intelligence score, on the other hand, can wrap his head around sophisticated concepts and slippery facts. Despite preconceptions, you don’t need schooling to be smart. Still, it takes brains to tackle advanced education and study, so characters with such backgrounds ought to have a respectable Intelligence.",
+    description_pt: "Talvez a ferramenta mais vital que um mago pode possuir, este Traço reflete sua habilidade de processar dados, reter impressões, conceber possibilidades e pensar não apenas fora da caixa, mas talvez sem caixa alguma. Um personagem de baixa Inteligência pode não ser exatamente estúpido, mas é cego às complexidades da vida; alguém com pontuação elevada, por outro lado, compreende com facilidade conceitos sofisticados e fatos sutis. Apesar dos preconceitos, você não precisa de escolaridade formal para ser inteligente. Ainda assim, é preciso cérebro para encarar estudos avançados, de modo que personagens com tais antecedentes devem ter Inteligência respeitável.",
+    ratings: &[
+        AttributeRating {
+            dots: 1,
+            title: "Poor",
+            title_pt: "Fraco",
+            description: "A birthday candle in a halogen world.",
+            description_pt: "Uma vela de aniversário em um mundo halógeno.",
+        },
+        AttributeRating {
+            dots: 2,
+            title: "Average",
+            title_pt: "Médio",
+            description: "A member of the majority.",
+            description_pt: "Um membro típico da maioria.",
+        },
+        AttributeRating {
+            dots: 3,
+            title: "Good",
+            title_pt: "Bom",
+            description: "Smart enough to hang at the big-kids’ table.",
+            description_pt: "Inteligente o suficiente para sentar na mesa dos adultos.",
+        },
+        AttributeRating {
+            dots: 4,
+            title: "Exceptional",
+            title_pt: "Excepcional",
+            description: "Utterly Brilliant.",
+            description_pt: "Absolutamente brilhante.",
+        },
+        AttributeRating {
+            dots: 5,
+            title: "Outstanding",
+            title_pt: "Extraordinário",
+            description: "The dazzling intellect of a born genius.",
+            description_pt: "O intelecto deslumbrante de um gênio nato.",
+        },
+    ],
+    suggested_specialties: &["Book-Learning", "Deep Thoughts", "Bright", "Creative", "Keen-Edged Mind"],
+    suggested_specialties_pt: &["Erudição / Leitura", "Pensamentos Profundos", "Brilhante", "Criativo", "Mente Afiada"],
+};
+
+// 9. RACIOCÍNIO (WITS)
+pub const WITS: AttributeDefinition = AttributeDefinition {
+    id: "wits",
+    name: "Wits",
+    name_pt: "Raciocínio",
+    category: "mental",
+    page_ref: "M20, p. 275",
+    description: "Even the deepest minds can be oblivious to change. Survival, however, often demands sharp wits. A reflection of mental reflexes, this Trait determines your ability to react to sudden perils, subtle cues, and the twisted logic that often fills a mage’s world. Combat Initiative (see Chapter Nine, p. 399) depends upon a character’s Wits; without them, a great thinker might soon become dead meat.",
+    description_pt: "Mesmo as mentes mais profundas podem ser alheias às mudanças rápidas. A sobrevivência, contudo, frequentemente exige raciocínio ágil. Reflexo dos reflexos mentais, este Traço determina sua capacidade de reagir a perigos repentinos, insinuações sutis e à lógica distorcida que preenche o mundo de um mago. A Iniciativa de Combate (Capítulo Nove, p. 399) depende do Raciocínio do personagem; sem ele, um grande pensador pode logo virar carne moída.",
+    ratings: &[
+        AttributeRating {
+            dots: 1,
+            title: "Poor",
+            title_pt: "Fraco",
+            description: "Muddled and scatter-brained.",
+            description_pt: "Confuso e avoado.",
+        },
+        AttributeRating {
+            dots: 2,
+            title: "Average",
+            title_pt: "Médio",
+            description: "A master of the obvious.",
+            description_pt: "Um mestre do óbvio.",
+        },
+        AttributeRating {
+            dots: 3,
+            title: "Good",
+            title_pt: "Bom",
+            description: "Ms./ Mr. Multi-task.",
+            description_pt: "Multitarefa nato.",
+        },
+        AttributeRating {
+            dots: 4,
+            title: "Exceptional",
+            title_pt: "Excepcional",
+            description: "So quick on the uptake that you take other folks down.",
+            description_pt: "Tão rápido no gatilho mental que derruba os outros antes que percebam.",
+        },
+        AttributeRating {
+            dots: 5,
+            title: "Outstanding",
+            title_pt: "Extraordinário",
+            description: "A mental Shiva or Kali.",
+            description_pt: "Um Shiva ou Kali mental.",
+        },
+    ],
+    suggested_specialties: &["Combat Reflexes", "Street Survivor", "Cunning", "Feral", "Fox-Witted"],
+    suggested_specialties_pt: &["Reflexos de Combate", "Sobrevivente das Ruas", "Ardiloso", "Feral", "Mente de Raposa"],
+};
+
+pub const ALL_ATTRIBUTES: &[AttributeDefinition] = &[
+    STRENGTH,
+    DEXTERITY,
+    STAMINA,
+    CHARISMA,
+    MANIPULATION,
+    APPEARANCE,
+    PERCEPTION,
+    INTELLIGENCE,
+    WITS,
+];
+
+/// Normaliza strings para busca insensível a maiúsculas e acentos
+fn normalize_query(s: &str) -> String {
+    s.trim()
+        .to_lowercase()
+        .chars()
+        .map(|c| match c {
+            'á' | 'à' | 'ã' | 'â' | 'ä' => 'a',
+            'é' | 'è' | 'ê' | 'ë' => 'e',
+            'í' | 'ì' | 'î' | 'ï' => 'i',
+            'ó' | 'ò' | 'õ' | 'ô' | 'ö' => 'o',
+            'ú' | 'ù' | 'û' | 'ü' => 'u',
+            'ç' => 'c',
+            _ => c,
+        })
+        .collect()
+}
+
+/// Localiza um atributo por ID, nome EN ou nome PT (com suporte a maiúsculas, minúsculas e acentos)
+pub fn find_attribute(query: &str) -> Option<&'static AttributeDefinition> {
+    let q = normalize_query(query);
+    if q.is_empty() {
+        return None;
+    }
+
+    ALL_ATTRIBUTES.iter().find(|a| {
+        normalize_query(a.id) == q
+            || normalize_query(a.name) == q
+            || normalize_query(a.name_pt) == q
+    })
+}
+
+/// Retorna a lista de especialidades sugeridas para um atributo (PT ou EN)
+pub fn get_suggested_specialties(attr_name: &str, lang: Language) -> &'static [&'static str] {
+    if let Some(attr) = find_attribute(attr_name) {
+        attr.specialties(lang)
+    } else {
+        &[]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_all_attributes_count_and_uniqueness() {
+        assert_eq!(ALL_ATTRIBUTES.len(), 9);
+        let mut ids = std::collections::HashSet::new();
+        for a in ALL_ATTRIBUTES {
+            assert!(ids.insert(a.id), "Duplicate attribute ID: {}", a.id);
+            assert!(a.page_ref.starts_with("M20, p"), "Invalid page_ref for {}: {}", a.name, a.page_ref);
+            assert_eq!(a.ratings.len(), 5, "Attribute {} must have exactly 5 dot ratings", a.name);
+            assert!(!a.suggested_specialties.is_empty(), "Missing suggested specialties for {}", a.name);
+            assert!(!a.suggested_specialties_pt.is_empty(), "Missing PT suggested specialties for {}", a.name_pt);
+        }
+    }
+
+    #[test]
+    fn test_find_attribute_resolves_both_languages() {
+        assert_eq!(find_attribute("strength").unwrap().id, "strength");
+        assert_eq!(find_attribute("Força").unwrap().id, "strength");
+        assert_eq!(find_attribute("força").unwrap().id, "strength");
+        assert_eq!(find_attribute("Dexterity").unwrap().id, "dexterity");
+        assert_eq!(find_attribute("Destreza").unwrap().id, "dexterity");
+        assert_eq!(find_attribute("Wits").unwrap().id, "wits");
+        assert_eq!(find_attribute("Raciocínio").unwrap().id, "wits");
+    }
+
+    #[test]
+    fn test_get_suggested_specialties_bilingual() {
+        let pt = get_suggested_specialties("Força", Language::PtBr);
+        assert!(pt.contains(&"Poder Bruto"));
+        assert!(pt.contains(&"Pegada de Ferro"));
+
+        let en = get_suggested_specialties("Strength", Language::EnUs);
+        assert!(en.contains(&"Raw Power"));
+        assert!(en.contains(&"Iron Grip"));
+    }
+
+    #[test]
+    fn test_specialties_rule_integrity() {
+        assert_eq!(SPECIALTIES_RULE.page_ref, "M20, p. 273");
+        assert!(SPECIALTIES_RULE.content.contains("Spider Chase"));
+        assert!(SPECIALTIES_RULE.content_pt.contains("Giro de Fogo"));
+        assert!(SPECIALTIES_RULE.content_pt.contains("DOIS sucessos"));
+    }
+}

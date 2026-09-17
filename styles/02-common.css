@@ -11,6 +11,278 @@
 
 .modifier-container {
     flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.modifier-container.has-specialty-picker {
+    position: relative;
+}
+
+/* Specialty Picker in Modifier Container */
+.specialty-picker-inline {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.specialty-toggle-btn {
+    width: 14px;
+    height: 16px;
+    font-size: 0.62rem;
+    line-height: 1;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    transition: all 0.15s ease;
+    margin-right: 2px;
+}
+
+.specialty-toggle-btn:hover {
+    color: #8e44ad;
+    background: rgba(142, 68, 173, 0.12);
+}
+
+.specialty-toggle-btn.has-specialty-active {
+    color: #d97706;
+    font-weight: 700;
+}
+
+.specialty-toggle-btn.has-specialty-active:hover {
+    color: #b45309;
+    background: rgba(217, 119, 6, 0.15);
+}
+
+.specialty-toggle-btn.popover-open .specialty-chevron {
+    transform: rotate(180deg);
+    display: inline-block;
+    color: #8e44ad;
+}
+
+/* Specialty Popover */
+.specialty-popover-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1010;
+}
+
+.specialty-popover-wrapper.hidden {
+    display: none;
+}
+
+.specialty-popover-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent;
+    z-index: 1010;
+}
+
+.specialty-selector-popover {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 250px;
+    max-width: 300px;
+    background: #ffffff;
+    border: 2px solid #7c3aed;
+    border-radius: 10px;
+    padding: 10px 12px;
+    box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.25), 0 0 18px rgba(124, 58, 237, 0.25);
+    z-index: 1011;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    animation: supernaturalFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.specialty-popover-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 6px;
+}
+
+.specialty-popover-rule {
+    margin-bottom: 2px;
+}
+
+.specialty-unlocked-badge {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #047857;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.specialty-unlocked-badge .badge-icon {
+    color: #059669;
+}
+
+.specialty-locked-hint {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    font-size: 9.5px;
+    font-style: italic;
+    line-height: 1.3;
+    padding: 4px 7px;
+    border-radius: 6px;
+}
+
+.specialty-pills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    max-height: 140px;
+    overflow-y: auto;
+    padding: 6px 8px;
+    background: #faf5ff;
+    border: 1px solid #f3e8ff;
+    border-radius: 8px;
+}
+
+.specialty-pill-btn {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+    border: 1.2px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.specialty-pill-btn:hover {
+    border-color: #7c3aed;
+    color: #7c3aed;
+    background: #ede9fe;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(124, 58, 237, 0.15);
+}
+
+.specialty-pill-btn.active {
+    background: #7c3aed;
+    border-color: #6d28d9;
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 2px 5px rgba(124, 58, 237, 0.35);
+}
+
+.specialty-popover-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding-top: 6px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.specialty-clear-btn {
+    font-size: 10px;
+    font-weight: 700;
+    color: #475569;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    cursor: pointer;
+    padding: 3px 8px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.specialty-clear-btn:hover {
+    color: #dc2626;
+    border-color: #fca5a5;
+    background: #fee2e2;
+}
+
+.specialty-clear-btn.hidden {
+    display: none;
+}
+
+.specialty-compendium-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 800;
+    color: #5b21b6;
+    background: #ede9fe;
+    border: 1.5px solid #a78bfa;
+    border-radius: 12px;
+    cursor: pointer;
+    padding: 3px 8px;
+    margin-left: auto;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.specialty-compendium-btn:hover {
+    background: #7c3aed;
+    border-color: #6d28d9;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.4);
+    transform: translateY(-1px);
+}
+
+.specialty-compendium-btn .compendium-btn-icon {
+    font-size: 11px;
+}
+
+.specialty-compendium-btn .compendium-btn-page {
+    font-size: 9px;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-weight: 700;
+    background: rgba(124, 58, 237, 0.12);
+    color: #4c1d95;
+    padding: 1px 4px;
+    border-radius: 6px;
+    margin-left: 2px;
+}
+
+.specialty-compendium-btn:hover .compendium-btn-page {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+/* Acoplamento no Balão Sobrenatural */
+.supernatural-specialties-block {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.supernatural-specialties-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: 2px;
 }
 
 .tooltip-text {
@@ -325,13 +597,13 @@
 .supernatural-floating-panel {
     position: relative;
     z-index: 1001;
-    min-width: 240px;
-    max-width: 280px;
-    background: #0f172a;
-    border: 1.5px solid #a78bfa;
-    border-radius: 8px;
-    padding: 9px 11px;
-    box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.85), 0 0 18px rgba(139, 92, 246, 0.45);
+    min-width: 250px;
+    max-width: 290px;
+    background: #ffffff;
+    border: 2px solid #7c3aed;
+    border-radius: 10px;
+    padding: 10px 12px;
+    box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.25), 0 0 18px rgba(124, 58, 237, 0.25);
     display: flex;
     flex-direction: column;
     gap: 9px;
@@ -354,50 +626,50 @@
     align-items: center;
     justify-content: space-between;
     gap: 6px;
-    border-bottom: 1px solid #1e293b;
-    padding-bottom: 5px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 6px;
 }
 
 .panel-header-title {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     overflow: hidden;
     flex: 1;
 }
 
 .panel-header-title .panel-sparkle {
-    font-size: 11px;
-    color: #d8b4fe;
+    font-size: 13px;
+    color: #7c3aed;
     flex-shrink: 0;
 }
 
 .panel-trait-name {
     font-size: 12px;
     font-weight: 800;
-    color: #ffffff;
+    color: #0f172a;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 125px;
+    max-width: 130px;
 }
 
 .panel-header-actions {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     flex-shrink: 0;
 }
 
 .panel-level-pill {
-    font-size: 9px;
+    font-size: 9.5px;
     font-weight: 800;
-    color: #e9d5ff;
-    background: rgba(147, 51, 234, 0.3);
-    border: 1px solid rgba(168, 85, 247, 0.6);
-    padding: 1.5px 6.5px;
+    color: #5b21b6;
+    background: #ede9fe;
+    border: 1.5px solid #a78bfa;
+    padding: 2px 7px;
     border-radius: 10px;
     line-height: 1.2;
     font-family: ui-monospace, SFMono-Regular, monospace;
@@ -407,35 +679,35 @@
 .panel-close-btn {
     background: transparent;
     border: none;
-    color: #cbd5e1;
+    color: #64748b;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1;
     padding: 2px 5px;
-    border-radius: 3px;
+    border-radius: 4px;
     transition: all 0.15s ease;
 }
 
 .panel-close-btn:hover {
-    color: #f87171;
-    background: rgba(248, 113, 113, 0.2);
+    color: #dc2626;
+    background: #fee2e2;
 }
 
 /* Campo de Escrita Curto (Especialização / Modificador) */
 .supernatural-modifier-section {
     display: flex;
     flex-direction: column;
-    gap: 3.5px;
-    background: rgba(30, 41, 59, 0.55);
-    border: 1px solid #1e293b;
+    gap: 4px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 6px;
-    padding: 5px 7px;
+    padding: 6px 8px;
 }
 
 .modifier-section-label {
     font-size: 8.5px;
     font-weight: 700;
-    color: #94a3b8;
+    color: #475569;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     user-select: none;
@@ -443,14 +715,14 @@
 
 .supernatural-modifier-input {
     width: 100%;
-    height: 23px;
-    font-size: 11px;
+    height: 25px;
+    font-size: 11.5px;
     font-weight: 600;
-    color: #f8fafc;
-    background: #0f172a;
-    border: 1px solid #334155;
+    color: #0f172a;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
     border-radius: 4px;
-    padding: 0 7px;
+    padding: 0 8px;
     box-sizing: border-box;
     font-family: inherit;
     transition: all 0.15s ease;
@@ -458,13 +730,12 @@
 
 .supernatural-modifier-input:focus {
     outline: none;
-    border-color: #8b5cf6;
-    background: #0b1120;
-    box-shadow: 0 0 6px rgba(139, 92, 246, 0.45);
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
 }
 
 .supernatural-modifier-input::placeholder {
-    color: #64748b;
+    color: #94a3b8;
     font-style: italic;
     font-weight: 400;
 }
@@ -474,19 +745,23 @@
     align-items: center;
     justify-content: space-between;
     gap: 6px;
-    padding: 4px 2px;
+    padding: 6px 8px;
+    background: #faf5ff;
+    border: 1px solid #f3e8ff;
+    border-radius: 8px;
 }
 
 .supernatural-slots-track .dot.dot-supernatural:not(.filled) {
-    border: 2px solid #8b5cf6 !important;
-    background-color: rgba(139, 92, 246, 0.12);
-    box-shadow: none;
+    border: 2px solid #a78bfa !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .supernatural-slots-track .dot.dot-supernatural:not(.filled):hover {
-    background-color: rgba(139, 92, 246, 0.35);
-    border-color: #c084fc !important;
-    box-shadow: 0 0 8px rgba(192, 132, 252, 0.6);
+    background-color: #ede9fe !important;
+    border-color: #7c3aed !important;
+    box-shadow: 0 0 8px rgba(124, 58, 237, 0.4);
+    transform: rotate(45deg) scale(1.18);
 }
 
 .supernatural-slot-column {
@@ -497,16 +772,16 @@
 }
 
 .slot-extra-badge {
-    font-size: 10px;
+    font-size: 10.5px;
     font-weight: 900;
-    color: #e9d5ff;
+    color: #6d28d9;
     font-family: ui-monospace, SFMono-Regular, monospace;
 }
 
 .slot-lvl-number {
-    font-size: 9.5px;
-    font-weight: 700;
-    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 800;
+    color: #334155;
     font-family: ui-monospace, SFMono-Regular, monospace;
 }
 
@@ -515,45 +790,44 @@
     align-items: center;
     justify-content: space-between;
     gap: 6px;
-    border-top: 1px solid #1e293b;
+    border-top: 1px solid #e2e8f0;
     padding-top: 6px;
 }
 
 .panel-reset-btn {
-    background: transparent;
-    border: 1px solid #475569;
-    color: #cbd5e1;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    color: #475569;
     font-size: 9.5px;
     font-weight: 700;
-    padding: 3px 8px;
+    padding: 4px 10px;
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .panel-reset-btn:hover {
-    color: #fca5a5;
-    border-color: #ef4444;
-    background: rgba(239, 68, 68, 0.18);
+    color: #dc2626;
+    border-color: #fca5a5;
+    background: #fee2e2;
 }
 
 .panel-done-btn {
     background: #7c3aed;
-    border: 1px solid #a78bfa;
+    border: 1px solid #6d28d9;
     color: #ffffff;
     font-size: 10.5px;
     font-weight: 800;
-    padding: 3px 12px;
+    padding: 4px 14px;
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.15s ease;
-    box-shadow: 0 0 8px rgba(124, 58, 237, 0.5);
+    box-shadow: 0 2px 5px rgba(124, 58, 237, 0.35);
 }
 
 .panel-done-btn:hover {
     background: #6d28d9;
-    border-color: #c084fc;
-    box-shadow: 0 0 12px rgba(147, 51, 234, 0.7);
+    box-shadow: 0 3px 8px rgba(124, 58, 237, 0.45);
 }
 
 /* Menu de Contexto da Característica (Clique com Botão Direito no Rótulo) */
@@ -655,7 +929,7 @@
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
     border-radius: 8px;
     padding: 6px 8px;
-    z-index: 1000;
+    z-index: 1005;
     min-width: 140px;
     animation: popoverFadeIn 0.15s ease-out;
 }
@@ -891,7 +1165,7 @@
     height: 100vh;
     background: rgba(15, 23, 42, 0.65);
     backdrop-filter: blur(4px);
-    z-index: 9999;
+    z-index: 10000;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2533,6 +2807,77 @@
    PARTY CARDS NA SALA / MESA (PORTRAIT, VONTADE QUADRADINHOS & VIDA)
    ========================================================================== */
 
+.party-card-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+    margin-top: 3px;
+}
+
+.party-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.2;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    user-select: none;
+    transition: all 0.15s ease;
+    max-width: 100%;
+}
+
+.party-pill .pill-icon {
+    font-size: 0.75rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.party-pill .pill-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 180px;
+}
+
+/* 1. Tradição (Índigo Místico) */
+.pill-tradition {
+    background: #eef2ff;
+    color: #4338ca;
+    border-color: #c7d2fe;
+}
+
+/* 2. Conceito (Âmbar / Dourado) */
+.pill-concept {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fde68a;
+}
+
+/* 3. Comportamento (Esmeralda / Menta) */
+.pill-demeanor {
+    background: #ecfdf5;
+    color: #065f46;
+    border-color: #a7f3d0;
+}
+
+/* 4. Essência (Magenta / Rosa Arcano) */
+.pill-essence {
+    background: #fdf2f8;
+    color: #9d174d;
+    border-color: #fbcfe8;
+}
+
+/* Vazio / Não definido */
+.pill-empty {
+    background: #f8fafc;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+}
+
 .char-player-subtitle {
     font-size: 0.78rem;
     color: #64748b;
@@ -2680,6 +3025,8 @@
     font-weight: 900;
     line-height: 1;
     user-select: none;
+    cursor: pointer;
+    padding: 0;
     transition: transform 0.12s ease;
 }
 
@@ -2711,6 +3058,145 @@
     background: #faf5ff;
     color: #7e22ce;
 }
+
+/* ==========================================================================
+   Narrator Tactical HUD (Card Quick Stats)
+   ========================================================================== */
+.gm-tactical-hud {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.party-stats-grid-gm {
+    grid-template-columns: 1fr 2fr !important;
+    padding: 0.4rem 0.6rem !important;
+}
+
+.party-stats-grid-player {
+    grid-template-columns: 1fr 2fr !important;
+}
+
+.party-stat-box-wide {
+    text-align: left;
+    padding-left: 6px;
+}
+
+.gm-hud-section {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.gm-hud-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.gm-hud-title-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+}
+
+.gm-hud-label {
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
+}
+
+.gm-hud-heal-btn {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #059669;
+    font-size: 0.68rem;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 2px 7px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    line-height: 1.2;
+}
+
+.gm-hud-heal-btn:hover {
+    background: #d1fae5;
+    border-color: #6ee7b7;
+    color: #047857;
+    transform: scale(1.04);
+}
+
+.gm-hud-willpower {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.gm-wp-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    width: 100%;
+}
+
+.gm-wp-line-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    width: 38px;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.gm-dots-row,
+.gm-squares-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: center;
+    flex: 1;
+    margin-left: 0;
+}
+
+.square.disabled {
+    opacity: 0.25;
+    border-color: #cbd5e1 !important;
+    cursor: not-allowed;
+}
+
+.gm-stat-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #334155;
+    background: #f1f5f9;
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+    display: inline-flex;
+    align-items: center;
+}
+
+.gm-card-wheel {
+    width: 160px;
+    height: 160px;
+    margin: 0.25rem auto;
+}
+
 
 .party-card-footer-action {
     margin-top: auto;
