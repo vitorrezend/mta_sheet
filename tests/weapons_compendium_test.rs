@@ -273,3 +273,313 @@ fn test_weapon_item_serde_with_full_combat_stats() {
     assert_eq!(legacy_item.rate, "");
     assert_eq!(legacy_item.clip, "");
 }
+
+
+#[test]
+fn test_combat_maneuvers_count_and_categories() {
+    // Total de 44 manobras canônicas de M20 (pp. 423-426, 448-450, 580-581)
+    assert_eq!(ALL_COMBAT_MANEUVERS.len(), 44, "O compêndio deve conter 44 manobras canônicas (10 gerais + 8 luta suja + 16 artes marciais + 9 dô + 1 regra especial)");
+
+    let general = get_maneuvers_by_category(Some(ManeuverCategory::General));
+    let dirty = get_maneuvers_by_category(Some(ManeuverCategory::DirtyFighting));
+    let martial = get_maneuvers_by_category(Some(ManeuverCategory::MartialArts));
+    let do_maneuvers = get_maneuvers_by_category(Some(ManeuverCategory::Do));
+    let special = get_maneuvers_by_category(Some(ManeuverCategory::SpecialRules));
+
+    assert_eq!(general.len(), 10, "Devem existir 10 manobras gerais de corpo a corpo");
+    assert_eq!(dirty.len(), 8, "Devem existir 8 manobras de luta suja (Briga 3+)");
+    assert_eq!(martial.len(), 16, "Devem existir 16 manobras de artes marciais canônicas de M20 (pp. 423-426)");
+    assert_eq!(do_maneuvers.len(), 9, "Devem existir 9 técnicas especiais de Dô akashiano");
+    assert_eq!(special.len(), 1, "Deve existir 1 regra especial (Two Weapons)");
+
+    assert_eq!(ALL_MANEUVER_CATEGORIES.len(), 5, "Devem existir 5 categorias de manobras de combate");
+}
+
+#[test]
+fn test_specific_combat_maneuvers_stats() {
+    // 1. Mordida / Bite (Geral)
+    let bite = find_maneuver("Bite").expect("Bite deve ser encontrada");
+    assert_eq!(bite.id, "bite");
+    assert_eq!(bite.category, ManeuverCategory::General);
+    assert_eq!(bite.difficulty, "5");
+    assert_eq!(bite.actions, 1);
+    assert_eq!(bite.damage, "Strength + 1 / B or L");
+
+    // 2. Golpe Baixo / Low Blow (Luta Suja)
+    let low_blow = find_maneuver("Low Blow").expect("Low Blow deve ser encontrada");
+    assert_eq!(low_blow.id, "low_blow");
+    assert_eq!(low_blow.category, ManeuverCategory::DirtyFighting);
+    assert_eq!(low_blow.difficulty, "7");
+    assert_eq!(low_blow.damage, "Strength + Stun / B or L");
+
+    // 3. Chute Giratório / Spinning Kick (Artes Marciais)
+    let spinning = find_maneuver("Spinning Kick").expect("Spinning Kick deve ser encontrada");
+    assert_eq!(spinning.id, "spinning_kick");
+    assert_eq!(spinning.category, ManeuverCategory::MartialArts);
+    assert_eq!(spinning.difficulty, "6");
+    assert_eq!(spinning.damage, "Strength + 3 / B");
+
+    // 4. Golpe Mortal / Death Strike (Artes Marciais)
+    let death = find_maneuver("Death Strike").expect("Death Strike deve ser encontrada");
+    assert_eq!(death.id, "death_strike");
+    assert_eq!(death.category, ManeuverCategory::MartialArts);
+    assert_eq!(death.difficulty, "5");
+    assert_eq!(death.damage, "Strength + 2 / L");
+
+    // 5. Rasteira Cauda de Dragão / Dragon Tail Sweep (Artes Marciais)
+    let dragon = find_maneuver("Dragon Tail Sweep").expect("Dragon Tail Sweep deve ser encontrada");
+    assert_eq!(dragon.id, "dragon_tail_sweep");
+    assert_eq!(dragon.category, ManeuverCategory::MartialArts);
+    assert_eq!(dragon.difficulty, "8");
+    assert_eq!(dragon.damage, "Opponent’s Strength / B");
+}
+
+#[test]
+fn test_combat_maneuvers_bilingual_lookup() {
+    // Busca em PT
+    assert_eq!(find_maneuver("Mordida").unwrap().id, "bite");
+    assert_eq!(find_maneuver("Chute Giratório").unwrap().id, "spinning_kick");
+    assert_eq!(find_maneuver("Golpe Mortal").unwrap().id, "death_strike");
+    assert_eq!(find_maneuver("Golpe Vital").unwrap().id, "vital_strike");
+    assert_eq!(find_maneuver("Rasteira Cauda de Dragão").unwrap().id, "dragon_tail_sweep");
+
+    // Busca em EN
+    assert_eq!(find_maneuver("Bite").unwrap().id, "bite");
+    assert_eq!(find_maneuver("Spinning Kick").unwrap().id, "spinning_kick");
+    assert_eq!(find_maneuver("Death Strike").unwrap().id, "death_strike");
+    assert_eq!(find_maneuver("Vital Strike").unwrap().id, "vital_strike");
+    assert_eq!(find_maneuver("Dragon Tail Sweep").unwrap().id, "dragon_tail_sweep");
+
+    // Aliases e apelidos de manobras
+    assert_eq!(find_maneuver("Chute Trovão").unwrap().id, "thunder_kick");
+    assert_eq!(find_maneuver("Soco Trovão").unwrap().id, "punch");
+    assert_eq!(find_maneuver("Thunder Punch").unwrap().id, "punch");
+    assert_eq!(find_maneuver("Roundhouse").unwrap().id, "spinning_kick");
+    assert_eq!(find_maneuver("Chute Circular").unwrap().id, "spinning_kick");
+    assert_eq!(find_maneuver("Strike Vital Point").unwrap().id, "vital_strike");
+    assert_eq!(find_maneuver("Nerve Strike").unwrap().id, "nerve_strike");
+    assert_eq!(find_maneuver("Ponto de Pressão").unwrap().id, "nerve_strike");
+}
+
+#[test]
+fn test_thunder_punch_mage_trick_canonical_box() {
+    let trick = &THUNDER_PUNCH_TRICK;
+    assert_eq!(trick.id, "thunder_punch");
+    assert_eq!(trick.page_ref, "M20, p. 449");
+    assert_eq!(trick.title(Language::PtBr), "Truque de Mago: O Golpe Trovão");
+    assert_eq!(trick.title(Language::EnUs), "Mage Trick: The Thunder Punch");
+
+    assert_eq!(trick.spheres_summary(Language::EnUs), "Correspondence 1, Entropy 1-2, Forces 2, Life 3, Mind 2, Matter 2, Prime 2-3, or Time 2");
+    assert_eq!(trick.spheres_summary(Language::PtBr), "Correspondência 1, Entropia 1-2, Forças 2, Vida 3, Mente 2, Matéria 2, Primórdio 2-3 ou Tempo 2");
+
+    assert_eq!(trick.difficulty_rule(Language::EnUs), "Each success reduces attack difficulty by -1 (maximum adjustment: -3)");
+    assert_eq!(trick.difficulty_rule(Language::PtBr), "Cada sucesso reduz a dificuldade do ataque em -1 (ajuste máximo: -3)");
+
+    assert_eq!(trick.damage_rule(Language::EnUs), "Coincidental: Bashing damage. Life 3 or Prime 3: Aggravated damage (Pattern assault). Vulgar if visibly disproportionate to physique.");
+    assert_eq!(trick.damage_rule(Language::PtBr), "Coincidente: Dano Contundente. Vida 3 ou Primórdio 3: Dano Agravado (ataque ao Padrão). Vulgar se visivelmente desproporcional à compleição.");
+
+    assert_eq!(trick.backlash_rule(Language::EnUs), "If target soaks ALL damage, attacker takes the full intended damage (Bashing; Lethal if striking walls/steel armor).");
+    assert_eq!(trick.backlash_rule(Language::PtBr), "Se o alvo absorver TODO o dano, o próprio mago sofre o dano pretendido (Contundente; Letal contra paredes/armadura de aço).");
+
+    assert_eq!(trick.paragraphs(Language::EnUs).len(), 3);
+    assert_eq!(trick.paragraphs(Language::PtBr).len(), 3);
+    assert_eq!(trick.sphere_tags(Language::EnUs).len(), 8);
+    assert_eq!(trick.sphere_tags(Language::PtBr).len(), 8);
+
+    // Verificação de termos chave nos parágrafos canônicos
+    assert!(trick.paragraphs(Language::EnUs)[0].contains("Correspondence 1"));
+    assert!(trick.paragraphs(Language::EnUs)[0].contains("maximum adjustment of -3"));
+    assert!(trick.paragraphs(Language::EnUs)[1].contains("Life 3 or Prime 3 Pattern assault"));
+    assert!(trick.paragraphs(Language::EnUs)[2].contains("If the target manages to soak every level of damage"));
+
+    assert!(trick.paragraphs(Language::PtBr)[0].contains("Correspondência 1"));
+    assert!(trick.paragraphs(Language::PtBr)[0].contains("ajuste máximo de -3"));
+    assert!(trick.paragraphs(Language::PtBr)[1].contains("Vida 3 ou Primórdio 3"));
+    assert!(trick.paragraphs(Language::PtBr)[2].contains("Se o alvo conseguir absorver cada nível de dano"));
+}
+
+#[test]
+fn test_do_special_techniques_stats_and_lookups() {
+    // 1. Arrow Cutting / Aparar Flechas
+    let arrow = find_maneuver("Arrow Cutting").expect("Arrow Cutting deve ser encontrada");
+    assert_eq!(arrow.id, "arrow_cutting");
+    assert_eq!(arrow.category, ManeuverCategory::Do);
+    assert_eq!(arrow.difficulty, "7 (deflect) / 9 (catch & throw)");
+    assert_eq!(arrow.damage, "As Weapon");
+
+    // 2. Hurricane Throw / Arremesso Furacão
+    let hurricane = find_maneuver("Hurricane Throw").expect("Hurricane Throw deve ser encontrada");
+    assert_eq!(hurricane.id, "hurricane_throw");
+    assert_eq!(hurricane.difficulty, "8");
+    assert_eq!(hurricane.damage, "Strength + 3 + successes / B");
+
+    // 3. Iron Shirt / Camisa de Ferro
+    let iron_shirt = find_maneuver("Iron Shirt").expect("Iron Shirt deve ser encontrada");
+    assert_eq!(iron_shirt.id, "iron_shirt");
+    assert_eq!(iron_shirt.difficulty, "N/A");
+    assert_eq!(iron_shirt.damage, "N/A (Soak Bonus)");
+    assert_eq!(iron_shirt.actions, 0);
+    assert!(iron_shirt.roll_pt.contains("absorção"));
+
+    // 4. Kiaijutsu / Grito de Ferro
+    let kiai = find_maneuver("Kiaijutsu").expect("Kiaijutsu deve ser encontrada");
+    assert_eq!(kiai.id, "kiaijutsu");
+    assert_eq!(kiai.difficulty, "7 / Willpower + 3 / 8");
+    assert_eq!(kiai.difficulty(Language::EnUs), "7 / Willpower + 3 / 8");
+    assert_eq!(kiai.difficulty(Language::PtBr), "7 / Vontade + 3 / 8");
+    assert!(kiai.description(Language::PtBr).contains("Vontade do alvo + 3"));
+    assert!(kiai.damage_pt.contains("Especial"));
+
+    // 5. Plum Flower Blossom / Desabrochar da Flor de Ameixeira
+    let plum = find_maneuver("Desabrochar da Flor de Ameixeira").expect("Desabrochar da Flor de Ameixeira deve ser encontrada");
+    assert_eq!(plum.id, "plum_flower_blossom");
+    assert_eq!(plum.difficulty, "6 (or 7 if attack)");
+    assert!(plum.damage_pt.contains("dados de dano"));
+
+    // 6. Soft Fist / Punho Suave (Jou Chuan)
+    let soft_fist = find_maneuver("Soft Fist").expect("Soft Fist deve ser encontrada");
+    assert_eq!(soft_fist.id, "soft_fist");
+    assert_eq!(soft_fist.difficulty, "7");
+    assert!(soft_fist.damage_pt.contains("Força do atacante"));
+    assert!(soft_fist.damage.contains("Attacker's Strength"));
+
+    // 7. Ten Thousand Weapons / Dez Mil Armas
+    let weapons = find_maneuver("Dez Mil Armas").expect("Dez Mil Armas deve ser encontrada");
+    assert_eq!(weapons.id, "ten_thousand_weapons");
+    assert_eq!(weapons.difficulty, "As weapon / 6");
+    assert_eq!(weapons.damage, "Do dice (B) / Lethal / +1 die (L)");
+
+    // 8. Typhoon Kick / Chute Tufão
+    let typhoon = find_maneuver("Typhoon Kick").expect("Typhoon Kick deve ser encontrada");
+    assert_eq!(typhoon.id, "typhoon_kick");
+    assert_eq!(typhoon.difficulty, "8");
+    assert!(typhoon.damage_pt.contains("Força + 5 + sucessos / C ou L"));
+
+    // 9. Weapon Art / Arte das Armas
+    let weapon_art = find_maneuver("Arte das Armas").expect("Arte das Armas deve ser encontrada");
+    assert_eq!(weapon_art.id, "weapon_art");
+    assert_eq!(weapon_art.difficulty, "Normal - 1");
+    assert!(weapon_art.damage_pt.contains("Conforme Arma"));
+
+    // Teste de busca bilíngue direta
+    assert_eq!(find_maneuver("Aparar Flechas").unwrap().id, "arrow_cutting");
+    assert_eq!(find_maneuver("Camisa de Ferro").unwrap().id, "iron_shirt");
+    assert_eq!(find_maneuver("Grito de Ferro").unwrap().id, "kiaijutsu");
+    assert_eq!(find_maneuver("Flor de Ameixeira").unwrap().id, "plum_flower_blossom");
+    assert_eq!(find_maneuver("Punho Suave").unwrap().id, "soft_fist");
+    assert_eq!(find_maneuver("Jou Chuan").unwrap().id, "soft_fist");
+    assert_eq!(find_maneuver("Chute Tufão").unwrap().id, "typhoon_kick");
+
+    // Conversão de Dô CombatManeuver para WeaponItem
+    let kiai_item = kiai.to_weapon_item(Language::PtBr);
+    assert_eq!(kiai_item.name, "Kiaijutsu (Grito de Ferro)");
+    assert_eq!(kiai_item.diff, "7 / Vontade + 3 / 8");
+    assert_eq!(kiai_item.range, "Corpo a corpo");
+
+    let kiai_item_en = kiai.to_weapon_item(Language::EnUs);
+    assert_eq!(kiai_item_en.name, "Kiaijutsu (Iron Shout)");
+    assert_eq!(kiai_item_en.diff, "7 / Willpower + 3 / 8");
+    assert_eq!(kiai_item_en.range, "Close");
+}
+
+#[test]
+fn test_eight_limbs_and_do_rules_canonical_articles() {
+    // 1. Artigo dos Oito Membros da Maestria (Eight Limbs of Expertise)
+    let limbs_art = &EIGHT_LIMBS_ARTICLE;
+    assert_eq!(limbs_art.id, "eight_limbs");
+    assert_eq!(limbs_art.page_ref, "M20 Ch. 6, p. 580");
+    assert_eq!(limbs_art.title(Language::PtBr), "Os Oito Membros da Maestria");
+    assert_eq!(limbs_art.title(Language::EnUs), "Eight Limbs of Expertise");
+
+    assert_eq!(limbs_art.limbs.len(), 8, "Devem existir exatamente 8 Membros de Dô");
+
+    let limb1 = &limbs_art.limbs[0];
+    assert_eq!(limb1.name, "Dharmamukti");
+    assert_eq!(limb1.title(Language::PtBr), "Dharmamukti (A Mão Unida do Dharma)");
+    assert_eq!(limb1.title(Language::EnUs), "Dharmamukti (The Dharma Clasped Hand)");
+    assert!(limb1.abilities(Language::PtBr).contains(&"Atletismo"));
+    assert!(limb1.abilities(Language::EnUs).contains(&"Athletics"));
+
+    let limb2 = &limbs_art.limbs[1];
+    assert_eq!(limb2.name, "Dhyana");
+    assert_eq!(limb2.title(Language::PtBr), "Dhyana (O Membro da Meditação)");
+    assert!(limb2.abilities(Language::PtBr).contains(&"Consciência"));
+    assert!(limb2.abilities(Language::PtBr).contains(&"Meditação"));
+    assert!(limb2.abilities(Language::EnUs).contains(&"Awareness"));
+    assert!(limb2.abilities(Language::EnUs).contains(&"Meditation"));
+
+    let limb3 = &limbs_art.limbs[2];
+    assert_eq!(limb3.name, "Jivahasta");
+    assert_eq!(limb3.title(Language::PtBr), "Jivahasta (A Mão da Vida)");
+    assert!(limb3.abilities(Language::PtBr).iter().any(|a| a.contains("Medicina")));
+    assert!(limb3.abilities(Language::EnUs).iter().any(|a| a.contains("Medicine")));
+
+    let limb4 = &limbs_art.limbs[3];
+    assert_eq!(limb4.name, "Karma");
+    assert_eq!(limb4.title(Language::PtBr), "Karma (Devoção ao Labor Humilde)");
+    assert!(limb4.abilities(Language::PtBr).iter().any(|a| a.contains("Etiqueta")));
+    assert!(limb4.abilities(Language::EnUs).iter().any(|a| a.contains("Etiquette")));
+
+    let limb5 = &limbs_art.limbs[4];
+    assert_eq!(limb5.name, "Prajna");
+    assert_eq!(limb5.title(Language::PtBr), "Prajna (Estudo da Ética e Filosofia)");
+    assert!(limb5.abilities(Language::PtBr).iter().any(|a| a.contains("Cosmologia")));
+    assert!(limb5.abilities(Language::EnUs).iter().any(|a| a.contains("Cosmology")));
+
+    let limb6 = &limbs_art.limbs[5];
+    assert_eq!(limb6.name, "Shastamarga");
+    assert_eq!(limb6.title(Language::PtBr), "Shastamarga (O Caminho das Armas)");
+    assert!(limb6.abilities(Language::PtBr).contains(&"Armas Brancas"));
+    assert!(limb6.abilities(Language::EnUs).contains(&"Melee"));
+
+    let limb7 = &limbs_art.limbs[6];
+    assert_eq!(limb7.name, "Sunyakaya");
+    assert_eq!(limb7.title(Language::PtBr), "Sunyakaya (O Membro do Corpo Vazio)");
+    assert!(limb7.abilities(Language::PtBr).contains(&"Furtividade"));
+    assert!(limb7.abilities(Language::EnUs).contains(&"Stealth"));
+
+    let limb8 = &limbs_art.limbs[7];
+    assert_eq!(limb8.name, "Tricanmarga");
+    assert_eq!(limb8.title(Language::PtBr), "Tricanmarga (O Caminho da Tripla Luta)");
+    assert!(limb8.abilities(Language::PtBr).contains(&"Acrobacia"));
+    assert!(limb8.abilities(Language::EnUs).contains(&"Acrobatics"));
+
+    // Validação da regra opcional: O Caminho Pacífico (The Peaceful Way)
+    assert!(limbs_art.peaceful_way_rule_pt.contains("Força de Vontade"));
+    assert!(limbs_art.peaceful_way_rule_pt.contains("dificuldade 8"));
+    assert!(limbs_art.peaceful_way_rule.contains("Willpower"));
+    assert!(limbs_art.peaceful_way_rule.contains("difficulty 8"));
+
+    // 2. Artigo de Regras & Treino Canônico de Dô (Do Rules & Training)
+    let rules_art = &DO_RULES_ARTICLE;
+    assert_eq!(rules_art.id, "do_rules");
+    assert_eq!(rules_art.page_ref, "M20 Ch. 6, pp. 580-581");
+    assert_eq!(rules_art.title(Language::PtBr), "Dô: O Caminho da Vida & Destreza Marcial");
+    assert_eq!(rules_art.title(Language::EnUs), "Do: The Way of Life & Fighting Prowess");
+
+    // Validação do compromisso diário (1 hora por dia)
+    assert!(rules_art.commitment_pt.contains("uma hora"));
+    assert!(rules_art.commitment.contains("one hour"));
+
+    // 7 Vantagens e peculiaridades de Dô
+    assert_eq!(rules_art.advantages.len(), 7);
+    let adv_codes: Vec<&str> = rules_art.advantages.iter().map(|a| a.code).collect();
+    assert!(adv_codes.contains(&"secret_teachings"));
+    assert!(adv_codes.contains(&"flexibility"));
+    assert!(adv_codes.contains(&"precision"));
+    assert!(adv_codes.contains(&"martial_mastery"));
+    assert!(adv_codes.contains(&"differences_in_mastery"));
+    assert!(adv_codes.contains(&"lethal_damage"));
+    assert!(adv_codes.contains(&"hardened_defense"));
+
+    // Verificação de conteúdo em português
+    let precision = rules_art.advantages.iter().find(|a| a.code == "precision").unwrap();
+    assert_eq!(precision.title(Language::PtBr), "Precisão (Vantagem de Bem Treinado)");
+    assert!(precision.rule(Language::PtBr).contains("-1"));
+    assert!(precision.rule(Language::EnUs).contains("-1"));
+
+    let hardened = rules_art.advantages.iter().find(|a| a.code == "hardened_defense").unwrap();
+    assert_eq!(hardened.title(Language::PtBr), "Defesa Endurecida");
+    assert!(hardened.rule(Language::PtBr).contains("mãos nuas"));
+    assert!(hardened.rule(Language::EnUs).contains("bare palms"));
+}

@@ -6,56 +6,11 @@ use super::models::{CharacterData, CharacterSummary, QuizQuestionEntry, SheetFol
 // ==========================================
 
 #[cfg(feature = "ssr")]
-fn parse_summary_or_fallback(
-    id: &str,
-    name: &str,
-    summary_opt: Option<&str>,
-    fallback_data: &str,
-    sheet_type: &str,
-    updated_at: &str,
-    is_public: bool,
-    is_owner: bool,
-    to_backfill: &mut Vec<(String, String)>,
-) -> CharacterSummary {
-    if let Some(summary_str) = summary_opt.filter(|s| !s.trim().is_empty()) {
-        if let Ok(mut s) = serde_json::from_str::<CharacterSummary>(summary_str) {
-            s.id = id.to_string();
-            s.updated_at = updated_at.to_string();
-            s.is_public = is_public;
-            s.is_owner = is_owner;
-            if !sheet_type.is_empty() {
-                s.sheet_type = sheet_type.to_string();
-            }
-            return s;
-        }
-    }
-
-    // Fallback para linhas legadas que ainda não possuem summary_json
-    if let Some(mut data) = CharacterData::parse_from_db(id, fallback_data) {
-        if data.id.is_empty() {
-            data.id = id.to_string();
-        }
-        if data.name.is_empty() || (data.name == "Novo Mago" && !name.is_empty() && name != "Novo Mago") {
-            data.set_display_name(name);
-        }
-        data.sanitize();
-        if (data.sheet_type.is_empty() || data.sheet_type == "mage") && !sheet_type.is_empty() && sheet_type != "mage" {
-            data.sheet_type = sheet_type.to_string();
-        }
-        let summary = data.to_summary(updated_at.to_string(), is_public, is_owner);
-        if let Ok(s_json) = serde_json::to_string(&summary) {
-            to_backfill.push((id.to_string(), s_json));
-        }
-        summary
-    } else {
-        let clean_name = if name.trim().is_empty() { "Novo Mago".to_string() } else { name.to_string() };
-        CharacterSummary::fallback(id.to_string(), clean_name, updated_at.to_string(), is_public, is_owner)
-    }
-}
+use crate::repositories::{SheetRepository, FolderRepository, AclRepository};
 
 #[server(endpoint = "get_sheets")]
 pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
-    use sqlx::{SqlitePool, Row};
+    use sqlx::SqlitePool;
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
         crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in get_sheets", None);
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
@@ -69,60 +24,15 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
     let user_id = auth_user_id.unwrap_or_default();
 
     let start = std::time::Instant::now();
-    let rows = sqlx::query(
-        "SELECT id, name, summary_json, is_public, updated_at, folder_id, sheet_type, \
-         CASE WHEN summary_json IS NULL OR summary_json = '' THEN data ELSE '' END as fallback_data \
-         FROM character_sheets WHERE user_id = ? ORDER BY updated_at DESC"
-    )
-        .bind(&user_id)
-        .fetch_all(&pool)
-        .await
-        .map_err(|e: sqlx::Error| {
-            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to fetch sheets from DB", Some(&e.to_string()));
-            ServerFnError::new("Falha ao consultar fichas. Tente novamente mais tarde.")
-        })?;
-
-    let count = rows.len();
-    let mut to_backfill: Vec<(String, String)> = Vec::new();
-
-    let summaries: Vec<CharacterSummary> = rows.into_iter().map(|row| {
-        let id: String = row.get("id");
-        let name: String = row.get("name");
-        let summary_opt: Option<String> = row.try_get("summary_json").unwrap_or(None);
-        let fallback_data: String = row.try_get("fallback_data").unwrap_or_default();
-        let is_public: bool = row.get::<i32, _>("is_public") == 1;
-        let updated_at: String = row.get("updated_at");
-        let sheet_type = row.try_get::<String, _>("sheet_type").unwrap_or_else(|_| "mage".to_string());
-        let folder_id = row.try_get::<Option<String>, _>("folder_id").unwrap_or(None);
-
-        let mut summary = parse_summary_or_fallback(
-            &id,
-            &name,
-            summary_opt.as_deref(),
-            &fallback_data,
-            &sheet_type,
-            &updated_at,
-            is_public,
-            true,
-            &mut to_backfill,
-        );
-        summary.folder_id = folder_id;
-        summary
-    }).collect();
-
-    // Auto-migra em segundo plano as fichas legadas que ainda não tinham summary_json
-    for (sheet_id, s_json) in to_backfill {
-        let _ = sqlx::query("UPDATE character_sheets SET summary_json = ? WHERE id = ?")
-            .bind(s_json)
-            .bind(sheet_id)
-            .execute(&pool)
-            .await;
-    }
+    let summaries = SheetRepository::list_by_user(&pool, &user_id).await.map_err(|e| {
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to fetch sheets from DB", Some(&e.to_string()));
+        ServerFnError::new("Falha ao consultar fichas. Tente novamente mais tarde.")
+    })?;
 
     crate::logging::server::write_log(
         crate::logging::LogCategory::Database,
         "INFO",
-        &format!("SELECT character_sheets: retornou {} fichas do usuário '{}' em {}ms (otimizado via summary_json)", count, user_id, start.elapsed().as_millis()),
+        &format!("SELECT character_sheets: retornou {} fichas do usuário '{}' em {}ms (otimizado via summary_json)", summaries.len(), user_id, start.elapsed().as_millis()),
         None,
     );
 
@@ -131,7 +41,7 @@ pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
 
 #[server(endpoint = "get_public_sheets")]
 pub async fn get_public_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
-    use sqlx::{SqlitePool, Row};
+    use sqlx::SqlitePool;
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
         crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in get_public_sheets", None);
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
@@ -140,56 +50,15 @@ pub async fn get_public_sheets() -> Result<Vec<CharacterSummary>, ServerFnError>
     let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
     let start = std::time::Instant::now();
 
-    let rows = sqlx::query(
-        "SELECT id, user_id, name, summary_json, sheet_type, is_public, updated_at, \
-         CASE WHEN summary_json IS NULL OR summary_json = '' THEN data ELSE '' END as fallback_data \
-         FROM character_sheets WHERE is_public = 1 ORDER BY updated_at DESC LIMIT 100"
-    )
-        .fetch_all(&pool)
-        .await
-        .map_err(|e: sqlx::Error| {
-            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to fetch public sheets from DB", Some(&e.to_string()));
-            ServerFnError::new("Falha ao consultar fichas públicas. Tente novamente mais tarde.")
-        })?;
-
-    let count = rows.len();
-    let mut to_backfill: Vec<(String, String)> = Vec::new();
-
-    let summaries: Vec<CharacterSummary> = rows.into_iter().map(|row| {
-        let id: String = row.get("id");
-        let owner_id: Option<String> = row.get("user_id");
-        let name: String = row.get("name");
-        let summary_opt: Option<String> = row.try_get("summary_json").unwrap_or(None);
-        let fallback_data: String = row.try_get("fallback_data").unwrap_or_default();
-        let updated_at: String = row.get("updated_at");
-        let sheet_type = row.try_get::<String, _>("sheet_type").unwrap_or_else(|_| "mage".to_string());
-        let is_owner = auth_user_id.is_some() && auth_user_id == owner_id;
-
-        parse_summary_or_fallback(
-            &id,
-            &name,
-            summary_opt.as_deref(),
-            &fallback_data,
-            &sheet_type,
-            &updated_at,
-            true,
-            is_owner,
-            &mut to_backfill,
-        )
-    }).collect();
-
-    for (sheet_id, s_json) in to_backfill {
-        let _ = sqlx::query("UPDATE character_sheets SET summary_json = ? WHERE id = ?")
-            .bind(s_json)
-            .bind(sheet_id)
-            .execute(&pool)
-            .await;
-    }
+    let summaries = SheetRepository::list_public(&pool, auth_user_id.as_deref()).await.map_err(|e| {
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to fetch public sheets from DB", Some(&e.to_string()));
+        ServerFnError::new("Falha ao consultar fichas públicas. Tente novamente mais tarde.")
+    })?;
 
     crate::logging::server::write_log(
         crate::logging::LogCategory::Database,
         "INFO",
-        &format!("SELECT public character_sheets: retornou {} fichas em {}ms (otimizado via summary_json)", count, start.elapsed().as_millis()),
+        &format!("SELECT public character_sheets: retornou {} fichas em {}ms (otimizado via summary_json)", summaries.len(), start.elapsed().as_millis()),
         None,
     );
 
@@ -202,20 +71,18 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
         return Err(ServerFnError::new("ID da ficha não fornecido"));
     }
 
-    use sqlx::{SqlitePool, Row};
+    use sqlx::SqlitePool;
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
         crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in get_sheet", Some(&format!("id={}", id)));
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
     })?;
 
     let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
-
     let start = std::time::Instant::now();
-    let row = sqlx::query("SELECT user_id, room_id, data, sheet_type, is_public FROM character_sheets WHERE id = ?")
-        .bind(&id)
-        .fetch_optional(&pool)
+
+    let (sheet_user_id, room_id, data_json, sheet_type_db, is_public) = SheetRepository::find_raw_by_id(&pool, &id)
         .await
-        .map_err(|e: sqlx::Error| {
+        .map_err(|e| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Error querying sheet {}", id), Some(&e.to_string()));
             ServerFnError::new("Erro ao buscar ficha no banco de dados.")
         })?
@@ -224,17 +91,10 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
             ServerFnError::new(format!("Ficha com ID '{}' não encontrada", id))
         })?;
 
-    let sheet_user_id: Option<String> = row.get("user_id");
-    let room_id: Option<String> = row.get("room_id");
-    let sheet_type_db = row.try_get::<String, _>("sheet_type").unwrap_or_else(|_| "mage".to_string());
-    let is_public: bool = row.get::<i32, _>("is_public") == 1;
-
     let is_owner = auth_user_id.is_some() && auth_user_id == sheet_user_id;
     let mut is_gm = false;
     if let (Some(u_id), Some(r_id)) = (&auth_user_id, &room_id) {
-        if let Ok(Some(room)) = sqlx::query("SELECT gm_id FROM rooms WHERE id = ?").bind(r_id).fetch_optional(&pool).await {
-            is_gm = room.get::<String, _>("gm_id") == *u_id;
-        }
+        is_gm = SheetRepository::check_room_gm(&pool, r_id, u_id).await.unwrap_or(false);
     }
 
     // Validação de Permissão de Leitura
@@ -242,7 +102,6 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
         return Err(ServerFnError::new("Permissão negada: Esta ficha é privada e pertence a outro usuário."));
     }
 
-    let data_json: String = row.get("data");
     let mut data: CharacterData = match CharacterData::parse_from_db(&id, &data_json) {
         Some(d) => d,
         None => {
@@ -263,14 +122,8 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
     data.sanitize();
 
     // Carrega respostas relacionais salvas na tabela character_quiz_answers
-    if let Ok(quiz_rows) = sqlx::query("SELECT question_id, answer FROM character_quiz_answers WHERE character_id = ?")
-        .bind(&id)
-        .fetch_all(&pool)
-        .await
-    {
-        for r in quiz_rows {
-            let q_id: String = r.get("question_id");
-            let ans: String = r.get("answer");
+    if let Ok(quiz_rows) = SheetRepository::find_quiz_answers(&pool, &id).await {
+        for (q_id, ans) in quiz_rows {
             if let Some(entry) = data.quiz_data.entries.iter_mut().find(|e| e.id == q_id) {
                 entry.answer = ans;
             }
@@ -325,47 +178,12 @@ pub fn validate_image_magic_bytes(bytes: &[u8]) -> Result<(&'static str, &'stati
 
 #[cfg(feature = "ssr")]
 async fn verify_sheet_write_permission(pool: &sqlx::SqlitePool, sheet_id: &str) -> Result<(), ServerFnError> {
-    use sqlx::Row;
     let auth_user_id = crate::auth::get_auth_user_id().await.map_err(|e| ServerFnError::new(e.to_string()))?;
-
-    let row = sqlx::query("SELECT user_id, room_id FROM character_sheets WHERE id = ?")
-        .bind(sheet_id)
-        .fetch_optional(pool)
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
-
-    if let Some(r) = row {
-        let sheet_owner: Option<String> = r.get("user_id");
-        let room_id: Option<String> = r.get("room_id");
-
-        // If sheet has an owner, verify if caller is owner or room GM
-        if let Some(owner_id) = sheet_owner {
-            if let Some(user_id) = auth_user_id {
-                if user_id == owner_id {
-                    return Ok(());
-                }
-
-                // Check if user is GM of the room
-                if let Some(r_id) = room_id {
-                    let is_gm = sqlx::query("SELECT 1 FROM rooms WHERE id = ? AND gm_id = ?")
-                        .bind(r_id)
-                        .bind(&user_id)
-                        .fetch_optional(pool)
-                        .await
-                        .map_err(|e| ServerFnError::new(e.to_string()))?;
-                    if is_gm.is_some() {
-                        return Ok(());
-                    }
-                }
-
-                return Err(ServerFnError::new("Permissão negada: Você não é o proprietário desta ficha"));
-            } else {
-                return Err(ServerFnError::new("Autenticação necessária para alterar esta ficha"));
-            }
-        }
+    match SheetRepository::verify_write_permission(pool, sheet_id, auth_user_id.as_deref()).await {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(msg)) => Err(ServerFnError::new(msg)),
+        Err(e) => Err(ServerFnError::new(e.to_string())),
     }
-
-    Ok(())
 }
 
 #[server(endpoint = "import_sheet")]
@@ -401,16 +219,11 @@ pub async fn import_sheet(data: CharacterData) -> Result<String, ServerFnError> 
         imported_data.labels.insert(crate::state::keys::HEADER_NOME.to_string(), final_name.clone());
 
         let s_type = imported_data.sheet_type.clone();
-
         let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
 
         // Limite de cota de 50 fichas por conta
         if let Some(ref uid) = auth_user_id {
-            let count = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM character_sheets WHERE user_id = ?")
-                .bind(uid)
-                .fetch_one(&pool)
-                .await
-                .unwrap_or(0);
+            let count = SheetRepository::count_by_user(&pool, uid).await.unwrap_or(0);
             if count >= 50 {
                 return Err(ServerFnError::new("Limite de 50 fichas por conta atingido. Exclua fichas antigas para importar novas."));
             }
@@ -429,19 +242,21 @@ pub async fn import_sheet(data: CharacterData) -> Result<String, ServerFnError> 
         let summary = imported_data.to_summary(String::new(), false, true);
         let summary_json = serde_json::to_string(&summary).unwrap_or_default();
 
-        sqlx::query("INSERT INTO character_sheets (id, user_id, name, data, sheet_type, summary_json) VALUES (?, ?, ?, ?, ?, ?)")
-            .bind(&new_id)
-            .bind(auth_user_id)
-            .bind(&final_name)
-            .bind(data_json)
-            .bind(&s_type)
-            .bind(&summary_json)
-            .execute(&pool)
-            .await
-            .map_err(|e: sqlx::Error| {
-                crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to insert imported sheet {}", new_id), Some(&e.to_string()));
-                ServerFnError::new("Falha ao salvar ficha importada no banco de dados.")
-            })?;
+        SheetRepository::create(
+            &pool,
+            &new_id,
+            auth_user_id.as_deref(),
+            &final_name,
+            &data_json,
+            &s_type,
+            None,
+            &summary_json,
+        )
+        .await
+        .map_err(|e| {
+            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to insert imported sheet {}", new_id), Some(&e.to_string()));
+            ServerFnError::new("Falha ao salvar ficha importada no banco de dados.")
+        })?;
 
         crate::logging::server::write_log(
             crate::logging::LogCategory::UserActions,
@@ -481,24 +296,18 @@ pub async fn create_sheet(
 
     // Limite de cota de 50 fichas por conta
     if let Some(ref uid) = auth_user_id {
-        let count = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM character_sheets WHERE user_id = ?")
-            .bind(uid)
-            .fetch_one(&pool)
-            .await
-            .unwrap_or(0);
+        let count = SheetRepository::count_by_user(&pool, uid).await.unwrap_or(0);
         if count >= 50 {
             return Err(ServerFnError::new("Limite de 50 fichas por conta atingido. Exclua fichas antigas para criar novas."));
         }
     }
 
     let valid_folder_id = if let (Some(uid), Some(fid)) = (&auth_user_id, &folder_id) {
-        let exists = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM sheet_folders WHERE id = ? AND user_id = ?")
-            .bind(fid)
-            .bind(uid)
-            .fetch_one(&pool)
-            .await
-            .unwrap_or(0);
-        if exists > 0 { Some(fid.clone()) } else { None }
+        if SheetRepository::check_folder_exists_for_user(&pool, fid, uid).await.unwrap_or(false) {
+            Some(fid.clone())
+        } else {
+            None
+        }
     } else {
         None
     };
@@ -520,20 +329,21 @@ pub async fn create_sheet(
     let summary = initial_data.to_summary(String::new(), false, true);
     let summary_json = serde_json::to_string(&summary).unwrap_or_default();
 
-    sqlx::query("INSERT INTO character_sheets (id, user_id, name, data, sheet_type, folder_id, summary_json) VALUES (?, ?, ?, ?, ?, ?, ?)")
-        .bind(&id)
-        .bind(auth_user_id)
-        .bind(&resolved_name)
-        .bind(data_json)
-        .bind(&s_type)
-        .bind(valid_folder_id)
-        .bind(&summary_json)
-        .execute(&pool)
-        .await
-        .map_err(|e: sqlx::Error| {
-            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to insert new sheet {}", id), Some(&e.to_string()));
-            ServerFnError::new("Falha ao salvar nova ficha no banco de dados.")
-        })?;
+    SheetRepository::create(
+        &pool,
+        &id,
+        auth_user_id.as_deref(),
+        &resolved_name,
+        &data_json,
+        &s_type,
+        valid_folder_id.as_deref(),
+        &summary_json,
+    )
+    .await
+    .map_err(|e| {
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to insert new sheet {}", id), Some(&e.to_string()));
+        ServerFnError::new("Falha ao salvar nova ficha no banco de dados.")
+    })?;
 
     crate::logging::server::write_log(
         crate::logging::LogCategory::UserActions,
@@ -578,50 +388,31 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
     }
 
     let payload_kb = (data_json.len() as f64) / 1024.0;
-    let is_public_int = if data.is_public { 1 } else { 0 };
     let summary = data.to_summary(String::new(), data.is_public, true);
     let summary_json = serde_json::to_string(&summary).unwrap_or_default();
 
-    let result = sqlx::query("UPDATE character_sheets SET name = ?, data = ?, sheet_type = ?, is_public = ?, summary_json = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
-        .bind(&display_name)
-        .bind(data_json)
-        .bind(&data.sheet_type)
-        .bind(is_public_int)
-        .bind(&summary_json)
-        .bind(&id)
-        .execute(&pool)
-        .await
-        .map_err(|e: sqlx::Error| {
-            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to update sheet {}", id), Some(&e.to_string()));
-            ServerFnError::new("Falha ao atualizar dados da ficha no banco de dados.")
-        })?;
+    let rows_affected = SheetRepository::update(
+        &pool,
+        &id,
+        &display_name,
+        &data_json,
+        &data.sheet_type,
+        data.is_public,
+        &summary_json,
+    )
+    .await
+    .map_err(|e| {
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to update sheet {}", id), Some(&e.to_string()));
+        ServerFnError::new("Falha ao atualizar dados da ficha no banco de dados.")
+    })?;
 
-    if result.rows_affected() == 0 {
+    if rows_affected == 0 {
         crate::logging::server::write_log(crate::logging::LogCategory::Requests, "WARN", &format!("Ficha com ID '{}' não encontrada para atualização", id), None);
         return Err(ServerFnError::new(format!("Ficha com ID '{}' não encontrada para atualização", id)));
     }
 
     // Sincroniza respostas relacionais na tabela character_quiz_answers
-    for entry in &data.quiz_data.entries {
-        let clean_ans = entry.answer.trim();
-        if clean_ans.is_empty() {
-            let _ = sqlx::query("DELETE FROM character_quiz_answers WHERE character_id = ? AND question_id = ?")
-                .bind(&id)
-                .bind(&entry.id)
-                .execute(&pool)
-                .await;
-        } else {
-            let _ = sqlx::query(
-                "INSERT INTO character_quiz_answers (character_id, question_id, answer, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-                 ON CONFLICT(character_id, question_id) DO UPDATE SET answer = excluded.answer, updated_at = CURRENT_TIMESTAMP"
-            )
-            .bind(&id)
-            .bind(&entry.id)
-            .bind(clean_ans)
-            .execute(&pool)
-            .await;
-        }
-    }
+    let _ = SheetRepository::sync_quiz_answers(&pool, &id, &data.quiz_data.entries).await;
 
     crate::logging::server::write_log(
         crate::logging::LogCategory::Database,
@@ -682,18 +473,14 @@ pub async fn set_sheet_visibility(id: String, is_public: bool) -> Result<(), Ser
 
     verify_sheet_write_permission(&pool, &id).await?;
 
-    let is_public_int = if is_public { 1 } else { 0 };
-    let result = sqlx::query("UPDATE character_sheets SET is_public = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
-        .bind(is_public_int)
-        .bind(&id)
-        .execute(&pool)
+    let rows_affected = SheetRepository::set_visibility(&pool, &id, is_public)
         .await
-        .map_err(|e: sqlx::Error| {
+        .map_err(|e| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to update sheet visibility {}", id), Some(&e.to_string()));
             ServerFnError::new("Falha ao atualizar visibilidade no banco de dados.")
         })?;
 
-    if result.rows_affected() == 0 {
+    if rows_affected == 0 {
         return Err(ServerFnError::new(format!("Ficha com ID '{}' não encontrada", id)));
     }
 
@@ -723,16 +510,14 @@ pub async fn delete_sheet(id: String) -> Result<(), ServerFnError> {
     verify_sheet_write_permission(&pool, &id).await?;
 
     let start = std::time::Instant::now();
-    let result = sqlx::query("DELETE FROM character_sheets WHERE id = ?")
-        .bind(&id)
-        .execute(&pool)
+    let rows_affected = SheetRepository::delete(&pool, &id)
         .await
-        .map_err(|e: sqlx::Error| {
+        .map_err(|e| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to delete sheet {}", id), Some(&e.to_string()));
             ServerFnError::new("Falha ao excluir ficha do banco de dados.")
         })?;
 
-    if result.rows_affected() == 0 {
+    if rows_affected == 0 {
         return Err(ServerFnError::new(format!("Ficha com ID '{}' não encontrada", id)));
     }
 
@@ -842,7 +627,7 @@ pub async fn save_uploaded_media(
 
 #[server(endpoint = "get_folders")]
 pub async fn get_folders() -> Result<Vec<SheetFolder>, ServerFnError> {
-    use sqlx::{SqlitePool, Row};
+    use sqlx::SqlitePool;
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
         crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in get_folders", None);
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
@@ -854,36 +639,10 @@ pub async fn get_folders() -> Result<Vec<SheetFolder>, ServerFnError> {
     }
     let user_id = auth_user_id.unwrap_or_default();
 
-    let rows = sqlx::query(
-        "SELECT f.id, f.user_id, f.parent_id, f.name, f.icon, f.color, f.sort_order, f.created_at, 
-                COUNT(s.id) as sheet_count
-         FROM sheet_folders f
-         LEFT JOIN character_sheets s ON s.folder_id = f.id
-         WHERE f.user_id = ?
-         GROUP BY f.id
-         ORDER BY f.sort_order ASC, f.created_at ASC"
-    )
-    .bind(&user_id)
-    .fetch_all(&pool)
-    .await
-    .map_err(|e: sqlx::Error| {
+    let folders = FolderRepository::list_by_user(&pool, &user_id).await.map_err(|e| {
         crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to fetch folders", Some(&e.to_string()));
         ServerFnError::new("Falha ao consultar pastas.")
     })?;
-
-    let folders = rows.into_iter().map(|row| {
-        SheetFolder {
-            id: row.get("id"),
-            user_id: row.get("user_id"),
-            parent_id: row.get("parent_id"),
-            name: row.get("name"),
-            icon: row.get("icon"),
-            color: row.get("color"),
-            sort_order: row.get("sort_order"),
-            sheet_count: row.get::<i64, _>("sheet_count"),
-            created_at: row.get("created_at"),
-        }
-    }).collect();
 
     Ok(folders)
 }
@@ -913,10 +672,7 @@ pub async fn create_folder(
     }
 
     if let Some(ref pid) = parent_id {
-        let parent_owner = sqlx::query_scalar::<_, String>("SELECT user_id FROM sheet_folders WHERE id = ?")
-            .bind(pid)
-            .fetch_optional(&pool)
-            .await
+        let parent_owner = FolderRepository::find_owner_id(&pool, pid).await
             .map_err(|_| ServerFnError::new("Erro ao validar pasta pai."))?;
         match parent_owner {
             Some(owner_id) if owner_id == auth_user_id => {},
@@ -924,11 +680,7 @@ pub async fn create_folder(
         }
     }
 
-    let count = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM sheet_folders WHERE user_id = ?")
-        .bind(&auth_user_id)
-        .fetch_one(&pool)
-        .await
-        .unwrap_or(0);
+    let count = FolderRepository::count_by_user(&pool, &auth_user_id).await.unwrap_or(0);
     if count >= 60 {
         return Err(ServerFnError::new("Limite de 60 pastas por conta atingido."));
     }
@@ -937,19 +689,18 @@ pub async fn create_folder(
     let folder_icon = icon.unwrap_or_else(|| "📁".to_string());
     let folder_color = color.unwrap_or_else(|| "#b89347".to_string());
 
-    sqlx::query(
-        "INSERT INTO sheet_folders (id, user_id, parent_id, name, icon, color, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    FolderRepository::create(
+        &pool,
+        &id,
+        &auth_user_id,
+        parent_id.as_deref(),
+        &clean_name,
+        &folder_icon,
+        &folder_color,
+        count as i32,
     )
-    .bind(&id)
-    .bind(&auth_user_id)
-    .bind(&parent_id)
-    .bind(&clean_name)
-    .bind(&folder_icon)
-    .bind(&folder_color)
-    .bind(count as i32)
-    .execute(&pool)
     .await
-    .map_err(|e: sqlx::Error| {
+    .map_err(|e| {
         crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to create folder", Some(&e.to_string()));
         ServerFnError::new("Falha ao criar pasta no banco de dados.")
     })?;
@@ -977,11 +728,7 @@ pub async fn move_folder(folder_id: String, target_parent_id: Option<String>) ->
     let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None)
         .ok_or_else(|| ServerFnError::new("Acesso negado."))?;
 
-    // 1. Verify folder exists and belongs to user
-    let folder_owner = sqlx::query_scalar::<_, String>("SELECT user_id FROM sheet_folders WHERE id = ?")
-        .bind(&folder_id)
-        .fetch_optional(&pool)
-        .await
+    let folder_owner = FolderRepository::find_owner_id(&pool, &folder_id).await
         .map_err(|_| ServerFnError::new("Erro ao buscar pasta."))?;
 
     match folder_owner {
@@ -989,16 +736,12 @@ pub async fn move_folder(folder_id: String, target_parent_id: Option<String>) ->
         _ => return Err(ServerFnError::new("Pasta não encontrada ou acesso não autorizado.")),
     }
 
-    // 2. If moving to another folder, check self and cycle prevention
     if let Some(ref target_id) = target_parent_id {
         if target_id == &folder_id {
             return Err(ServerFnError::new("Não é possível mover uma pasta para dentro de si mesma."));
         }
 
-        let target_owner = sqlx::query_scalar::<_, String>("SELECT user_id FROM sheet_folders WHERE id = ?")
-            .bind(target_id)
-            .fetch_optional(&pool)
-            .await
+        let target_owner = FolderRepository::find_owner_id(&pool, target_id).await
             .map_err(|_| ServerFnError::new("Erro ao buscar pasta destino."))?;
 
         match target_owner {
@@ -1006,34 +749,16 @@ pub async fn move_folder(folder_id: String, target_parent_id: Option<String>) ->
             _ => return Err(ServerFnError::new("Pasta destino não encontrada ou acesso negado.")),
         }
 
-        // Cycle check: verify if folder_id is an ancestor of target_id
-        let is_descendant = sqlx::query(
-            "WITH RECURSIVE ancestry AS (
-                SELECT id, parent_id FROM sheet_folders WHERE id = ?
-                UNION ALL
-                SELECT f.id, f.parent_id FROM sheet_folders f JOIN ancestry a ON f.id = a.parent_id
-            )
-            SELECT 1 FROM ancestry WHERE id = ? LIMIT 1"
-        )
-        .bind(target_id)
-        .bind(&folder_id)
-        .fetch_optional(&pool)
-        .await
-        .map_err(|_| ServerFnError::new("Erro ao validar hierarquia de pastas."))?;
+        let is_descendant = FolderRepository::is_descendant(&pool, &folder_id, target_id).await
+            .map_err(|_| ServerFnError::new("Erro ao validar hierarquia de pastas."))?;
 
-        if is_descendant.is_some() {
+        if is_descendant {
             return Err(ServerFnError::new("Operação inválida: não é possível mover uma pasta para dentro de uma de suas subpastas."));
         }
     }
 
-    // 3. Update parent_id
-    sqlx::query("UPDATE sheet_folders SET parent_id = ? WHERE id = ? AND user_id = ?")
-        .bind(&target_parent_id)
-        .bind(&folder_id)
-        .bind(&auth_user_id)
-        .execute(&pool)
-        .await
-        .map_err(|e: sqlx::Error| {
+    FolderRepository::move_folder(&pool, &folder_id, target_parent_id.as_deref(), &auth_user_id).await
+        .map_err(|e| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to move folder", Some(&e.to_string()));
             ServerFnError::new("Falha ao mover pasta.")
         })?;
@@ -1062,22 +787,21 @@ pub async fn update_folder(folder_id: String, name: String, icon: Option<String>
     let folder_icon = icon.unwrap_or_else(|| "📁".to_string());
     let folder_color = color.unwrap_or_else(|| "#b89347".to_string());
 
-    let res = sqlx::query(
-        "UPDATE sheet_folders SET name = ?, icon = ?, color = ? WHERE id = ? AND user_id = ?"
+    let rows_affected = FolderRepository::update(
+        &pool,
+        &folder_id,
+        &auth_user_id,
+        &clean_name,
+        &folder_icon,
+        &folder_color,
     )
-    .bind(&clean_name)
-    .bind(&folder_icon)
-    .bind(&folder_color)
-    .bind(&folder_id)
-    .bind(&auth_user_id)
-    .execute(&pool)
     .await
-    .map_err(|e: sqlx::Error| {
+    .map_err(|e| {
         crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to update folder", Some(&e.to_string()));
         ServerFnError::new("Falha ao atualizar pasta.")
     })?;
 
-    if res.rows_affected() == 0 {
+    if rows_affected == 0 {
         return Err(ServerFnError::new("Pasta não encontrada ou acesso não autorizado."));
     }
 
@@ -1094,31 +818,13 @@ pub async fn delete_folder(folder_id: String) -> Result<(), ServerFnError> {
     let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None)
         .ok_or_else(|| ServerFnError::new("Acesso negado."))?;
 
-    // Safely unlink all character sheets in this folder AND all its recursive subfolders to root
-    let _ = sqlx::query(
-        "WITH RECURSIVE subfolders AS (
-            SELECT id FROM sheet_folders WHERE id = ? AND user_id = ?
-            UNION ALL
-            SELECT f.id FROM sheet_folders f JOIN subfolders s ON f.parent_id = s.id
-        )
-        UPDATE character_sheets SET folder_id = NULL WHERE folder_id IN (SELECT id FROM subfolders)"
-    )
-    .bind(&folder_id)
-    .bind(&auth_user_id)
-    .execute(&pool)
-    .await;
-
-    let res = sqlx::query("DELETE FROM sheet_folders WHERE id = ? AND user_id = ?")
-        .bind(&folder_id)
-        .bind(&auth_user_id)
-        .execute(&pool)
-        .await
-        .map_err(|e: sqlx::Error| {
+    let rows_affected = FolderRepository::delete(&pool, &folder_id, &auth_user_id).await
+        .map_err(|e| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to delete folder", Some(&e.to_string()));
             ServerFnError::new("Falha ao excluir pasta.")
         })?;
 
-    if res.rows_affected() == 0 {
+    if rows_affected == 0 {
         return Err(ServerFnError::new("Pasta não encontrada ou acesso não autorizado."));
     }
 
@@ -1132,59 +838,7 @@ pub async fn check_folder_permission_internal(
     user_id: &str,
     required_permission: &str,
 ) -> Result<bool, sqlx::Error> {
-    // 1. Check direct owner
-    let owner = sqlx::query_scalar::<_, String>("SELECT user_id FROM sheet_folders WHERE id = ?")
-        .bind(folder_id)
-        .fetch_optional(pool)
-        .await?;
-
-    if let Some(ref oid) = owner {
-        if oid == user_id {
-            return Ok(true);
-        }
-    } else {
-        return Ok(false);
-    }
-
-    // 2. Recursive walk-up resolution through folder ancestry
-    let row = sqlx::query(
-        "WITH RECURSIVE folder_ancestry AS (
-            SELECT id, parent_id, 0 AS depth
-            FROM sheet_folders WHERE id = ?
-            UNION ALL
-            SELECT f.id, f.parent_id, a.depth + 1
-            FROM sheet_folders f
-            JOIN folder_ancestry a ON f.id = a.parent_id
-        )
-        SELECT acl.permission
-        FROM folder_acls acl
-        JOIN folder_ancestry fa ON acl.folder_id = fa.id
-        WHERE (acl.grantee_type = 'user' AND acl.grantee_id = ?)
-           OR (acl.grantee_type = 'public')
-           OR (acl.grantee_type = 'room' AND acl.grantee_id IN (SELECT room_id FROM room_members WHERE user_id = ?))
-        ORDER BY fa.depth ASC,
-                 CASE acl.permission WHEN 'admin' THEN 3 WHEN 'write' THEN 2 WHEN 'read' THEN 1 ELSE 0 END DESC
-        LIMIT 1"
-    )
-    .bind(folder_id)
-    .bind(user_id)
-    .bind(user_id)
-    .fetch_optional(pool)
-    .await?;
-
-    if let Some(r) = row {
-        use sqlx::Row;
-        let perm: String = r.get("permission");
-        let satisfies = match (required_permission, perm.as_str()) {
-            ("read", "read" | "write" | "admin") => true,
-            ("write", "write" | "admin") => true,
-            ("admin", "admin") => true,
-            _ => false,
-        };
-        return Ok(satisfies);
-    }
-
-    Ok(false)
+    AclRepository::check_folder_permission(pool, folder_id, user_id, required_permission).await
 }
 
 #[server(endpoint = "move_sheet_to_folder")]
@@ -1206,18 +860,14 @@ pub async fn move_sheet_to_folder(sheet_id: String, folder_id: Option<String>) -
         }
     }
 
-    let res = sqlx::query("UPDATE character_sheets SET folder_id = ? WHERE id = ? AND user_id = ?")
-        .bind(&folder_id)
-        .bind(&sheet_id)
-        .bind(&auth_user_id)
-        .execute(&pool)
+    let rows_affected = SheetRepository::move_to_folder(&pool, &sheet_id, folder_id.as_deref(), &auth_user_id)
         .await
-        .map_err(|e: sqlx::Error| {
+        .map_err(|e| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to move sheet to folder", Some(&e.to_string()));
             ServerFnError::new("Falha ao mover ficha para a pasta.")
         })?;
 
-    if res.rows_affected() == 0 {
+    if rows_affected == 0 {
         return Err(ServerFnError::new("Ficha não encontrada ou acesso não autorizado."));
     }
 
@@ -1242,35 +892,11 @@ pub async fn get_folder_acls(folder_id: String) -> Result<Vec<FolderAclEntry>, S
         return Err(ServerFnError::new("Apenas o proprietário ou administrador pode gerenciar permissões da pasta."));
     }
 
-    let rows = sqlx::query(
-        "SELECT a.id, a.folder_id, a.grantee_type, a.grantee_id, a.permission, a.created_at,
-                COALESCE(u.username, r.name, 'Público') as grantee_name
-         FROM folder_acls a
-         LEFT JOIN users u ON a.grantee_type = 'user' AND a.grantee_id = u.id
-         LEFT JOIN rooms r ON a.grantee_type = 'room' AND a.grantee_id = r.id
-         WHERE a.folder_id = ?
-         ORDER BY a.created_at ASC"
-    )
-    .bind(&folder_id)
-    .fetch_all(&pool)
-    .await
-    .map_err(|e: sqlx::Error| {
-        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to fetch folder ACLs", Some(&e.to_string()));
-        ServerFnError::new("Falha ao consultar permissões da pasta.")
-    })?;
-
-    let entries = rows.into_iter().map(|r| {
-        use sqlx::Row;
-        FolderAclEntry {
-            id: r.get("id"),
-            folder_id: r.get("folder_id"),
-            grantee_type: r.get("grantee_type"),
-            grantee_id: r.get("grantee_id"),
-            grantee_name: r.get("grantee_name"),
-            permission: r.get("permission"),
-            created_at: r.get("created_at"),
-        }
-    }).collect();
+    let entries = AclRepository::list_for_folder(&pool, &folder_id).await
+        .map_err(|e| {
+            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to fetch folder ACLs", Some(&e.to_string()));
+            ServerFnError::new("Falha ao consultar permissões da pasta.")
+        })?;
 
     Ok(entries)
 }
@@ -1310,17 +936,11 @@ pub async fn grant_folder_acl(
             if clean_user.is_empty() {
                 return Err(ServerFnError::new("Digite o nome de usuário para compartilhar."));
             }
-            let u_row = sqlx::query("SELECT id, username FROM users WHERE LOWER(username) = LOWER(?)")
-                .bind(clean_user)
-                .fetch_optional(&pool)
-                .await
+            let u_opt = AclRepository::find_user_by_name(&pool, clean_user).await
                 .map_err(|_| ServerFnError::new("Erro ao buscar usuário."))?;
 
-            match u_row {
-                Some(r) => {
-                    use sqlx::Row;
-                    let uid: String = r.get("id");
-                    let uname: String = r.get("username");
+            match u_opt {
+                Some((uid, uname)) => {
                     if uid == auth_user_id {
                         return Err(ServerFnError::new("Você já é o proprietário desta pasta."));
                     }
@@ -1334,20 +954,11 @@ pub async fn grant_folder_acl(
             if clean_room.is_empty() {
                 return Err(ServerFnError::new("Selecione uma sala para compartilhar."));
             }
-            let r_row = sqlx::query("SELECT id, name FROM rooms WHERE id = ? OR code = ?")
-                .bind(clean_room)
-                .bind(clean_room)
-                .fetch_optional(&pool)
-                .await
+            let r_opt = AclRepository::find_room_by_id_or_code(&pool, clean_room).await
                 .map_err(|_| ServerFnError::new("Erro ao buscar sala."))?;
 
-            match r_row {
-                Some(r) => {
-                    use sqlx::Row;
-                    let rid: String = r.get("id");
-                    let rname: String = r.get("name");
-                    (Some(rid), rname)
-                }
+            match r_opt {
+                Some((rid, rname)) => (Some(rid), rname),
                 None => return Err(ServerFnError::new("Sala de crônica não encontrada.")),
             }
         }
@@ -1356,22 +967,12 @@ pub async fn grant_folder_acl(
     };
 
     let acl_id = Uuid::new_v4().to_string();
-    sqlx::query(
-        "INSERT INTO folder_acls (id, folder_id, grantee_type, grantee_id, permission)
-         VALUES (?, ?, ?, ?, ?)
-         ON CONFLICT(folder_id, grantee_type, grantee_id) DO UPDATE SET permission = excluded.permission"
-    )
-    .bind(&acl_id)
-    .bind(&folder_id)
-    .bind(&grantee_type)
-    .bind(&grantee_id)
-    .bind(&clean_perm)
-    .execute(&pool)
-    .await
-    .map_err(|e: sqlx::Error| {
-        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to grant folder ACL", Some(&e.to_string()));
-        ServerFnError::new("Falha ao salvar permissão da pasta.")
-    })?;
+    AclRepository::grant(&pool, &acl_id, &folder_id, &grantee_type, grantee_id.as_deref(), &clean_perm)
+        .await
+        .map_err(|e| {
+            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to grant folder ACL", Some(&e.to_string()));
+            ServerFnError::new("Falha ao salvar permissão da pasta.")
+        })?;
 
     Ok(FolderAclEntry {
         id: acl_id,
@@ -1394,14 +995,8 @@ pub async fn revoke_folder_acl(acl_id: String) -> Result<(), ServerFnError> {
     let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None)
         .ok_or_else(|| ServerFnError::new("Acesso negado."))?;
 
-    // Check ownership of the folder this ACL belongs to
-    let folder_id = sqlx::query_scalar::<_, String>(
-        "SELECT folder_id FROM folder_acls WHERE id = ?"
-    )
-    .bind(&acl_id)
-    .fetch_optional(&pool)
-    .await
-    .map_err(|_| ServerFnError::new("Erro ao buscar permissão."))?;
+    let folder_id = AclRepository::find_folder_id_by_acl(&pool, &acl_id).await
+        .map_err(|_| ServerFnError::new("Erro ao buscar permissão."))?;
 
     let fid = match folder_id {
         Some(f) => f,
@@ -1415,11 +1010,8 @@ pub async fn revoke_folder_acl(acl_id: String) -> Result<(), ServerFnError> {
         return Err(ServerFnError::new("Acesso negado: apenas o proprietário ou administrador pode revogar permissões."));
     }
 
-    sqlx::query("DELETE FROM folder_acls WHERE id = ?")
-        .bind(&acl_id)
-        .execute(&pool)
-        .await
-        .map_err(|e: sqlx::Error| {
+    AclRepository::revoke(&pool, &acl_id).await
+        .map_err(|e| {
             crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to revoke folder ACL", Some(&e.to_string()));
             ServerFnError::new("Falha ao revogar permissão.")
         })?;

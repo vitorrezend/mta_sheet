@@ -3,7 +3,7 @@ use crate::compendium::archetypes::find_archetype;
 use crate::compendium::attributes::find_attribute;
 use crate::compendium::instruments::{find_instrument, find_theory_article};
 use crate::compendium::practices::find_practice;
-use crate::compendium::weapons::{find_weapon, WeaponDefinition};
+use crate::compendium::weapons::{find_weapon, CombatManeuver, WeaponDefinition};
 use crate::components::Callback;
 use crate::i18n::Language;
 
@@ -31,6 +31,7 @@ pub fn CompendiumModal(
     #[prop(into, default = None)] initial_archetype_target: Option<Signal<Option<ArchetypeTarget>>>,
     #[prop(into, default = None)] target_slot: Option<Signal<Option<usize>>>,
     #[prop(into, default = None)] on_select_weapon: Option<Callback<(Option<usize>, &'static WeaponDefinition)>>,
+    #[prop(into, default = None)] on_select_maneuver: Option<Callback<(Option<usize>, &'static CombatManeuver)>>,
 ) -> impl IntoView {
     // Seção ativa (Práticas, Instrumentos, Arquétipos, Atributos ou Armas)
     let active_section = create_rw_signal(CompendiumSection::Practices);
@@ -56,11 +57,17 @@ pub fn CompendiumModal(
     // ID da arma atualmente selecionada
     let selected_weapon_id = create_rw_signal("katana".to_string());
 
+    // Controle de tela Master-Detail no Mobile (false = lista de itens, true = detalhes do item)
+    let mobile_show_detail = create_rw_signal(false);
+
     let prev_show = create_rw_signal(false);
 
     // Trava de rolagem do documento (body e html) enquanto o compêndio estiver aberto
     create_effect(move |_| {
         let is_open = show_modal.get();
+        if is_open {
+            mobile_show_detail.set(false);
+        }
         if let Some(doc) = web_sys::window().and_then(|w| w.document()) {
             if let Some(body) = doc.body() {
                 let style = body.style();
@@ -231,6 +238,7 @@ pub fn CompendiumModal(
     let on_select_i_cb = on_select_instrument;
     let on_select_a_cb = on_select_archetype;
     let on_select_w_cb = on_select_weapon;
+    let on_select_m_cb = on_select_maneuver;
 
     view! {
         {
@@ -238,6 +246,7 @@ pub fn CompendiumModal(
             let on_select_i_cb = on_select_i_cb.clone();
             let on_select_a_cb = on_select_a_cb.clone();
             let on_select_w_cb = on_select_w_cb.clone();
+            let on_select_m_cb = on_select_m_cb.clone();
             let on_close_cb = on_close_cb.clone();
             let nav_to_instrument = nav_to_instrument.clone();
             let back_to_practice = back_to_practice.clone();
@@ -246,6 +255,7 @@ pub fn CompendiumModal(
                 let on_select_i_action = on_select_i_cb.clone();
                 let on_select_a_action = on_select_a_cb.clone();
                 let on_select_w_action = on_select_w_cb.clone();
+                let on_select_m_action = on_select_m_cb.clone();
                 let on_close_action = on_close_cb.clone();
                 let nav_to_inst_action = nav_to_instrument.clone();
                 let back_to_prac_action = back_to_practice.clone();
@@ -273,19 +283,20 @@ pub fn CompendiumModal(
                                             CompendiumSection::Weapons => "⚔️",
                                         }}
                                     </span>
-                                    <div>
+                                    <div class="practice-modal-title-content">
+                                        <span class="practice-modal-badge-sup">"M20 • COMPÊNDIO"</span>
                                         <h3 class="practice-modal-title">
                                             {move || match (active_section.get(), current_lang.get()) {
-                                                (CompendiumSection::Practices, Language::PtBr) => "Compêndio M20: Práticas Mágicas",
-                                                (CompendiumSection::Practices, Language::EnUs) => "M20 Compendium: Magickal Practices",
-                                                (CompendiumSection::Instruments, Language::PtBr) => "Compêndio M20: Instrumentos & Focos",
-                                                (CompendiumSection::Instruments, Language::EnUs) => "M20 Compendium: Instruments & Focus",
-                                                (CompendiumSection::Archetypes, Language::PtBr) => "Compêndio M20: Arquétipos de Personalidade",
-                                                (CompendiumSection::Archetypes, Language::EnUs) => "M20 Compendium: Personality Archetypes",
-                                                (CompendiumSection::Attributes, Language::PtBr) => "Compêndio M20: Atributos & Especialidades",
-                                                (CompendiumSection::Attributes, Language::EnUs) => "M20 Compendium: Attributes & Specialties",
-                                                (CompendiumSection::Weapons, Language::PtBr) => "Compêndio M20: Armamento & Combate",
-                                                (CompendiumSection::Weapons, Language::EnUs) => "M20 Compendium: Weapons & Combat",
+                                                (CompendiumSection::Practices, Language::PtBr) => "Práticas Mágicas",
+                                                (CompendiumSection::Practices, Language::EnUs) => "Magickal Practices",
+                                                (CompendiumSection::Instruments, Language::PtBr) => "Instrumentos & Focos",
+                                                (CompendiumSection::Instruments, Language::EnUs) => "Instruments & Focus",
+                                                (CompendiumSection::Archetypes, Language::PtBr) => "Arquétipos de Personalidade",
+                                                (CompendiumSection::Archetypes, Language::EnUs) => "Personality Archetypes",
+                                                (CompendiumSection::Attributes, Language::PtBr) => "Atributos & Especialidades",
+                                                (CompendiumSection::Attributes, Language::EnUs) => "Attributes & Specialties",
+                                                (CompendiumSection::Weapons, Language::PtBr) => "Armas, Manobras & Combate",
+                                                (CompendiumSection::Weapons, Language::EnUs) => "Weapons, Maneuvers & Combat",
                                             }}
                                         </h3>
                                         <span class="practice-modal-subtitle">
@@ -342,7 +353,10 @@ pub fn CompendiumModal(
                                 <button
                                     type="button"
                                     class=move || if active_section.get() == CompendiumSection::Practices { "compendium-nav-tab active" } else { "compendium-nav-tab" }
-                                    on:click=move |_| active_section.set(CompendiumSection::Practices)
+                                    on:click=move |_| {
+                                        active_section.set(CompendiumSection::Practices);
+                                        mobile_show_detail.set(false);
+                                    }
                                 >
                                     <span class="nav-tab-icon">"📜"</span>
                                     <span class="nav-tab-label">
@@ -357,7 +371,10 @@ pub fn CompendiumModal(
                                 <button
                                     type="button"
                                     class=move || if active_section.get() == CompendiumSection::Instruments { "compendium-nav-tab active" } else { "compendium-nav-tab" }
-                                    on:click=move |_| active_section.set(CompendiumSection::Instruments)
+                                    on:click=move |_| {
+                                        active_section.set(CompendiumSection::Instruments);
+                                        mobile_show_detail.set(false);
+                                    }
                                 >
                                     <span class="nav-tab-icon">"🛠️"</span>
                                     <span class="nav-tab-label">
@@ -372,7 +389,10 @@ pub fn CompendiumModal(
                                 <button
                                     type="button"
                                     class=move || if active_section.get() == CompendiumSection::Archetypes { "compendium-nav-tab active" } else { "compendium-nav-tab" }
-                                    on:click=move |_| active_section.set(CompendiumSection::Archetypes)
+                                    on:click=move |_| {
+                                        active_section.set(CompendiumSection::Archetypes);
+                                        mobile_show_detail.set(false);
+                                    }
                                 >
                                     <span class="nav-tab-icon">"🎭"</span>
                                     <span class="nav-tab-label">
@@ -387,7 +407,10 @@ pub fn CompendiumModal(
                                 <button
                                     type="button"
                                     class=move || if active_section.get() == CompendiumSection::Attributes { "compendium-nav-tab active" } else { "compendium-nav-tab" }
-                                    on:click=move |_| active_section.set(CompendiumSection::Attributes)
+                                    on:click=move |_| {
+                                        active_section.set(CompendiumSection::Attributes);
+                                        mobile_show_detail.set(false);
+                                    }
                                 >
                                     <span class="nav-tab-icon">"🧠"</span>
                                     <span class="nav-tab-label">
@@ -402,16 +425,19 @@ pub fn CompendiumModal(
                                 <button
                                     type="button"
                                     class=move || if active_section.get() == CompendiumSection::Weapons { "compendium-nav-tab active" } else { "compendium-nav-tab" }
-                                    on:click=move |_| active_section.set(CompendiumSection::Weapons)
+                                    on:click=move |_| {
+                                        active_section.set(CompendiumSection::Weapons);
+                                        mobile_show_detail.set(false);
+                                    }
                                 >
                                     <span class="nav-tab-icon">"⚔️"</span>
                                     <span class="nav-tab-label">
-                                        {move || match current_lang.get() {
-                                            Language::PtBr => "Armas & Combate",
-                                            Language::EnUs => "Weapons & Combat",
-                                        }}
-                                    </span>
-                                    <span class="nav-tab-badge">"82"</span>
+                                         {move || match current_lang.get() {
+                                             Language::PtBr => "Armas & Manobras",
+                                             Language::EnUs => "Weapons & Maneuvers",
+                                         }}
+                                     </span>
+                                     <span class="nav-tab-badge">"126"</span>
                                 </button>
                             </div>
 
@@ -426,6 +452,7 @@ pub fn CompendiumModal(
                                             <PracticesView
                                                 selected_practice_id=selected_practice_id
                                                 current_lang=current_lang
+                                                mobile_show_detail=Some(mobile_show_detail)
                                                 on_select_practice=on_sel
                                                 on_navigate_to_instrument=Some(on_nav)
                                                 on_close=Some(on_cls)
@@ -441,6 +468,7 @@ pub fn CompendiumModal(
                                                 selected_instrument_id=selected_instrument_id
                                                 history_practice_id=history_practice_id
                                                 current_lang=current_lang
+                                                mobile_show_detail=Some(mobile_show_detail)
                                                 on_select_instrument=on_sel
                                                 on_back_to_practice=Some(on_back)
                                                 on_close=Some(on_cls)
@@ -454,6 +482,7 @@ pub fn CompendiumModal(
                                             <ArchetypesView
                                                 selected_archetype_id=selected_archetype_id
                                                 current_lang=current_lang
+                                                mobile_show_detail=Some(mobile_show_detail)
                                                 active_archetype_target=Some(active_archetype_target)
                                                 on_select_archetype=on_sel
                                                 on_close=Some(on_cls)
@@ -465,19 +494,23 @@ pub fn CompendiumModal(
                                             <AttributesView
                                                 selected_attribute_id=selected_attribute_id
                                                 current_lang=current_lang
+                                                mobile_show_detail=Some(mobile_show_detail)
                                             />
                                         }.into_view()
                                     }
                                     CompendiumSection::Weapons => {
                                         let on_sel = on_select_w_action.clone();
+                                        let on_sel_m = on_select_m_action.clone();
                                         let on_cls = on_close_action.clone();
                                         let t_slot = target_slot;
                                         view! {
                                             <WeaponsView
                                                 selected_weapon_id=selected_weapon_id
                                                 current_lang=current_lang
+                                                mobile_show_detail=Some(mobile_show_detail)
                                                 target_slot=t_slot
                                                 on_select_weapon=on_sel
+                                                on_select_maneuver=on_sel_m
                                                 on_close=Some(on_cls)
                                             />
                                         }.into_view()
@@ -497,8 +530,8 @@ pub fn CompendiumModal(
                                         (CompendiumSection::Archetypes, Language::EnUs) => "M20, pp. 264-269 • Official 20 Personality Archetypes (Nature & Demeanor)".to_string(),
                                         (CompendiumSection::Attributes, Language::PtBr) => "M20, pp. 273-275 • Atributos Físicos, Sociais, Mentais & Regra de Especialidades".to_string(),
                                         (CompendiumSection::Attributes, Language::EnUs) => "M20, pp. 273-275 • Physical, Social, Mental Attributes & Specialties Rule".to_string(),
-                                        (CompendiumSection::Weapons, Language::PtBr) => "M20, pp. 450-453 • Catálogo Oficial de 82 Armas (Brancas, Fogo, Arremesso) & Notas #1-#12".to_string(),
-                                        (CompendiumSection::Weapons, Language::EnUs) => "M20, pp. 450-453 • Official 82 Weapons (Melee, Ranged, Thrown) & Notes #1-#12".to_string(),
+                                        (CompendiumSection::Weapons, Language::PtBr) => "M20, pp. 423-426, 448-453 • Catálogo Oficial de 82 Armas e 35 Manobras & Artes Marciais".to_string(),
+                                        (CompendiumSection::Weapons, Language::EnUs) => "M20, pp. 423-426, 448-453 • Official 82 Weapons & 35 Maneuvers / Martial Arts Catalog".to_string(),
                                     }}
                                 </span>
 

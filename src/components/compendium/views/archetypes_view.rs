@@ -15,6 +15,7 @@ pub enum ArchetypeTarget {
 pub fn ArchetypesView(
     selected_archetype_id: RwSignal<String>,
     current_lang: Signal<Language>,
+    #[prop(into, default = None)] mobile_show_detail: Option<RwSignal<bool>>,
     active_archetype_target: Option<RwSignal<Option<ArchetypeTarget>>>,
     on_select_archetype: Option<Callback<(ArchetypeTarget, String)>>,
     on_close: Option<Callback<()>>,
@@ -32,7 +33,10 @@ pub fn ArchetypesView(
     let on_close_act = on_close;
 
     view! {
-        <div class="compendium-section-split">
+        <div 
+            class="compendium-section-split"
+            class:mobile-show-detail=move || mobile_show_detail.map(|s| s.get()).unwrap_or(false)
+        >
             // ================= ARQUÉTIPOS: Coluna Esquerda =================
             <div class="practice-sidebar archetype-sidebar-pane">
                 // Artigo Teórico: Natureza e Comportamento
@@ -46,7 +50,12 @@ pub fn ArchetypesView(
                                 "practice-tab-btn special-box-tab"
                             }
                         }
-                        on:click=move |_| selected_archetype_id.set("theory_nature_demeanor".to_string())
+                        on:click=move |_| {
+                            selected_archetype_id.set("theory_nature_demeanor".to_string());
+                            if let Some(msd) = mobile_show_detail {
+                                msd.set(true);
+                            }
+                        }
                     >
                         <span class="tab-indicator">"📖"</span>
                         <div class="tab-text-wrap">
@@ -110,7 +119,12 @@ pub fn ArchetypesView(
                                     <button
                                         type="button"
                                         class=move || if is_active() { "practice-tab-btn active" } else { "practice-tab-btn" }
-                                        on:click=move |_| selected_archetype_id.set(item_id.to_string())
+                                        on:click=move |_| {
+                                            selected_archetype_id.set(item_id.to_string());
+                                            if let Some(msd) = mobile_show_detail {
+                                                msd.set(true);
+                                            }
+                                        }
                                     >
                                         <span class="practice-tab-bullet">"🎭"</span>
                                         <span class="practice-tab-label">{move || arch_item.name(current_lang.get())}</span>
@@ -125,6 +139,23 @@ pub fn ArchetypesView(
 
             // ================= ARQUÉTIPOS: Coluna Direita (Conteúdo) =================
             <div class="practice-detail-pane archetype-detail-pane">
+                // Botão de Retorno no Mobile (visível apenas em telas <= 768px via CSS)
+                {move || mobile_show_detail.map(|msd| {
+                    view! {
+                        <button
+                            type="button"
+                            class="compendium-mobile-back-btn"
+                            on:click=move |_| msd.set(false)
+                        >
+                            <span class="back-arrow">"←"</span>
+                            <span>{move || match current_lang.get() {
+                                Language::PtBr => "Voltar para a Lista de Arquétipos",
+                                Language::EnUs => "Back to Archetypes List",
+                            }}</span>
+                        </button>
+                    }
+                })}
+
                 {move || {
                     if is_archetype_theory.get() {
                         // Artigo Teórico de Regras

@@ -60,6 +60,7 @@ pub fn create_app(
         .route("/api/upload_image", axum::routing::post(upload_image_handler))
         .route("/api/export_json/:id", axum::routing::get(export_json_handler))
         .route("/api/room_events/:id", axum::routing::get(room_events_sse_handler))
+        .route("/api/compendium/:section", axum::routing::get(compendium_api_handler))
         .nest_service("/pkg", ServeDir::new("target/site/pkg").fallback(axum::routing::get(pkg_handler)))
         .nest_service("/assets", ServeDir::new("target/site/assets").fallback(axum::routing::get(assets_handler)))
         .nest_service("/styles", ServeDir::new("styles").fallback(axum::routing::get(styles_handler)))

@@ -1,3 +1,5 @@
+pub use crate::rules::costs::*;
+
 use super::models::{
     keys, CharacterData, CostBreakdownItem, CostSummary, CreationPointsSummary, DotOrigin,
     STANDARD_ATTRIBUTES, STANDARD_KNOWLEDGES, STANDARD_SKILLS, STANDARD_SPHERES, STANDARD_TALENTS,
@@ -27,10 +29,15 @@ impl CharacterData {
         }
 
         let attr_total_spent = attr_physical + attr_social + attr_mental;
-        let mut attr_sorted = [attr_physical, attr_social, attr_mental];
-        attr_sorted.sort_by(|a, b| b.cmp(a));
-        let attr_spread_valid = attr_sorted[0] <= 7 && attr_sorted[1] <= 5 && attr_sorted[2] <= 3;
-        let attr_exceeded = !attr_spread_valid || attr_total_spent > 15;
+        let attr_spread_valid = is_valid_spread(
+            attr_physical,
+            attr_social,
+            attr_mental,
+            ATTR_CREATION_SPREAD[0],
+            ATTR_CREATION_SPREAD[1],
+            ATTR_CREATION_SPREAD[2],
+        );
+        let attr_exceeded = !attr_spread_valid || attr_total_spent > ATTR_CREATION_BUDGET;
 
         // 2. Habilidades (Talentos, Perícias, Conhecimentos - Orçamento: 13 / 9 / 5, Total: 27, Cap: 3)
         let mut ab_talents = 0;
@@ -44,7 +51,7 @@ impl CharacterData {
             for &name in standard {
                 if let Some(attr) = self.attributes.get(name) {
                     let (base, _, _, _) = attr.count_origins();
-                    if base > 3 {
+                    if !is_within_creation_ability_cap(base) {
                         violations.push(format!("{} ({} pts base)", name, base));
                     }
                     total += base;
@@ -55,7 +62,7 @@ impl CharacterData {
                 for id in list {
                     if let Some(attr) = self.attributes.get(id) {
                         let (base, _, _, _) = attr.count_origins();
-                        if base > 3 {
+                        if !is_within_creation_ability_cap(base) {
                             let label = self.labels.get(id).cloned().unwrap_or_else(|| id.clone());
                             violations.push(format!("{} ({} pts base)", label, base));
                         }
@@ -71,10 +78,15 @@ impl CharacterData {
         ab_knowledges += check_abilities(&STANDARD_KNOWLEDGES, keys::CAT_CONHECIMENTOS, &mut ab_cap_violations);
 
         let ab_total_spent = ab_talents + ab_skills + ab_knowledges;
-        let mut ab_sorted = [ab_talents, ab_skills, ab_knowledges];
-        ab_sorted.sort_by(|a, b| b.cmp(a));
-        let ab_spread_valid = ab_sorted[0] <= 13 && ab_sorted[1] <= 9 && ab_sorted[2] <= 5;
-        let ab_exceeded = !ab_spread_valid || ab_total_spent > 27 || !ab_cap_violations.is_empty();
+        let ab_spread_valid = is_valid_spread(
+            ab_talents,
+            ab_skills,
+            ab_knowledges,
+            ABILITY_CREATION_SPREAD[0],
+            ABILITY_CREATION_SPREAD[1],
+            ABILITY_CREATION_SPREAD[2],
+        );
+        let ab_exceeded = !ab_spread_valid || ab_total_spent > ABILITY_CREATION_BUDGET || !ab_cap_violations.is_empty();
 
         // 3. Esferas (Orçamento: 6 pontos, +1 grátis de afinidade)
         let mut spheres_spent = 0;
@@ -89,12 +101,12 @@ impl CharacterData {
                 }
             }
         }
-        let spheres_budget = 6;
+        let spheres_budget = SPHERES_CREATION_BUDGET;
         let spheres_exceeded = spheres_spent > spheres_budget;
 
         // 4. Arete (1 grátis)
-        let (arete_base, _, _, _) = self.attributes.get(keys::KEY_ARETE).map(|a| a.count_origins()).unwrap_or((1, 0, 0, 0));
-        let arete_exceeded = arete_base > 1;
+        let (arete_base, _, _, _) = self.attributes.get(keys::KEY_ARETE).map(|a| a.count_origins()).unwrap_or((ARETE_CREATION_BASE, 0, 0, 0));
+        let arete_exceeded = arete_base > ARETE_CREATION_BASE;
 
         // 5. Antecedentes (Orçamento: 7 pontos)
         let mut backgrounds_spent = 0;
@@ -106,12 +118,12 @@ impl CharacterData {
                 }
             }
         }
-        let backgrounds_budget = 7;
+        let backgrounds_budget = BACKGROUNDS_CREATION_BUDGET;
         let backgrounds_exceeded = backgrounds_spent > backgrounds_budget;
 
         // 6. Força de Vontade (5 grátis)
-        let (willpower_base, _, _, _) = self.attributes.get(keys::KEY_WILLPOWER_TOTAL).map(|a| a.count_origins()).unwrap_or((5, 0, 0, 0));
-        let willpower_exceeded = willpower_base > 5;
+        let (willpower_base, _, _, _) = self.attributes.get(keys::KEY_WILLPOWER_TOTAL).map(|a| a.count_origins()).unwrap_or((WILLPOWER_CREATION_BASE, 0, 0, 0));
+        let willpower_exceeded = willpower_base > WILLPOWER_CREATION_BASE;
 
         // 7. Ressonância (Orçamento: 1 ponto)
         let mut resonance_spent = 0;
@@ -123,7 +135,7 @@ impl CharacterData {
                 }
             }
         }
-        let resonance_budget = 1;
+        let resonance_budget = RESONANCE_CREATION_BUDGET;
         let resonance_exceeded = resonance_spent > resonance_budget;
 
         // 8. Warnings e Consolidação
@@ -211,7 +223,7 @@ impl CharacterData {
             attr_social,
             attr_mental,
             attr_total_spent,
-            attr_budget_total: 15,
+            attr_budget_total: ATTR_CREATION_BUDGET,
             attr_spread_valid,
             attr_exceeded,
 
@@ -219,7 +231,7 @@ impl CharacterData {
             ab_skills,
             ab_knowledges,
             ab_total_spent,
-            ab_budget_total: 27,
+            ab_budget_total: ABILITY_CREATION_BUDGET,
             ab_spread_valid,
             ab_exceeded,
             ab_cap_violations,
@@ -370,53 +382,29 @@ impl CharacterData {
                     trait_bonus_cost = -flaw_pts;
                     bonus_dots = lvl;
                 } else {
+                    let cat = if is_arete {
+                        TraitCategory::Arete
+                    } else if is_sphere {
+                        TraitCategory::Sphere
+                    } else if is_willpower {
+                        TraitCategory::Willpower
+                    } else if is_background || is_merit {
+                        TraitCategory::Background
+                    } else if STANDARD_ATTRIBUTES.contains(&id.as_str()) {
+                        TraitCategory::Attribute
+                    } else {
+                        TraitCategory::Ability
+                    };
+
                     for (idx, &origin) in origins.iter().take(lvl).enumerate() {
                         match origin {
                             DotOrigin::Bonus => {
                                 bonus_dots += 1;
-                                let cost = if is_arete {
-                                    4 // Arete: 4 pontos de bônus por bolinha
-                                } else if is_sphere {
-                                    7 // Esferas: 7 pontos de bônus por bolinha
-                                } else if is_willpower {
-                                    1 // Força de Vontade: 1 ponto de bônus por bolinha
-                                } else if is_background || is_merit {
-                                    1 // Antecedentes, Qualidades, Outros Traços, Ressonância: 1 ponto de bônus
-                                } else if STANDARD_ATTRIBUTES.contains(&id.as_str()) {
-                                    5 // Atributos: 5 pontos de bônus por bolinha
-                                } else {
-                                    // Habilidades (Talentos, Perícias, Conhecimentos): 2 pontos de bônus
-                                    2
-                                };
-                                trait_bonus_cost += cost;
+                                trait_bonus_cost += freebie_cost_per_dot(cat);
                             }
                             DotOrigin::Experience => {
                                 xp_dots += 1;
-                                let cost = if is_arete {
-                                    idx as i32 * 8 // Arete: Nível Atual × 8
-                                } else if is_sphere {
-                                    if idx == 0 {
-                                        10 // Nova Esfera: 10 XP
-                                    } else if is_affinity {
-                                        idx as i32 * 7 // Esfera de Afinidade: Nível Atual × 7
-                                    } else {
-                                        idx as i32 * 8 // Outras Esferas: Nível Atual × 8
-                                    }
-                                } else if is_willpower {
-                                    idx as i32 * 1 // Força de Vontade: Nível Atual × 1
-                                } else if is_background || is_merit {
-                                    if idx == 0 { 3 } else { idx as i32 * 3 } // Antecedentes / Qualidades / Outros Traços: 3 XP / Atual × 3
-                                } else if STANDARD_ATTRIBUTES.contains(&id.as_str()) {
-                                    idx as i32 * 4 // Atributos: Nível Atual × 4
-                                } else {
-                                    // Habilidades (Talentos, Perícias, Conhecimentos)
-                                    if idx == 0 {
-                                        3 // Nova Habilidade: 3 XP
-                                    } else {
-                                        idx as i32 * 2 // Habilidade: Nível Atual × 2
-                                    }
-                                };
-                                trait_xp_cost += cost;
+                                trait_xp_cost += xp_cost_for_dot(cat, idx, is_affinity);
                             }
                             _ => {}
                         }
@@ -460,12 +448,11 @@ impl CharacterData {
                     match origin {
                         DotOrigin::Bonus => {
                             bonus_dots += 1;
-                            trait_bonus_cost += 1; // 1 Ponto de Bônus por bolinha de Maravilha
+                            trait_bonus_cost += freebie_cost_per_dot(TraitCategory::Background);
                         }
                         DotOrigin::Experience => {
                             xp_dots += 1;
-                            let cost = if idx == 0 { 3 } else { idx as i32 * 3 }; // 3 XP por nível (como Antecedentes)
-                            trait_xp_cost += cost;
+                            trait_xp_cost += xp_cost_for_dot(TraitCategory::Background, idx, false);
                         }
                         _ => {}
                     }
@@ -492,7 +479,7 @@ impl CharacterData {
 
         CostSummary {
             total_bonus_spent,
-            bonus_limit: 15,
+            bonus_limit: FREEBIE_INITIAL_BUDGET,
             total_xp_spent,
             items,
             arete_warning,
@@ -504,55 +491,25 @@ impl CharacterData {
 
     /// Helper to get single dot cost and explanation for tooltips
     pub fn get_dot_cost_description(trait_name: &str, dot_idx: usize, origin: DotOrigin, is_affinity: bool) -> (i32, String) {
-        match origin {
-            DotOrigin::Base => (0, "Criação Base (Grátis)".to_string()),
-            DotOrigin::Temporary => (0, "Efeito Temporário / Magia".to_string()),
-            DotOrigin::Bonus => {
-                let cost = if trait_name == keys::KEY_ARETE {
-                    4
-                } else if STANDARD_SPHERES.contains(&trait_name) {
-                    7
-                } else if trait_name == keys::KEY_WILLPOWER_TOTAL {
-                    1
-                } else if STANDARD_ATTRIBUTES.contains(&trait_name) {
-                    5
-                } else {
-                    if trait_name.starts_with("bg_") { 1 } else { 2 }
-                };
-                (cost, format!("{} pts de Bônus", cost))
-            }
-            DotOrigin::Experience => {
-                if trait_name == keys::KEY_ARETE {
-                    let cost = dot_idx as i32 * 8;
-                    (cost, format!("{} XP (Nível {} -> {})", cost, dot_idx, dot_idx + 1))
-                } else if STANDARD_SPHERES.contains(&trait_name) {
-                    if dot_idx == 0 {
-                        (10, "10 XP (Nova Esfera)".to_string())
-                    } else if is_affinity {
-                        let cost = dot_idx as i32 * 7;
-                        (cost, format!("{} XP (Afinidade Nível {} -> {})", cost, dot_idx, dot_idx + 1))
-                    } else {
-                        let cost = dot_idx as i32 * 8;
-                        (cost, format!("{} XP (Nível {} -> {})", cost, dot_idx, dot_idx + 1))
-                    }
-                } else if trait_name == keys::KEY_WILLPOWER_TOTAL {
-                    let cost = dot_idx as i32 * 1;
-                    (cost, format!("{} XP (Nível {} -> {})", cost, dot_idx, dot_idx + 1))
-                } else if STANDARD_ATTRIBUTES.contains(&trait_name) {
-                    let cost = dot_idx as i32 * 4;
-                    (cost, format!("{} XP (Nível {} -> {})", cost, dot_idx, dot_idx + 1))
-                } else if trait_name.starts_with("bg_") {
-                    let cost = if dot_idx == 0 { 3 } else { dot_idx as i32 * 3 };
-                    (cost, format!("{} XP (Nível {} -> {})", cost, dot_idx, dot_idx + 1))
-                } else {
-                    if dot_idx == 0 {
-                        (3, "3 XP (Nova Habilidade)".to_string())
-                    } else {
-                        let cost = dot_idx as i32 * 2;
-                        (cost, format!("{} XP (Nível {} -> {})", cost, dot_idx, dot_idx + 1))
-                    }
-                }
-            }
-        }
+        let cat = if trait_name == keys::KEY_ARETE {
+            TraitCategory::Arete
+        } else if STANDARD_SPHERES.contains(&trait_name) {
+            TraitCategory::Sphere
+        } else if trait_name == keys::KEY_WILLPOWER_TOTAL {
+            TraitCategory::Willpower
+        } else if STANDARD_ATTRIBUTES.contains(&trait_name) {
+            TraitCategory::Attribute
+        } else if trait_name.starts_with("bg_") {
+            TraitCategory::Background
+        } else {
+            TraitCategory::Ability
+        };
+        format_dot_cost_description(
+            cat,
+            dot_idx,
+            is_affinity,
+            matches!(origin, DotOrigin::Bonus),
+            matches!(origin, DotOrigin::Experience),
+        )
     }
 }

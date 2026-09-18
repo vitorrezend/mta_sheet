@@ -12,6 +12,7 @@ pub fn InstrumentsView(
     selected_instrument_id: RwSignal<String>,
     history_practice_id: RwSignal<Option<String>>,
     current_lang: Signal<Language>,
+    #[prop(into, default = None)] mobile_show_detail: Option<RwSignal<bool>>,
     on_select_instrument: Option<Callback<String>>,
     on_back_to_practice: Option<Callback<String>>,
     on_close: Option<Callback<()>>,
@@ -38,7 +39,10 @@ pub fn InstrumentsView(
     let on_close_act = on_close;
 
     view! {
-        <div class="compendium-section-split">
+        <div 
+            class="compendium-section-split"
+            class:mobile-show-detail=move || mobile_show_detail.map(|s| s.get()).unwrap_or(false)
+        >
             // ================= INSTRUMENTOS: Coluna Esquerda =================
             <div class="practice-sidebar-pane instrument-sidebar">
                 // Campo de Busca Rápida
@@ -77,7 +81,12 @@ pub fn InstrumentsView(
                                         "practice-tab-btn special-box-tab"
                                     }
                                 }
-                                on:click=move |_| selected_instrument_id.set(art_id.to_string())
+                                on:click=move |_| {
+                                    selected_instrument_id.set(art_id.to_string());
+                                    if let Some(msd) = mobile_show_detail {
+                                        msd.set(true);
+                                    }
+                                }
                             >
                                 <span class="tab-indicator">"⚖️"</span>
                                 <div class="tab-text-wrap">
@@ -120,7 +129,12 @@ pub fn InstrumentsView(
                                             "practice-tab-btn"
                                         }
                                     }
-                                    on:click=move |_| selected_instrument_id.set(i_id.to_string())
+                                    on:click=move |_| {
+                                        selected_instrument_id.set(i_id.to_string());
+                                        if let Some(msd) = mobile_show_detail {
+                                            msd.set(true);
+                                        }
+                                    }
                                 >
                                     <span class="practice-tab-bullet">"🛠️"</span>
                                     <span class="practice-tab-label">{move || inst.name(current_lang.get())}</span>
@@ -134,6 +148,23 @@ pub fn InstrumentsView(
 
             // ================= INSTRUMENTOS: Coluna Direita (Detalhe) =================
             <div class="practice-detail-pane">
+                // Botão de Retorno no Mobile (visível apenas em telas <= 768px via CSS)
+                {move || mobile_show_detail.map(|msd| {
+                    view! {
+                        <button
+                            type="button"
+                            class="compendium-mobile-back-btn"
+                            on:click=move |_| msd.set(false)
+                        >
+                            <span class="back-arrow">"←"</span>
+                            <span>{move || match current_lang.get() {
+                                Language::PtBr => "Voltar para a Lista de Instrumentos",
+                                Language::EnUs => "Back to Instruments List",
+                            }}</span>
+                        </button>
+                    }
+                })}
+
                 {move || {
                     let hist_prev = history_practice_id.get();
                     let on_b = on_back_act.clone();

@@ -6,7 +6,13 @@
 pub mod health;
 pub mod quintessence;
 pub mod initiative;
+pub mod costs;
+pub mod combat;
+pub mod specialties;
 
 pub use health::*;
 pub use quintessence::*;
 pub use initiative::*;
+pub use costs::*;
+pub use combat::*;
+pub use specialties::*;

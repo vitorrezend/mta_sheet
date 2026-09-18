@@ -140,7 +140,12 @@ pub fn AuthPage() -> impl IntoView {
                     }
                 })}
 
-                <form on:submit=on_submit class="auth-form">
+                <form 
+                    method="post"
+                    action=move || if is_register.get() { "/api/form_register" } else { "/api/form_login" }
+                    on:submit=on_submit 
+                    class="auth-form"
+                >
                     <div class="form-group">
                         <label class="form-label">{move || crate::i18n::tr("auth_username_label", lang())}</label>
                         <input
