@@ -65,12 +65,31 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    min-width: 0;
+}
+
+.practice-modal-title-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.practice-modal-badge-sup {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--gold-primary, #b89347);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1;
+    margin-bottom: 3px;
+    display: block;
 }
 
 .practice-modal-icon {
     font-size: 1.5rem;
     line-height: 1;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+    flex-shrink: 0;
 }
 
 .practice-modal-title {
@@ -80,6 +99,7 @@
     letter-spacing: 0.04em;
     color: #f1dfa8;
     text-transform: uppercase;
+    line-height: 1.2;
 }
 
 .practice-modal-subtitle {
@@ -87,6 +107,7 @@
     color: #c9b99a;
     letter-spacing: 0.02em;
     display: block;
+    margin-top: 2px;
 }
 
 .practice-modal-controls {
@@ -657,6 +678,53 @@
     flex-shrink: 0 !important;
 }
 
+/* ─── Sub-Navegação de Combate (Armas vs Manobras vs Regras) ─────────────── */
+.weapon-mode-pills {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.65rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.weapon-mode-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: #ffffff;
+    border: 1.5px solid #c9baa0;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #4a3e2e;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    box-sizing: border-box;
+    text-align: center;
+    flex: 1;
+}
+
+.weapon-mode-pill-btn:hover {
+    background: #ede3d0;
+    color: #1a150e;
+    border-color: #b89347;
+}
+
+.weapon-mode-pill-btn.active {
+    background: linear-gradient(135deg, #241d13 0%, #15110a 100%);
+    color: #f1dfa8;
+    border-color: #b89347;
+    font-weight: 800;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.weapon-mode-pill-btn.legend-btn {
+    flex: 0 0 auto;
+    padding: 0.5rem 0.75rem;
+}
+
 /* ─── Pílulas de Filtro de Classes & Subcategorias de Armas ─────────────── */
 .weapon-class-pills {
     display: flex;
@@ -745,6 +813,51 @@
     font-weight: 700;
     opacity: 0.85;
 }
+
+/* ─── Seletor Dropdown de Categorias de Armas ────────────────────────────── */
+.weapon-category-select-wrap {
+    margin-bottom: 0.45rem;
+    width: 100%;
+}
+
+.weapon-category-select {
+    width: 100%;
+    padding: 6px 12px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: #3b2c14;
+    background: #ffffff;
+    border: 1.5px solid #c9baa0;
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: all 0.15s ease;
+}
+
+.weapon-category-select:focus {
+    border-color: var(--gold-primary, #b89347);
+    box-shadow: 0 0 0 2px rgba(184, 147, 71, 0.22);
+}
+
+.weapon-group-pill {
+    font-size: 0.58rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(140, 120, 83, 0.12);
+    color: #69522b;
+    border: 1px solid rgba(140, 120, 83, 0.25);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.weapon-group-pill.is-ranged {
+    background: rgba(29, 78, 216, 0.1);
+    color: #1d4ed8;
+    border-color: rgba(29, 78, 216, 0.28);
+}
+
 
 /* ─── Botões de Item nas Listas do Compêndio ────────────────────────────── */
 .tab-text-wrap {
@@ -863,6 +976,34 @@
     font-family: ui-monospace, monospace;
 }
 
+.badge-hard-style,
+.badge-soft-style,
+.badge-any-style {
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+}
+
+.badge-hard-style {
+    background: rgba(185, 28, 28, 0.12);
+    border: 1px solid rgba(185, 28, 28, 0.35);
+    color: #991b1b;
+}
+
+.badge-soft-style {
+    background: rgba(14, 116, 144, 0.12);
+    border: 1px solid rgba(14, 116, 144, 0.35);
+    color: #0e7490;
+}
+
+.badge-any-style {
+    background: rgba(107, 33, 168, 0.12);
+    border: 1px solid rgba(107, 33, 168, 0.35);
+    color: #6b21a8;
+}
+
 /* Banner de Estatísticas de Armas */
 .weapon-stats-banner {
     display: grid;
@@ -895,13 +1036,19 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: space-between;
     text-align: center;
     background: #ffffff;
     border: 1px solid #e5dccb;
     border-radius: 6px;
-    padding: 0.55rem 0.35rem;
+    padding: 0.55rem 0.4rem;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
     min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    height: 100%;
 }
 
 .stat-label {
@@ -911,15 +1058,28 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
     margin-bottom: 0.2rem;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .stat-value {
-    font-size: 1.18rem;
+    font-size: 1.15rem;
     font-weight: 800;
     color: #241d13;
-    line-height: 1.15;
-    margin-bottom: 0.2rem;
+    line-height: 1.18;
+    margin: 0.15rem 0;
     font-family: var(--font-serif, 'Cinzel', serif);
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+.weapon-stats-banner:not(.maneuver-stats-banner) .stat-value {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -929,6 +1089,10 @@
     font-size: 0.62rem;
     color: #7a6646;
     font-weight: 600;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .stat-diff { color: #1e3a8a; }
@@ -937,6 +1101,85 @@
 .stat-rate { color: #b45309; }
 .stat-clip { color: #6b21a8; }
 .stat-conceal { color: #4338ca; }
+.stat-pool { color: #0f766e; }
+.stat-actions { color: #6b21a8; }
+
+/* Banner específico de Manobras de Combate (4 colunas no Desktop) */
+.maneuver-stats-banner {
+    grid-template-columns: 1.25fr 1.35fr 1.25fr 0.85fr;
+    gap: 0.65rem;
+    padding: 0.85rem 0.95rem;
+    align-items: stretch;
+}
+
+.maneuver-stats-banner .stat-box {
+    padding: 0.6rem 0.45rem;
+    min-height: 82px;
+}
+
+.maneuver-stats-banner .stat-value {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: auto;
+    font-size: 1.05rem;
+    line-height: 1.18;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+    padding: 0 2px;
+}
+
+.maneuver-stats-banner .stat-value.stat-value-dense {
+    font-size: 0.90rem;
+    line-height: 1.14;
+    letter-spacing: -0.01em;
+}
+
+.maneuver-stats-banner .stat-value.stat-value-long {
+    font-size: 0.82rem;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+}
+
+/* Card de Requisitos e Condições Táticas da Manobra */
+.maneuver-requirement-card {
+    background: #fffdf5;
+    border: 1px solid #fde68a;
+    border-left: 4px solid #d97706;
+    border-radius: 6px;
+    padding: 0.65rem 0.95rem;
+    margin: 0.6rem 0;
+    box-shadow: 0 1px 3px rgba(217, 119, 6, 0.08);
+}
+
+.requirement-header {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.25rem;
+}
+
+.requirement-icon {
+    font-size: 0.9rem;
+}
+
+.requirement-title {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #92400e;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.requirement-desc {
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: #78350f;
+    margin: 0;
+    text-align: justify;
+}
 
 /* Notas e Descrição de Armas */
 .weapon-rules-section {
@@ -1479,3 +1722,1328 @@
     box-shadow: 0 2px 8px rgba(184, 147, 71, 0.35);
     transform: translateY(-1px);
 }
+
+/* ─── Botão Voltar Mobile (Oculto em Telas Desktop) ───────────────────────── */
+.compendium-mobile-back-btn {
+    display: none !important;
+}
+
+/* ==========================================================================
+   RESPONSIVIDADE MOBILE — ARQUITETURA MASTER-DETAIL (≤ 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* 1. Modal em Tela Cheia no Mobile */
+    .practice-compendium-overlay {
+        padding: 0 !important;
+        width: 100vw !important;
+        height: 100dvh !important;
+        height: 100vh;
+    }
+
+    .practice-compendium-modal {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100dvh !important;
+        height: 100vh;
+        max-height: 100dvh !important;
+        border-radius: 0 !important;
+        border: none !important;
+    }
+
+    /* 2. Cabeçalho Compacto do Modal */
+    .practice-modal-header {
+        padding: 0.5rem 0.75rem !important;
+        gap: 0.5rem !important;
+    }
+
+    .practice-modal-title-wrap {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+    }
+
+    .practice-modal-icon {
+        font-size: 1.3rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    .practice-modal-title-content {
+        display: flex !important;
+        flex-direction: column !important;
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+    }
+
+    .practice-modal-badge-sup {
+        font-size: 0.56rem !important;
+        letter-spacing: 0.06em !important;
+        margin-bottom: 1px !important;
+    }
+
+    .practice-modal-title {
+        font-size: 0.84rem !important;
+        line-height: 1.2 !important;
+        letter-spacing: 0.02em !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .practice-modal-subtitle {
+        display: none !important;
+    }
+
+    .practice-modal-controls {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.35rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    .practice-modal-lang-toggle {
+        padding: 1px !important;
+        gap: 1px !important;
+    }
+
+    .practice-modal-lang-toggle .lang-btn {
+        padding: 3px 6px !important;
+        font-size: 0.68rem !important;
+    }
+
+    .practice-modal-close-btn {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* 3. Abas com Rolagem Horizontal Suave */
+    .compendium-nav-bar,
+    .compendium-section-nav {
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap !important;
+        padding: 0 0.35rem !important;
+    }
+
+    .compendium-nav-tab {
+        flex: 0 0 auto !important;
+        padding: 0.6rem 0.65rem !important;
+        font-size: 0.72rem !important;
+        gap: 0.3rem !important;
+    }
+
+    /* 4. Master-Detail: Alternância entre Lista e Detalhes */
+    .compendium-section-split {
+        flex-direction: column !important;
+        overflow: hidden !important;
+        height: 100% !important;
+    }
+
+    /* ESTADO 1: Exibindo a Lista Master (mobile_show_detail = false) */
+    .compendium-section-split .practice-sidebar,
+    .compendium-section-split .practice-sidebar-pane,
+    .compendium-section-split .weapon-sidebar-pane,
+    .compendium-section-split .archetype-sidebar-pane,
+    .compendium-section-split .instrument-sidebar {
+        display: flex !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        flex: 1 1 100% !important;
+        border-right: none !important;
+        height: 100% !important;
+    }
+
+    .compendium-section-split .practice-detail-pane,
+    .compendium-section-split .weapon-detail-pane,
+    .compendium-section-split .archetype-detail-pane {
+        display: none !important;
+    }
+
+    /* ESTADO 2: Exibindo os Detalhes (mobile_show_detail = true) */
+    .compendium-section-split.mobile-show-detail .practice-sidebar,
+    .compendium-section-split.mobile-show-detail .practice-sidebar-pane,
+    .compendium-section-split.mobile-show-detail .weapon-sidebar-pane,
+    .compendium-section-split.mobile-show-detail .archetype-sidebar-pane,
+    .compendium-section-split.mobile-show-detail .instrument-sidebar {
+        display: none !important;
+    }
+
+    .compendium-section-split.mobile-show-detail .practice-detail-pane,
+    .compendium-section-split.mobile-show-detail .weapon-detail-pane,
+    .compendium-section-split.mobile-show-detail .archetype-detail-pane {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        flex: 1 1 100% !important;
+        padding: 0.85rem !important;
+        height: 100% !important;
+        overflow-y: auto !important;
+    }
+
+    /* 5. Botão de Voltar para a Lista no Mobile */
+    .compendium-mobile-back-btn {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 0.45rem;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.65rem 0.95rem;
+        margin-bottom: 0.85rem;
+        background: linear-gradient(135deg, #f5ebd0 0%, #ecd9ad 100%);
+        border: 1.5px solid var(--gold-primary, #b89347);
+        border-radius: 6px;
+        color: #4a3410;
+        font-size: 0.8rem;
+        font-weight: 800;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+        transition: all 0.15s ease;
+        flex-shrink: 0;
+    }
+
+    .compendium-mobile-back-btn:active {
+        background: #dfc488;
+        transform: scale(0.98);
+    }
+
+    /* 6. Ajustes de Armas & Manobras (Grid de Atributos Responsivo 2x2 no Mobile) */
+    .weapon-stats-banner,
+    .maneuver-stats-banner {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.55rem !important;
+        margin-bottom: 0.85rem !important;
+        padding: 0.75rem 0.65rem !important;
+    }
+
+    .maneuver-stats-banner .stat-box {
+        min-height: 78px !important;
+        padding: 0.55rem 0.45rem !important;
+    }
+
+    .maneuver-stats-banner .stat-value {
+        font-size: 1.05rem !important;
+    }
+
+    .maneuver-stats-banner .stat-value.stat-value-dense {
+        font-size: 0.94rem !important;
+    }
+
+    .maneuver-stats-banner .stat-value.stat-value-long {
+        font-size: 0.85rem !important;
+    }
+
+    @media (min-width: 480px) and (max-width: 768px) {
+        .weapon-stats-banner,
+        .maneuver-stats-banner {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+    }
+
+    .weapon-legend-tab-btn {
+        padding: 0.45rem 0.65rem !important;
+        min-height: 40px !important;
+    }
+
+    /* Sub-navegação Armas vs Manobras no Mobile */
+    .weapon-mode-pills {
+        display: flex !important;
+        gap: 0.35rem !important;
+        margin-bottom: 0.5rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .weapon-mode-pill-btn {
+        min-height: 38px !important;
+        padding: 6px 4px !important;
+        font-size: 0.74rem !important;
+        border-radius: 6px !important;
+        white-space: nowrap !important;
+        flex: 1 1 0 !important;
+    }
+
+    .weapon-mode-pill-btn.legend-btn {
+        flex: 0 0 38px !important;
+        padding: 6px 0 !important;
+    }
+
+    /* Pílulas de Armas (3 botões: Todas, Branca, Distância) */
+    .weapon-class-pills,
+    .weapon-class-pills.weapon-groups-pills {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 0.3rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 4px 0 6px 0 !important;
+    }
+
+    /* Pílulas de Manobras (6 botões em 2 colunas amplas: sem espremer Artes Marciais) */
+    .weapon-class-pills.maneuver-categories-pills {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.35rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 4px 0 6px 0 !important;
+    }
+
+    .class-pill-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        min-height: 38px !important;
+        padding: 6px 4px !important;
+        font-size: 0.72rem !important;
+        font-weight: 700 !important;
+        border-radius: 6px !important;
+        box-sizing: border-box !important;
+        white-space: nowrap !important;
+    }
+
+    .weapon-class-pills.maneuver-categories-pills .class-pill-btn {
+        justify-content: flex-start !important;
+        padding: 6px 8px !important;
+        text-align: left !important;
+    }
+
+    .class-pill-btn .pill-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .class-pill-btn .pill-count {
+        font-size: 0.64rem !important;
+        opacity: 0.85;
+    }
+
+    .weapon-category-select-wrap {
+        margin-bottom: 0.45rem !important;
+        width: 100% !important;
+    }
+
+    .weapon-category-select {
+        width: 100% !important;
+        height: 38px !important;
+        padding: 6px 10px !important;
+        font-size: 0.76rem !important;
+        border-radius: 6px !important;
+        border: 1.5px solid var(--gold-primary, #b89347) !important;
+        background-color: #ffffff !important;
+    }
+
+    .weapon-subfilter-container {
+        margin-bottom: 0.4rem !important;
+    }
+
+    .weapon-subfilter-pills {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+        -webkit-overflow-scrolling: touch;
+        gap: 0.35rem !important;
+        padding: 5px 6px !important;
+        background: rgba(184, 147, 71, 0.12) !important;
+        border-radius: 8px !important;
+        align-items: center !important;
+    }
+
+    .weapon-subfilter-pills::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    .sub-pill-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        flex: 0 0 auto !important;
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
+        min-height: 30px !important;
+        padding: 4px 10px !important;
+        font-size: 0.7rem !important;
+        border-radius: 14px !important;
+        box-sizing: border-box !important;
+    }
+
+    .weapon-subfilter-hint {
+        padding: 0.35rem 0.55rem !important;
+        margin-bottom: 0.4rem !important;
+        font-size: 0.68rem !important;
+    }
+
+    .weapon-card-tab {
+        min-height: 48px !important;
+        padding: 0.55rem 0.65rem !important;
+    }
+
+    .weapon-card-tab .tab-name {
+        font-size: 0.8rem !important;
+    }
+
+    .weapon-card-tab .tab-sub {
+        font-size: 0.68rem !important;
+    }
+
+    /* 6.1 Cabeçalho da Arma / Manobra em Detalhes no Mobile */
+    .weapon-detail-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.45rem !important;
+        padding-bottom: 0.65rem !important;
+        margin-bottom: 0.75rem !important;
+        border-bottom: 1.5px solid #e8decb !important;
+    }
+
+    .weapon-title-box {
+        width: 100% !important;
+    }
+
+    .weapon-main-name {
+        font-size: 1.22rem !important;
+        line-height: 1.25 !important;
+        color: #2b1f0d !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.45rem !important;
+        word-break: break-word !important;
+    }
+
+    .weapon-detail-icon {
+        font-size: 1.35rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    .weapon-alt-name {
+        font-size: 0.72rem !important;
+        color: #7d6b56 !important;
+        margin-top: 2px !important;
+        line-height: 1.3 !important;
+    }
+
+    .weapon-header-badges {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 0.35rem !important;
+        width: 100% !important;
+    }
+
+    .weapon-header-badges .badge-category,
+    .weapon-header-badges .badge-class,
+    .weapon-header-badges .badge-page,
+    .weapon-header-badges .badge-hard-style,
+    .weapon-header-badges .badge-soft-style,
+    .weapon-header-badges .badge-any-style {
+        font-size: 0.65rem !important;
+        padding: 3px 6px !important;
+    }
+
+    /* 6.2 Cabeçalhos Hero de Dô e Golpe Trovão no Mobile */
+    .eight-limbs-callout-box,
+    .do-rules-callout-box,
+    .thunder-punch-callout-box {
+        padding: 0.85rem 0.75rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .eight-limbs-header,
+    .do-rules-header,
+    .thunder-punch-header {
+        padding-bottom: 0.65rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    .eight-limbs-hero-title,
+    .do-rules-hero-title,
+    .thunder-punch-hero-title {
+        font-size: 1.2rem !important;
+        line-height: 1.25 !important;
+        letter-spacing: 0.02em !important;
+        word-break: break-word !important;
+    }
+
+    .eight-limbs-source-ref,
+    .eight-limbs-hero-subtitle,
+    .do-rules-source-ref,
+    .do-rules-hero-subtitle,
+    .thunder-punch-hero-subtitle {
+        font-size: 0.72rem !important;
+        line-height: 1.3 !important;
+    }
+
+    .eight-limbs-banner-btn,
+    .do-rules-banner-btn,
+    .thunder-punch-banner-btn {
+        padding: 0.55rem 0.65rem !important;
+        gap: 0.5rem !important;
+    }
+
+    .eight-limbs-title,
+    .do-rules-title,
+    .thunder-punch-title {
+        font-size: 0.78rem !important;
+        line-height: 1.2 !important;
+    }
+
+    /* 7. Rodapé Compacto */
+    .practice-modal-footer {
+        padding: 0.5rem 0.85rem !important;
+    }
+
+    .practice-footer-hint {
+        display: none !important;
+    }
+
+    .practice-footer-actions {
+        width: 100% !important;
+    }
+
+    .practice-close-action-btn {
+        width: 100% !important;
+        text-align: center;
+    }
+}
+
+/* ==========================================================================
+   BOX OFICIAL M20: TRUQUE DE MAGO: O GOLPE TROVÃO (THE THUNDER PUNCH)
+   ========================================================================== */
+
+/* Botão de Destaque na Lista Lateral de Manobras */
+.thunder-punch-banner-wrap {
+    margin-bottom: 0.75rem;
+}
+
+.thunder-punch-banner-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.65rem 0.8rem;
+    background: linear-gradient(135deg, rgba(42, 8, 69, 0.85) 0%, rgba(23, 4, 40, 0.95) 100%);
+    border: 1px solid #c5a059;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    outline: none;
+    box-sizing: border-box;
+}
+
+.thunder-punch-banner-btn:hover {
+    background: linear-gradient(135deg, rgba(58, 14, 94, 0.95) 0%, rgba(35, 8, 60, 0.98) 100%);
+    border-color: #f3df97;
+    box-shadow: 0 0 12px rgba(243, 223, 151, 0.35);
+    transform: translateY(-1px);
+}
+
+.thunder-punch-banner-btn.active {
+    background: linear-gradient(135deg, #3d105e 0%, #200636 100%);
+    border-color: #f7e6b5;
+    box-shadow: 0 0 16px rgba(247, 230, 181, 0.45), inset 0 0 8px rgba(247, 230, 181, 0.2);
+}
+
+.thunder-punch-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+}
+
+.thunder-punch-icon {
+    font-size: 1.35rem;
+    color: #ffd700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+    flex-shrink: 0;
+}
+
+.thunder-punch-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.thunder-punch-title {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #f5eedb;
+    font-family: var(--font-title, 'Cinzel', serif);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.thunder-punch-banner-btn.active .thunder-punch-title {
+    color: #ffd700;
+}
+
+.thunder-punch-ref {
+    font-size: 0.68rem;
+    color: #b89f78;
+    margin-top: 0.1rem;
+}
+
+.thunder-punch-badge {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0.45rem;
+    border-radius: 4px;
+    background: rgba(197, 160, 89, 0.2);
+    color: #ffd700;
+    border: 1px solid rgba(197, 160, 89, 0.4);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Container do Callout Box Estilo Livro M20 */
+.thunder-punch-callout-box {
+    background: radial-gradient(circle at 50% 15%, #2a0845 0%, #170428 55%, #0d0216 100%);
+    border: 2px solid #caa75d;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 25px rgba(202, 167, 93, 0.22), inset 0 0 25px rgba(120, 40, 160, 0.25);
+    outline: 1px solid rgba(202, 167, 93, 0.4);
+    outline-offset: -6px;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.thunder-punch-header {
+    text-align: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid rgba(202, 167, 93, 0.35);
+}
+
+.thunder-punch-hero-title {
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #f7e6b5;
+    letter-spacing: 0.04em;
+    margin: 0;
+    text-shadow: 0 0 12px rgba(247, 230, 181, 0.45), 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.thunder-punch-hero-subtitle {
+    font-size: 0.78rem;
+    color: #cbb489;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 0.35rem;
+    display: block;
+    font-weight: 600;
+}
+
+/* Pílulas de Esferas Utilizáveis */
+.thunder-punch-spheres-wrap {
+    margin-bottom: 1.25rem;
+}
+
+.thunder-punch-spheres-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #d1b87a;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    margin-bottom: 0.45rem;
+    display: block;
+}
+
+.thunder-punch-spheres-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.thunder-sphere-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    background: rgba(142, 68, 173, 0.25);
+    border: 1px solid rgba(202, 167, 93, 0.5);
+    color: #faebd7;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+/* Grid de Pilares Táticos (4 colunas / 2 colunas responsivo) */
+.thunder-tactical-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.4rem;
+}
+
+.thunder-tactical-card {
+    background: rgba(10, 2, 18, 0.65);
+    border: 1px solid rgba(202, 167, 93, 0.35);
+    border-radius: 6px;
+    padding: 0.75rem 0.85rem;
+    transition: border-color 0.2s;
+}
+
+.thunder-tactical-card:hover {
+    border-color: rgba(247, 230, 181, 0.6);
+}
+
+.thunder-tactical-card-title {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #f7e6b5;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.thunder-tactical-card-desc {
+    font-size: 0.8rem;
+    color: #ded4c5;
+    line-height: 1.45;
+    margin: 0;
+}
+
+/* Parágrafos do Livro */
+.thunder-punch-body-paragraphs {
+    background: rgba(8, 2, 14, 0.45);
+    border: 1px solid rgba(202, 167, 93, 0.25);
+    border-radius: 6px;
+    padding: 1.1rem 1.25rem;
+}
+
+.thunder-punch-paragraph {
+    font-size: 0.92rem;
+    color: #e8ded2;
+    line-height: 1.65;
+    margin-bottom: 0.9rem;
+    text-align: justify;
+}
+
+.thunder-punch-paragraph:last-child {
+    margin-bottom: 0;
+}
+
+/* Callout embutido no final de manobras de soco/chute */
+.maneuver-embedded-thunder-callout {
+    margin-top: 1.5rem;
+}
+
+.maneuver-embedded-thunder-title {
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #7a5b20;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.85rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 1px dashed rgba(202, 167, 93, 0.4);
+    padding-bottom: 0.35rem;
+}
+
+/* ─── Dô (Akashayana): Banners da Barra Lateral ─────────────────────────── */
+.eight-limbs-banner-wrap,
+.do-rules-banner-wrap {
+    margin-bottom: 0.75rem;
+}
+
+.eight-limbs-banner-btn,
+.do-rules-banner-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.65rem 0.8rem;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    outline: none;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.eight-limbs-banner-btn {
+    background: linear-gradient(135deg, rgba(20, 27, 45, 0.95) 0%, rgba(12, 17, 29, 0.98) 100%);
+    border: 1px solid #c5a059;
+}
+
+.eight-limbs-banner-btn:hover {
+    background: linear-gradient(135deg, rgba(30, 41, 69, 0.98) 0%, rgba(18, 25, 43, 1) 100%);
+    border-color: #fde68a;
+    box-shadow: 0 0 12px rgba(202, 167, 93, 0.35);
+    transform: translateY(-1px);
+}
+
+.eight-limbs-banner-btn.active {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-color: #fde68a;
+    box-shadow: 0 0 16px rgba(254, 230, 138, 0.4), inset 0 0 8px rgba(202, 167, 93, 0.2);
+}
+
+.do-rules-banner-btn {
+    background: linear-gradient(135deg, rgba(20, 27, 45, 0.95) 0%, rgba(12, 17, 29, 0.98) 100%);
+    border: 1px solid rgba(197, 160, 89, 0.7);
+}
+
+.do-rules-banner-btn:hover {
+    background: linear-gradient(135deg, rgba(30, 41, 69, 0.98) 0%, rgba(18, 25, 43, 1) 100%);
+    border-color: #ffd700;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+    transform: translateY(-1px);
+}
+
+.do-rules-banner-btn.active {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-color: #ffd700;
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.35), inset 0 0 8px rgba(255, 215, 0, 0.15);
+}
+
+.eight-limbs-banner-left,
+.do-rules-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+}
+
+.eight-limbs-icon,
+.do-rules-icon {
+    font-size: 1.35rem;
+    flex-shrink: 0;
+}
+
+.eight-limbs-icon {
+    color: #fef08a;
+    text-shadow: 0 0 8px rgba(254, 240, 138, 0.6);
+}
+
+.do-rules-icon {
+    color: #ffd700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+.eight-limbs-text,
+.do-rules-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.eight-limbs-title,
+.do-rules-title {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #f5eedb;
+    font-family: var(--font-title, 'Cinzel', serif);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.eight-limbs-banner-btn.active .eight-limbs-title,
+.do-rules-banner-btn.active .do-rules-title {
+    color: #fef08a;
+}
+
+.eight-limbs-ref,
+.do-rules-ref {
+    font-size: 0.68rem;
+    color: #d1b87a;
+    margin-top: 0.1rem;
+}
+
+.eight-limbs-badge {
+    background: rgba(217, 119, 6, 0.25);
+    color: #fef08a;
+    border: 1px solid rgba(245, 158, 11, 0.5);
+}
+
+.do-rules-badge {
+    background: rgba(197, 160, 89, 0.2);
+    color: #ffd700;
+    border: 1px solid rgba(197, 160, 89, 0.4);
+}
+
+/* ─── Dô: Container & Cabeçalho dos Oito Membros ──────────────────────────── */
+.eight-limbs-callout-box,
+.do-rules-callout-box {
+    background: radial-gradient(circle at 50% 8%, #1c2438 0%, #0f172a 55%, #090d16 100%);
+    border: 2px solid #caa75d;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 25px rgba(202, 167, 93, 0.22), inset 0 0 25px rgba(217, 119, 6, 0.12);
+    outline: 1px solid rgba(202, 167, 93, 0.4);
+    outline-offset: -6px;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.eight-limbs-header,
+.do-rules-header {
+    text-align: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid rgba(202, 167, 93, 0.35);
+}
+
+.eight-limbs-tag,
+.do-rules-tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.65rem;
+    border-radius: 12px;
+    background: rgba(202, 167, 93, 0.15);
+    border: 1px solid rgba(202, 167, 93, 0.4);
+    color: #f7e6b5;
+    margin-bottom: 0.45rem;
+    text-transform: uppercase;
+}
+
+.eight-limbs-hero-title,
+.do-rules-hero-title {
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #fef08a;
+    letter-spacing: 0.04em;
+    margin: 0;
+    text-shadow: 0 0 12px rgba(254, 240, 138, 0.45), 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.eight-limbs-hero-subtitle,
+.eight-limbs-source-ref,
+.do-rules-hero-subtitle,
+.do-rules-source-ref {
+    font-size: 0.8rem;
+    color: #fcd34d;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 0.35rem;
+    display: block;
+    font-weight: 700;
+}
+
+.eight-limbs-intro,
+.eight-limbs-quote,
+.peaceful-way-quote,
+.do-rules-overview {
+    background: rgba(10, 14, 26, 0.7);
+    border-left: 3px solid #caa75d;
+    border-radius: 0 6px 6px 0;
+    padding: 0.95rem 1.25rem;
+    font-size: 0.92rem;
+    color: #f8fafc;
+    font-style: normal;
+    line-height: 1.65;
+    margin-top: 0.85rem;
+    margin-bottom: 1.35rem;
+    text-align: justify;
+}
+
+/* ─── Grid dos Oito Membros ─────────────────────────────────────────────── */
+.eight-limbs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1.35rem;
+}
+
+.limb-card {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(202, 167, 93, 0.35);
+    border-radius: 6px;
+    padding: 1rem 1.15rem;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.limb-card:hover {
+    border-color: rgba(254, 240, 138, 0.7);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    transform: translateY(-2px);
+}
+
+.limb-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.55rem;
+}
+
+.limb-bullet {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.limb-title {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #fef08a;
+    font-family: var(--font-title, 'Cinzel', serif);
+    letter-spacing: 0.03em;
+    margin: 0;
+}
+
+.limb-desc {
+    font-size: 0.86rem;
+    color: #f1f5f9;
+    line-height: 1.55;
+    margin: 0 0 0.75rem 0;
+    text-align: justify;
+    flex-grow: 1;
+}
+
+.limb-abilities-wrap {
+    margin-top: auto;
+    padding-top: 0.55rem;
+    border-top: 1px solid rgba(202, 167, 93, 0.25);
+}
+
+.limb-abilities-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #fcd34d;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+    display: block;
+}
+
+.limb-abilities-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.limb-ability-badge {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(217, 119, 6, 0.2);
+    border: 1px solid rgba(245, 158, 11, 0.55);
+    border-radius: 4px;
+    padding: 0.18rem 0.55rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #fef08a;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+}
+
+/* Card de Progressão dos Membros */
+.eight-limbs-progression-card {
+    background: rgba(10, 14, 26, 0.8);
+    border: 1px solid rgba(202, 167, 93, 0.4);
+    border-left: 4px solid #f59e0b;
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.progression-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+}
+
+.progression-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.progression-title,
+.eight-limbs-progression-title {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #fef08a;
+    margin: 0;
+    font-family: var(--font-title, 'Cinzel', serif);
+    letter-spacing: 0.04em;
+}
+
+.progression-desc,
+.eight-limbs-progression-p {
+    font-size: 0.88rem;
+    color: #f1f5f9;
+    line-height: 1.6;
+    margin: 0;
+    text-align: justify;
+}
+
+/* ─── Box de Regra Opcional: O Caminho Pacífico ─────────────────────────── */
+.peaceful-way-callout-box {
+    background: radial-gradient(circle at 50% 20%, #151d33 0%, #090d16 100%);
+    border: 2px dashed rgba(202, 167, 93, 0.65);
+    border-radius: 8px;
+    padding: 1.35rem 1.45rem;
+    margin-top: 1.5rem;
+    box-shadow: 0 0 20px rgba(202, 167, 93, 0.15);
+}
+
+.peaceful-way-header {
+    text-align: center;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.peaceful-way-icon {
+    font-size: 1.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.peaceful-way-title {
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #fef08a;
+    letter-spacing: 0.04em;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(254, 240, 138, 0.35);
+}
+
+.peaceful-way-desc-paragraphs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.peaceful-way-p {
+    font-size: 0.88rem;
+    color: #f1f5f9;
+    line-height: 1.65;
+    margin: 0;
+    text-align: justify;
+}
+
+/* ─── Box de Regras & Treino Canônico de Dô ──────────────────────────────── */
+.do-rules-intro-card,
+.do-commitment-card {
+    background: rgba(10, 14, 26, 0.8);
+    border: 1px solid rgba(202, 167, 93, 0.4);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.do-commitment-card {
+    border-left: 4px solid #eab308;
+}
+
+.commitment-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+}
+
+.commitment-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.commitment-title,
+.do-commitment-title {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #fef08a;
+    margin: 0;
+    font-family: var(--font-title, 'Cinzel', serif);
+    letter-spacing: 0.04em;
+}
+
+.commitment-desc,
+.do-commitment-p {
+    font-size: 0.88rem;
+    color: #f1f5f9;
+    line-height: 1.6;
+    margin: 0;
+    text-align: justify;
+}
+
+/* Grid de Vantagens e Peculiaridades de Dô */
+.do-advantages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.9rem;
+}
+
+.do-advantage-card {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(202, 167, 93, 0.35);
+    border-radius: 6px;
+    padding: 1rem 1.15rem;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.do-advantage-card:hover {
+    border-color: rgba(254, 240, 138, 0.7);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    transform: translateY(-2px);
+}
+
+.advantage-card-header,
+.do-advantage-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.55rem;
+}
+
+.advantage-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.advantage-title,
+.do-advantage-name {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #fef08a;
+    font-family: var(--font-title, 'Cinzel', serif);
+    letter-spacing: 0.03em;
+    margin: 0;
+}
+
+.advantage-rule,
+.do-advantage-desc {
+    font-size: 0.86rem;
+    color: #f1f5f9;
+    line-height: 1.55;
+    margin: 0;
+    text-align: justify;
+}
+
+/* Callout embutido de Dô na visualização de manobra */
+.maneuver-embedded-do-callout {
+    margin-top: 1.5rem;
+}
+
+.maneuver-embedded-do-card {
+    background: #ffffff;
+    border: 1px solid #dcd1be;
+    border-left: 4px solid #7c3aed;
+    border-radius: 8px;
+    padding: 1.15rem 1.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.maneuver-embedded-do-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.55rem;
+    border-bottom: 1px dashed rgba(124, 58, 237, 0.25);
+    padding-bottom: 0.45rem;
+}
+
+.maneuver-embedded-do-icon {
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.maneuver-embedded-do-title {
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #4c1d95;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.maneuver-embedded-do-desc {
+    font-size: 0.84rem;
+    color: #334155;
+    line-height: 1.55;
+    margin: 0 0 1rem 0;
+    text-align: justify;
+}
+
+.maneuver-embedded-do-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.embedded-do-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #fef08a !important;
+    border: 1px solid #b89347;
+    border-radius: 6px;
+    padding: 0.65rem 1rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    flex: 1;
+    min-width: 190px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    font-family: inherit;
+    text-decoration: none;
+}
+
+.embedded-do-action-btn span {
+    color: inherit;
+}
+
+.embedded-do-action-btn:hover {
+    background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+    border-color: #fde68a;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    transform: translateY(-1px);
+}
+
+.embedded-do-btn-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.embedded-do-btn-label {
+    white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+    .embedded-do-action-btn {
+        width: 100%;
+        min-width: 100%;
+    }
+}
+
+

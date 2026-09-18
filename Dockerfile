@@ -22,6 +22,7 @@ WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 COPY style.css ./
 COPY styles ./styles
+COPY data ./data
 COPY src ./src
 COPY tests ./tests
 
@@ -60,6 +61,7 @@ COPY --from=builder --chown=appuser:appgroup /app/target/release/mta_sheet_serve
 COPY --from=builder --chown=appuser:appgroup /app/target/site /app/target/site
 COPY --from=builder --chown=appuser:appgroup /app/style.css /app/style.css
 COPY --from=builder --chown=appuser:appgroup /app/styles /app/styles
+COPY --from=builder --chown=appuser:appgroup /app/data /app/data
 
 # Variaveis de ambiente padrao para containerizacao
 ENV DATABASE_URL="sqlite:/app/data/mta_sheet.db?mode=rwc"

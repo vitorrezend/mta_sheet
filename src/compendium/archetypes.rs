@@ -4,10 +4,11 @@
 //! for all 20 canonical personality archetypes, along with the foundational rules
 //! regarding Nature, Demeanor, and Willpower recovery mechanics.
 
+use serde::Serialize;
 use crate::i18n::Language;
 
 /// Canonical Theory Article regarding Nature and Demeanor
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct ArchetypeTheoryArticle {
     pub id: &'static str,
     pub title: &'static str,
@@ -34,7 +35,7 @@ impl ArchetypeTheoryArticle {
 }
 
 /// Canonical Definition of a Personality Archetype (Nature & Demeanor)
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct ArchetypeDefinition {
     pub id: &'static str,
     pub name: &'static str,

@@ -10,6 +10,7 @@ use crate::i18n::Language;
 pub fn PracticesView(
     selected_practice_id: RwSignal<String>,
     current_lang: Signal<Language>,
+    #[prop(into, default = None)] mobile_show_detail: Option<RwSignal<bool>>,
     on_select_practice: Option<Callback<String>>,
     on_navigate_to_instrument: Option<Callback<(String, String)>>,
     on_close: Option<Callback<()>>,
@@ -25,7 +26,10 @@ pub fn PracticesView(
     let on_close_act = on_close;
 
     view! {
-        <div class="compendium-section-split">
+        <div 
+            class="compendium-section-split"
+            class:mobile-show-detail=move || mobile_show_detail.map(|s| s.get()).unwrap_or(false)
+        >
             // ================= PRÁTICAS: Coluna Esquerda =================
             <div class="practice-sidebar-pane">
                 // Box Especial
@@ -39,7 +43,12 @@ pub fn PracticesView(
                                 "practice-tab-btn special-box-tab"
                             }
                         }
-                        on:click=move |_| selected_practice_id.set("box_left_right".to_string())
+                        on:click=move |_| {
+                            selected_practice_id.set("box_left_right".to_string());
+                            if let Some(msd) = mobile_show_detail {
+                                msd.set(true);
+                            }
+                        }
                     >
                         <span class="tab-indicator">"📜"</span>
                         <div class="tab-text-wrap">
@@ -75,7 +84,12 @@ pub fn PracticesView(
                                         "practice-tab-btn"
                                     }
                                 }
-                                on:click=move |_| selected_practice_id.set(p_id.to_string())
+                                on:click=move |_| {
+                                    selected_practice_id.set(p_id.to_string());
+                                    if let Some(msd) = mobile_show_detail {
+                                        msd.set(true);
+                                    }
+                                }
                             >
                                 <span class="practice-tab-bullet">"✦"</span>
                                 <span class="practice-tab-label">{move || p.name(current_lang.get())}</span>
@@ -88,6 +102,23 @@ pub fn PracticesView(
 
             // ================= PRÁTICAS: Coluna Direita (Detalhe) =================
             <div class="practice-detail-pane">
+                // Botão de Retorno no Mobile (visível apenas em telas <= 768px via CSS)
+                {move || mobile_show_detail.map(|msd| {
+                    view! {
+                        <button
+                            type="button"
+                            class="compendium-mobile-back-btn"
+                            on:click=move |_| msd.set(false)
+                        >
+                            <span class="back-arrow">"←"</span>
+                            <span>{move || match current_lang.get() {
+                                Language::PtBr => "Voltar para a Lista de Práticas",
+                                Language::EnUs => "Back to Practices List",
+                            }}</span>
+                        </button>
+                    }
+                })}
+
                 {move || {
                     if is_practice_box.get() {
                         // Visualização Dedicada do Box "Left- and Right-Hand Paths"

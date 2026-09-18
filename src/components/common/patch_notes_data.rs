@@ -19,6 +19,55 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.19.0",
+        date: "2026-09-18",
+        tag: "v0.19.0",
+        title: "Arte Marcial Canônica Dô (Akashayana), Manobras de Combate M20, Golpe Trovão e Responsividade Mobile",
+        highlight: "Integração canônica completa da arte marcial Dô com Os Oito Membros da Maestria, O Caminho Pacífico e 9 Técnicas Especiais, 44 manobras de combate M20 equipáveis na ficha, Box Oficial do Golpe Trovão, expansão ergonômica da tabela de armas e novo cabeçalho fluido para dispositivos móveis.",
+        sections: &[
+            PatchSection {
+                category: "🪷 Dô — O Caminho da Vida (Irmandade de Akashayana)",
+                icon: "🪷",
+                items: &[
+                    "📜 Os Oito Membros da Maestria (Eight Limbs): Card temático canônico detalhando Dharmamukti, Dhyana, Jivahasta, Karma, Prajna, Shastamarga, Sunyakaya e Tricanmarga com habilidades associadas e progressão obrigatória (2 pontos por membro por bolinha de Dô).",
+                    "🕊️ Regra Opcional O Caminho Pacífico (The Peaceful Way): Sistema que converte a meditação ativa do Tao-shih em sucessos automáticos para tarefas mundanas puras (gasto de 1 FV + rolagem de Dô Dif 8).",
+                    "🥋 Regras Canônicas de Treinamento: Exigência de 1 hora diária de prática, transmissão secreta por mestres (Dô 3+), -1 na dificuldade de manobras gerais corporais, dano letal desarmado e defesa reflexiva contra armas cortantes sem uso de proteções.",
+                    "⚡ 9 Técnicas Especiais de Dô Equipáveis: Aparar Flechas, Arremesso Furacão, Camisa de Ferro, Kiaijutsu, Flor da Ameixeira, Punho Suave, Dez Mil Armas, Chute Tufão e Arte das Armas prontas para inserção na ficha.",
+                ],
+            },
+            PatchSection {
+                category: "⚔️ Compêndio de Combate & 44 Manobras M20",
+                icon: "🥋",
+                items: &[
+                    "📖 Catálogo Canônico com 44 Manobras: Cobertura completa de manobras Gerais, Luta Suja, Defensivas, Agarrões e Artes Marciais (M20 pp. 416–427) com dificuldades, rolagens, estilo (Duro/Suave) e efeitos.",
+                    "⚡ Truque de Mago: O Golpe Trovão (The Thunder Punch - M20 p. 449): Box temático interativo com ajuste de dificuldade via Correspondência 1, assalto de padrão agravado via Vida 3/Primórdio 3 e regras canônicas de rebote.",
+                    "🛡️ Equipar Manobra na Ficha: Botão de ação direta que injeta a manobra selecionada na tabela de combate da Página 2 com dificuldade, dano e notas preenchidas.",
+                    "🌐 Suporte Bilíngue Fluido (PT-BR / EN-US): Alternância instantânea de termos, manobras, armas e textos teóricos em todo o compêndio.",
+                ],
+            },
+            PatchSection {
+                category: "📱 Responsividade Mobile & Ergonomia Visual",
+                icon: "📱",
+                items: &[
+                    "📐 Cabeçalho Reestruturado para Smartphones: Título 'Armas, Manobras & Combate' com sobrelinha 'M20 • COMPÊNDIO' e botões compactos de 32px, eliminando quebras feias e esmagamentos em telas de até 360px.",
+                    "🔘 Grids de Filtros Dedicados: Divisão em 3 colunas para armas e 2 colunas amplas para manobras, garantindo legibilidade total de categorias como '🥋 Artes Marciais (16)'.",
+                    "📄 Layout Vertical em Detalhes: Inspeção de itens em coluna fluida com badges de estilo e referências quebrando sem sobrepor títulos.",
+                    "📜 Rolagem Contínua e Limpa: Adição de scroll vertical suave nas colunas do compêndio, prevenindo perda de visibilidade dos últimos itens da lista.",
+                ],
+            },
+            PatchSection {
+                category: "🛡️ Tabela de Combate na Ficha & Testes Automatizados",
+                icon: "⚔️",
+                items: &[
+                    "🗡️ Tabela de Armas Expandida (Página 2): Rebalanceamento de largura (1.55fr / 0.85fr) dando mais amplitude para visualização de golpes e armas.",
+                    "🛡️ Seção de Armadura Condensada: Otimização do bloco de proteção sem perda de campos ou clareza visual.",
+                    "🧪 12 Novos Testes Canônicos de Combate: Cobertura automatizada em tests/weapons_compendium_test.rs garantindo integridade de stats, busca bilíngue e regras especiais.",
+                    "✅ 100% de Aprovação nas Suítes: Todos os 99 testes locais (lib, compendium e anti-patterns) executados e aprovados com zero warnings.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.18.0",
         date: "2026-09-17",
         tag: "v0.18.0",

@@ -449,6 +449,20 @@ pub fn CharacterSheet() -> impl IntoView {
         let _ = set_is_dirty.try_set(true);
     });
 
+    let on_maneuver_selected_from_modal = Callback::new(move |(slot_opt, m_def): (Option<usize>, &'static crate::compendium::weapons::CombatManeuver)| {
+        let lang = current_lang_fn();
+        set_data.update(|s| {
+            let target_idx = slot_opt.unwrap_or_else(|| {
+                s.weapons.iter().position(|w| w.name.trim().is_empty()).unwrap_or(s.weapons.len())
+            });
+            while s.weapons.len() <= target_idx {
+                s.weapons.push(crate::state::WeaponItem::default());
+            }
+            s.weapons[target_idx] = m_def.to_weapon_item(lang);
+        });
+        let _ = set_is_dirty.try_set(true);
+    });
+
     view! {
         <div class="sheet-page-container">
             <leptos_meta::Title text=move || format!("{} | MTA Sheet", data.with(|d| d.get_display_name())) />
@@ -610,6 +624,7 @@ pub fn CharacterSheet() -> impl IntoView {
                     _ => None,
                 }).into())
                 on_select_weapon=on_weapon_selected_from_modal
+                on_select_maneuver=on_maneuver_selected_from_modal
             />
         </div>
     }

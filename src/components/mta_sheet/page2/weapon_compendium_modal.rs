@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::compendium::weapons::WeaponDefinition;
+use crate::compendium::weapons::{CombatManeuver, WeaponDefinition};
 use crate::components::compendium::{CompendiumModal, CompendiumSection};
 use crate::components::Callback;
 
@@ -10,6 +10,7 @@ pub fn WeaponCompendiumModal(
     #[prop(into)] initial_query: Signal<String>,
     #[prop(optional)] target_slot: Option<Signal<Option<usize>>>,
     #[prop(optional)] on_select_weapon: Option<Callback<(Option<usize>, &'static WeaponDefinition)>>,
+    #[prop(optional)] on_select_maneuver: Option<Callback<(Option<usize>, &'static CombatManeuver)>>,
 ) -> impl IntoView {
     let initial_sec = Signal::derive(|| CompendiumSection::Weapons);
     view! {
@@ -20,6 +21,7 @@ pub fn WeaponCompendiumModal(
             initial_section=Some(initial_sec)
             target_slot=target_slot
             on_select_weapon=on_select_weapon
+            on_select_maneuver=on_select_maneuver
         />
     }
 }

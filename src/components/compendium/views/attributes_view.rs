@@ -8,6 +8,7 @@ use crate::i18n::Language;
 pub fn AttributesView(
     selected_attribute_id: RwSignal<String>,
     current_lang: Signal<Language>,
+    #[prop(into, default = None)] mobile_show_detail: Option<RwSignal<bool>>,
 ) -> impl IntoView {
     let is_attribute_rule = Signal::derive(move || selected_attribute_id.get() == "rule_specialties");
     let active_attribute = Signal::derive(move || {
@@ -19,7 +20,10 @@ pub fn AttributesView(
     });
 
     view! {
-        <div class="compendium-section-split">
+        <div 
+            class="compendium-section-split"
+            class:mobile-show-detail=move || mobile_show_detail.map(|s| s.get()).unwrap_or(false)
+        >
             // ================= ATRIBUTOS: Coluna Esquerda (Abas) =================
             <div class="practice-sidebar-pane">
                 // Botão especial: Regra de Especialidades (M20, p. 273)
@@ -33,7 +37,12 @@ pub fn AttributesView(
                                 "practice-tab-btn special-box-tab"
                             }
                         }
-                        on:click=move |_| selected_attribute_id.set("rule_specialties".to_string())
+                        on:click=move |_| {
+                            selected_attribute_id.set("rule_specialties".to_string());
+                            if let Some(msd) = mobile_show_detail {
+                                msd.set(true);
+                            }
+                        }
                     >
                         <span class="tab-indicator">"📜"</span>
                         <div class="tab-text-wrap">
@@ -75,7 +84,12 @@ pub fn AttributesView(
                                         "practice-tab-btn"
                                     }
                                 }
-                                on:click=move |_| selected_attribute_id.set(a_id.to_string())
+                                on:click=move |_| {
+                                    selected_attribute_id.set(a_id.to_string());
+                                    if let Some(msd) = mobile_show_detail {
+                                        msd.set(true);
+                                    }
+                                }
                             >
                                 <span class="tab-indicator">{icon}</span>
                                 <div class="tab-text-wrap">
@@ -114,7 +128,12 @@ pub fn AttributesView(
                                         "practice-tab-btn"
                                     }
                                 }
-                                on:click=move |_| selected_attribute_id.set(a_id.to_string())
+                                on:click=move |_| {
+                                    selected_attribute_id.set(a_id.to_string());
+                                    if let Some(msd) = mobile_show_detail {
+                                        msd.set(true);
+                                    }
+                                }
                             >
                                 <span class="tab-indicator">{icon}</span>
                                 <div class="tab-text-wrap">
@@ -153,7 +172,12 @@ pub fn AttributesView(
                                         "practice-tab-btn"
                                     }
                                 }
-                                on:click=move |_| selected_attribute_id.set(a_id.to_string())
+                                on:click=move |_| {
+                                    selected_attribute_id.set(a_id.to_string());
+                                    if let Some(msd) = mobile_show_detail {
+                                        msd.set(true);
+                                    }
+                                }
                             >
                                 <span class="tab-indicator">{icon}</span>
                                 <div class="tab-text-wrap">
@@ -168,6 +192,23 @@ pub fn AttributesView(
 
             // ================= ATRIBUTOS: Coluna Direita (Conteúdo) =================
             <div class="practice-detail-pane">
+                // Botão de Retorno no Mobile (visível apenas em telas <= 768px via CSS)
+                {move || mobile_show_detail.map(|msd| {
+                    view! {
+                        <button
+                            type="button"
+                            class="compendium-mobile-back-btn"
+                            on:click=move |_| msd.set(false)
+                        >
+                            <span class="back-arrow">"←"</span>
+                            <span>{move || match current_lang.get() {
+                                Language::PtBr => "Voltar para a Lista de Atributos",
+                                Language::EnUs => "Back to Attributes List",
+                            }}</span>
+                        </button>
+                    }
+                })}
+
                 {move || {
                     if is_attribute_rule.get() {
                         let rule = &SPECIALTIES_RULE;

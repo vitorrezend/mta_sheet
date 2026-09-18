@@ -1951,6 +1951,11 @@
     align-items: center;
     text-align: center;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .stat-label {
@@ -1959,6 +1964,10 @@
     text-transform: uppercase;
     color: #7d6b56;
     letter-spacing: 0.05em;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .stat-value {
@@ -1966,6 +1975,10 @@
     font-weight: 800;
     margin: 4px 0 2px 0;
     line-height: 1.1;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
 }
 
 .stat-value.stat-diff {

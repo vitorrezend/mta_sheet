@@ -27,17 +27,13 @@ async fn test_wasm_binary_serving_and_magic_bytes() {
 
 #[cfg(feature = "ssr")]
 #[tokio::test]
-async fn test_auth_form_has_no_raw_action_or_method() {
+async fn test_auth_form_has_safe_post_method_and_no_plaintext_get() {
     let auth_page = std::fs::read_to_string("src/components/views/auth_page.rs")
         .expect("auth_page.rs deve existir");
 
     assert!(
-        !auth_page.contains("action="),
-        "auth_page.rs NÃO deve conter 'action=' na tag form para impedir navegação HTTP nativa para fora da SPA"
-    );
-    assert!(
-        !auth_page.contains("method=\"POST\""),
-        "auth_page.rs NÃO deve conter 'method=\"POST\"' na tag form"
+        auth_page.to_lowercase().contains("method=\"post\""),
+        "auth_page.rs DEVE conter method=\"post\" para impedir vazamento de senhas em texto claro na URL caso o WASM falhe"
     );
     assert!(
         auth_page.contains("on:submit=on_submit"),
