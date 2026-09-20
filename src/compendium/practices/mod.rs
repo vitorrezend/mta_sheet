@@ -11,8 +11,10 @@ pub use callouts::*;
 pub use catalog_part1::*;
 pub use catalog_part2::*;
 
+use serde::Serialize;
 use crate::i18n::Language;
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct PracticeDefinition {
     pub id: &'static str,
     pub name: &'static str,

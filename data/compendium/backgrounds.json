@@ -1535,6 +1535,440 @@
           "difficulty": 5
         }
       ]
+    },
+    {
+      "id": "resources",
+      "name": "Resources",
+      "name_pt": "Recursos",
+      "technocracy_name": "Capital / Financial Assets",
+      "technocracy_name_pt": "Capital / Recursos Financeiros",
+      "page_ref": "M20, pp. 316-318",
+      "max_dots": 10,
+      "description": "As any Syndicate rep will tell you, there is great wealth to be made with magick – honed into the Art of Desire and Hypereconomics. This Background measures your liquid wealth, real estate, investment portfolios, and material assets.\n\nIn the modern world of digital transactions and paper-trail surveillance, moving vast sums of untraceable currency is difficult. Technocrats navigate financial grids with ease, while mystic mages must rely on old money or careful money-laundering. High ratings (6-10) reflect global financial titans.",
+      "description_pt": "Como qualquer operador do Sindicato atesta, há fortunas imensas a serem conquistadas com mágica — refinada na Arte do Desejo e na Hiperoeconomia. Este Antecedente mensura sua liquidez financeira, patrimônio imobiliário, carteiras de investimento e acesso a bens materiais.\n\nNo mundo moderno de transferências digitais e monitoramento bancário, movimentar fortunas em espécie chama a atenção da malha fiscal. Tecnocratas dominam as redes bancárias com facilidade, enquanto místicos dependem de fortunas antigas ou investimentos discretos. Pontuações de 6 a 10 representam titãs corporativos globais.",
+      "system": "Determines standard of living, available liquid capital, and purchasing power for mission gear. Ratings 1-5 represent mortal wealth brackets. Ratings 6-10 indicate macroeconomic dominance over global markets and institutions.",
+      "system_pt": "Determina padrão de vida, limite de crédito, liquidez e capacidade de compra para itens e propriedades. Pontuações de 1 a 5 cobrem faixas de riqueza humana. Pontuações de 6 a 10 conferem influência macroeconômica sobre indústrias e governos.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "Working poor: You live paycheck-to-paycheck, and that’s about it.",
+          "description_pt": "Renda de subsistência: Salário mínimo vivendo de contracheque em contracheque."
+        },
+        {
+          "dots": 1,
+          "description": "Slightly ahead of the game: Small apartment, cheap vehicle, working-class income.",
+          "description_pt": "Ligeiramente estabilizado: Pequeno apartamento alugado, veículo econômico e renda trabalhadora."
+        },
+        {
+          "dots": 2,
+          "description": "Lower middle class: Condo or apartment, reliable vehicle, savings, occasional indulgences.",
+          "description_pt": "Classe média baixa: Apartamento próprio financiado, carro confiável, poupança modesta e pequenos luxos."
+        },
+        {
+          "dots": 3,
+          "description": "Middle class with property: Owns equity in real estate, investments, savings.",
+          "description_pt": "Classe média proprietária: Imóvel quitado de bom padrão, investimentos regulares e reserva financeira."
+        },
+        {
+          "dots": 4,
+          "description": "Well-off: Large house, notable savings and investments; millionaire by local standards.",
+          "description_pt": "Confortável / Milionário: Casa ampla, múltiplos veículos, investimentos expressivos e alto padrão de vida."
+        },
+        {
+          "dots": 5,
+          "description": "Welcome to the 1%: Multimillionaire with substantial corporate holdings and luxury estates.",
+          "description_pt": "Membro do 1%: Multimilionário com conglomerados, imóveis de luxo e liquidez massiva."
+        },
+        {
+          "dots": 6,
+          "description": "Hollywood money: Liquid capital for any private indulgence or high-profile enterprise.",
+          "description_pt": "Fortuna de Hollywood: Capital líquido irrestrito para qualquer aquisição pessoal de alto padrão."
+        },
+        {
+          "dots": 7,
+          "description": "Billionaires’ club: Financial leverage capable of influencing an entire industry.",
+          "description_pt": "Clube dos Bilionários: Poder financeiro capaz de alterar mercados industriais inteiros."
+        },
+        {
+          "dots": 8,
+          "description": "Bruce Wayne level wealth: You own international companies, foundations, and ports.",
+          "description_pt": "Nível Bruce Wayne: Proprietário de corporações multinacionais e fundações estratégicas."
+        },
+        {
+          "dots": 9,
+          "description": "Tony Stark level wealth: You own global high-tech industries and defense contractors.",
+          "description_pt": "Nível Tony Stark: Dono de indústrias bélicas e tecnológicas vitais para a infraestrutura mundial."
+        },
+        {
+          "dots": 10,
+          "description": "Bill Gates / Hegemony wealth: Economic power rivaling sovereign nations and central banks.",
+          "description_pt": "Hegemonia Global: Fortuna comparável a potências soberanas; poder para resgatar nações e ditar políticas centrais."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "retainers",
+      "name": "Retainers",
+      "name_pt": "Lacaios",
+      "technocracy_name": "Assistants / Staff",
+      "technocracy_name_pt": "Assistentes / Equipe Pessoal",
+      "page_ref": "M20, p. 318",
+      "max_dots": 5,
+      "description": "Devoted servants, laboratory assistants, secretaries, or spirit helpers who take care of mundane busywork: binding wounds, prepping equipment, cleaning up crime scenes, and managing household affairs.\n\nRetainers are strictly mundane in capabilities (not sorcerers or heavy combatants). If trained into capable combatants or occultists, they graduate into the Allies Background.",
+      "description_pt": "Serviçais devotados, assistentes de bancada, secretários particulares ou espíritos menores que cuidam do trabalho rotineiro: curativos pós-combate, limpeza de evidências, afiação de lâminas e gerenciamento doméstico.\n\nLacaios possuem competências estritamente mundanas (não são magos nem guerreiros de elite). Se forem treinados em combate avançado ou mágica, são promovidos para o Antecedente Aliados.",
+      "system": "Each dot provides one dedicated servant character run by the Storyteller. Retainers have mundane Skills and perform logistical and domestic support tasks without questioning orders.",
+      "system_pt": "Cada ponto concede um serviçal fiel interpretado pelo Narrador. Lacaios possuem Perícias mundanas e realizam tarefas logísticas, domésticas e de apoio sem questionar instruções.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "You’re doing your own laundry, dude!",
+          "description_pt": "Você cuida das próprias tarefas e faz sua própria lavanderia."
+        },
+        {
+          "dots": 1,
+          "description": "One retainer: A loyal assistant, chauffeur, cleaner, or lab-hand.",
+          "description_pt": "1 lacaio: Assistente pessoal leal, chofer, auxiliar de limpeza ou ajudante de bancada."
+        },
+        {
+          "dots": 2,
+          "description": "Two retainers: A pair of reliable attendants or specialized assistants.",
+          "description_pt": "2 lacaios: Par de atendentes de confiança ou assistentes operacionais dedicados."
+        },
+        {
+          "dots": 3,
+          "description": "Three retainers: A modest domestic staff or personal workshop team.",
+          "description_pt": "3 lacaios: Equipe doméstica modesta ou time de suporte para laboratório/ateliê."
+        },
+        {
+          "dots": 4,
+          "description": "Four retainers: A coordinated retinue managing your properties and appointments.",
+          "description_pt": "4 lacaios: Criados coordenados administrando suas propriedades, segurança básica e agenda."
+        },
+        {
+          "dots": 5,
+          "description": "Five retainers: A chief steward coordinating a dedicated staff of servants.",
+          "description_pt": "5 lacaios: Um mordomo-chefe coordenando uma equipe completa de serviçais fiéis."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "sanctum",
+      "name": "Sanctum",
+      "name_pt": "Santuário",
+      "technocracy_name": "Laboratory",
+      "technocracy_name_pt": "Laboratório",
+      "page_ref": "M20, pp. 318-319",
+      "max_dots": 5,
+      "description": "A private retreat shielded from the consensual reality that stifles your Arts and Enlightened Sciences: a martial arts dojo, high-tech cleanroom, rooftop greenhouse, basement alchemical lair, or sacred mountain shrine (up to 500 sq ft).\n\nA Sanctum provides several major mechanical advantages:\n• Ritual Difficulty Reduction: Lowers ritual and experiment difficulties by 1 or 2 points.\n• Inherent Cloaking: Grants an Arcane/Cloaking rating equal to Sanctum rating to all occupants.\n• Local Reality Control: Magick conforming to the sanctum’s paradigm is coincidental; rival paradigms are vulgar.\n• Gauntlet Shift: Lowers the Gauntlet by 1 level in mystic sanctuaries (or increases by 1 for technomancers).",
+      "description_pt": "Um refúgio privativo isolado da realidade consensual que sufoca suas Artes e Ciências Iluminadas: um dojô tradicional, laboratório estéril com salas limpas, estufa de ervas raras em cobertura ou caverna sagrada na montanha (até 45 m²).\n\nO Santuário confere vantagens mecânicas decisivas:\n• Redução de Dificuldade Ritual: Diminui dificuldades de rituais e experimentos em 1 ou 2 pontos.\n• Camuflagem Inerente: Concede pontuação de Arcano/Camuflagem igual ao valor do Santuário para quem estiver dentro.\n• Definição da Realidade Local: Mágica alinhada ao paradigma do local é coincidente; feitiços de escolas rivais tornam-se vulgares.\n• Ajuste da Película: Reduz a Película em 1 nível para místicos (aumenta em 1 para tecnomantes).",
+      "system": "SPECIAL COST: Costs TWO points per dot (or double XP). Up to 500 sq ft. Lowers ritual difficulties, grants Arcane/Cloaking dots equal to rating, makes internal paradigm coincidental, and shifts Gauntlet.",
+      "system_pt": "CUSTO ESPECIAL: Custa 2 pontos por bolinha na criação (ou o dobro de XP). Até 45 m². Reduz dificuldades de rituais, concede Arcano/Camuflagem igual à pontuação e torna o paradigma do dono coincidente no local.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No special dedicated sanctum or private laboratory.",
+          "description_pt": "Nenhum refúgio privativo ou laboratório consagrado."
+        },
+        {
+          "dots": 1,
+          "description": "Tiny stock; no ritual difficulty reduction; magick is coincidental; 1 dot in Arcane.",
+          "description_pt": "Estoque diminuto; sem redução de dificuldade; mágica coincidente; 1 ponto em Arcano/Camuflagem."
+        },
+        {
+          "dots": 2,
+          "description": "Small stock; ritual difficulties reduced by 1; 2 dots in Arcane/Cloaking.",
+          "description_pt": "Estoque básico; dificuldades de rituais/experimentos reduzidas em 1; 2 pontos em Arcano/Camuflagem."
+        },
+        {
+          "dots": 3,
+          "description": "Decent stock of goods; ritual difficulties reduced by 1; 3 dots in Arcane/Cloaking.",
+          "description_pt": "Bom estoque de reagentes e aparelhos; rituais reduzidos em 1 de dificuldade; 3 pontos em Arcano/Camuflagem."
+        },
+        {
+          "dots": 4,
+          "description": "Fine stock of materials; ritual difficulties reduced by 2; 4 dots in Arcane/Cloaking.",
+          "description_pt": "Excelente infraestrutura; dificuldades de rituais/experimentos reduzidas em 2; 4 pontos em Arcano/Camuflagem."
+        },
+        {
+          "dots": 5,
+          "description": "Excellent stock of materials; ritual difficulties reduced by 2; 5 dots in Arcane/Cloaking.",
+          "description_pt": "Instalação de ponta completa; dificuldades reduzidas em 2; 5 pontos em Arcano/Camuflagem."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "secret_weapons",
+      "name": "Secret Weapons",
+      "name_pt": "Armas Secretas",
+      "technocracy_name": "Q Division Prototypes",
+      "technocracy_name_pt": "Protótipos da Divisão Q",
+      "page_ref": "M20, pp. 319-320",
+      "max_dots": 5,
+      "description": "As a prized field-test operative for the Technocratic Q Division, you receive experimental hypertech prototypes before missions. The Background rating reflects the caliber of prototype Devices issued to you.\n\nUnlike Requisitions, these are unproven prototypes: your Storyteller makes a secret Social Trait + Secret Weapons roll before the assignment. High successes yield cutting-edge prototypes; a botch yields a bug-ridden hazard.",
+      "description_pt": "Como operativo de teste de elite da Divisão Q da Tecnocracia, você recebe protótipos experimentais de hipertecnologia para missões de campo. A pontuação reflete o calibre dos Dispositivos protótipos confiados ao seu agente.\n\nDiferente de Requisições, são protótipos em fase de validação: o Narrador realiza um teste secreto de Atributo Social + Armas Secretas antes da missão. Muitos sucessos garantem aparelhos perfeitos; uma falha crítica entrega protótipos com defeitos perigosos.",
+      "system": "Exclusive to Technocratic operatives. The Storyteller makes a secret Social Trait + Secret Weapons roll. Devices must be returned after the mission along with an operational field report.",
+      "system_pt": "Exclusivo para agentes da Tecnocracia. O Narrador realiza um teste secreto de Atributo Social + Armas Secretas para determinar o estado e confiabilidade dos protótipos concedidos para a missão.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "Typical agent – no experimental goodies.",
+          "description_pt": "Agente de campo padrão — nenhum protótipo experimental liberado."
+        },
+        {
+          "dots": 1,
+          "description": "Small items of trivial utility: spy pens, mini-torches, nutrient bars.",
+          "description_pt": "Pequenos dispositivos utilitários: canetas espiãs, lanternas táticas, rações hipercalóricas."
+        },
+        {
+          "dots": 2,
+          "description": "Small items with limited utility: compact scanners, power cells, combat stimulants.",
+          "description_pt": "Dispositivos de utilidade tática: scanners compactos, células de energia, estimulantes neurais."
+        },
+        {
+          "dots": 3,
+          "description": "Good stuff: advanced concealed weapons, lightweight body armor, specialized medical gear.",
+          "description_pt": "Arsenal de vanguarda: armas ocultas de energia, blindagem corporal leve, estojos biomédicos."
+        },
+        {
+          "dots": 4,
+          "description": "Trusted field tester: Q Division consults you directly; potent items with experimental glitches.",
+          "description_pt": "Operativo de teste veterano: protótipos de grande poder com potenciais instabilidades de campo."
+        },
+        {
+          "dots": 5,
+          "description": "Cutting-edge hypertech: full combat exosuits, heavy particle weaponry, experimental craft.",
+          "description_pt": "Arsenal experimental supremo: exoesqueletos completos, canhões de partículas e veículos táticos."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "spies",
+      "name": "Spies",
+      "name_pt": "Espiões",
+      "technocracy_name": "Informants / Surveillance Grid",
+      "technocracy_name_pt": "Informantes / Rede de Vigilância",
+      "page_ref": "M20, pp. 320-321",
+      "max_dots": 10,
+      "description": "A network of little birds keeping you informed: disgruntled bureaucrats, tapped telephone lines, surveillance drones, or blackmailed corporate executives. Spies are transactional assets who trade information for money, protection, or influence.\n\nSpies can be rolled with various Attributes:\n• Intelligence + Spies: Uncover confidential information and passwords.\n• Manipulation + Spies: Circulate diversionary leaks, false leads, and rumors.\n• Charisma + Spies: Project intimidating authority from a distance.\n• Perception + Spies: Spot ambushes and counter-intelligence operations early.\n\nRatings 6-10 reflect institutional intelligence apparatuses up to global mass surveillance.",
+      "description_pt": "Uma rede de informantes e escutas que mantém você informado: burocratas descontentes, linhas grampeadas, drones de vigilância ou executivos chantageados. Espiões são contatos transacionais que negociam dados em troca de capital, favores ou proteção.\n\nTestes com Espiões utilizam múltiplos Atributos:\n• Inteligência + Espiões: Descobrir relatórios confidenciais e senhas.\n• Manipulação + Espiões: Espalhar desinformação, boatos e pistas falsas.\n• Carisma + Espiões: Projetar autoridade e prestígio a distância.\n• Percepção + Espiões: Antecipar emboscadas e operações inimigas.\n\nPontuações de 6 a 10 refletem agências nacionais de inteligência até vigilância global completa.",
+      "system": "Roll an appropriate Attribute + Spies for gathering intelligence or circulating disinformation. Ratings above 5 grant access to sovereign-grade intelligence networks and satellite interception.",
+      "system_pt": "Role Atributo adequado + Espiões para coletar informações ou plantar pistas falsas. Pontuações acima de 5 concedem acesso a bancos de dados de espionagem governamental e satélites espiões.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No special informants or listening posts.",
+          "description_pt": "Nenhum informante nas sombras ou rede de escuta."
+        },
+        {
+          "dots": 1,
+          "description": "One or two spies in helpful local places (police, local mob, newsroom).",
+          "description_pt": "1 ou 2 informantes em posições locais úteis (polícia, submundo, redação de jornal)."
+        },
+        {
+          "dots": 2,
+          "description": "Four to six informants in various helpful municipal areas.",
+          "description_pt": "4 a 6 informantes em postos-chave municipais e cartórios."
+        },
+        {
+          "dots": 3,
+          "description": "Handful of spies in sensitive bureaus (Pentagon, CIA, UN, rival chantries).",
+          "description_pt": "Informantes em departamentos sigilosos (Pentágono, CIA, ONU, Capelas rivais)."
+        },
+        {
+          "dots": 4,
+          "description": "Infiltrators across a whole sphere of influence (ministries, international markets).",
+          "description_pt": "Infiltrados em toda uma esfera de poder nacional, ministérios ou clãs rivais."
+        },
+        {
+          "dots": 5,
+          "description": "Eyes and ears throughout the Sleeper world, plus supernatural contacts.",
+          "description_pt": "Olhos e ouvidos por todo o tecido mortal, além de informantes no mundo sobrenatural."
+        },
+        {
+          "dots": 6,
+          "description": "Small news industry or private intelligence agency on your payroll.",
+          "description_pt": "Rede de notícias ou agência privada de inteligência sob seu comando direto."
+        },
+        {
+          "dots": 7,
+          "description": "Hundreds of mortal contacts plus numerous supernatural informants.",
+          "description_pt": "Centenas de agentes mundanos e contatos profundos em ordens arcanas e tribos."
+        },
+        {
+          "dots": 8,
+          "description": "Full intelligence agency fielding and processing global intelligence for you.",
+          "description_pt": "Uma agência completa de inteligência processando dados exclusivos para você."
+        },
+        {
+          "dots": 9,
+          "description": "Big Brother: Ubiquitous surveillance grid across entire nations.",
+          "description_pt": "Grande Irmão: Rede de vigilância e interceptação onipresente em nível nacional."
+        },
+        {
+          "dots": 10,
+          "description": "Big Brother on a global scale: Total planetary interception and surveillance.",
+          "description_pt": "Grande Irmão Global: Monitoramento planetário irrestrito com inteligência artificial preditiva."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "status",
+      "name": "Status",
+      "name_pt": "Status",
+      "technocracy_name": "Standing / Prestige",
+      "technocracy_name_pt": "Prestígio / Reputação Institucional",
+      "page_ref": "M20, p. 321",
+      "max_dots": 5,
+      "description": "Reputation, prestige, and political clout among your Awakened peers (Tradition councils, Technocratic symposiums, or Disparate alliances). Unlike Fame or Rank, Status reflects renown within the secret world of mages.\n\nStatus grants automatic social deference among colleagues and adds bonus dice to Social rolls with peers (full rating among members of your own group; halved among allied factions; no bonus among rivals or enemies).",
+      "description_pt": "Reputação, prestígio e autoridade política entre seus pares Despertos (conselhos de Tradição, simpósios da Tecnocracia ou alianças dos Disparatados). Diferente de Fama ou Patente, Status reflete renome exclusivo no mundo secreto dos magos.\n\nStatus concede deferência automática entre colegas e adiciona dados bônus a testes Sociais com pares (pontuação total entre membros de sua própria ordem; metade em facções aliadas; nenhum bônus com rivais ou inimigos).",
+      "system": "Add Status rating as bonus dice on Social rolls dealing with members of your own group. Add half rating (rounded up) among allied factions. No bonus against enemies or strangers.",
+      "system_pt": "Adicione a pontuação de Status como dados bônus em testes Sociais com membros da sua própria ordem. Adicione metade do valor (arredondado para cima) com facções aliadas. Sem bônus contra inimigos ou estranhos.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No special status or renown among the Awakened.",
+          "description_pt": "Nenhum status especial ou renome entre os Despertos."
+        },
+        {
+          "dots": 1,
+          "description": "Acknowledged: Peers recognize your name when it comes up.",
+          "description_pt": "Reconhecido: Seus pares reconhecem seu nome quando citado em reuniões."
+        },
+        {
+          "dots": 2,
+          "description": "Credible: Considered noteworthy, trustworthy, and capable.",
+          "description_pt": "Notável: Visto como um mago competente, digno de confiança e de reputação sólida."
+        },
+        {
+          "dots": 3,
+          "description": "Respected: Your word carries weight and influence in tribunals and conclaves.",
+          "description_pt": "Respeitado: Sua palavra possui peso em julgamentos, conclaves e conselhos da ordem."
+        },
+        {
+          "dots": 4,
+          "description": "Admired: Paragon of virtue or skill within your group; known to allied factions.",
+          "description_pt": "Admirado: Referência de excelência em sua ordem; prestígio reconhecido por Tradições aliadas."
+        },
+        {
+          "dots": 5,
+          "description": "Revered: Paragon of your group’s highest principles on a global stage.",
+          "description_pt": "Reverenciado: Modelo supremo dos princípios da sua facção em âmbito mundial."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "totem",
+      "name": "Totem",
+      "name_pt": "Totem",
+      "technocracy_name": null,
+      "technocracy_name_pt": null,
+      "page_ref": "M20, pp. 321-322",
+      "max_dots": 5,
+      "description": "An ancient spiritual kinship formed between a shaman or medicine worker and a primal spirit archetype (Wolf, Coyote, Raven, Bear, Cockroach). You are kin to the totem – a spiritual child or sibling bound by mutual honor and sacred taboos.\n\nThe totem provides guidance, omens, bonus dice in an Ability aligned with its nature (e.g. Stealth for Fox, Survival for Bear), free dots in Cosmology and Spirit Lore, and corporeal manifestations during desperate peril.",
+      "description_pt": "Um vínculo sagrado ancestral selado entre um xamã e um arquétipo espiritual primordial (Lobo, Coiote, Corvo, Urso, Barata). Você é considerado parente do totem — um filho ou irmão espiritual guiado por honra mútua e tabus sagrados.\n\nO totem concede conselhos, presságios, dados bônus em uma Habilidade associada à sua essência (ex: Furtividade para Raposa, Sobrevivência para Urso), pontos em Cosmologia e Ocultismo, e manifestações físicas em crises extremas.",
+      "system": "SPECIAL COST: Costs TWO points per dot. Shamanic characters only. Confers bonus dice to a related Ability, free dots in Cosmology/Lore, and physical spirit manifestation at higher levels.",
+      "system_pt": "CUSTO ESPECIAL: Custa 2 pontos por bolinha na criação. Exclusivo para personagens xamânicos. Concede dados bônus em Habilidade associada, bolinhas em Cosmologia/Ocultismo e manifestação espiritual física nos níveis superiores.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No totem spirit bond.",
+          "description_pt": "Nenhum pacto ou comunhão com espíritos totêmicos arquetípicos."
+        },
+        {
+          "dots": 1,
+          "description": "Totem appears in dreams/visions; +1 die in related Ability.",
+          "description_pt": "O totem surge em sonhos e visões; +1 dado em uma Habilidade associada."
+        },
+        {
+          "dots": 2,
+          "description": "Speaks through cryptic advice and omens; +2 dice in related Ability.",
+          "description_pt": "Comunica-se por presságios e enigmas; +2 dados na Habilidade associada."
+        },
+        {
+          "dots": 3,
+          "description": "Appears to spirit-seers; sends animal manifestations; +2 dice in Ability; +1 dot in Cosmology/Lore.",
+          "description_pt": "Manifesta-se a videntes; envia avatares animais; +2 dados na Habilidade; +1 em Cosmologia ou Ocultismo."
+        },
+        {
+          "dots": 4,
+          "description": "Solid manifestation; +3 dice in Ability; +2 dots in Cosmology/Lore; dire combat aid.",
+          "description_pt": "Manifestação corpórea; +3 dados na Habilidade; +2 em Cosmologia/Ocultismo; auxílio em combate desesperado."
+        },
+        {
+          "dots": 5,
+          "description": "Devoted communion; constant company; +3 dice in Ability; +2 dots in Cosmology & Spirit Lore; marked aura.",
+          "description_pt": "Comunhão lendária; presença constante; +3 dados na Habilidade; +2 em Cosmologia e +2 em Ocultismo; Marca Totêmica visível."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "wonder",
+      "name": "Wonder",
+      "name_pt": "Maravilha",
+      "technocracy_name": "Device",
+      "technocracy_name_pt": "Dispositivo",
+      "page_ref": "M20, pp. 322-323",
+      "max_dots": 5,
+      "description": "An enchanted artifact, spirit Fetish, or high-tech Enlightened Device possessing Sphere Effects of its own. A Wonder may hold its own Quintessence reserve and even roll its own Arete rating to activate powers.\n\nWonders range from carved rune-staves and enchanted swords to plasma rifles and stealth drones. The Background rating determines the creation point budget used to design the Wonder (see The Toybox, Appendix II, pp. 651-653).",
+      "description_pt": "Um artefato encantado, Fetiche espiritual ou Dispositivo hipertecnológico Iluminado que possui Efeitos de Esferas próprios. Uma Maravilha pode armazenar sua própria reserva de Quintessência e até rolar um valor próprio de Arete para ativar seus poderes.\n\nMaravilhas abrangem desde bastões rúnicos e lâminas encantadas até rifles de plasma e drones táticos de camuflagem. A pontuação determina o orçamento de pontos de criação para customizar a Maravilha (ver O Baú de Brinquedos, Apêndice II, pp. 651-653).",
+      "system": "Provides creation points (1-3 pts at dot 1, up to 13-15 pts at dot 5) to purchase Sphere Effects, Arete, Quintessence batteries, and specialized functions for the item.",
+      "system_pt": "Concede pontos de criação (1-3 pts na bolinha 1 até 13-15 pts na bolinha 5) para aquisição de Efeitos de Esferas, Arete independente, baterias de Quintessência e propriedades mágicas do item.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No items of power.",
+          "description_pt": "Nenhum talismã, fetiche ou dispositivo mágico sob sua posse."
+        },
+        {
+          "dots": 1,
+          "description": "A Wonder with one small power (1-3 creation points).",
+          "description_pt": "Maravilha com um poder menor ou utilitário (1 a 3 pontos de criação)."
+        },
+        {
+          "dots": 2,
+          "description": "A Wonder with one or two powers, some Quintessence and Arete (4-6 points).",
+          "description_pt": "Maravilha com 1 ou 2 poderes, reserva de Quintessência e Arete próprio (4 a 6 pontos)."
+        },
+        {
+          "dots": 3,
+          "description": "A Wonder with notable powers or one respectable Effect (7-9 points).",
+          "description_pt": "Maravilha com poderes expressivos ou um Efeito de grande porte (7 a 9 pontos)."
+        },
+        {
+          "dots": 4,
+          "description": "A Wonder with impressive powers or a powerful Effect (10-12 points).",
+          "description_pt": "Maravilha formidável com poderes impressionantes e defesas arcanas (10 a 12 pontos)."
+        },
+        {
+          "dots": 5,
+          "description": "A Wonder with mighty powers or a single devastating Effect (13-15 points).",
+          "description_pt": "Maravilha lendária capaz de desferir efeitos de destruição em massa ou milagres arcanos supremos (13 a 15 pontos)."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
     }
   ]
 }
