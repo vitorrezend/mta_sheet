@@ -245,17 +245,17 @@ fn test_technocratic_sphere_specialty_flipping() {
     let prime = get_suggested_specialties("Primórdio", Language::PtBr);
     let primal_util = get_suggested_specialties("Utilidade Primordial", Language::PtBr);
     assert!(prime.contains(&"Canalização"));
-    assert!(!prime.contains(&"Capital Místico"));
-    assert!(primal_util.contains(&"Capital Místico"));
+    assert!(!prime.contains(&"Geração de Capital Energético"));
+    assert!(primal_util.contains(&"Geração de Capital Energético"));
     assert!(!primal_util.contains(&"Canalização"));
 
     // Espírito vs Ciência Dimensional
     let spirit = get_suggested_specialties("Espírito", Language::PtBr);
     let dim_sci = get_suggested_specialties("Ciência Dimensional", Language::PtBr);
-    assert!(spirit.contains(&"Mundo Espiritual"));
-    assert!(!spirit.contains(&"EDE Scan"));
-    assert!(dim_sci.contains(&"EDE Scan"));
-    assert!(!dim_sci.contains(&"Mundo Espiritual"));
+    assert!(spirit.contains(&"Viagem Umbral"));
+    assert!(!spirit.contains(&"Relações com EDEs"));
+    assert!(dim_sci.contains(&"Relações com EDEs"));
+    assert!(!dim_sci.contains(&"Viagem Umbral"));
 }
 
 #[test]
