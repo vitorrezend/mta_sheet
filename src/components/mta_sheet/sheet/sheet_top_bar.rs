@@ -28,6 +28,10 @@ pub fn SheetTopBar(
     on_export_json: Callback<()>,
     on_import_json: Callback<CharacterData>,
     #[prop(optional)] set_show_pdf_modal: Option<WriteSignal<bool>>,
+    #[prop(optional)] set_show_share_modal: Option<WriteSignal<bool>>,
+    #[prop(into, default = true.into())] can_edit: MaybeSignal<bool>,
+    #[prop(into, default = None.into())] author_username: MaybeSignal<Option<String>>,
+    #[prop(optional)] on_clone_sheet: Option<Callback<()>>,
 ) -> impl IntoView {
     let import_input_ref = create_node_ref::<html::Input>();
 
@@ -108,79 +112,132 @@ pub fn SheetTopBar(
                 </div>
 
                 <div class="top-bar-right">
-                    // 1. Menu Hambúrguer de Pontos / Modos
-                    <button 
-                        type="button" 
-                        class="points-menu-trigger-btn"
-                        class:active=move || show_points_menu.get()
-                        class=("limit-exceeded", move || costs.get().creation_points.has_any_overflow || costs.get().total_bonus_spent > 15)
-                        on:click=move |_| {
-                            show_actions_menu.set(false);
-                            show_points_menu.update(|v| *v = !*v);
-                        }
-                        title="Modos de Pontuação e Extrato"
-                    >
-                        <span class="mode-dot-indicator" class=move || match active_origin.get() {
-                            DotOrigin::Base => "dot-base",
-                            DotOrigin::Bonus => "dot-bonus",
-                            DotOrigin::Experience => "dot-xp",
-                            DotOrigin::Temporary => "dot-temp",
-                        }></span>
-                        <span class="btn-text">
-                            {move || match active_origin.get() {
-                                DotOrigin::Base => crate::i18n::tr("mode_base", lang()),
-                                DotOrigin::Bonus => crate::i18n::tr("mode_bonus", lang()),
-                                DotOrigin::Experience => crate::i18n::tr("mode_xp", lang()),
-                                DotOrigin::Temporary => "Buff",
-                            }}
-                        </span>
-                        {move || if costs.get().creation_points.has_any_overflow || costs.get().total_bonus_spent > 15 {
-                            view! { <span class="badge-alert-dot">"⚠️"</span> }.into_view()
-                        } else {
-                            view! { <span></span> }.into_view()
-                        }}
-                        <span class="btn-caret">{move || if show_points_menu.get() { "▲" } else { "▼" }}</span>
-                    </button>
-
-                    // 2. Pílula de Status (Salvo)
-                    <div class="save-status-container">
-                        {move || match save_status.get() {
-                            SaveStatus::Idle => view! { <span class="status-badge status-idle"></span> }.into_view(),
-                            SaveStatus::Pending => view! {
-                                <span class="status-badge status-pending" title="Alterações pendentes...">
-                                    <span class="status-dot dot-pending"></span>
-                                    <span class="status-text">"Pendente"</span>
-                                </span>
-                            }.into_view(),
-                            SaveStatus::Saving => view! {
-                                <span class="status-badge status-saving" title="Gravando dados no banco...">
-                                    <span class="status-spinner"></span>
-                                    <span class="status-text">"Salvando..."</span>
-                                </span>
-                            }.into_view(),
-                            SaveStatus::Saved(t) => view! {
-                                <span class="status-badge status-saved" title="Todas as alterações foram salvas">
-                                    <span class="status-dot dot-saved"></span>
-                                    <span class="status-text">{format!("Salvo ({})", t)}</span>
-                                </span>
-                            }.into_view(),
-                            SaveStatus::Error(err) => {
-                                let err_title = err.clone();
-                                view! {
-                                    <span class="status-badge status-error" title=err_title>
-                                        <span class="status-dot dot-error"></span>
-                                        <span class="status-text">"Erro"</span>
+                    {
+                        move || if can_edit.get() {
+                            let do_save = do_manual_save.clone();
+                            view! {
+                                // 1. Menu Hambúrguer de Pontos / Modos
+                                <button 
+                                    type="button" 
+                                    class="points-menu-trigger-btn"
+                                    class:active=move || show_points_menu.get()
+                                    class=("limit-exceeded", move || costs.get().creation_points.has_any_overflow || costs.get().total_bonus_spent > 15)
+                                    on:click=move |_| {
+                                        show_actions_menu.set(false);
+                                        show_points_menu.update(|v| *v = !*v);
+                                    }
+                                    title="Modos de Pontuação e Extrato"
+                                >
+                                    <span class="mode-dot-indicator" class=move || match active_origin.get() {
+                                        DotOrigin::Base => "dot-base",
+                                        DotOrigin::Bonus => "dot-bonus",
+                                        DotOrigin::Experience => "dot-xp",
+                                        DotOrigin::Temporary => "dot-temp",
+                                    }></span>
+                                    <span class="btn-text">
+                                        {move || match active_origin.get() {
+                                            DotOrigin::Base => crate::i18n::tr("mode_base", lang()),
+                                            DotOrigin::Bonus => crate::i18n::tr("mode_bonus", lang()),
+                                            DotOrigin::Experience => crate::i18n::tr("mode_xp", lang()),
+                                            DotOrigin::Temporary => "Buff",
+                                        }}
                                     </span>
-                                }.into_view()
-                            },
-                        }}
-                    </div>
+                                    {move || if costs.get().creation_points.has_any_overflow || costs.get().total_bonus_spent > 15 {
+                                        view! { <span class="badge-alert-dot">"⚠️"</span> }.into_view()
+                                    } else {
+                                        view! { <span></span> }.into_view()
+                                    }}
+                                    <span class="btn-caret">{move || if show_points_menu.get() { "▲" } else { "▼" }}</span>
+                                </button>
 
-                    // 3. Botão Salvar
-                    <button class="manual-save-btn" on:click=move |ev| do_manual_save.call(ev) title="Salvar imediatamente">
-                        <span class="btn-icon">"💾"</span>
-                        <span class="btn-text">{move || crate::i18n::tr("save", lang())}</span>
-                    </button>
+                                // 2. Pílula de Status (Salvo)
+                                <div class="save-status-container">
+                                    {move || match save_status.get() {
+                                        SaveStatus::Idle => view! { <span class="status-badge status-idle"></span> }.into_view(),
+                                        SaveStatus::Pending => view! {
+                                             <span class="status-badge status-pending" title="Alterações pendentes...">
+                                                <span class="status-dot dot-pending"></span>
+                                                <span class="status-text">"Pendente"</span>
+                                            </span>
+                                        }.into_view(),
+                                        SaveStatus::Saving => view! {
+                                            <span class="status-badge status-saving" title="Gravando dados no banco...">
+                                                <span class="status-spinner"></span>
+                                                <span class="status-text">"Salvando..."</span>
+                                            </span>
+                                        }.into_view(),
+                                        SaveStatus::Saved(t) => view! {
+                                            <span class="status-badge status-saved" title="Todas as alterações foram salvas">
+                                                <span class="status-dot dot-saved"></span>
+                                                <span class="status-text">{format!("Salvo ({})", t)}</span>
+                                            </span>
+                                        }.into_view(),
+                                        SaveStatus::Error(err) => {
+                                            let err_title = err.clone();
+                                            view! {
+                                                <span class="status-badge status-error" title=err_title>
+                                                    <span class="status-dot dot-error"></span>
+                                                    <span class="status-text">"Erro"</span>
+                                                </span>
+                                            }.into_view()
+                                        },
+                                    }}
+                                </div>
+
+                                // 3. Botão Salvar
+                                <button class="manual-save-btn" on:click=move |ev| do_save.call(ev) title="Salvar imediatamente">
+                                    <span class="btn-icon">"💾"</span>
+                                    <span class="btn-text">{move || crate::i18n::tr("save", lang())}</span>
+                                </button>
+
+                                // 4. Botão Compartilhar (Estilo Google Drive)
+                                <button 
+                                    type="button" 
+                                    class="share-top-bar-btn" 
+                                    on:click=move |_| {
+                                        if let Some(set_share) = set_show_share_modal {
+                                            set_share.set(true);
+                                        }
+                                    } 
+                                    title="Compartilhar ficha com pessoas, crônicas e link público"
+                                >
+                                    <span class="btn-icon">"🔗"</span>
+                                    <span class="btn-text">"Compartilhar"</span>
+                                </button>
+                            }.into_view()
+                        } else {
+                            let author_opt = author_username.get();
+                            let on_clone = on_clone_sheet.clone();
+                            view! {
+                                <div class="readonly-view-pill">
+                                    <span>"👁️ Modo Leitura"</span>
+                                    {if let Some(ref auth) = author_opt {
+                                        let href = format!("/user/{}", auth);
+                                        let label = format!("@{}", auth);
+                                        view! {
+                                            <span>" • Criado por " <A href=href class="readonly-author-link">{label}</A></span>
+                                        }.into_view()
+                                    } else {
+                                        view! { <span></span> }.into_view()
+                                    }}
+                                </div>
+
+                                <button 
+                                    type="button" 
+                                    class="clone-sheet-top-btn"
+                                    on:click=move |_| {
+                                        if let Some(ref cb) = on_clone {
+                                            cb.call(());
+                                        }
+                                    }
+                                    title="Clonar esta ficha para sua biblioteca"
+                                >
+                                    <span class="btn-icon">"📋"</span>
+                                    <span class="btn-text">"Clonar Ficha"</span>
+                                </button>
+                            }.into_view()
+                        }
+                    }
 
                     // 4. Menu Hambúrguer de Detalhes / Ações
                     <button 
@@ -346,19 +403,25 @@ pub fn SheetTopBar(
                                         <span class="action-label">"Dossiê do Personagem (Questionário)"</span>
                                     </button>
 
-                                    <button 
-                                        type="button" 
-                                        class="actions-menu-item-btn json-import-btn"
-                                        on:click=move |_| {
-                                            show_actions_menu.set(false);
-                                            if let Some(input) = import_input_ref.get() {
-                                                input.click();
-                                            }
-                                        }
-                                    >
-                                        <span class="action-icon">"📥"</span>
-                                        <span class="action-label">"Importar Ficha (.json)"</span>
-                                    </button>
+                                    {move || if can_edit.get() {
+                                        Some(view! {
+                                            <button 
+                                                type="button" 
+                                                class="actions-menu-item-btn json-import-btn"
+                                                on:click=move |_| {
+                                                    show_actions_menu.set(false);
+                                                    if let Some(input) = import_input_ref.get() {
+                                                        input.click();
+                                                    }
+                                                }
+                                            >
+                                                <span class="action-icon">"📥"</span>
+                                                <span class="action-label">"Importar Ficha (.json)"</span>
+                                            </button>
+                                        })
+                                    } else {
+                                        None
+                                    }}
 
                                     <button 
                                         type="button" 
@@ -388,18 +451,51 @@ pub fn SheetTopBar(
                                         <span class="action-label">"Exportar em PDF Oficial (A4)"</span>
                                     </button>
 
-                                    <button 
-                                        type="button" 
-                                        class="actions-menu-item-btn privacy-toggle-top-btn"
-                                        class:btn-public=move || is_public.get()
-                                        class:btn-private=move || !is_public.get()
-                                        on:click=move |_| on_privacy.call(())
-                                    >
-                                        <span class="action-icon">{move || if is_public.get() { "🌐" } else { "🔒" }}</span>
-                                        <span class="action-label">
-                                            {move || if is_public.get() { "Ficha Pública (Tornar Privada)" } else { "Ficha Privada (Tornar Pública)" }}
-                                        </span>
-                                    </button>
+                                    {
+                                        let share_modal = set_show_share_modal;
+                                        move || if can_edit.get() {
+                                            Some(view! {
+                                                <button 
+                                                    type="button" 
+                                                    class="actions-menu-item-btn share-menu-item-btn"
+                                                    on:click=move |_| {
+                                                        show_actions_menu.set(false);
+                                                        if let Some(set_share) = share_modal {
+                                                            set_share.set(true);
+                                                        }
+                                                    }
+                                                >
+                                                    <span class="action-icon">"🔗"</span>
+                                                    <span class="action-label">"Compartilhar Ficha..."</span>
+                                                </button>
+                                            })
+                                        } else {
+                                            None
+                                        }
+                                    }
+
+                                    {
+                                        let on_privacy_action = on_privacy.clone();
+                                        move || if can_edit.get() {
+                                            let on_priv = on_privacy_action.clone();
+                                            Some(view! {
+                                                <button 
+                                                    type="button" 
+                                                    class="actions-menu-item-btn privacy-toggle-top-btn"
+                                                    class:btn-public=move || is_public.get()
+                                                    class:btn-private=move || !is_public.get()
+                                                    on:click=move |_| on_priv.call(())
+                                                >
+                                                    <span class="action-icon">{move || if is_public.get() { "🌐" } else { "🔒" }}</span>
+                                                    <span class="action-label">
+                                                        {move || if is_public.get() { "Ficha Pública (Tornar Privada)" } else { "Ficha Privada (Tornar Pública)" }}
+                                                    </span>
+                                                </button>
+                                            })
+                                        } else {
+                                            None
+                                        }
+                                    }
 
                                     <a 
                                         href="/logs" 
@@ -467,6 +563,7 @@ mod tests {
 
         assert!(html.contains("json-export-btn"), "Botao exportar JSON deve estar presente");
         assert!(html.contains("json-import-btn"), "Botao importar JSON deve estar presente");
+        assert!(html.contains("share-top-bar-btn"), "Botao compartilhar deve estar presente");
 
         runtime.dispose();
     }

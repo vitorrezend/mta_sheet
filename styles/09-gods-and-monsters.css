@@ -5,16 +5,14 @@
 /* ─── Seletor de Arquétipos na Home ─────────────────────────────────────── */
 .sheet-type-selector {
     display: flex;
-    gap: 8px;
-    margin-bottom: 1.25rem;
-    justify-content: center;
+    gap: 6px;
+    margin-bottom: 0;
+    justify-content: flex-start;
     background: #f1f5f9;
-    padding: 5px;
-    border-radius: 30px;
-    border: 1px solid #e2e8f0;
+    padding: 4px;
+    border-radius: var(--radius-md, 6px);
+    border: 1px solid var(--border-color, #e2e8f0);
     width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 .type-pill-btn {
@@ -37,6 +35,41 @@
     background: #ffffff;
     color: #1e293b;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 768px) {
+    .sheet-type-selector {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        border-radius: var(--radius-lg, 8px);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        padding: 4px;
+    }
+
+    .type-pill-btn {
+        width: 100%;
+        justify-content: center;
+        border-radius: var(--radius-md, 6px);
+        box-sizing: border-box;
+        padding: 0.5rem 0.6rem;
+        font-size: 0.82rem;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .sheet-type-selector {
+        gap: 4px;
+        padding: 3px;
+    }
+
+    .type-pill-btn {
+        padding: 0.45rem 0.5rem;
+        font-size: 0.8rem;
+    }
 }
 
 .type-pill-btn.active {
@@ -561,5 +594,13 @@
     }
     .gods-header-grid {
         grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .sheet-type-selector {
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 0.5rem !important;
     }
 }

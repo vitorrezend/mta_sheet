@@ -1,4 +1,4 @@
-﻿/* ==========================================
+/* ==========================================
    Rooms Page
    ========================================== */
 .rooms-container {
@@ -320,6 +320,27 @@
     cursor: pointer;
 }
 
+.copy-room-link-btn {
+    background: var(--bg-surface-elevated, #1e293b);
+    color: var(--text-primary, #f8fafc);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.copy-room-link-btn:hover {
+    background: var(--bg-surface-hover, #334155);
+    border-color: var(--color-primary, #6366f1);
+    color: var(--color-primary-light, #a5b4fc);
+}
+
 .add-sheet-to-room-btn {
     background: linear-gradient(135deg, #6366f1, #4f46e5);
     color: white;
@@ -615,6 +636,13 @@
     border-bottom: 2px solid #e2e8f0;
     padding-bottom: 0.5rem;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+}
+
+.room-tabs-nav::-webkit-scrollbar {
+    display: none;
 }
 
 .room-tab-btn {
@@ -628,6 +656,8 @@
     border-radius: 8px;
     transition: all 0.2s ease;
     white-space: nowrap;
+    flex-shrink: 0;
+    scroll-snap-align: start;
 }
 
 .room-tab-btn:hover {
@@ -1456,4 +1486,557 @@ body {
     gap: 1rem;
 }
 
+/* ==========================================================================
+   RESPONSIVIDADE MOBILE DA SALA / MESA (MAX-WIDTH: 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+    .room-view-container {
+        padding: 0.75rem 0.5rem !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+    }
 
+    .room-top-header {
+        padding: 1rem !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 1rem !important;
+        margin-bottom: 1.25rem !important;
+    }
+
+    .header-left {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .room-title {
+        font-size: 1.4rem !important;
+        word-break: break-word !important;
+    }
+
+    .room-title-row {
+        flex-wrap: wrap !important;
+        gap: 0.5rem !important;
+    }
+
+    .header-right {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.6rem !important;
+    }
+
+    .invite-code-pill {
+        width: 100% !important;
+        justify-content: space-between !important;
+        box-sizing: border-box !important;
+        padding: 0.5rem 0.8rem !important;
+    }
+
+    .add-sheet-to-room-btn,
+    .initiative-top-bar-btn {
+        width: 100% !important;
+        min-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
+        font-size: 0.92rem !important;
+    }
+
+    .room-tabs-nav {
+        gap: 0.35rem !important;
+        margin-bottom: 1rem !important;
+        padding-bottom: 0.5rem !important;
+        padding-right: 1.5rem !important;
+    }
+
+    .room-tab-btn {
+        padding: 0.55rem 0.85rem !important;
+        font-size: 0.82rem !important;
+        min-height: 42px !important;
+    }
+
+    /* Regra de Ouro: Coluna Única no Mobile para permitir visualização e rolagem de todos os personagens */
+    .party-grid,
+    .character-cards-grid.party-grid,
+    .character-cards-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.25rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .character-card.party-card,
+    .character-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .section-header {
+        flex-wrap: wrap !important;
+        gap: 0.5rem !important;
+    }
+
+    .section-header h2 {
+        font-size: 1.2rem !important;
+    }
+
+    .form-row-2 {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+    }
+
+    .gm-tactical-hud {
+        padding: 6px !important;
+        gap: 6px !important;
+    }
+
+    .gm-card-wheel {
+        width: 145px !important;
+        height: 145px !important;
+    }
+
+    .gm-dots-row,
+    .gm-squares-row {
+        gap: 3px !important;
+    }
+
+    /* Alternância Responsiva: Mobile exibe card tático compacto e oculta o card desktop */
+    .party-card-desktop {
+        display: none !important;
+    }
+
+    .party-card-mobile {
+        display: flex !important;
+    }
+}
+
+/* Regra Padrão (Desktop/Telas Maiores > 768px): Oculta o card mobile e exibe o desktop */
+@media (min-width: 769px) {
+    .party-card-mobile {
+        display: none !important;
+    }
+}
+
+/* ==========================================
+   Mobile Tactical Party Card (.party-card-mobile)
+   ========================================== */
+.party-card-mobile {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.party-card-mobile:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+}
+
+.party-card-mobile.party-card-hidden {
+    border: 1.5px dashed #f59e0b !important;
+    background: #fffdf5 !important;
+}
+
+/* Top bar: Avatar + Name & Tradition + Floating actions */
+.mobile-card-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    width: 100%;
+}
+
+.mobile-avatar-link {
+    display: block;
+    line-height: 0;
+    flex-shrink: 0;
+}
+
+.mobile-card-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #6366f1;
+    flex-shrink: 0;
+    background: #f1f5f9;
+}
+
+.mobile-card-avatar-placeholder {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+    color: #4338ca;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    border: 2px solid #a5b4fc;
+}
+
+.mobile-card-title-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    gap: 2px;
+}
+
+.mobile-card-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.mobile-card-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: none;
+}
+
+.mobile-card-name:hover {
+    color: #4f46e5;
+}
+
+.mobile-card-arete-badge {
+    background: #6366f1;
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 9999px;
+    flex-shrink: 0;
+}
+
+.mobile-card-subtext {
+    font-size: 0.74rem;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    gap: 4px;
+}
+
+.mobile-player-name {
+    color: #94a3b8;
+}
+
+.mobile-card-actions {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.mobile-btn-action {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+    touch-action: manipulation;
+    padding: 0;
+}
+
+.mobile-btn-action:active {
+    background: #e2e8f0;
+    transform: scale(0.95);
+}
+
+.mobile-btn-unlink:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+.mobile-btn-action.active-hidden {
+    background: #fef3c7;
+    border-color: #f59e0b;
+    color: #b45309;
+}
+
+/* Spheres Row */
+.mobile-card-spheres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+/* Tactical GM Row: Vitality and Resources */
+.mobile-tactical-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 6px 8px;
+}
+
+.mobile-health-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.mobile-health-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.mobile-section-label {
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.mobile-health-track {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+}
+
+.mobile-health-box {
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid #64748b;
+    background: #ffffff;
+    cursor: pointer;
+    padding: 0;
+    touch-action: manipulation;
+    line-height: 1;
+}
+
+.mobile-health-box.dmg-none {
+    border-color: #10b981;
+    background: #ecfdf5;
+    color: transparent;
+}
+
+.mobile-health-box.dmg-bashing {
+    border-color: #f59e0b;
+    background: #fffbeb;
+    color: #d97706;
+}
+
+.mobile-health-box.dmg-lethal {
+    border-color: #ef4444;
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.mobile-health-box.dmg-aggravated {
+    border-color: #9333ea;
+    background: #faf5ff;
+    color: #7e22ce;
+}
+
+.mobile-heal-btn {
+    background: #e0e7ff;
+    color: #4338ca;
+    border: 1px solid #c7d2fe;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    cursor: pointer;
+    touch-action: manipulation;
+    line-height: 1;
+}
+
+.mobile-heal-btn:active {
+    background: #c7d2fe;
+}
+
+/* Touch Resource Counters */
+.mobile-resources-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+}
+
+.mobile-resource-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    padding: 2px 4px;
+}
+
+.mobile-resource-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.mobile-resource-controls {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.mobile-resource-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    background: #f1f5f9;
+    color: #1e293b;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    touch-action: manipulation;
+}
+
+.mobile-resource-btn:active {
+    background: #cbd5e1;
+}
+
+.mobile-resource-num {
+    font-size: 0.75rem;
+    font-weight: 800;
+    min-width: 14px;
+    text-align: center;
+}
+
+.mobile-player-row {
+    padding: 4px 8px;
+}
+
+.mobile-simple-stat {
+    font-size: 0.75rem;
+    color: #475569;
+}
+
+/* ==========================================
+   Party Card Drag & Drop Styles
+   ========================================== */
+.party-drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    color: #94a3b8;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.party-drag-handle:hover {
+    color: #6366f1;
+    transform: scale(1.1);
+}
+
+.party-drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Desktop Drag Handle: posicionado no topo esquerdo do banner */
+.desktop-drag-handle {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 28px;
+    height: 28px;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(4px);
+    border-radius: 6px;
+    color: #e2e8f0;
+    font-size: 1rem;
+    z-index: 10;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.desktop-drag-handle:hover {
+    background: rgba(99, 102, 241, 0.9);
+    color: #ffffff;
+}
+
+/* Mobile Drag Handle: posicionado na barra superior ao lado do avatar */
+.mobile-drag-handle {
+    width: 26px;
+    height: 38px;
+    font-size: 1.25rem;
+    line-height: 1;
+    flex-shrink: 0;
+    color: #94a3b8;
+    cursor: grab;
+}
+
+.mobile-drag-handle:hover,
+.mobile-drag-handle:active {
+    color: #6366f1;
+}
+
+/* Estado de card sendo arrastado */
+.character-card.is-dragging,
+.party-card-mobile.is-dragging {
+    opacity: 0.45 !important;
+    border: 2px dashed #6366f1 !important;
+    transform: scale(0.98) !important;
+    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Estado de card que está sob o cursor (slot aberto para encaixe) */
+.character-card.is-drag-over,
+.party-card-mobile.is-drag-over {
+    border: 2px solid #6366f1 !important;
+    transform: translateY(4px) !important;
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.25) !important;
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.party-grid {
+    transition: all 0.2s ease;
+}

@@ -249,20 +249,53 @@ pub fn InstrumentsView(
                         }.into_view()
                     } else {
                         let inst_item = active_instrument.get();
-                        let on_sel_act = on_sel;
-                        let on_cls_act = on_cls;
+                        let on_sel_header = on_sel.clone();
+                        let on_sel_footer = on_sel.clone();
+                        let on_cls_header = on_cls.clone();
+                        let on_cls_footer = on_cls.clone();
 
                         // Visualização do Instrumento Selecionado
                         view! {
                             <div class="practice-reading-view">
                                 <div class="practice-detail-header">
                                     <div class="practice-title-row">
-                                        <div class="practice-main-name">
-                                            "🛠️ " {move || inst_item.name(current_lang.get())}
+                                        <div class="practice-title-left">
+                                            <div class="practice-main-name">
+                                                "🛠️ " {move || inst_item.name(current_lang.get())}
+                                            </div>
+                                            <span class="practice-page-badge">
+                                                "📖 " {inst_item.page_ref}
+                                            </span>
                                         </div>
-                                        <span class="practice-page-badge">
-                                            "📖 " {inst_item.page_ref}
-                                        </span>
+
+                                        {if let Some(cb) = on_sel_header {
+                                            let i_name = inst_item.name(current_lang.get()).to_string();
+                                            let on_cls_h = on_cls_header;
+                                            view! {
+                                                <div class="compendium-header-actions">
+                                                    <button
+                                                        type="button"
+                                                        class="compendium-action-btn compendium-btn-emerald"
+                                                        on:click=move |_| {
+                                                            cb.call(i_name.clone());
+                                                            if let Some(c) = &on_cls_h {
+                                                                c.call(());
+                                                            }
+                                                        }
+                                                    >
+                                                        <span class="compendium-btn-icon">"✦"</span>
+                                                        <span class="compendium-btn-label">
+                                                            {move || match current_lang.get() {
+                                                                Language::PtBr => "Usar na Ficha",
+                                                                Language::EnUs => "Use on Sheet",
+                                                            }}
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                            }.into_view()
+                                        } else {
+                                            view! { <span></span> }.into_view()
+                                        }}
                                     </div>
                                     <div class="practice-aliases">
                                         <span class="practice-aliases-label">
@@ -295,14 +328,14 @@ pub fn InstrumentsView(
                                 </div>
 
                                 // Botão de Ação: Selecionar Instrumento para o Slot da Ficha
-                                {if let Some(cb) = on_sel_act {
+                                {if let Some(cb) = on_sel_footer {
                                     let i_name = inst_item.name(current_lang.get()).to_string();
-                                    let on_cls_action = on_cls_act;
+                                    let on_cls_action = on_cls_footer;
                                     view! {
-                                        <div class="practice-action-row" style="margin-top: 1.5rem;">
+                                        <div class="compendium-footer-actions">
                                             <button
                                                 type="button"
-                                                class="practice-select-btn"
+                                                class="compendium-action-btn compendium-btn-emerald compendium-btn-large"
                                                 on:click=move |_| {
                                                     cb.call(i_name.clone());
                                                     if let Some(c) = &on_cls_action {
@@ -310,10 +343,13 @@ pub fn InstrumentsView(
                                                     }
                                                 }
                                             >
-                                                {move || match current_lang.get() {
-                                                    Language::PtBr => format!("✦ Usar '{}' no Slot de Instrumento", inst_item.name(current_lang.get())),
-                                                    Language::EnUs => format!("✦ Use '{}' for Instrument Slot", inst_item.name(current_lang.get())),
-                                                }}
+                                                <span class="compendium-btn-icon">"✦"</span>
+                                                <span class="compendium-btn-label">
+                                                    {move || match current_lang.get() {
+                                                        Language::PtBr => format!("Usar '{}' no Slot de Instrumento", inst_item.name(current_lang.get())),
+                                                        Language::EnUs => format!("Use '{}' for Instrument Slot", inst_item.name(current_lang.get())),
+                                                    }}
+                                                </span>
                                             </button>
                                         </div>
                                     }.into_view()

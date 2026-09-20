@@ -113,10 +113,6 @@ pub fn QuintessenceParadox() -> impl IntoView {
 
     view! {
         <div class="quintessence-paradox-container">
-            <h3 class="column-title">
-                {move || format!("{} / {}", crate::i18n::tr("quintessence", lang()), crate::i18n::tr("paradox", lang()))}
-            </h3>
-
             <div class="qp-wheel-wrapper">
                 <svg
                     class="qp-wheel-svg"

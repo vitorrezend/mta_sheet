@@ -10,6 +10,7 @@ pub mod i18n;
 pub mod rules;
 pub mod compendium;
 pub mod repositories;
+pub mod settings;
 #[cfg(feature = "ssr")]
 pub mod server;
 
@@ -72,18 +73,96 @@ pub fn App() -> impl IntoView {
     }
 
     view! {
+        <Html lang=move || match lang.get() {
+            crate::i18n::Language::PtBr => "pt-BR",
+            crate::i18n::Language::EnUs => "en-US",
+        }/>
         <Stylesheet id="leptos" href="/pkg/mta_sheet.css"/>
-        <Title text="MTA Character Manager"/>
+        <Title text="MTA Sheet — Ficha de RPG Mago: A Ascensão (M20) & Gods and Monsters"/>
+        <Meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <Meta name="description" content="Gerenciador completo e ficha interativa para Mago: A Ascensão (20th Anniversary Edition - M20) e Gods & Monsters. Automação de Pontos de Bônus e XP, Grimório de Rotes, Compêndio de Dô e Salas de Jogo com HUD da Cabala em tempo real."/>
+        <Meta name="keywords" content="Mago A Ascensao, Mage The Ascension, M20, World of Darkness, White Wolf, RPG de Mesa, Ficha de RPG, Gods and Monsters, Grimorio, Do Akashico, Storyteller, Storytelling"/>
+        <Meta name="author" content="MTA Sheet Community"/>
+        <Meta name="robots" content="index, follow"/>
+        <Meta name="theme-color" content="#1e1b4b"/>
+
+        // Preload de recursos críticos para otimização de FCP (First Contentful Paint)
+        <Link rel="preload" href="/pkg/mta_sheet.css" as_="style"/>
+        <Link rel="preload" href="/pkg/mta_sheet.wasm" as_="fetch" type_="application/wasm" crossorigin="anonymous"/>
+        <Link rel="preload" href="/fonts/cinzel-latin.woff2" as_="font" type_="font/woff2" crossorigin="anonymous"/>
+
+        <Meta property="og:type" content="website"/>
+        <Meta property="og:title" content="MTA Sheet — Mago: A Ascensão (M20) & Gods and Monsters"/>
+        <Meta property="og:description" content="Crie, automatize e jogue com fichas canônicas de M20 e Gods & Monsters, compêndio completo de Dô e Armas, e salas multijogador em tempo real."/>
+        <Meta property="og:site_name" content="MTA Sheet"/>
+        <Meta property="og:url" content="/"/>
+        <Meta property="og:image" content="/banner_og.jpg"/>
+        <Meta property="og:image:secure_url" content="/banner_og.jpg"/>
+        <Meta property="og:image:type" content="image/jpeg"/>
+        <Meta property="og:image:width" content="1200"/>
+        <Meta property="og:image:height" content="675"/>
+        <Meta property="og:image:alt" content="MTA Sheet — World of Darkness M20 & Gods and Monsters"/>
+
+        <Meta name="twitter:card" content="summary_large_image"/>
+        <Meta name="twitter:title" content="MTA Sheet — Ficha Interativa M20 & Gods and Monsters"/>
+        <Meta name="twitter:description" content="Gerenciador completo de fichas para Mago: A Ascensão 20 Anos e Gods & Monsters."/>
+        <Meta name="twitter:image" content="/banner_og.jpg"/>
+
+        <Link rel="icon" type_="image/svg+xml" href="/favicon.svg"/>
+        <Link rel="canonical" href="/"/>
+
+        <Script type_="application/ld+json">
+            {r#"{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "MTA Sheet",
+  "url": "/",
+  "description": "Gerenciador e automação de fichas de personagens para Mago: A Ascensão (M20) e Gods & Monsters.",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "All",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "BRL"
+  },
+  "featureList": [
+    "Ficha interativa M20 de 6 páginas",
+    "Suplemento Gods & Monsters",
+    "Automação de Pontos de Bônus e XP",
+    "Compêndio canônico de Dô e Armas",
+    "Salas de Jogo e HUD da Cabala em tempo real"
+  ]
+}"#}
+        </Script>
         <Router>
             <Routes>
-                <Route path="/" view=crate::components::Home />
+                <Route path="" view=AppLayout>
+                    <Route path="" view=crate::components::Home />
+                    <Route path="feed" view=crate::components::FeedPage />
+                    <Route path="profile" view=crate::components::ProfilePage />
+                    <Route path="user/:username" view=crate::components::ProfilePage />
+                    <Route path="rooms" view=crate::components::RoomsPage />
+                    <Route path="room/:id" view=crate::components::RoomView />
+                    <Route path="logs" view=crate::components::LogsPage />
+                    <Route path="login" view=crate::components::AuthPage />
+                    <Route path="about" view=crate::components::AboutPage />
+                    <Route path="colabore" view=crate::components::AboutPage />
+                </Route>
                 <Route path="/sheet/:id" view=crate::components::CharacterSheet />
-                <Route path="/login" view=crate::components::AuthPage />
-                <Route path="/rooms" view=crate::components::RoomsPage />
-                <Route path="/room/:id" view=crate::components::RoomView />
-                <Route path="/logs" view=crate::components::LogsPage />
             </Routes>
         </Router>
+    }
+}
+
+#[component]
+pub fn AppLayout() -> impl IntoView {
+    view! {
+        <div class="app-shell">
+            <crate::components::Navbar />
+            <main class="app-main-content">
+                <Outlet />
+            </main>
+        </div>
     }
 }
 

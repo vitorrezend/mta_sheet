@@ -1,4 +1,4 @@
-﻿use leptos::*;
+use leptos::*;
 use crate::rooms::{RoomSheetSummary, RoomInitiativeData, InitiativeEntry, RoomBroadcastEvent, update_room_initiative};
 use crate::components::common::play_dice_roll_sound;
 
@@ -39,6 +39,9 @@ pub fn InitiativeDrawer(
                 *list = server_init.entries.clone();
             }
 
+            // Expurga fichas de jogadores que NÃO pertencem mais à sala (fichas desvinculadas/fantasmas)
+            list.retain(|e| e.is_npc || current_sheets.iter().any(|s| s.id == e.id));
+
             // Garante que fichas de jogadores presentes na sala apareçam na iniciativa
             for s in &current_sheets {
                 if !list.iter().any(|e| e.id == s.id) {
@@ -57,13 +60,14 @@ pub fn InitiativeDrawer(
                 }
             }
 
-            // Atualiza penalidade de vida e base caso a ficha tenha mudado
+            // Atualiza penalidade de vida, base e nome caso a ficha tenha mudado
             for s in &current_sheets {
                 if let Some(existing) = list.iter_mut().find(|e| e.id == s.id) {
                     existing.base_dex = s.dexterity;
                     existing.base_wits = s.wits;
                     existing.base_total = s.initiative_base;
                     existing.health_penalty = s.health_penalty_val;
+                    existing.name = s.name.clone();
                 }
             }
         });
@@ -236,7 +240,7 @@ pub fn InitiativeDrawer(
         sync_to_server(false);
     };
 
-    let remove_npc = move |id: String| {
+    let remove_participant = move |id: String| {
         if !is_gm.get() {
             return;
         }
@@ -419,22 +423,23 @@ pub fn InitiativeDrawer(
                                                 }}
                                             </td>
                                             {if is_gm_val {
-                                                if is_npc {
-                                                    let del_id = entry_id.clone();
-                                                    view! {
-                                                        <td class="col-del">
-                                                            <button
-                                                                class="initiative-del-npc-btn"
-                                                                on:click=move |_| remove_npc(del_id.clone())
-                                                                title="Remover Inimigo"
-                                                            >
-                                                                "✕"
-                                                            </button>
-                                                        </td>
-                                                    }.into_view()
+                                                let del_id = entry_id.clone();
+                                                let btn_title = if is_npc {
+                                                    "Remover Inimigo / NPC"
                                                 } else {
-                                                    view! { <td class="col-del"></td> }.into_view()
-                                                }
+                                                    "Remover Participante da Iniciativa"
+                                                };
+                                                view! {
+                                                    <td class="col-del">
+                                                        <button
+                                                            class="initiative-del-npc-btn"
+                                                            on:click=move |_| remove_participant(del_id.clone())
+                                                            title=btn_title
+                                                        >
+                                                            "✕"
+                                                        </button>
+                                                    </td>
+                                                }.into_view()
                                             } else {
                                                 view! {}.into_view()
                                             }}

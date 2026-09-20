@@ -294,3 +294,15 @@
 .home-footer-text {
     color: #8c7d9e;
 }
+
+.home-footer-about-link {
+    color: var(--purple-bright);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.15s ease;
+}
+
+.home-footer-about-link:hover {
+    color: var(--gold-primary);
+    text-decoration: underline;
+}

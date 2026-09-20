@@ -32,9 +32,21 @@ pub fn AuthPage() -> impl IntoView {
             return;
         }
 
-        if is_register.get() && pass_val != confirm_val {
-            set_error_msg.set(Some("As senhas não conferem".to_string()));
-            return;
+        if is_register.get() {
+            if user_val.len() < 3 {
+                set_error_msg.set(Some("Nome de usuário deve ter no mínimo 3 caracteres".to_string()));
+                return;
+            }
+
+            if let Err(err) = crate::auth::validate_password_strength(&pass_val) {
+                set_error_msg.set(Some(err.to_string()));
+                return;
+            }
+
+            if pass_val != confirm_val {
+                set_error_msg.set(Some("As senhas não conferem".to_string()));
+                return;
+            }
         }
 
         let is_reg = is_register.get_untracked();
@@ -78,6 +90,17 @@ pub fn AuthPage() -> impl IntoView {
 
     view! {
         <div class="auth-page-container">
+            <leptos_meta::Title text=move || if is_register.get() {
+                match lang() {
+                    crate::i18n::Language::PtBr => "Criar Conta | MTA Sheet",
+                    crate::i18n::Language::EnUs => "Register | MTA Sheet",
+                }
+            } else {
+                match lang() {
+                    crate::i18n::Language::PtBr => "Entrar na Conta | MTA Sheet",
+                    crate::i18n::Language::EnUs => "Sign In | MTA Sheet",
+                }
+            } />
             <div class="auth-card">
                 <div class="auth-top-actions" style="display: flex; justify-content: flex-end; margin-bottom: 0.5rem;">
                     <button

@@ -24,6 +24,8 @@ pub use sheet_card::*;
 pub use folder_modals::*;
 pub use folder_acl_modal::*;
 pub use sheet_modals::*;
+pub mod showcase;
+pub use showcase::*;
 
 #[component]
 pub fn Home() -> impl IntoView {
@@ -32,6 +34,8 @@ pub fn Home() -> impl IntoView {
 
     let auth = use_context::<AuthContext>();
     let user = auth.map(|a| a.user).unwrap_or_else(|| Signal::derive(|| None));
+    let is_logged_in = Signal::derive(move || user.get().is_some());
+    let lang_signal = Signal::derive(move || lang());
 
     let (home_tab, set_home_tab) = create_signal("my_sheets");
     let sheets = create_local_resource(|| (), |_| async move { get_sheets().await });
@@ -90,6 +94,7 @@ pub fn Home() -> impl IntoView {
     let (selected_sheet_type, set_selected_sheet_type) = create_signal("mage".to_string());
     let (show_patch_notes, set_show_patch_notes) = create_signal(false);
     let (is_importing, set_is_importing) = create_signal(false);
+    let (is_create_open, set_is_create_open) = create_signal(false);
     let import_home_input_ref = create_node_ref::<html::Input>();
     let navigate = use_navigate();
 
@@ -409,12 +414,14 @@ pub fn Home() -> impl IntoView {
 
     view! {
         <div class="home-page">
-            <Navbar />
             <div class="home-container">
-                <header class="home-header">
-                <h1>{move || crate::i18n::tr("home_header_title", lang())}</h1>
-                <p>{move || crate::i18n::tr("home_header_subtitle", lang())}</p>
-            </header>
+            {move || if user.get().is_none() {
+                Some(view! {
+                    <HomeShowcase lang=lang_signal is_logged_in=is_logged_in />
+                })
+            } else {
+                None
+            }}
 
             {move || error_msg.get().map(|msg| view! {
                 <div class="alert-box alert-error">
@@ -430,97 +437,111 @@ pub fn Home() -> impl IntoView {
                     let on_import = on_home_import_cb.clone();
                     view! {
                         <section class="create-section">
-                            <h2>{move || crate::i18n::tr("home_create_title", lang())}</h2>
-                            
-                            <div class="sheet-type-selector">
+                            <div class="create-section-header" on:click=move |_| set_is_create_open.update(|v| *v = !*v)>
+                                <h2>{move || crate::i18n::tr("home_create_title", lang())}</h2>
                                 <button
                                     type="button"
-                                    class="type-pill-btn"
-                                    class:active=move || selected_sheet_type.get() == "mage"
-                                    on:click=move |_| set_selected_sheet_type.set("mage".to_string())
+                                    class="mobile-create-toggle-btn"
+                                    class:active=move || is_create_open.get()
+                                    title=move || if is_create_open.get() { "Recolher criação de ficha" } else { "Expandir criação de ficha" }
                                 >
-                                    {move || crate::i18n::tr("home_type_mage", lang())}
-                                </button>
-                                <button
-                                    type="button"
-                                    class="type-pill-btn"
-                                    class:active=move || selected_sheet_type.get() == "gods_and_monsters"
-                                    on:click=move |_| set_selected_sheet_type.set("gods_and_monsters".to_string())
-                                >
-                                    {move || crate::i18n::tr("home_type_gm", lang())}
+                                    <span class="toggle-text">
+                                        {move || if is_create_open.get() { "Recolher ▲" } else { "➕ Nova Ficha ▼" }}
+                                    </span>
                                 </button>
                             </div>
+                            
+                            <div class="create-section-body" class:mobile-open=move || is_create_open.get()>
+                                <div class="sheet-type-selector">
+                                    <button
+                                        type="button"
+                                        class="type-pill-btn"
+                                        class:active=move || selected_sheet_type.get() == "mage"
+                                        on:click=move |_| set_selected_sheet_type.set("mage".to_string())
+                                    >
+                                        {move || crate::i18n::tr("home_type_mage", lang())}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="type-pill-btn"
+                                        class:active=move || selected_sheet_type.get() == "gods_and_monsters"
+                                        on:click=move |_| set_selected_sheet_type.set("gods_and_monsters".to_string())
+                                    >
+                                        {move || crate::i18n::tr("home_type_gm", lang())}
+                                    </button>
+                                </div>
 
-                            {move || {
-                                if let Some(fid) = selected_folder_id.get() {
-                                    let folder_list = folders.get().and_then(|r| r.ok()).unwrap_or_default();
-                                    if let Some(current_f) = folder_list.iter().find(|f| f.id == fid) {
-                                        view! {
-                                            <div class="drive-creating-badge">
-                                                <span class="drive-creating-icon">"📁"</span>
-                                                <span class="drive-creating-label">{crate::i18n::tr("drive_creating_in_folder", lang())}</span>
-                                                <span class="drive-creating-target">{current_f.icon.clone()} " " {current_f.name.clone()}</span>
-                                                <button
-                                                    type="button"
-                                                    class="drive-creating-clear"
-                                                    title=crate::i18n::tr("drive_move_to_root", lang())
-                                                    on:click=move |_| set_selected_folder_id.set(None)
-                                                >
-                                                    "✕"
-                                                </button>
-                                            </div>
-                                        }.into_view()
+                                {move || {
+                                    if let Some(fid) = selected_folder_id.get() {
+                                        let folder_list = folders.get().and_then(|r| r.ok()).unwrap_or_default();
+                                        if let Some(current_f) = folder_list.iter().find(|f| f.id == fid) {
+                                            view! {
+                                                <div class="drive-creating-badge">
+                                                    <span class="drive-creating-icon">"📁"</span>
+                                                    <span class="drive-creating-label">{crate::i18n::tr("drive_creating_in_folder", lang())}</span>
+                                                    <span class="drive-creating-target">{current_f.icon.clone()} " " {current_f.name.clone()}</span>
+                                                    <button
+                                                        type="button"
+                                                        class="drive-creating-clear"
+                                                        title=crate::i18n::tr("drive_move_to_root", lang())
+                                                        on:click=move |_| set_selected_folder_id.set(None)
+                                                    >
+                                                        "✕"
+                                                    </button>
+                                                </div>
+                                            }.into_view()
+                                        } else {
+                                            ().into_view()
+                                        }
                                     } else {
                                         ().into_view()
                                     }
-                                } else {
-                                    ().into_view()
-                                }
-                            }}
+                                }}
 
-                            <form on:submit=move |ev| on_create(ev) class="create-form">
-                                <input
-                                    type="text"
-                                    placeholder=move || if selected_sheet_type.get() == "gods_and_monsters" {
-                                        crate::i18n::tr("home_name_ph_gm", lang())
-                                    } else {
-                                        crate::i18n::tr("home_name_ph_mage", lang())
-                                    }
-                                    on:input=move |ev| set_name.set(event_target_value(&ev))
-                                    prop:value=name
-                                    class="name-input"
-                                    disabled=is_creating
-                                />
-
-                                <div class="create-actions-group">
-                                    <input 
-                                        type="file" 
-                                        accept=".json,application/json" 
-                                        node_ref=import_home_input_ref 
-                                        style="display: none;" 
-                                        on:change={
-                                             let cb = on_import.clone();
-                                            move |ev| cb.call(ev)
+                                <form on:submit=move |ev| on_create(ev) class="create-form">
+                                    <input
+                                        type="text"
+                                        placeholder=move || if selected_sheet_type.get() == "gods_and_monsters" {
+                                            crate::i18n::tr("home_name_ph_gm", lang())
+                                        } else {
+                                            crate::i18n::tr("home_name_ph_mage", lang())
                                         }
+                                        on:input=move |ev| set_name.set(event_target_value(&ev))
+                                        prop:value=name
+                                        class="name-input"
+                                        disabled=is_creating
                                     />
-                                    <button type="submit" class="create-btn" disabled=move || is_creating.get() || is_importing.get()>
-                                        {move || if is_creating.get() { crate::i18n::tr("home_btn_creating", lang()) } else { crate::i18n::tr("home_btn_create", lang()) }}
-                                    </button>
-                                    <button 
-                                        type="button" 
-                                        class="import-json-home-btn" 
-                                        disabled=move || is_creating.get() || is_importing.get()
-                                        on:click=move |_| {
-                                            if let Some(input) = import_home_input_ref.get() {
-                                                input.click();
+
+                                    <div class="create-actions-group">
+                                        <input 
+                                            type="file" 
+                                            accept=".json,application/json" 
+                                            node_ref=import_home_input_ref 
+                                            style="display: none;" 
+                                            on:change={
+                                                 let cb = on_import.clone();
+                                                move |ev| cb.call(ev)
                                             }
-                                        }
-                                        title=move || crate::i18n::tr("home_import_tooltip", lang())
-                                    >
-                                        {move || if is_importing.get() { crate::i18n::tr("home_btn_importing", lang()) } else { crate::i18n::tr("home_btn_import", lang()) }}
-                                    </button>
-                                </div>
-                            </form>
+                                        />
+                                        <button type="submit" class="create-btn" disabled=move || is_creating.get() || is_importing.get()>
+                                            {move || if is_creating.get() { crate::i18n::tr("home_btn_creating", lang()) } else { crate::i18n::tr("home_btn_create", lang()) }}
+                                        </button>
+                                        <button 
+                                            type="button" 
+                                            class="import-json-home-btn" 
+                                            disabled=move || is_creating.get() || is_importing.get()
+                                            on:click=move |_| {
+                                                if let Some(input) = import_home_input_ref.get() {
+                                                    input.click();
+                                                }
+                                            }
+                                            title=move || crate::i18n::tr("home_import_tooltip", lang())
+                                        >
+                                            {move || if is_importing.get() { crate::i18n::tr("home_btn_importing", lang()) } else { crate::i18n::tr("home_btn_import", lang()) }}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </section>
                     }.into_view()
                 },
@@ -554,7 +575,7 @@ pub fn Home() -> impl IntoView {
                 }}
                 <button
                     class="home-tab-btn"
-                    class:active=move || home_tab.get() == "public_sheets" || user.get().is_none()
+                    class:active=move || home_tab.get() == "public_sheets" || (user.get().is_none() && home_tab.get() != "showcase")
                     on:click=move |_| set_home_tab.set("public_sheets")
                 >
                     {move || crate::i18n::tr("home_tab_public_sheets", lang())}
@@ -565,7 +586,32 @@ pub fn Home() -> impl IntoView {
                 {move || {
                     let current_lang = lang();
                     match home_tab.get() {
+                        "showcase" => view! {
+                            <HomeShowcase lang=lang_signal is_logged_in=is_logged_in />
+                        }.into_view(),
                         "public_sheets" => match public_sheets.get() {
+                            None => view! { <p class="loading-msg">{crate::i18n::tr("home_loading_pub", current_lang)}</p> }.into_view(),
+                            Some(Ok(data)) if data.is_empty() => view! {
+                                <p class="empty-msg">{crate::i18n::tr("home_empty_pub", current_lang)}</p>
+                            }.into_view(),
+                            Some(Ok(data)) => render_character_grid(
+                                data,
+                                set_sheet_to_delete,
+                                set_sheet_to_move,
+                                toggle_privacy,
+                                std::collections::HashMap::new(),
+                                current_lang,
+                                dragged_sheet_id,
+                                set_dragged_sheet_id,
+                                set_drag_over_folder_id,
+                            ),
+                            Some(Err(e)) => view! {
+                                <div class="alert-box alert-error">
+                                    <p>"Erro ao carregar fichas públicas: " {e.to_string()}</p>
+                                </div>
+                            }.into_view(),
+                        },
+                        _ if user.get().is_none() => match public_sheets.get() {
                             None => view! { <p class="loading-msg">{crate::i18n::tr("home_loading_pub", current_lang)}</p> }.into_view(),
                             Some(Ok(data)) if data.is_empty() => view! {
                                 <p class="empty-msg">{crate::i18n::tr("home_empty_pub", current_lang)}</p>
@@ -1143,54 +1189,60 @@ pub fn Home() -> impl IntoView {
             </section>
 
             // Modais
-            {render_delete_sheet_modal(sheet_to_delete, cancel_delete, confirm_delete, lang())}
-            {render_create_folder_modal(
-                is_create_folder_open,
-                cancel_create_folder,
-                handle_create_folder,
-                folder_input_name,
-                set_folder_input_name,
-                folder_input_icon,
-                set_folder_input_icon,
-                is_saving_folder,
-                lang(),
-            )}
-            {render_edit_folder_modal(
-                folder_to_edit,
-                cancel_edit_folder,
-                handle_update_folder,
-                folder_edit_name,
-                set_folder_edit_name,
-                folder_edit_icon,
-                set_folder_edit_icon,
-                is_saving_folder,
-                lang(),
-            )}
-            {render_delete_folder_modal(folder_to_delete, cancel_delete_folder, handle_delete_folder, lang())}
-            {
+            {move || {
+                let current_lang = lang();
                 let folder_list = folders.get().and_then(|r| r.ok()).unwrap_or_default();
-                render_move_sheet_modal(sheet_to_move, folder_list, cancel_move_sheet, handle_move_sheet, lang())
-            }
-            {render_folder_acl_modal(
-                folder_to_share,
-                cancel_share_folder,
-                acl_error_msg,
-                share_grantee_type,
-                set_share_grantee_type,
-                share_target_input,
-                set_share_target_input,
-                share_permission_level,
-                set_share_permission_level,
-                is_granting_acl,
-                handle_grant_acl,
-                is_loading_acls,
-                folder_acls_list,
-                handle_revoke_acl,
-                lang(),
-            )}
+                view! {
+                    {render_delete_sheet_modal(sheet_to_delete, cancel_delete, confirm_delete, current_lang)}
+                    {render_create_folder_modal(
+                        is_create_folder_open,
+                        cancel_create_folder,
+                        handle_create_folder,
+                        folder_input_name,
+                        set_folder_input_name,
+                        folder_input_icon,
+                        set_folder_input_icon,
+                        is_saving_folder,
+                        current_lang,
+                    )}
+                    {render_edit_folder_modal(
+                        folder_to_edit,
+                        cancel_edit_folder,
+                        handle_update_folder,
+                        folder_edit_name,
+                        set_folder_edit_name,
+                        folder_edit_icon,
+                        set_folder_edit_icon,
+                        is_saving_folder,
+                        current_lang,
+                    )}
+                    {render_delete_folder_modal(folder_to_delete, cancel_delete_folder, handle_delete_folder, current_lang)}
+                    {render_move_sheet_modal(sheet_to_move, folder_list, cancel_move_sheet, handle_move_sheet, current_lang)}
+                    {render_folder_acl_modal(
+                        folder_to_share,
+                        cancel_share_folder,
+                        acl_error_msg,
+                        share_grantee_type,
+                        set_share_grantee_type,
+                        share_target_input,
+                        set_share_target_input,
+                        share_permission_level,
+                        set_share_permission_level,
+                        is_granting_acl,
+                        handle_grant_acl,
+                        is_loading_acls,
+                        folder_acls_list,
+                        handle_revoke_acl,
+                        current_lang,
+                    )}
+                }
+            }}
 
             <footer class="home-footer">
                 <span class="home-footer-text">{move || crate::i18n::tr("home_footer_copyright", lang())}</span>
+                <A href="/about" class="home-footer-about-link">
+                    {move || crate::i18n::tr("about_collab", lang())}
+                </A>
                 <button
                     type="button"
                     class="version-pill-badge"

@@ -180,14 +180,29 @@ pub fn VisualsSection() -> impl IntoView {
                             if !url.is_empty() {
                                 let u_modal = url.clone();
                                 view! {
-                                    <div class="visual-image-wrapper">
+                                    <div 
+                                        class="visual-image-wrapper clickable-image-wrapper"
+                                        title=match current_lang {
+                                            crate::i18n::Language::PtBr => "Clique para abrir a imagem no modal centralizado",
+                                            crate::i18n::Language::EnUs => "Click to open image in centered modal",
+                                        }
+                                        on:click={
+                                            let u_modal = u_modal.clone();
+                                            move |_| set_active_modal_image.set(Some(u_modal.clone()))
+                                        }
+                                    >
                                         <img 
                                             src=url
                                             alt="Cabal Chart"
                                             class="visual-img wonder-image-preview"
-                                            title="Click to zoom"
-                                            on:click=move |_| set_active_modal_image.set(Some(u_modal.clone()))
                                         />
+                                        <div class="visual-zoom-hint-badge">
+                                            "🔍 "
+                                            {match current_lang {
+                                                crate::i18n::Language::PtBr => "Ampliar",
+                                                crate::i18n::Language::EnUs => "Expand",
+                                            }}
+                                        </div>
                                     </div>
                                 }.into_view()
                             } else {
@@ -277,14 +292,29 @@ pub fn VisualsSection() -> impl IntoView {
 
                                 view! {
                                     <div class="visual-sketch-with-framing">
-                                        <div class="visual-image-wrapper">
+                                        <div 
+                                            class="visual-image-wrapper clickable-image-wrapper"
+                                            title=match current_lang {
+                                                crate::i18n::Language::PtBr => "Clique para abrir a foto no modal centralizado",
+                                                crate::i18n::Language::EnUs => "Click to open photo in centered modal",
+                                            }
+                                            on:click={
+                                                let u_modal = u_modal.clone();
+                                                move |_| set_active_modal_image.set(Some(u_modal.clone()))
+                                            }
+                                        >
                                             <img 
                                                 src=url
                                                 alt="Character Sketch"
                                                 class="visual-img wonder-image-preview"
-                                                title="Click to zoom"
-                                                on:click=move |_| set_active_modal_image.set(Some(u_modal.clone()))
                                             />
+                                            <div class="visual-zoom-hint-badge">
+                                                "🔍 "
+                                                {match current_lang {
+                                                    crate::i18n::Language::PtBr => "Ampliar",
+                                                    crate::i18n::Language::EnUs => "Expand",
+                                                }}
+                                            </div>
                                         </div>
 
                                         // Card Framing Action Panel
@@ -395,19 +425,28 @@ pub fn VisualsSection() -> impl IntoView {
                     let url = character_sketch_url.get();
                     let (fx, fy) = data.with(|d| d.get_photo_focus());
                     let set_d = set_data.clone();
+                    let url_for_portal = url.clone();
                     view! {
-                        <CardFramingModal
-                            image_url=url
-                            initial_focus_x=fx
-                            initial_focus_y=fy
-                            on_save=Callback::new(move |(new_x, new_y)| {
-                                set_d.update(|s| s.set_photo_focus(new_x, new_y));
-                                is_framing_modal_open.set(false);
-                            })
-                            on_close=Callback::new(move |_| {
-                                is_framing_modal_open.set(false);
-                            })
-                        />
+                        <Portal>
+                            {
+                                let url = url_for_portal.clone();
+                                let set_d = set_d.clone();
+                                view! {
+                                    <CardFramingModal
+                                        image_url=url
+                                        initial_focus_x=fx
+                                        initial_focus_y=fy
+                                        on_save=Callback::new(move |(new_x, new_y)| {
+                                            set_d.update(|s| s.set_photo_focus(new_x, new_y));
+                                            is_framing_modal_open.set(false);
+                                        })
+                                        on_close=Callback::new(move |_| {
+                                            is_framing_modal_open.set(false);
+                                        })
+                                    />
+                                }
+                            }
+                        </Portal>
                     }
                 }
             </Show>

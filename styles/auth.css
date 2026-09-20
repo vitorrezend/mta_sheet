@@ -1,24 +1,29 @@
-﻿/* ==========================================
+/* ==========================================
    Auth Page (Login / Register)
    ========================================== */
 .auth-page-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 80vh;
+    width: 100%;
+    min-width: 100%;
+    min-height: calc(100vh - 80px);
+    min-height: calc(100dvh - 80px);
     padding: 2rem 1rem;
     box-sizing: border-box;
+    margin: 0 auto;
 }
 
 .auth-card {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 2.5rem;
+    background: var(--surface-paper, #ffffff);
+    border-radius: var(--radius-xl, 12px);
+    padding: 2.25rem 2rem;
     width: 100%;
     max-width: 440px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e2e8f0;
+    box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0, 0, 0, 0.1));
+    border: 1px solid var(--surface-card-border, #e2e8f0);
     box-sizing: border-box;
+    margin: 0 auto;
 }
 
 .auth-header {
@@ -179,8 +184,73 @@
 }
 
 .auth-back-link:hover {
-    color: #0f172a;
+    color: var(--surface-dark-slate, #0f172a);
     text-decoration: underline;
+}
+
+/* ─── Responsividade Mobile ─────────────────────────────────── */
+@media (max-width: 640px) {
+    .auth-page-container {
+        padding: 1.25rem 0.85rem;
+        min-height: 100dvh;
+        align-items: center;
+    }
+
+    .auth-card {
+        padding: 1.75rem 1.25rem;
+        border-radius: var(--radius-lg, 10px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+        max-width: 100%;
+    }
+
+    .auth-header {
+        margin-bottom: 1.25rem;
+    }
+
+    .auth-icon {
+        font-size: 2.2rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .auth-header h2 {
+        font-size: 1.35rem;
+    }
+
+    .auth-header p {
+        font-size: 0.85rem;
+    }
+
+    .auth-tabs {
+        margin-bottom: 1.25rem;
+    }
+
+    .auth-tab {
+        padding: 0.55rem 0.4rem;
+        font-size: 0.85rem;
+    }
+
+    .auth-form {
+        gap: 0.95rem;
+    }
+
+    .form-label {
+        font-size: 0.82rem;
+    }
+
+    .form-input {
+        padding: 0.7rem 0.85rem;
+        font-size: 1rem; /* 16px evita zoom automático indesejado no iOS Safari */
+    }
+
+    .auth-submit-btn {
+        padding: 0.75rem;
+        font-size: 0.95rem;
+        margin-top: 0.35rem;
+    }
+
+    .auth-footer {
+        margin-top: 1.25rem;
+    }
 }
 
 

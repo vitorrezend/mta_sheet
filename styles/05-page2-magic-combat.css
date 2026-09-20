@@ -394,12 +394,6 @@
     width: 100%;
 }
 
-@media (max-width: 768px) {
-    .merits-flaws-block {
-        grid-template-columns: 1fr !important;
-    }
-}
-
 .merit-flaw-item-wrapper {
     width: 100%;
 }
@@ -453,14 +447,8 @@
 
 .other-traits-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.6rem;
-}
-
-@media (max-width: 768px) {
-    .other-traits-grid {
-        grid-template-columns: 1fr;
-    }
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem 1.25rem;
 }
 
 .traits-column {
@@ -940,6 +928,25 @@
     letter-spacing: -0.01em;
 }
 
+.weapons-table td.td-range {
+    position: relative;
+}
+
+.weapons-table td.td-range .tooltip-text {
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.68rem;
+    padding: 3px 7px;
+    background: #1e293b;
+    border: 1px solid #475569;
+    border-radius: 4px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    white-space: nowrap;
+    z-index: 50;
+    pointer-events: none;
+}
+
 .weapons-table tbody tr:nth-child(even) {
     background: #fbfbfd;
 }
@@ -1345,7 +1352,7 @@
     padding: 1rem;
     box-sizing: border-box;
     overscroll-behavior: contain;
-    touch-action: none;
+    touch-action: manipulation;
 }
 
 .weapon-compendium-modal {
@@ -1971,14 +1978,36 @@
 }
 
 .stat-value {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     font-weight: 800;
     margin: 4px 0 2px 0;
-    line-height: 1.1;
+    line-height: 1.14;
     max-width: 100%;
     width: 100%;
     box-sizing: border-box;
     overflow-wrap: break-word;
+    word-break: normal;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-value.stat-value-dense {
+    font-size: 0.88rem;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+}
+
+.stat-value.stat-value-long {
+    font-size: 0.76rem;
+    line-height: 1.10;
+    letter-spacing: -0.015em;
+}
+
+.stat-value.stat-value-wrap {
+    white-space: normal;
+    word-break: break-word;
+    hyphens: auto;
 }
 
 .stat-value.stat-diff {

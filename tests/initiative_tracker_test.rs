@@ -158,3 +158,108 @@ fn test_room_broadcast_event_serialization() {
     assert_eq!(deserialized.initiative.round, 2);
 }
 
+#[test]
+fn test_reconciliation_purges_unlinked_character_sheets_and_keeps_npcs() {
+    // 1. Simula o estado salvo no banco (RoomInitiativeData) que acumulou 5 participantes:
+    // - 2 magos reais que ainda estão na sala
+    // - 2 magos desvinculados/fantasmas (ex: fichas antigas antes de clonar ou desvinculadas)
+    // - 1 NPC (Inimigo) criado pelo Narrador
+    let mut persisted_entries = vec![
+        InitiativeEntryTest::new_character("char-valid-1", "Dante", 3, 3),
+        InitiativeEntryTest::new_character("char-valid-2", "Morrigan", 2, 4),
+        InitiativeEntryTest::new_character("char-ghost-old-clone", "Dante (Clone Antigo)", 3, 3),
+        InitiativeEntryTest::new_character("char-ghost-unlinked", "Mago Desvinculado", 2, 2),
+        InitiativeEntryTest::new_npc("npc-1", "Agente Tecnocrata", 6),
+    ];
+
+    // 2. Fichas que de fato pertencem à sala atualmente (apenas as 2 válidas)
+    let current_room_sheet_ids = vec!["char-valid-1".to_string(), "char-valid-2".to_string()];
+
+    // 3. Executa a reconciliação (regra de ouro do MTA Sheet no backend e frontend):
+    // Mantém o participante SE for NPC OU SE o ID da ficha constar nas fichas ativas da sala
+    persisted_entries.retain(|e| e.is_npc || current_room_sheet_ids.contains(&e.id));
+
+    // 4. Asserções:
+    // - Deve restar exatamente 3 participantes (2 jogadores válidos + 1 NPC)
+    assert_eq!(persisted_entries.len(), 3);
+    assert!(persisted_entries.iter().any(|e| e.id == "char-valid-1"));
+    assert!(persisted_entries.iter().any(|e| e.id == "char-valid-2"));
+    assert!(persisted_entries.iter().any(|e| e.id == "npc-1"));
+
+    // - As fichas fantasmas DEVEM ter sido eliminadas
+    assert!(!persisted_entries.iter().any(|e| e.id == "char-ghost-old-clone"));
+    assert!(!persisted_entries.iter().any(|e| e.id == "char-ghost-unlinked"));
+}
+
+#[test]
+fn test_reconciliation_integrates_new_sheet_without_duplicates() {
+    use mta_sheet::rooms::{RoomInitiativeData, InitiativeEntry};
+
+    // Cenário: Sala já tinha Dante e um NPC
+    let mut room_initiative = RoomInitiativeData {
+        round: 1,
+        is_open: true,
+        entries: vec![
+            InitiativeEntry {
+                id: "char-1".to_string(),
+                name: "Dante".to_string(),
+                is_npc: false,
+                is_active: true,
+                base_dex: 3,
+                base_wits: 3,
+                base_total: 6,
+                health_penalty: 0,
+                rolled_die: None,
+                final_total: None,
+            },
+            InitiativeEntry {
+                id: "npc-1".to_string(),
+                name: "Capanga Tecnocrata".to_string(),
+                is_npc: true,
+                is_active: true,
+                base_dex: 0,
+                base_wits: 0,
+                base_total: 5,
+                health_penalty: 0,
+                rolled_die: None,
+                final_total: None,
+            },
+        ],
+    };
+
+    // Nova ficha atribuída à sala (ex: clonada para um membro)
+    let active_room_sheets = vec![
+        ("char-1".to_string(), "Dante".to_string(), 3, 3, 6, 0),
+        ("char-new-clone".to_string(), "Novo Mago".to_string(), 4, 3, 7, 0),
+    ];
+
+    let active_ids: Vec<String> = active_room_sheets.iter().map(|(id, ..)| id.clone()).collect();
+
+    // 1. Expurgo de quem saiu (se houver)
+    room_initiative.entries.retain(|e| e.is_npc || active_ids.contains(&e.id));
+
+    // 2. Inclusão de quem entrou
+    for (id, name, dex, wits, base, penalty) in &active_room_sheets {
+        if !room_initiative.entries.iter().any(|e| &e.id == id) {
+            room_initiative.entries.push(InitiativeEntry {
+                id: id.clone(),
+                name: name.clone(),
+                is_npc: false,
+                is_active: true,
+                base_dex: *dex,
+                base_wits: *wits,
+                base_total: *base,
+                health_penalty: *penalty,
+                rolled_die: None,
+                final_total: None,
+            });
+        }
+    }
+
+    assert_eq!(room_initiative.entries.len(), 3);
+    assert!(room_initiative.entries.iter().any(|e| e.id == "char-1"));
+    assert!(room_initiative.entries.iter().any(|e| e.id == "char-new-clone"));
+    assert!(room_initiative.entries.iter().any(|e| e.id == "npc-1"));
+}
+
+

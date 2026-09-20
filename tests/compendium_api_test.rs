@@ -6,7 +6,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_compendium_api_all_sections_return_200_and_cache_headers() {
-        let sections = ["weapons", "practices", "instruments", "archetypes", "attributes"];
+        let sections = ["weapons", "practices", "instruments", "archetypes", "attributes", "backgrounds"];
 
         for sec in sections {
             let res = compendium_api_handler(Path(sec.to_string()), HeaderMap::new()).await;

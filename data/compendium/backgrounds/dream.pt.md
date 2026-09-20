@@ -1,0 +1,9 @@
+### Sonho / Hiperaprendizado (Dream / Hypercram)
+
+Conhecimento é tudo para um mago. Atuando como condutores da consciência cósmica universal e dos registros akáshicos, certos Despertos conseguem acessar saberes, técnicas e reflexos corporais que jamais estudaram formalmente na vida. Após um breve período de meditação concentrada (ou, no caso de tecnocratas e cientistas, de uma sessão de Hiperaprendizado mnemônico via neuroquímica e ondas cerebrais), esses magos canalizam temporariamente Traços de Habilidade que não possuem normalmente na ficha.
+
+> **Exemplo Clássico do Livro (M20, p. 311):**
+> Considere que a maga Spider Chase esteja diante de um combate decisivo contra um oponente mortalmente experiente. Sua modesta pontuação em Briga não será suficiente. Ela então se recolhe e medita enquanto gira chamas ceremoniais. Em sua mente, Spider vivencia katas complexos em velocidade vertiginosa. O jogador de Spider obtém 4 sucessos no teste de [Percepção](mta://attributes/perception) + Sonho.
+> Durante aquela luta — e estritamente pela duração daquele confronto —, Spider manifesta 4 pontos na perícia de Artes Marciais / [Dô](mta://weapons/maneuver/do), uma Habilidade que ela normalmente não possui. Assim que a luta termina, a habilidade se desvanece de sua mente e ela não consegue reproduzir conscientemente o que acabou de realizar.
+
+Este Antecedente não é 100% previsível: você manifesta uma sensação intuitiva em vez de domínio acadêmico permanente. A Habilidade concedida dura por uma única tarefa ininterrupta (um combate, um exame acadêmico, uma corrida de carros, uma reunião executiva) e pode ser usada apenas uma vez por dia.

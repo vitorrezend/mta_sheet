@@ -23,8 +23,11 @@ if [ -z "$ACTION" ]; then
     echo "  3) Parar container (docker compose down)"
     echo "  4) Ver logs (docker compose logs -f)"
     echo "  5) Reiniciar container (docker compose restart)"
+    echo "  6) Atualizar producao sem downtime (Esteira: Testes + Backup + Build + Swap)"
+    echo "  7) Fazer backup dos dados (SQLite + Uploads)"
+    echo "  8) Restaurar backup dos dados"
     echo ""
-    read -p "Escolha uma opcao [1-5, padrao 2]: " OPT
+    read -p "Escolha uma opcao [1-8, padrao 2]: " OPT
     OPT="${OPT:-2}"
     case "$OPT" in
         1) ACTION="build" ;;
@@ -32,6 +35,9 @@ if [ -z "$ACTION" ]; then
         3) ACTION="down" ;;
         4) ACTION="logs" ;;
         5) ACTION="restart" ;;
+        6) ACTION="update" ;;
+        7) ACTION="backup" ;;
+        8) ACTION="restore" ;;
         *) ACTION="up" ;;
     esac
 fi
@@ -46,7 +52,7 @@ case "$ACTION" in
     up)
         echo "[INFO] Subindo container..."
         docker compose up -d
-        echo "[SUCESSO] MTA Sheet rodando em: http://localhost:3000"
+        echo "[SUCESSO] MTA Sheet rodando em: http://localhost:8080"
         ;;
     down)
         echo "[INFO] Encerrando container..."
@@ -59,6 +65,18 @@ case "$ACTION" in
     restart)
         echo "[INFO] Reiniciando container..."
         docker compose restart
+        ;;
+    update)
+        echo "[INFO] Iniciando esteira de atualizacao sem downtime..."
+        ./scripts/update_prod.sh
+        ;;
+    backup)
+        echo "[INFO] Iniciando backup dos dados do container..."
+        ./scripts/backup/backup-docker.sh
+        ;;
+    restore)
+        echo "[INFO] Iniciando restauracao de backup..."
+        ./scripts/backup/restore-docker.sh
         ;;
     *)
         echo "[ERRO] Opcao invalida: $ACTION"

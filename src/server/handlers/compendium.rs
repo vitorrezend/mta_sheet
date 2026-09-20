@@ -10,6 +10,7 @@ const EMBEDDED_PRACTICES: &str = include_str!("../../../data/compendium/practice
 const EMBEDDED_INSTRUMENTS: &str = include_str!("../../../data/compendium/instruments.json");
 const EMBEDDED_ARCHETYPES: &str = include_str!("../../../data/compendium/archetypes.json");
 const EMBEDDED_ATTRIBUTES: &str = include_str!("../../../data/compendium/attributes.json");
+const EMBEDDED_BACKGROUNDS: &str = include_str!("../../../data/compendium/backgrounds.json");
 
 /// Handler HTTP para servir dados do Compêndio M20 em JSON sob demanda
 /// com suporte a Cache-Control imutável e validação por ETag (304 Not Modified).
@@ -24,6 +25,7 @@ pub async fn compendium_api_handler(
         "instruments" => ("\"mta-comp-instruments-v1\"", EMBEDDED_INSTRUMENTS),
         "archetypes" => ("\"mta-comp-archetypes-v1\"", EMBEDDED_ARCHETYPES),
         "attributes" => ("\"mta-comp-attributes-v1\"", EMBEDDED_ATTRIBUTES),
+        "backgrounds" => ("\"mta-comp-backgrounds-v1\"", EMBEDDED_BACKGROUNDS),
         _ => return (StatusCode::NOT_FOUND, "Seção de compêndio não encontrada").into_response(),
     };
 

@@ -263,6 +263,9 @@ pub mod server {
     use std::io::Write;
     use chrono::Local;
 
+    pub const MAX_LOG_FILE_BYTES: u64 = 20 * 1024 * 1024; // 20 MB por arquivo
+    pub const MAX_FILES_PER_CATEGORY: usize = 5; // Máximo de 5 arquivos por categoria (total de 100 MB)
+
     pub fn get_log_dir(category: &LogCategory) -> String {
         format!("logs/{}", category.as_str())
     }
@@ -278,6 +281,118 @@ pub mod server {
         for cat in &categories {
             let dir = get_log_dir(cat);
             let _ = fs::create_dir_all(&dir);
+        }
+    }
+
+    /// Extrai (data, número_do_fatiamento) a partir do nome do arquivo para ordenação cronológica precisa
+    pub fn parse_log_file_key(category: &str, file_name: &str) -> (String, u32) {
+        let prefix = format!("{}_", category);
+        if let Some(rest) = file_name.strip_prefix(&prefix).and_then(|s| s.strip_suffix(".log")) {
+            if let Some((date_part, slice_part)) = rest.split_once('.') {
+                if let Ok(slice) = slice_part.parse::<u32>() {
+                    return (date_part.to_string(), slice);
+                }
+            }
+            return (rest.to_string(), 0);
+        }
+        (file_name.to_string(), 0)
+    }
+
+    /// Retorna o caminho do arquivo de log ativo para escrita, fatiando se exceder `max_bytes`
+    pub fn get_active_log_file_with_limit(category: &LogCategory, date_str: &str, max_bytes: u64) -> String {
+        let dir = get_log_dir(category);
+        let prefix = format!("{}_{}", category.as_str(), date_str);
+
+        let mut highest_slice: Option<(u32, std::path::PathBuf)> = None;
+
+        if let Ok(entries) = fs::read_dir(&dir) {
+            for entry in entries.flatten() {
+                let name = entry.file_name().to_string_lossy().to_string();
+                if !name.ends_with(".log") {
+                    continue;
+                }
+                if name == format!("{}.log", prefix) {
+                    if highest_slice.is_none() {
+                        highest_slice = Some((0, entry.path()));
+                    }
+                } else if let Some(slice_part) = name.strip_prefix(&format!("{}.", prefix)).and_then(|s| s.strip_suffix(".log")) {
+                    if let Ok(idx) = slice_part.parse::<u32>() {
+                        if highest_slice.as_ref().map_or(true, |(h_idx, _)| idx > *h_idx) {
+                            highest_slice = Some((idx, entry.path()));
+                        }
+                    }
+                }
+            }
+        }
+
+        match highest_slice {
+            None => format!("{}/{}.log", dir, prefix),
+            Some((idx, path)) => {
+                if let Ok(meta) = fs::metadata(&path) {
+                    if meta.len() < max_bytes {
+                        let filename = if idx == 0 {
+                            format!("{}.log", prefix)
+                        } else {
+                            format!("{}.{}.log", prefix, idx)
+                        };
+                        return format!("{}/{}", dir, filename);
+                    }
+                }
+                // Arquivo atual atingiu o limite de bytes: avança para o próximo fatiamento
+                format!("{}/{}.{}.log", dir, prefix, idx + 1)
+            }
+        }
+    }
+
+    /// Obtém o arquivo de log ativo usando o limite padrão de 20 MB por arquivo
+    pub fn get_active_log_file(category: &LogCategory, date_str: &str) -> String {
+        get_active_log_file_with_limit(category, date_str, MAX_LOG_FILE_BYTES)
+    }
+
+    /// Garante que nenhuma categoria ultrapasse o número máximo de arquivos (FIFO: deleta os mais antigos)
+    pub fn enforce_category_limits_with_max(category: &LogCategory, max_files: usize) {
+        let dir = get_log_dir(category);
+        if let Ok(entries) = fs::read_dir(&dir) {
+            let mut log_files: Vec<(std::path::PathBuf, std::time::SystemTime, (String, u32))> = Vec::new();
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() {
+                    let name = entry.file_name().to_string_lossy().to_string();
+                    if name.ends_with(".log") {
+                        let mtime = entry.metadata().and_then(|m| m.modified()).unwrap_or(std::time::SystemTime::UNIX_EPOCH);
+                        let key = parse_log_file_key(category.as_str(), &name);
+                        log_files.push((path, mtime, key));
+                    }
+                }
+            }
+
+            if log_files.len() > max_files {
+                // Ordena do mais antigo para o mais recente: primeiro por mtime, desempate por (data, slice)
+                log_files.sort_by(|a, b| a.1.cmp(&b.1).then_with(|| a.2.cmp(&b.2)));
+                let to_remove = log_files.len() - max_files;
+                for (path, _, _) in log_files.into_iter().take(to_remove) {
+                    let _ = fs::remove_file(path);
+                }
+            }
+        }
+    }
+
+    /// Garante o limite padrão de no máximo 5 arquivos por categoria (FIFO: max 100 MB)
+    pub fn enforce_category_limits(category: &LogCategory) {
+        enforce_category_limits_with_max(category, MAX_FILES_PER_CATEGORY);
+    }
+
+    /// Aplica o limite FIFO em todas as categorias de logs do sistema
+    pub fn enforce_all_category_limits() {
+        let categories = [
+            LogCategory::Requests,
+            LogCategory::Database,
+            LogCategory::UserActions,
+            LogCategory::Errors,
+            LogCategory::Access,
+        ];
+        for cat in &categories {
+            enforce_category_limits(cat);
         }
     }
 
@@ -298,10 +413,9 @@ pub mod server {
                 for entry in entries.flatten() {
                     let file_name = entry.file_name().to_string_lossy().to_string();
                     if file_name.ends_with(".log") {
-                        if let Some(date_part) = file_name.strip_suffix(".log").and_then(|s| s.split('_').last()) {
-                            if date_part < cutoff_str.as_str() {
-                                let _ = fs::remove_file(entry.path());
-                            }
+                        let (date_part, _) = parse_log_file_key(cat.as_str(), &file_name);
+                        if date_part.as_str() < cutoff_str.as_str() {
+                            let _ = fs::remove_file(entry.path());
                         }
                     }
                 }
@@ -314,11 +428,12 @@ pub mod server {
         let now = Local::now();
         let timestamp = now.format("%Y-%m-%d %H:%M:%S%.3f").to_string();
         let date_str = now.format("%Y-%m-%d").to_string();
-        let file_path = format!("logs/{}/{}_{}.log", category.as_str(), category.as_str(), date_str);
+        let file_path = get_active_log_file(&category, &date_str);
 
         let details_str = details.map(|d| format!(" | {}", d)).unwrap_or_default();
         let line = format!("[{}] [{}] {}{}\n", timestamp, level.to_uppercase(), message, details_str);
 
+        let cat_clone = category.clone();
         // Se estiver executando dentro do runtime assíncrono do Tokio, delega a escrita em disco para o pool bloqueante
         // evitando travar as threads do reactor sob concorrência
         if tokio::runtime::Handle::try_current().is_ok() {
@@ -328,9 +443,13 @@ pub mod server {
                 if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&fp) {
                     let _ = file.write_all(l.as_bytes());
                 }
+                enforce_category_limits(&cat_clone);
             });
-        } else if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&file_path) {
-            let _ = file.write_all(line.as_bytes());
+        } else {
+            if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&file_path) {
+                let _ = file.write_all(line.as_bytes());
+            }
+            enforce_category_limits(&category);
         }
 
         // Also log to standard terminal
@@ -369,6 +488,33 @@ pub mod server {
         write_log(LogCategory::Access, level, &message, Some(&details));
     }
 
+    /// Lê de forma otimizada os últimos bytes do arquivo (estilo tail) para evitar carregar dezenas de MBs na RAM
+    fn read_file_tail(path: &std::path::Path, max_bytes: u64) -> std::io::Result<String> {
+        use std::io::{Read, Seek, SeekFrom};
+        let mut file = fs::File::open(path)?;
+        let file_len = file.metadata()?.len();
+        if file_len == 0 {
+            return Ok(String::new());
+        }
+
+        let bytes_to_read = file_len.min(max_bytes);
+        if bytes_to_read < file_len {
+            file.seek(SeekFrom::End(-(bytes_to_read as i64)))?;
+        }
+
+        let mut buffer = vec![0u8; bytes_to_read as usize];
+        file.read_exact(&mut buffer)?;
+
+        let text = String::from_utf8_lossy(&buffer);
+        if bytes_to_read < file_len {
+            // Se buscou no meio do arquivo, descarta a primeira linha incompleta
+            if let Some(pos) = text.find('\n') {
+                return Ok(text[pos + 1..].to_string());
+            }
+        }
+        Ok(text.into_owned())
+    }
+
     pub fn read_recent_logs(
         category_filter: Option<String>,
         search_filter: Option<String>,
@@ -395,11 +541,17 @@ pub mod server {
             let dir = get_log_dir(&cat);
             if let Ok(dir_entries) = fs::read_dir(&dir) {
                 let mut files: Vec<_> = dir_entries.filter_map(|e| e.ok()).collect();
-                files.sort_by_key(|f| f.file_name());
-                files.reverse(); // newest files first
+                // Ordena os arquivos mais recentes primeiro: mtime decrescente, desempate por chave decrescente
+                files.sort_by(|a, b| {
+                    let mtime_a = a.metadata().and_then(|m| m.modified()).unwrap_or(std::time::SystemTime::UNIX_EPOCH);
+                    let mtime_b = b.metadata().and_then(|m| m.modified()).unwrap_or(std::time::SystemTime::UNIX_EPOCH);
+                    let key_a = parse_log_file_key(cat.as_str(), &a.file_name().to_string_lossy());
+                    let key_b = parse_log_file_key(cat.as_str(), &b.file_name().to_string_lossy());
+                    mtime_b.cmp(&mtime_a).then_with(|| key_b.cmp(&key_a))
+                });
 
                 for file in files.into_iter().take(5) {
-                    if let Ok(content) = fs::read_to_string(file.path()) {
+                    if let Ok(content) = read_file_tail(&file.path(), 512 * 1024) {
                         for line in content.lines().rev() {
                             if line.trim().is_empty() {
                                 continue;
@@ -414,8 +566,14 @@ pub mod server {
                                     }
                                 }
                                 entries.push(entry);
+                                if entries.len() >= limit * 2 {
+                                    break;
+                                }
                             }
                         }
+                    }
+                    if entries.len() >= limit * 2 {
+                        break;
                     }
                 }
             }

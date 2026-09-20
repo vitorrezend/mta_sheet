@@ -171,7 +171,10 @@ pub fn RoomsPage() -> impl IntoView {
 
     view! {
         <div class="rooms-page">
-            <Navbar />
+            <leptos_meta::Title text=move || match lang() {
+                crate::i18n::Language::PtBr => "Salas & Crônicas | MTA Sheet",
+                crate::i18n::Language::EnUs => "Game Rooms & Chronicles | MTA Sheet",
+            } />
             <div class="rooms-container">
                 <header class="rooms-header">
                     <h1>{move || match lang() {

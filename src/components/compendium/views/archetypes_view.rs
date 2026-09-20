@@ -254,20 +254,145 @@ pub fn ArchetypesView(
                     } else {
                         // Detalhe do Arquétipo Específico
                         let arch_item = active_archetype.get();
-                        let on_sel = on_select_act.clone();
-                        let on_cls = on_close_act.clone();
+                        let on_sel_header = on_select_act.clone();
+                        let on_sel_footer = on_select_act.clone();
+                        let on_cls_header = on_close_act.clone();
+                        let on_cls_footer = on_close_act.clone();
                         let target_opt = active_archetype_target.and_then(|t| t.get());
 
                         view! {
                             <div class="practice-reading-view">
                                 <div class="practice-detail-header">
                                     <div class="practice-title-row">
-                                        <div class="practice-main-name">
-                                            "🎭 " {arch_item.name(current_lang.get())}
+                                        <div class="practice-title-left">
+                                            <div class="practice-main-name">
+                                                "🎭 " {arch_item.name(current_lang.get())}
+                                            </div>
+                                            <span class="practice-page-badge">
+                                                "📖 " {arch_item.page_ref}
+                                            </span>
                                         </div>
-                                        <span class="practice-page-badge">
-                                            "📖 " {arch_item.page_ref}
-                                        </span>
+
+                                        {if let Some(cb_h) = on_sel_header {
+                                            let cb_h1 = cb_h.clone();
+                                            let cb_h2 = cb_h;
+                                            let on_cls_h1 = on_cls_header.clone();
+                                            let on_cls_h2 = on_cls_header;
+                                            view! {
+                                                <div class="compendium-header-actions">
+                                                    {match target_opt {
+                                                        Some(ArchetypeTarget::Nature) => view! {
+                                                            <button
+                                                                type="button"
+                                                                class="compendium-action-btn compendium-btn-purple"
+                                                                on:click=move |_| {
+                                                                    let chosen = arch_item.name(current_lang.get()).to_string();
+                                                                    cb_h1.call((ArchetypeTarget::Nature, chosen));
+                                                                    if let Some(c) = on_cls_h1.clone() { c.call(()); }
+                                                                }
+                                                            >
+                                                                <span class="compendium-btn-icon">"✦"</span>
+                                                                <span class="compendium-btn-label">
+                                                                    {move || match current_lang.get() {
+                                                                        Language::PtBr => "Definir Natureza",
+                                                                        Language::EnUs => "Set Nature",
+                                                                    }}
+                                                                </span>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                class="compendium-action-btn compendium-btn-subtle"
+                                                                on:click=move |_| {
+                                                                    let chosen = arch_item.name(current_lang.get()).to_string();
+                                                                    cb_h2.call((ArchetypeTarget::Demeanor, chosen));
+                                                                    if let Some(c) = on_cls_h2.clone() { c.call(()); }
+                                                                }
+                                                            >
+                                                                <span class="compendium-btn-label">
+                                                                    {move || match current_lang.get() {
+                                                                        Language::PtBr => "Comportamento",
+                                                                        Language::EnUs => "Demeanor",
+                                                                    }}
+                                                                </span>
+                                                            </button>
+                                                        }.into_view(),
+                                                        Some(ArchetypeTarget::Demeanor) => view! {
+                                                            <button
+                                                                type="button"
+                                                                class="compendium-action-btn compendium-btn-gold"
+                                                                on:click=move |_| {
+                                                                    let chosen = arch_item.name(current_lang.get()).to_string();
+                                                                    cb_h1.call((ArchetypeTarget::Demeanor, chosen));
+                                                                    if let Some(c) = on_cls_h1.clone() { c.call(()); }
+                                                                }
+                                                            >
+                                                                <span class="compendium-btn-icon">"✦"</span>
+                                                                <span class="compendium-btn-label">
+                                                                    {move || match current_lang.get() {
+                                                                        Language::PtBr => "Definir Comportamento",
+                                                                        Language::EnUs => "Set Demeanor",
+                                                                    }}
+                                                                </span>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                class="compendium-action-btn compendium-btn-subtle"
+                                                                on:click=move |_| {
+                                                                    let chosen = arch_item.name(current_lang.get()).to_string();
+                                                                    cb_h2.call((ArchetypeTarget::Nature, chosen));
+                                                                    if let Some(c) = on_cls_h2.clone() { c.call(()); }
+                                                                }
+                                                            >
+                                                                <span class="compendium-btn-label">
+                                                                    {move || match current_lang.get() {
+                                                                        Language::PtBr => "Natureza",
+                                                                        Language::EnUs => "Nature",
+                                                                    }}
+                                                                </span>
+                                                            </button>
+                                                        }.into_view(),
+                                                        None => view! {
+                                                            <button
+                                                                type="button"
+                                                                class="compendium-action-btn compendium-btn-purple"
+                                                                on:click=move |_| {
+                                                                    let chosen = arch_item.name(current_lang.get()).to_string();
+                                                                    cb_h1.call((ArchetypeTarget::Nature, chosen));
+                                                                    if let Some(c) = on_cls_h1.clone() { c.call(()); }
+                                                                }
+                                                            >
+                                                                <span class="compendium-btn-icon">"✦"</span>
+                                                                <span class="compendium-btn-label">
+                                                                    {move || match current_lang.get() {
+                                                                        Language::PtBr => "Natureza",
+                                                                        Language::EnUs => "Nature",
+                                                                    }}
+                                                                </span>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                class="compendium-action-btn compendium-btn-gold"
+                                                                on:click=move |_| {
+                                                                    let chosen = arch_item.name(current_lang.get()).to_string();
+                                                                    cb_h2.call((ArchetypeTarget::Demeanor, chosen));
+                                                                    if let Some(c) = on_cls_h2.clone() { c.call(()); }
+                                                                }
+                                                            >
+                                                                <span class="compendium-btn-icon">"✦"</span>
+                                                                <span class="compendium-btn-label">
+                                                                    {move || match current_lang.get() {
+                                                                        Language::PtBr => "Comportamento",
+                                                                        Language::EnUs => "Demeanor",
+                                                                    }}
+                                                                </span>
+                                                            </button>
+                                                        }.into_view(),
+                                                    }}
+                                                </div>
+                                            }.into_view()
+                                        } else {
+                                            view! { <span></span> }.into_view()
+                                        }}
                                     </div>
                                     <div class="practice-aliases">
                                         <span class="practice-aliases-label">
@@ -357,103 +482,119 @@ pub fn ArchetypesView(
                                 </div>
 
                                 // Botões de Seleção (Natureza / Comportamento)
-                                {if let Some(cb) = on_sel {
+                                {if let Some(cb) = on_sel_footer {
                                     let cb1 = cb.clone();
                                     let cb2 = cb;
-                                    let on_cls1 = on_cls.clone();
-                                    let on_cls2 = on_cls;
+                                    let on_cls1 = on_cls_footer.clone();
+                                    let on_cls2 = on_cls_footer;
 
                                     view! {
-                                        <div class="practice-action-row" style="margin-top: 1.5rem; display: flex; gap: 0.8rem; flex-wrap: wrap;">
+                                        <div class="compendium-footer-actions">
                                             {match target_opt {
                                                 Some(ArchetypeTarget::Nature) => view! {
                                                     <button
                                                         type="button"
-                                                        class="practice-select-btn archetype-select-btn-nature"
+                                                        class="compendium-action-btn archetype-select-btn-nature compendium-btn-large"
                                                         on:click=move |_| {
                                                             let chosen = arch_item.name(current_lang.get()).to_string();
                                                             cb1.call((ArchetypeTarget::Nature, chosen));
                                                             if let Some(c) = on_cls1.clone() { c.call(()); }
                                                         }
                                                     >
-                                                        {move || match current_lang.get() {
-                                                            Language::PtBr => format!("✦ Definir como Natureza ('{}')", arch_item.name(current_lang.get())),
-                                                            Language::EnUs => format!("✦ Set as Nature ('{}')", arch_item.name(current_lang.get())),
-                                                        }}
+                                                        <span class="compendium-btn-icon">"✦"</span>
+                                                        <span class="compendium-btn-label">
+                                                            {move || match current_lang.get() {
+                                                                Language::PtBr => format!("Definir como Natureza ('{}')", arch_item.name(current_lang.get())),
+                                                                Language::EnUs => format!("Set as Nature ('{}')", arch_item.name(current_lang.get())),
+                                                            }}
+                                                        </span>
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        class="practice-select-btn archetype-select-btn-demeanor-alt"
+                                                        class="compendium-action-btn archetype-select-btn-demeanor-alt compendium-btn-large"
                                                         on:click=move |_| {
                                                             let chosen = arch_item.name(current_lang.get()).to_string();
                                                             cb2.call((ArchetypeTarget::Demeanor, chosen));
                                                             if let Some(c) = on_cls2.clone() { c.call(()); }
                                                         }
                                                     >
-                                                        {move || match current_lang.get() {
-                                                            Language::PtBr => "Usar como Comportamento",
-                                                            Language::EnUs => "Set as Demeanor",
-                                                        }}
+                                                        <span class="compendium-btn-label">
+                                                            {move || match current_lang.get() {
+                                                                Language::PtBr => "Usar como Comportamento",
+                                                                Language::EnUs => "Set as Demeanor",
+                                                            }}
+                                                        </span>
                                                     </button>
                                                 }.into_view(),
                                                 Some(ArchetypeTarget::Demeanor) => view! {
                                                     <button
                                                         type="button"
-                                                        class="practice-select-btn archetype-select-btn-demeanor"
+                                                        class="compendium-action-btn archetype-select-btn-demeanor compendium-btn-large"
                                                         on:click=move |_| {
                                                             let chosen = arch_item.name(current_lang.get()).to_string();
                                                             cb1.call((ArchetypeTarget::Demeanor, chosen));
                                                             if let Some(c) = on_cls1.clone() { c.call(()); }
                                                         }
                                                     >
-                                                        {move || match current_lang.get() {
-                                                            Language::PtBr => format!("✦ Definir como Comportamento ('{}')", arch_item.name(current_lang.get())),
-                                                            Language::EnUs => format!("✦ Set as Demeanor ('{}')", arch_item.name(current_lang.get())),
-                                                        }}
+                                                        <span class="compendium-btn-icon">"✦"</span>
+                                                        <span class="compendium-btn-label">
+                                                            {move || match current_lang.get() {
+                                                                Language::PtBr => format!("Definir como Comportamento ('{}')", arch_item.name(current_lang.get())),
+                                                                Language::EnUs => format!("Set as Demeanor ('{}')", arch_item.name(current_lang.get())),
+                                                            }}
+                                                        </span>
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        class="practice-select-btn archetype-select-btn-nature-alt"
+                                                        class="compendium-action-btn archetype-select-btn-nature-alt compendium-btn-large"
                                                         on:click=move |_| {
                                                             let chosen = arch_item.name(current_lang.get()).to_string();
                                                             cb2.call((ArchetypeTarget::Nature, chosen));
                                                             if let Some(c) = on_cls2.clone() { c.call(()); }
                                                         }
                                                     >
-                                                        {move || match current_lang.get() {
-                                                            Language::PtBr => "Usar como Natureza",
-                                                            Language::EnUs => "Set as Nature",
-                                                        }}
+                                                        <span class="compendium-btn-label">
+                                                            {move || match current_lang.get() {
+                                                                Language::PtBr => "Usar como Natureza",
+                                                                Language::EnUs => "Set as Nature",
+                                                            }}
+                                                        </span>
                                                     </button>
                                                 }.into_view(),
                                                 None => view! {
                                                     <button
                                                         type="button"
-                                                        class="practice-select-btn archetype-select-btn-nature"
+                                                        class="compendium-action-btn archetype-select-btn-nature compendium-btn-large"
                                                         on:click=move |_| {
                                                             let chosen = arch_item.name(current_lang.get()).to_string();
                                                             cb1.call((ArchetypeTarget::Nature, chosen));
                                                             if let Some(c) = on_cls1.clone() { c.call(()); }
                                                         }
                                                     >
-                                                        {move || match current_lang.get() {
-                                                            Language::PtBr => format!("✦ Usar como Natureza ('{}')", arch_item.name(current_lang.get())),
-                                                            Language::EnUs => format!("✦ Use as Nature ('{}')", arch_item.name(current_lang.get())),
-                                                        }}
+                                                        <span class="compendium-btn-icon">"✦"</span>
+                                                        <span class="compendium-btn-label">
+                                                            {move || match current_lang.get() {
+                                                                Language::PtBr => format!("Usar como Natureza ('{}')", arch_item.name(current_lang.get())),
+                                                                Language::EnUs => format!("Use as Nature ('{}')", arch_item.name(current_lang.get())),
+                                                            }}
+                                                        </span>
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        class="practice-select-btn archetype-select-btn-demeanor"
+                                                        class="compendium-action-btn archetype-select-btn-demeanor compendium-btn-large"
                                                         on:click=move |_| {
                                                             let chosen = arch_item.name(current_lang.get()).to_string();
                                                             cb2.call((ArchetypeTarget::Demeanor, chosen));
                                                             if let Some(c) = on_cls2.clone() { c.call(()); }
                                                         }
                                                     >
-                                                        {move || match current_lang.get() {
-                                                            Language::PtBr => format!("✦ Usar como Comportamento ('{}')", arch_item.name(current_lang.get())),
-                                                            Language::EnUs => format!("✦ Use as Demeanor ('{}')", arch_item.name(current_lang.get())),
-                                                        }}
+                                                        <span class="compendium-btn-icon">"✦"</span>
+                                                        <span class="compendium-btn-label">
+                                                            {move || match current_lang.get() {
+                                                                Language::PtBr => format!("Usar como Comportamento ('{}')", arch_item.name(current_lang.get())),
+                                                                Language::EnUs => format!("Use as Demeanor ('{}')", arch_item.name(current_lang.get())),
+                                                            }}
+                                                        </span>
                                                     </button>
                                                 }.into_view(),
                                             }}

@@ -275,6 +275,8 @@ pub struct RoomDetails {
     pub map_data: RoomMapData,
     pub members: Vec<RoomMemberInfo>,
     pub sheets: Vec<RoomSheetSummary>,
+    #[serde(default)]
+    pub sheet_order: Vec<String>,
 }
 
 #[cfg(feature = "ssr")]
@@ -806,9 +808,9 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
 
-    // 1. Get room info including chantry, chronicle notes, initiative, and map
+    // 1. Get room info including chantry, chronicle notes, initiative, map, and sheet_order
     let room_row = sqlx::query(
-        "SELECT r.id, r.name, r.code, r.description, r.gm_id, r.chantry_data, r.chronicle_notes, r.initiative_data, r.map_data, r.is_public,
+        "SELECT r.id, r.name, r.code, r.description, r.gm_id, r.chantry_data, r.chronicle_notes, r.initiative_data, r.map_data, r.sheet_order, r.is_public,
                 (r.password_hash IS NOT NULL AND r.password_hash != '') as has_password,
                 u.username as gm_username 
          FROM rooms r 
@@ -830,7 +832,7 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
     let chantry: ChantryPoolData = serde_json::from_str(&chantry_raw).unwrap_or_default();
     let chronicle_notes: String = room_row.try_get("chronicle_notes").unwrap_or_default();
     let initiative_raw: String = room_row.try_get("initiative_data").unwrap_or_default();
-    let initiative: RoomInitiativeData = if !initiative_raw.is_empty() {
+    let mut initiative: RoomInitiativeData = if !initiative_raw.is_empty() {
         serde_json::from_str(&initiative_raw).unwrap_or_default()
     } else {
         RoomInitiativeData::default()
@@ -840,6 +842,12 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         serde_json::from_str(&map_raw).unwrap_or_default()
     } else {
         RoomMapData::default()
+    };
+    let sheet_order_raw: String = room_row.try_get("sheet_order").unwrap_or_default();
+    let sheet_order: Vec<String> = if !sheet_order_raw.is_empty() {
+        serde_json::from_str(&sheet_order_raw).unwrap_or_default()
+    } else {
+        Vec::new()
     };
 
     // 2. Get members
@@ -863,10 +871,11 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
     }).collect();
 
     // 3. Get sheets (GM sees all, players only see non-hidden sheets or their own)
+    // Ordenação padrão estável por ordem alfabética para evitar deslocamento indesejado ao editar fichas
     let sheet_query = if is_gm {
-        "SELECT id, user_id, name, data, is_hidden_in_room, updated_at FROM character_sheets WHERE room_id = ? ORDER BY updated_at DESC"
+        "SELECT id, user_id, name, data, is_hidden_in_room, updated_at FROM character_sheets WHERE room_id = ? ORDER BY LOWER(name) ASC, id ASC"
     } else {
-        "SELECT id, user_id, name, data, is_hidden_in_room, updated_at FROM character_sheets WHERE room_id = ? AND (is_hidden_in_room = 0 OR user_id = ?) ORDER BY updated_at DESC"
+        "SELECT id, user_id, name, data, is_hidden_in_room, updated_at FROM character_sheets WHERE room_id = ? AND (is_hidden_in_room = 0 OR user_id = ?) ORDER BY LOWER(name) ASC, id ASC"
     };
 
     let mut q = sqlx::query(sheet_query).bind(&room_id);
@@ -878,7 +887,7 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    let sheets = sheet_rows.into_iter().map(|r| {
+    let mut sheets: Vec<RoomSheetSummary> = sheet_rows.into_iter().map(|r| {
         let id: String = r.get("id");
         let sheet_user_id: Option<String> = r.get("user_id");
         let is_owner = !current_user_id.is_empty() && sheet_user_id.as_deref() == Some(&current_user_id);
@@ -889,6 +898,33 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
 
         build_room_sheet_summary(id, name, &data_json, updated_at, is_hidden, is_owner)
     }).collect();
+
+    // Aplica a ordem customizada persistida da sala (se houver)
+    if !sheet_order.is_empty() {
+        sheets.sort_by_key(|s| {
+            sheet_order.iter().position(|id| id == &s.id).unwrap_or(usize::MAX)
+        });
+    }
+
+    // Reconcilia e expurga fichas fantasmas da iniciativa da sala
+    // Busca todos os IDs reais das fichas vinculadas a esta sala
+    let all_room_sheet_ids: Vec<String> = sqlx::query_scalar("SELECT id FROM character_sheets WHERE room_id = ?")
+        .bind(&room_id)
+        .fetch_all(&pool)
+        .await
+        .unwrap_or_default();
+
+    let initial_entries_count = initiative.entries.len();
+    initiative.entries.retain(|e| e.is_npc || all_room_sheet_ids.iter().any(|id| id == &e.id));
+    if initiative.entries.len() != initial_entries_count {
+        if let Ok(cleaned_json) = serde_json::to_string(&initiative) {
+            let _ = sqlx::query("UPDATE rooms SET initiative_data = ? WHERE id = ?")
+                .bind(&cleaned_json)
+                .bind(&room_id)
+                .execute(&pool)
+                .await;
+        }
+    }
 
     Ok(RoomDetails {
         id: room_row.get("id"),
@@ -906,7 +942,55 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         map_data,
         members,
         sheets,
+        sheet_order,
     })
+}
+
+#[server(endpoint = "update_room_sheet_order")]
+pub async fn update_room_sheet_order(room_id: String, ordered_sheet_ids: Vec<String>) -> Result<(), ServerFnError> {
+    use sqlx::SqlitePool;
+    use crate::auth::get_auth_user_id;
+
+    if room_id.trim().is_empty() {
+        return Err(ServerFnError::new("ID da sala não fornecido"));
+    }
+
+    let current_user_id = get_auth_user_id().await?.ok_or_else(|| {
+        ServerFnError::new("Autenticação necessária para reordenar fichas")
+    })?;
+
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        ServerFnError::new("Conexão com o banco de dados indisponível")
+    })?;
+
+    // Verifica se é narrador ou membro da sala
+    let is_authorized = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM rooms r 
+         LEFT JOIN room_members rm ON rm.room_id = r.id AND rm.user_id = ? 
+         WHERE r.id = ? AND (r.gm_id = ? OR rm.user_id IS NOT NULL)"
+    )
+    .bind(&current_user_id)
+    .bind(&room_id)
+    .bind(&current_user_id)
+    .fetch_one(&pool)
+    .await
+    .map_err(|e| ServerFnError::new(e.to_string()))? > 0;
+
+    if !is_authorized {
+        return Err(ServerFnError::new("Você não tem permissão para reordenar as fichas nesta sala"));
+    }
+
+    let order_json = serde_json::to_string(&ordered_sheet_ids)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    sqlx::query("UPDATE rooms SET sheet_order = ? WHERE id = ?")
+        .bind(&order_json)
+        .bind(&room_id)
+        .execute(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(())
 }
 
 #[server(endpoint = "update_room_initiative")]
@@ -968,6 +1052,14 @@ pub async fn update_room_map(room_id: String, map_data: RoomMapData) -> Result<(
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
 
+    // Feature Flag Guard: Verifica se o mapa tático está liberado para o chamador
+    let is_feature_allowed = crate::settings::is_feature_enabled_for_caller(&pool, "feature_tactical_grid").await?;
+    if !is_feature_allowed {
+        return Err(ServerFnError::new(
+            "O recurso de Mapa & Grid Tático está temporariamente em manutenção ou restrito a administradores."
+        ));
+    }
+
     let member_check = sqlx::query("SELECT rm.role, r.gm_id FROM rooms r LEFT JOIN room_members rm ON rm.room_id = r.id AND rm.user_id = ? WHERE r.id = ?")
         .bind(&user_id)
         .bind(&room_id)
@@ -1016,16 +1108,73 @@ pub async fn assign_sheet_to_room(sheet_id: String, room_id: String) -> Result<(
 
 #[server(endpoint = "remove_sheet_from_room")]
 pub async fn remove_sheet_from_room(sheet_id: String) -> Result<(), ServerFnError> {
-    use sqlx::SqlitePool;
+    use sqlx::{SqlitePool, Row};
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
 
+    // 1. Descobre a sala a que a ficha pertencia antes de desvincular
+    let room_id: Option<String> = sqlx::query_scalar("SELECT room_id FROM character_sheets WHERE id = ?")
+        .bind(&sheet_id)
+        .fetch_optional(&pool)
+        .await
+        .unwrap_or_default();
+
+    // 2. Desvincula a ficha
     sqlx::query("UPDATE character_sheets SET room_id = NULL WHERE id = ?")
         .bind(&sheet_id)
         .execute(&pool)
         .await
         .map_err(|e| ServerFnError::new(format!("Erro ao desvincular ficha: {}", e)))?;
+
+    // 3. Se estava vinculada a uma sala, limpa a iniciativa e a ordem de fichas dessa sala
+    if let Some(r_id) = room_id {
+        if let Ok(Some(row)) = sqlx::query("SELECT initiative_data, sheet_order FROM rooms WHERE id = ?")
+            .bind(&r_id)
+            .fetch_optional(&pool)
+            .await
+        {
+            let init_raw: String = row.try_get("initiative_data").unwrap_or_default();
+            if !init_raw.is_empty() {
+                if let Ok(mut init) = serde_json::from_str::<RoomInitiativeData>(&init_raw) {
+                    let old_len = init.entries.len();
+                    init.entries.retain(|e| e.id != sheet_id);
+                    if init.entries.len() != old_len {
+                        if let Ok(new_json) = serde_json::to_string(&init) {
+                            let _ = sqlx::query("UPDATE rooms SET initiative_data = ? WHERE id = ?")
+                                .bind(&new_json)
+                                .bind(&r_id)
+                                .execute(&pool)
+                                .await;
+
+                            broadcast_to_room(&r_id, RoomBroadcastEvent {
+                                event_type: "INITIATIVE_UPDATE".to_string(),
+                                initiative: init,
+                                play_sound: false,
+                            });
+                        }
+                    }
+                }
+            }
+
+            let order_raw: String = row.try_get("sheet_order").unwrap_or_default();
+            if !order_raw.is_empty() {
+                if let Ok(mut order) = serde_json::from_str::<Vec<String>>(&order_raw) {
+                    let old_len = order.len();
+                    order.retain(|id| id != &sheet_id);
+                    if order.len() != old_len {
+                        if let Ok(new_order) = serde_json::to_string(&order) {
+                            let _ = sqlx::query("UPDATE rooms SET sheet_order = ? WHERE id = ?")
+                                .bind(&new_order)
+                                .bind(&r_id)
+                                .execute(&pool)
+                                .await;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     Ok(())
 }
@@ -1450,6 +1599,7 @@ mod tests {
             map_data: RoomMapData::default(),
             members: vec![],
             sheets: vec![],
+            sheet_order: vec![],
         };
 
         let json = serde_json::to_string(&details).expect("serialize");

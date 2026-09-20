@@ -15,6 +15,8 @@ pub struct PracticeCompendiumContext {
     pub open_archetype: Callback<(Option<ArchetypeTarget>, String)>,
     pub open_attribute: Callback<(Option<usize>, String)>,
     pub open_weapon: Callback<(Option<usize>, String)>,
+    pub open_background: Callback<(Option<usize>, String)>,
+    pub open_sphere: Callback<(Option<usize>, String)>,
 }
 
 #[component]

@@ -1,0 +1,9 @@
+### Identidade Alternativa (Alternate Identity)
+
+Às vezes você precisa estar pronto para desaparecer. Especialmente para metamorfos, clones ou pessoas em profissões de alto risco (espiões, informantes, assassinos), a capacidade de adotar identidades alternativas pode significar a fronteira entre uma vida nova e uma cova anônima. Com este Antecedente, você pode se ocultar sob uma identidade falsa; quanto maior a pontuação, mais suporte e solidez essa persona possui no mundo real. Cada ponto fornece um patamar de reconhecimento oficial resistente a escrutínios cada vez mais rigorosos. Uma carteira de motorista falsa barata pode passar na porta da balada, mas jamais enganará uma blitz policial rodoviária!
+
+Isoladamente, uma identidade alternativa é útil, mas não extraordinária. Você pode usá-la por pouco tempo, mas isso o deixará recomeçando do zero, a menos que planeje reconstruir sua vida completamente. No entanto, outros Traços de Antecedente podem ser vinculados a essa identidade falsa: você não poderá obter um novo [Avatar](mta://backgrounds/avatar), obviamente, mas pode vincular [Aliados](mta://backgrounds/allies), [Recursos](mta://backgrounds/resources) e [Espiões](mta://backgrounds/spies) conectados exclusivamente a essa nova persona.
+
+Para cada ponto neste Antecedente, você pode associar um ponto de outros Antecedentes à sua identidade alternativa (você ainda deve pagar os pontos normais por esses antecedentes). Quando precisar descartar sua identidade anterior, novos recursos estarão prontos para recebê-lo.
+
+> **Sistema de Jogo:** Para desmascarar uma identidade alternativa, um investigador deve rolar um Traço Mental como [Percepção](mta://attributes/perception) + Investigação contra dificuldade igual à sua Identidade Alternativa + 3. Disfarces físicos ou mágika devem ser usados para conferir aparências distintas entre suas diferentes identidades.

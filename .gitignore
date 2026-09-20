@@ -5,6 +5,7 @@
 # --- Rust & WebAssembly Build Artifacts ---
 /target/
 /target_test/
+/target_tests/
 /mta_sheet
 /dist/
 /pkg/
@@ -24,29 +25,84 @@ mta_sheet.exe
 *.zip
 *.rar
 *.tar.gz
+scripts/backup/backups/
+/backups/
 
 # --- Logs & Runtime Output ---
 *.log
 logs/
 /logs/
 
-# --- SQLite Databases & Journals ---
+# --- SQLite Databases & Journals (Root & Data dir) ---
 *.db
 *.db-journal
 *.db-shm
 *.db-wal
 *.sqlite
 *.sqlite3
+data/*.db
+data/*.db-journal
+data/*.db-shm
+data/*.db-wal
+data/*.sqlite
+data/*.sqlite3
 
 # --- User Uploaded Media ---
 uploads/
 /uploads/
+data/uploads/
+
+# --- Raw Source Texts for Compendium Ingestion ---
+data/*.txt
+data/**/*.txt
 
 # --- Environment & Secret Variables ---
 .env
 .env*
 .env.*
 !.env.example
+
+# --- SSL / TLS Certificates, Keys & ACME (EXTREMA SEGURANÇA) ---
+*.pem
+*.key
+*.crt
+*.cer
+*.pfx
+*.p12
+*.csr
+certs/
+/certs/
+ssl/
+/ssl/
+acme/
+/acme/
+
+# --- Tokens & Scripts Sensíveis ---
+*.token
+*.secret
+duckdns.token
+duckdns_update.bat
+duckdns_update.sh
+!duckdns_update.example.bat
+!duckdns_update.example.sh
+scripts/update_prod.bat
+scripts/update_prod.sh
+update_prod.bat
+update_prod.sh
+!scripts/update_prod.example.bat
+!scripts/update_prod.example.sh
+docker-compose.override.yml
+
+# --- Caddy & Nginx Runtime & Cache ---
+.caddy/
+caddy_data/
+caddy_config/
+Caddyfile.local
+
+# --- Syncthing Sync Metadata ---
+.stfolder/
+.stversions/
+*.sync-conflict-*
 
 # --- IDEs and Text Editors ---
 .vscode/

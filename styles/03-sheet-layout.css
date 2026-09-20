@@ -62,28 +62,10 @@
     display: block;
 }
 
-.corner-top-left {
-    top: 4px;
-    left: 4px;
-}
-
-.corner-top-right {
-    top: 4px;
-    right: 4px;
-    transform: scaleX(-1);
-}
-
-.corner-bottom-left {
-    bottom: 4px;
-    left: 4px;
-    transform: scaleY(-1);
-}
-
-.corner-bottom-right {
-    bottom: 4px;
-    right: 4px;
-    transform: scale(-1, -1);
-}
+.corner-top-left { top: 4px; left: 4px; }
+.corner-top-right { top: 4px; right: 4px; transform: scaleX(-1); }
+.corner-bottom-left { bottom: 4px; left: 4px; transform: scaleY(-1); }
+.corner-bottom-right { bottom: 4px; right: 4px; transform: scale(-1, -1); }
 
 /* Filetes e faixas que conectam os 4 cantos em SVG contínuo */
 .frame-border {
@@ -99,35 +81,10 @@
     display: block;
 }
 
-.frame-border-top {
-    top: 4px;
-    left: 74px;
-    right: 74px;
-    height: 28px;
-}
-
-.frame-border-bottom {
-    bottom: 4px;
-    left: 74px;
-    right: 74px;
-    height: 28px;
-    transform: scaleY(-1);
-}
-
-.frame-border-left {
-    left: 4px;
-    top: 74px;
-    bottom: 74px;
-    width: 28px;
-}
-
-.frame-border-right {
-    right: 4px;
-    top: 74px;
-    bottom: 74px;
-    width: 28px;
-    transform: scaleX(-1);
-}
+.frame-border-top { top: 4px; left: 74px; right: 74px; height: 28px; }
+.frame-border-bottom { bottom: 4px; left: 74px; right: 74px; height: 28px; transform: scaleY(-1); }
+.frame-border-left { left: 4px; top: 74px; bottom: 74px; width: 28px; }
+.frame-border-right { right: 4px; top: 74px; bottom: 74px; width: 28px; transform: scaleX(-1); }
 
 /* Garante que o conteúdo da ficha fique acima da moldura para interação perfeita */
 .sheet-page-tab-pane {
@@ -150,7 +107,7 @@
         overflow-x: hidden;
     }
 
-    body {
+    body:has(.sheet-container) {
         /* Remove centering padding; the scaled sheet will start at top-left */
         padding: 0;
         justify-content: flex-start;
@@ -241,6 +198,8 @@
         align-items: flex-end !important;
         padding-top: 0 !important;
         background: rgba(0, 0, 0, 0.65) !important;
+        overscroll-behavior: contain;
+        touch-action: manipulation;
     }
 
     .actions-menu-panel,
@@ -253,6 +212,8 @@
         border-bottom: none !important;
         animation: slideUpMenu 0.22s ease-out !important;
         padding: 1rem 1.25rem 1.75rem 1.25rem !important;
+        overscroll-behavior: contain;
+        touch-action: manipulation;
     }
 
     @keyframes slideUpMenu {
@@ -964,36 +925,61 @@
     color: #581c87;
 }
 
-.create-actions-group {
-    display: flex;
-    gap: 0.6rem;
-    align-items: center;
+/* ─── Modo Somente Leitura (Read-Only) ────────────────────────────────── */
+.sheet-readonly input:not([type="button"]),
+.sheet-readonly textarea,
+.sheet-readonly select,
+.sheet-readonly .dot,
+.sheet-readonly .dot-box,
+.sheet-readonly .health-box,
+.sheet-readonly .essence-box,
+.sheet-readonly .paradox-box,
+.sheet-readonly .btn-add-trait,
+.sheet-readonly .btn-remove-trait {
+    pointer-events: none !important;
+    user-select: none;
 }
 
-.import-json-home-btn {
-    background: #2e1065;
-    color: #e9d5ff;
-    border: 1px solid #7e22ce;
-    padding: 0.65rem 1.1rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    transition: all 0.2s ease;
+.readonly-view-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.85rem;
+    background: rgba(23, 4, 40, 0.85);
+    border: 1px solid var(--purple-bright);
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--gold-light);
+}
+
+.readonly-author-link {
+    color: var(--gold-bright);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.readonly-author-link:hover {
+    text-decoration: underline;
+}
+
+.clone-sheet-top-btn {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    background: var(--gold-primary);
+    border: 1px solid var(--gold-bright);
+    border-radius: 6px;
+    color: var(--purple-deep);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.import-json-home-btn:hover:not(:disabled) {
-    background: #581c87;
-    border-color: #a855f7;
-    color: #ffffff;
+.clone-sheet-top-btn:hover {
+    background: var(--gold-bright);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
     transform: translateY(-1px);
-}
-
-.import-json-home-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }

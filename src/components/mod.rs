@@ -14,7 +14,7 @@ pub use compendium::{CompendiumModal, CompendiumSection};
 // Re-export common UI components
 pub use common::{
     Callback, LabelColumn, LabelField, Navbar, PatchNotesModal, SafeCallback, Sheet,
-    StableTextArea, StableTextInput, ValueField, BoundAttributeField,
+    StableTextArea, StableTextInput, ValueField, BoundAttributeField, StatBox,
 };
 
 // Re-export MTA sheet components
@@ -34,7 +34,7 @@ pub use profile::CharacterProfile;
 pub use rooms::{RoomView, RoomsPage};
 
 // Re-export Views / Top-level Pages
-pub use views::{AuthPage, CharacterSheet, Home, LogsPage};
+pub use views::{AboutPage, AuthPage, CharacterSheet, FeedPage, Home, LogsPage, ProfilePage};
 
 // Compatibility module for legacy imports
 pub mod character_sheet {

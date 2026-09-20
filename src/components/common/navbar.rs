@@ -39,6 +39,7 @@ pub fn Navbar() -> impl IntoView {
                         class="version-pill-badge"
                         on:click=move |_| set_show_patch_notes.set(true)
                         title="Ver Notas de Atualização & Versões"
+                        aria-label="Ver Notas de Atualização e Versões"
                     >
                         <span class="version-pill-sparkle">"✨"</span>
                         <span>{format!("v{}", CURRENT_VERSION)}</span>
@@ -47,7 +48,9 @@ pub fn Navbar() -> impl IntoView {
 
                 <div class="navbar-links">
                     <A href="/" class="nav-link" exact=true>{move || crate::i18n::tr("character_sheets", lang())}</A>
+                    <A href="/feed" class="nav-link">"🌐 Feed"</A>
                     <A href="/rooms" class="nav-link">{move || crate::i18n::tr("game_rooms", lang())}</A>
+                    <A href="/about" class="nav-link">{move || crate::i18n::tr("about_collab", lang())}</A>
                     {move || user.get().and_then(|u| {
                         if u.is_admin {
                             Some(view! { <A href="/logs" class="nav-link">{move || crate::i18n::tr("logs", lang())}</A> })
@@ -70,6 +73,10 @@ pub fn Navbar() -> impl IntoView {
                             crate::i18n::Language::PtBr => "Idioma: Português (Clique para mudar para English)",
                             crate::i18n::Language::EnUs => "Language: English (Click to switch to Português)",
                         }
+                        aria-label=move || match lang() {
+                            crate::i18n::Language::PtBr => "Alternar idioma para Inglês",
+                            crate::i18n::Language::EnUs => "Switch language to Portuguese",
+                        }
                     >
                         {move || match lang() {
                             crate::i18n::Language::PtBr => "🇧🇷 PT",
@@ -78,12 +85,17 @@ pub fn Navbar() -> impl IntoView {
                     </button>
 
                     {move || match user.get() {
-                        Some(u) => view! {
-                            <div class="user-pill">
-                                <span class="user-greeting">"🧙 " {u.username}</span>
-                                <button class="logout-btn" on:click=on_logout title="Sair da conta">{move || crate::i18n::tr("logout", lang())}</button>
-                            </div>
-                        }.into_view(),
+                        Some(u) => {
+                            let username = u.username.clone();
+                            view! {
+                                <div class="user-pill">
+                                    <A href="/profile" class="user-greeting">
+                                        "🧙 " {username}
+                                    </A>
+                                    <button class="logout-btn" on:click=on_logout title="Sair da conta">{move || crate::i18n::tr("logout", lang())}</button>
+                                </div>
+                            }.into_view()
+                        },
                         None => view! {
                             <A href="/login" class="login-link">"Entrar / Cadastrar"</A>
                         }.into_view(),

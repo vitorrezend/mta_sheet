@@ -1,0 +1,7 @@
+Instruments fall into three general classifications in M20:
+
+• Standard Instruments: Readily available tools that fit the mage’s paradigm and practices. Any laptop, sword, stick of chalk, or ritual blade will do, so long as it fulfills the functional and symbolic requirements. Standard instruments provide no direct mechanical dice modifiers, but can easily be replaced if lost, broken, or confiscated.
+
+• Personalized Instruments: A specific tool that has been crafted, attuned, consecrated, or bonded to the mage over significant time and effort. A consecrated athame inscribed with personal runes, a custom-soldered cyberdeck with handcrafted drivers, a hand-carved rowan staff, or an heirloom violin. When a mage employs a personalized instrument for casting within her Affinity Sphere, the difficulty of the roll is reduced by -1.
+
+• Unique Instruments: Irreplaceable items possessing immense personal, historical, or metaphysical significance. A legendary grimoire penned by an archmage, an ancient relic blade passed down through generations of masters, or a one-of-a-kind prototype tachyon matrix. A unique instrument reduces casting difficulty by -1 (or -2 if it is both personalized and unique, at the Storyteller's discretion). However, if a unique instrument is damaged, stolen, or destroyed, the mage suffers severe psychic disorientation, potentially facing the harsh penalties for Operating Without Focus (M20, pp. 566-567) until a suitable spiritual reconciliation or replacement is attained.

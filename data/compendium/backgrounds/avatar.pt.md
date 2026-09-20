@@ -1,0 +1,7 @@
+### Avatar / Gênio Tecnocrata (Avatar / Genius)
+
+O Despertar define o mago. Quer ela o chame de um deus místico interior ou da Iluminação cientificamente mensurável da consciência superior, o Avatar (ou Gênio) é o catalisador que permite a um praticante realizar o impossível. Alguns Avatares, contudo, são consideravelmente mais potentes e atuantes que outros. Este Traço quantifica seu Eu Desperto, reflete sua capacidade de armazenar e canalizar Quintessência, e determina quão vívida e tangível é a presença dessa entidade nas percepções do personagem.
+
+Todo personagem mago possui um Avatar de alguma natureza; no entanto, a menos que você adquira ao menos 1 ponto neste Antecedente, sua capacidade de manipular a Mágika prática será extremamente limitada. Embora seus testes de conjuração sejam baseados em Arete e não diretamente no Avatar, um mago sem pontos em Avatar não consegue usar Quintessência para facilitar suas mágikas, reduzir dificuldades ou consagrar instrumentos.
+
+A capacidade de colher Quintessência em um [Nó](mta://backgrounds/node) e utilizá-la em suas criações depende diretamente do valor de Avatar. Um valor elevado reflete um Eu Superior cuja personalidade distinta, voz interior e impulsos se manifestam com nitidez assombrosa perante o mago.

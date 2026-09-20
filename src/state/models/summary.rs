@@ -111,7 +111,48 @@ pub struct CharacterSummary {
     pub is_owner: bool,
     #[serde(default)]
     pub folder_id: Option<String>,
+    #[serde(default)]
+    pub author_username: Option<String>,
     pub updated_at: String,
+    #[serde(default)]
+    pub likes_count: i64,
+    #[serde(default)]
+    pub is_liked: bool,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
+pub struct LikeToggleResult {
+    pub sheet_id: String,
+    pub is_liked: bool,
+    pub likes_count: i64,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct UserProfileData {
+    pub id: String,
+    pub username: String,
+    pub created_at: String,
+    pub is_self: bool,
+    #[serde(default)]
+    pub is_admin: bool,
+    pub total_sheets: i64,
+    pub public_sheets_count: i64,
+    #[serde(default)]
+    pub private_sheets_count: i64,
+    #[serde(default)]
+    pub mage_sheets_count: i64,
+    #[serde(default)]
+    pub gods_monsters_sheets_count: i64,
+    #[serde(default)]
+    pub folders_count: i64,
+    pub rooms_count: i64,
+    #[serde(default)]
+    pub gm_rooms_count: i64,
+    #[serde(default)]
+    pub player_rooms_count: i64,
+    #[serde(default)]
+    pub active_sessions_count: i64,
+    pub sheets: Vec<CharacterSummary>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
@@ -192,7 +233,10 @@ impl CharacterSummary {
             is_public,
             is_owner,
             folder_id: None,
+            author_username: None,
             updated_at,
+            likes_count: 0,
+            is_liked: false,
         }
     }
 }

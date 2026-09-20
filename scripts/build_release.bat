@@ -21,89 +21,100 @@ taskkill /F /IM mta_sheet.exe >nul 2>nul
 echo [1/4] Preparando diretorios e estrutura de assets...
 if not exist "uploads" mkdir uploads
 if not exist "target\site\pkg" mkdir target\site\pkg
+if not exist "target\site\fonts" mkdir target\site\fonts
 if not exist "styles" mkdir styles
+if exist "fonts" copy /Y "fonts\*.*" "target\site\fonts\" >nul
 
-echo [2/4] Verificando target wasm32-unknown-unknown e wasm-bindgen...
+echo [2/4] Verificando ferramentas necessarias (cargo-leptos, wasm target)...
 rustup target list | findstr /C:"wasm32-unknown-unknown (installed)" >nul
 if %ERRORLEVEL% NEQ 0 (
     echo   -^> Instalando target wasm32-unknown-unknown...
     rustup target add wasm32-unknown-unknown
 )
 
-set "INSTALL_WASM_BINDGEN=0"
-where wasm-bindgen >nul 2>nul
+where cargo-leptos >nul 2>nul
 if %ERRORLEVEL% NEQ 0 (
-    set "INSTALL_WASM_BINDGEN=1"
+    echo   -^> cargo-leptos nao encontrado. Instalando cargo-leptos v0.3.7...
+    powershell -NoProfile -Command "irm https://github.com/leptos-rs/cargo-leptos/releases/download/v0.3.7/cargo-leptos-installer.ps1 | iex"
 ) else (
-    wasm-bindgen --version 2>&1 | findstr /C:"0.2.121" >nul
-    if !ERRORLEVEL! NEQ 0 set "INSTALL_WASM_BINDGEN=1"
+    cargo-leptos --version 2>&1 | findstr "0.2." >nul
+    if !ERRORLEVEL! EQU 0 (
+        echo   -^> cargo-leptos desatualizado [0.2.x]. Atualizando para 0.3.7...
+        powershell -NoProfile -Command "irm https://github.com/leptos-rs/cargo-leptos/releases/download/v0.3.7/cargo-leptos-installer.ps1 | iex"
+    )
 )
 
-if "!INSTALL_WASM_BINDGEN!"=="1" (
-    echo   -^> Sincronizando wasm-bindgen-cli para versao 0.2.121...
-    cargo install wasm-bindgen-cli --version 0.2.121 --locked --force
-)
-
-echo [3/4] Compilando Frontend WASM e Backend com Assets Embutidos...
-echo   -^> [1/3] Compilando Frontend WASM Release...
-cargo build --lib --target wasm32-unknown-unknown --release --no-default-features --features hydrate
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERRO CRITICO] A compilacao WASM falhou.
-    pause
-    exit /b %ERRORLEVEL%
-)
-
-echo   -^> [2/3] Gerando bindings JS e empacotando assets em target\site\pkg...
+echo [3/4] Compilando Frontend WASM e Servidor Backend via cargo-leptos [Release]...
 if exist "target\site\pkg" del /Q "target\site\pkg\*.*" >nul 2>nul
-wasm-bindgen --target web --out-dir target\site\pkg --out-name mta_sheet target\wasm32-unknown-unknown\release\mta_sheet.wasm --no-typescript
+cargo leptos build --release
 if %ERRORLEVEL% NEQ 0 (
-    echo [ERRO CRITICO] O wasm-bindgen falhou.
+    echo [ERRO CRITICO] A compilacao via cargo-leptos falhou.
     pause
     exit /b %ERRORLEVEL%
 )
 
-where wasm-opt >nul 2>nul
-if !ERRORLEVEL! EQU 0 (
-    echo   -^> [wasm-opt] Otimizando bytecode WebAssembly com -Oz...
-    if exist "target\site\pkg\mta_sheet_bg.wasm" wasm-opt -Oz "target\site\pkg\mta_sheet_bg.wasm" -o "target\site\pkg\mta_sheet_bg.wasm"
-    if exist "target\site\pkg\mta_sheet.wasm" wasm-opt -Oz "target\site\pkg\mta_sheet.wasm" -o "target\site\pkg\mta_sheet.wasm"
+:: Garante sincronizacao mta_sheet.wasm <-> mta_sheet_bg.wasm
+if exist "target\site\pkg\mta_sheet.wasm" (
+    if not exist "target\site\pkg\mta_sheet_bg.wasm" copy /Y "target\site\pkg\mta_sheet.wasm" "target\site\pkg\mta_sheet_bg.wasm" >nul
+) else if exist "target\site\pkg\mta_sheet_bg.wasm" (
+    copy /Y "target\site\pkg\mta_sheet_bg.wasm" "target\site\pkg\mta_sheet.wasm" >nul
 )
-
-if exist "target\site\pkg\mta_sheet_bg.wasm" copy /Y "target\site\pkg\mta_sheet_bg.wasm" "target\site\pkg\mta_sheet.wasm" >nul
-if exist "target\site\pkg\mta_sheet.wasm" copy /Y "target\site\pkg\mta_sheet.wasm" "target\site\pkg\mta_sheet_bg.wasm" >nul
 
 echo   -^> [CSS Bundle] Empacotando suite de estilos em target\site\pkg\mta_sheet.css...
 (
+    type styles\00-tokens.css
+    echo.
     type styles\01-variables.css
+    echo.
     type styles\02-common.css
+    echo.
     type styles\03-sheet-layout.css
+    echo.
     type styles\04-page1-main.css
+    echo.
     type styles\05-page2-magic-combat.css
+    echo.
     type styles\06-page3-expanded.css
+    echo.
     type styles\07-page4-history-visuals.css
+    echo.
     type styles\08-print-pdf.css
+    echo.
     type styles\09-gods-and-monsters.css
+    echo.
     type styles\10-page5-grimoire.css
+    echo.
     type styles\11-page6-notes.css
+    echo.
     type styles\12-compendium.css
+    echo.
     type styles\patch_notes.css
+    echo.
+    type styles\home.css
+    echo.
+    type styles\auth.css
+    echo.
+    type styles\rooms.css
+    echo.
+    type styles\logs.css
+    echo.
+    type styles\feed.css
+    echo.
+    type styles\profile.css
+    echo.
+    type styles\share.css
+    echo.
+    type styles\about.css
 ) > target\site\pkg\mta_sheet.css
-
-echo   -^> [3/3] Compilando Servidor Backend SSR Release...
-cargo build --release --no-default-features --features ssr
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERRO CRITICO] A compilacao do servidor release falhou.
-    pause
-    exit /b %ERRORLEVEL%
-)
 
 echo [4/4] Empacotando executavel standalone...
 set "SERVER_BIN="
-if exist "target\release\mta_sheet_server.exe" set "SERVER_BIN=target\release\mta_sheet_server.exe"
+if exist "target\server\release\mta_sheet_server.exe" set "SERVER_BIN=target\server\release\mta_sheet_server.exe"
+if "!SERVER_BIN!"=="" if exist "target\release\mta_sheet_server.exe" set "SERVER_BIN=target\release\mta_sheet_server.exe"
 if "!SERVER_BIN!"=="" if exist "target\release\mta_sheet.exe" set "SERVER_BIN=target\release\mta_sheet.exe"
 
 if "!SERVER_BIN!"=="" (
-    echo [ERRO] O binario mta_sheet.exe nao foi encontrado em target\release.
+    echo [ERRO] O binario mta_sheet_server.exe nao foi encontrado em target\server\release ou target\release.
     pause
     exit /b 1
 )
@@ -127,6 +138,9 @@ if /i "%1"=="run" (
     .\mta_sheet.exe
     goto :eof
 )
+
+if /i "%1"=="no-run" goto :eof
+if /i "%1"=="build" goto :eof
 
 set /p RUN_NOW="Deseja iniciar o executavel release agora? [s/N]: "
 if /i "!RUN_NOW!"=="s" (

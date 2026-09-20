@@ -27,6 +27,8 @@ pub fn ValueField(
     #[prop(optional)] suggested_specialties: Option<Signal<Vec<&'static str>>>,
     #[prop(optional)] on_open_compendium: Option<Callback<()>>,
     #[prop(into, optional)] compendium_page_ref: Option<MaybeSignal<String>>,
+    #[prop(default = None)] on_flip: Option<Callback<()>>,
+    #[prop(default = None)] flip_tooltip: Option<Signal<String>>,
 ) -> impl IntoView {
     let on_level_change = Rc::new(on_level_change);
     let on_modifier_change = Rc::new(on_modifier_change);
@@ -182,6 +184,23 @@ pub fn ValueField(
                             <span class="affinity-star-icon" class:active=is_active>
                                 {move || if is_active() { "★" } else { "☆" }}
                             </span>
+                        </button>
+                    }
+                })}
+                {on_flip.map(|on_flip_cb| {
+                    let tooltip = flip_tooltip.clone();
+                    view! {
+                        <button 
+                            type="button" 
+                            class="sphere-flip-btn"
+                            style="background: transparent; border: none; cursor: pointer; padding: 0 3px; font-size: 0.85rem; color: var(--text-secondary, #64748b); transition: color 0.15s, transform 0.15s; line-height: 1; display: inline-flex; align-items: center;"
+                            on:click=move |ev| {
+                                ev.stop_propagation();
+                                on_flip_cb.call(());
+                            }
+                            title=move || tooltip.as_ref().map(|t| t.get()).unwrap_or_else(|| "Alternar variante Tecnocrática / Mística".to_string())
+                        >
+                            "⇄"
                         </button>
                     }
                 })}

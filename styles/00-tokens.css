@@ -1,0 +1,213 @@
+/* ==========================================================================
+   CINZEL FONT (LOCAL / SELF-HOSTED WOFF2)
+   Zero external network calls, zero layout shift, instant rendering
+   ========================================================================== */
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('/fonts/cinzel-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('/fonts/cinzel-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ==========================================================================
+   00: DESIGN TOKENS & PALETA SEMÂNTICA CANÔNICA (MTA SHEET)
+   Dark Gothic Moderno • Arcano Hermético • Akashiano (Dô) • Paradoxo
+   ========================================================================== */
+
+:root {
+    /* ─── 📐 Dimensões da Folha & Variáveis Fundamentais ──────────────── */
+    --page-width: 210mm;
+    --page-height: 297mm;
+    --paper-bg: #ffffff;
+    --bg-color: #f0f0f0;
+    --text-color: #333333;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --primary-color: #2c3e50;
+    --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+    /* ─── 🏛️ Ouro Arcano & Nobreza Hermética ───────────────────────────── */
+    --gold-primary: #caa75d;
+    --gold-bright: #ffd700;
+    --gold-light: #f7e6b5;
+    --gold-muted: #8c7853;
+    --gold-dark: #7a5b20;
+    --gold-line: rgba(202, 167, 93, 0.45);
+    --gold-glow: rgba(202, 167, 93, 0.35);
+    --gold-badge-bg: rgba(202, 167, 93, 0.15);
+
+    /* ─── 🔮 Púrpura Místico / Akashiano (Dô & Chi) ─────────────────────── */
+    --purple-deep: #170428;
+    --purple-mid: #2d0a4e;
+    --purple-accent: #360c58;
+    --purple-bright: #9333ea;
+    --purple-light: #d8b4fe;
+    --purple-glow: rgba(147, 51, 234, 0.3);
+    --purple-badge-bg: rgba(147, 51, 234, 0.18);
+
+    /* ─── ⚔️ Semântica de Combate & Vitalidade (World of Darkness) ──────── */
+    --color-damage: #991b1b;
+    --color-damage-bg: rgba(153, 27, 27, 0.12);
+    --color-difficulty: #1e3a8a;
+    --color-difficulty-bg: rgba(30, 58, 138, 0.12);
+    --color-pool: #0f766e;
+    --color-pool-bg: rgba(15, 118, 110, 0.12);
+    --color-actions: #6b21a8;
+    --color-actions-bg: rgba(107, 33, 168, 0.12);
+    --color-range: #047857;
+    --color-rate: #b45309;
+    --color-clip: #6b21a8;
+    --color-conceal: #4338ca;
+
+    /* ─── ⚡ Alertas & Origem de Pontos ──────────────────────────────────── */
+    --color-origin-base: #000000;
+    --color-origin-bonus: #9333ea;
+    --color-origin-xp: #16a34a;
+    --color-paradox: #dc2626;
+    --color-warning: #d97706;
+    --color-success: #16a34a;
+    --color-info: #2563eb;
+    --red-light: #ef4444;
+    --green-light: #22c55e;
+
+    /* ─── 📜 Superfícies & Pergaminho ───────────────────────────────────── */
+    --surface-paper: #ffffff;
+    --surface-parchment: #fdfbf7;
+    --surface-card: #f4eee1;
+    --surface-card-subtle: #f9f6ef;
+    --surface-card-border: #e5dccb;
+    --surface-dark-slate: #0f172a;
+    --surface-dark-card: #1e293b;
+    --surface-dark-border: #334155;
+
+    /* ─── ✒️ Tipografia ─────────────────────────────────────────────────── */
+    --font-serif: 'Cinzel', 'Garamond', 'Palatino Linotype', 'Georgia', serif;
+    --font-title: 'Cinzel', serif;
+    --font-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+    /* ─── 📐 Raios de Borda & Sombras ───────────────────────────────────── */
+    --radius-xs: 3px;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+    --radius-full: 9999px;
+
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.25);
+    --shadow-glow-gold: 0 0 20px rgba(202, 167, 93, 0.25);
+    --shadow-glow-purple: 0 0 22px rgba(147, 51, 234, 0.22);
+}
+
+/* ==========================================================================
+   Canonical Component Classes: MTA Modal System
+   ========================================================================== */
+.mta-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 15, 29, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.mta-modal-card {
+    background: var(--surface-paper, #ffffff);
+    border: 1px solid var(--border-gold, #caa75d);
+    border-radius: var(--radius-lg, 8px);
+    box-shadow: var(--shadow-lg, 0 10px 25px rgba(0, 0, 0, 0.25));
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    width: 100%;
+    overflow: hidden;
+    animation: mtaModalFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mta-modal-sm { max-width: 440px; }
+.mta-modal-md { max-width: 600px; }
+.mta-modal-lg { max-width: 860px; }
+.mta-modal-xl { max-width: 1100px; }
+.mta-modal-full { max-width: 96vw; height: 92vh; }
+
+.mta-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    background: var(--surface-card, #f4eee1);
+    border-bottom: 1px solid var(--surface-card-border, #e5dccb);
+}
+
+.mta-modal-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.mta-modal-icon {
+    font-size: 1.4rem;
+}
+
+.mta-modal-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-family: var(--font-title, 'Cinzel', serif);
+    color: var(--gold-dark, #8c6d23);
+    font-weight: 700;
+}
+
+.mta-modal-subtitle {
+    margin: 0.15rem 0 0 0;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.mta-modal-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #64748b;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm, 4px);
+    transition: background 0.15s, color 0.15s;
+}
+
+.mta-modal-close-btn:hover {
+    background: rgba(0, 0, 0, 0.07);
+    color: var(--combat-damage, #b91c1c);
+}
+
+.mta-modal-body {
+    padding: 1.25rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+@keyframes mtaModalFadeIn {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: scale(1); }
+}

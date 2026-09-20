@@ -18,7 +18,7 @@
     padding: 1rem;
     box-sizing: border-box;
     overscroll-behavior: contain;
-    touch-action: none;
+    touch-action: manipulation;
 }
 
 .practice-compendium-modal {
@@ -276,6 +276,23 @@
 .practice-detail-header {
     border-bottom: 1px solid #e8decb;
     padding-bottom: 0.6rem;
+}
+
+.practice-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.practice-title-left {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    min-width: 0;
+    flex: 1 1 auto;
 }
 
 .practice-main-name {
@@ -1007,8 +1024,8 @@
 /* Banner de Estatísticas de Armas */
 .weapon-stats-banner {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 0.6rem;
+    grid-template-columns: 0.95fr 1.35fr 1fr 0.9fr 0.9fr 0.9fr;
+    gap: 0.55rem;
     background: linear-gradient(135deg, #f9f5ed 0%, #fdfbf7 100%);
     border: 1px solid #dfd3bd;
     border-radius: 8px;
@@ -1068,7 +1085,7 @@
     font-size: 1.15rem;
     font-weight: 800;
     color: #241d13;
-    line-height: 1.18;
+    line-height: 1.16;
     margin: 0.15rem 0;
     font-family: var(--font-serif, 'Cinzel', serif);
     max-width: 100%;
@@ -1077,12 +1094,28 @@
     text-align: center;
     overflow-wrap: break-word;
     word-break: normal;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
 }
 
-.weapon-stats-banner:not(.maneuver-stats-banner) .stat-value {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.stat-value.stat-value-dense {
+    font-size: 0.88rem;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+}
+
+.stat-value.stat-value-long {
+    font-size: 0.76rem;
+    line-height: 1.10;
+    letter-spacing: -0.015em;
+}
+
+.stat-value.stat-value-wrap {
+    white-space: normal;
+    word-break: break-word;
+    hyphens: auto;
 }
 
 .stat-sub {
@@ -1281,26 +1314,174 @@
     color: #5c4723;
 }
 
-.weapon-equip-btn {
-    background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
-    border: 1px solid #1b5e20;
-    color: #ffffff;
-    font-size: 0.85rem;
-    font-weight: 800;
-    padding: 0.7rem 1.4rem;
-    border-radius: 6px;
-    cursor: pointer;
-    box-shadow: 0 3px 8px rgba(27, 94, 32, 0.3);
-    transition: all 0.15s ease;
+/* ==========================================================================
+   SISTEMA CANÔNICO DE AÇÕES DO COMPÊNDIO (HEADER TOP-RIGHT & FOOTER ACTION ROW)
+   ========================================================================== */
+
+/* Container de Ações no Header (Desktop Top-Right) */
+.compendium-header-actions {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    margin-left: auto;
+    flex-shrink: 0;
 }
 
+/* Container de Ações no Rodapé (Desktop: fim do texto; Mobile: barra fixa) */
+.compendium-footer-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Botão de Ação Canônico */
+.compendium-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.45rem 0.95rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    font-family: inherit;
+    border-radius: var(--radius-md, 6px);
+    cursor: pointer;
+    line-height: 1.2;
+    text-decoration: none;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+}
+
+.compendium-action-btn .compendium-btn-icon {
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.compendium-action-btn .compendium-btn-label {
+    line-height: 1;
+}
+
+/* Variante Verde / Esmeralda (Armas, Manobras, Práticas, Instrumentos, Vínculo) */
+.compendium-btn-emerald,
+.weapon-equip-btn {
+    background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+    color: #ffffff !important;
+    border-color: #166534;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+}
+
+.compendium-btn-emerald:hover,
 .weapon-equip-btn:hover {
-    background: linear-gradient(135deg, #144919 0%, #1e5c24 100%);
+    background: linear-gradient(135deg, #166534 0%, #15803d 100%);
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4);
     transform: translateY(-1px);
-    box-shadow: 0 5px 12px rgba(27, 94, 32, 0.4);
+    color: #ffffff !important;
+}
+
+.compendium-btn-emerald:active,
+.weapon-equip-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(22, 163, 74, 0.3);
+}
+
+/* Variante Púrpura Místico / Natureza */
+.compendium-btn-purple,
+.archetype-select-btn-nature {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: #ffffff !important;
+    border-color: #4338ca;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.25);
+}
+
+.compendium-btn-purple:hover,
+.archetype-select-btn-nature:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+    transform: translateY(-1px);
+    color: #ffffff !important;
+}
+
+.compendium-btn-purple:active,
+.archetype-select-btn-nature:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
+}
+
+/* Variante Âmbar / Dourado / Comportamento */
+.compendium-btn-gold,
+.archetype-select-btn-demeanor {
+    background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+    color: #ffffff !important;
+    border-color: #92400e;
+    box-shadow: 0 2px 6px rgba(217, 119, 6, 0.25);
+}
+
+.compendium-btn-gold:hover,
+.archetype-select-btn-demeanor:hover {
+    background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
+    box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
+    transform: translateY(-1px);
+    color: #ffffff !important;
+}
+
+.compendium-btn-gold:active,
+.archetype-select-btn-demeanor:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(217, 119, 6, 0.3);
+}
+
+/* Variante Secundária / Sutil */
+.compendium-btn-subtle,
+.archetype-select-btn-demeanor-alt,
+.archetype-select-btn-nature-alt {
+    background: rgba(0, 0, 0, 0.05);
+    color: #4a3e2e !important;
+    border: 1px solid #d5c8b0;
+}
+
+.compendium-btn-subtle:hover,
+.archetype-select-btn-demeanor-alt:hover,
+.archetype-select-btn-nature-alt:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #1a150e !important;
+    border-color: #baa684;
+}
+
+/* Botão de tamanho Grande / Rodapé */
+.compendium-btn-large {
+    padding: 0.65rem 1.35rem;
+    font-size: 0.88rem;
+    font-weight: 800;
+}
+
+/* Compatibilidade legado */
+.practice-select-btn,
+.compendium-apply-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.45rem 0.95rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border-radius: var(--radius-md, 6px);
+    cursor: pointer;
+    border: 1px solid #166534;
+    background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+    transition: all 0.18s ease;
+}
+
+.practice-select-btn:hover,
+.compendium-apply-btn:hover {
+    background: linear-gradient(135deg, #166534 0%, #15803d 100%);
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4);
+    transform: translateY(-1px);
 }
 
 /* ─── Arquétipos: Grid 2 Colunas e Otimização de Espaço ─────────────────── */
@@ -1884,6 +2065,38 @@
         padding: 0.85rem !important;
         height: 100% !important;
         overflow-y: auto !important;
+    }
+
+    /* Ações do Compêndio no Mobile: Header ocultado, Footer vira barra fixa */
+    .compendium-header-actions {
+        display: none !important;
+    }
+
+    .compendium-footer-actions {
+        position: sticky !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: calc(100% + 1.7rem) !important;
+        margin: 1.5rem -0.85rem -0.85rem -0.85rem !important;
+        padding: 0.75rem 1rem !important;
+        background: linear-gradient(to top, rgba(253, 251, 247, 0.98) 75%, rgba(253, 251, 247, 0.88) 100%) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        border-top: 1.5px solid var(--gold-primary, #b89347) !important;
+        box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.12) !important;
+        z-index: 40 !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        gap: 0.5rem !important;
+    }
+
+    .compendium-footer-actions .compendium-action-btn {
+        flex: 1 1 0% !important;
+        width: 100% !important;
+        min-height: 44px !important;
+        font-size: 0.88rem !important;
+        justify-content: center !important;
     }
 
     /* 5. Botão de Voltar para a Lista no Mobile */
@@ -3045,5 +3258,92 @@
         min-width: 100%;
     }
 }
+
+/* ─── Painel de Seleção Interativa de Antecedentes & Níveis ───────────── */
+.compendium-background-picker-bar {
+    background: var(--surface-paper, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.picker-dot-btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 32px;
+    border-radius: var(--radius-sm, 4px);
+    border: 1px solid var(--border-color, #cbd5e1);
+    background: var(--surface-input, #f8fafc);
+    color: var(--text-secondary, #64748b);
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+    line-height: 1;
+    transition: all 0.15s ease;
+    padding: 2px 0;
+}
+
+.picker-dot-btn .dot-num {
+    font-size: 0.65rem;
+}
+
+.picker-dot-btn .dot-symbol {
+    font-size: 0.55rem;
+    opacity: 0.6;
+}
+
+.picker-dot-btn:hover {
+    border-color: var(--color-primary, #6366f1);
+    color: var(--color-primary, #6366f1);
+    background: rgba(99, 102, 241, 0.08);
+}
+
+.picker-dot-btn.active {
+    border-color: var(--color-primary, #6366f1);
+    background: var(--color-primary, #6366f1);
+    color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+}
+
+.picker-dot-btn.active .dot-symbol {
+    opacity: 1;
+    color: #ffffff;
+}
+
+.picker-dot-btn.epic {
+    border-style: dashed;
+}
+
+.picker-dot-btn.epic.active {
+    background: #d97706;
+    border-color: #b45309;
+    box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.25);
+}
+
+.attribute-rating-card.rating-selectable {
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.attribute-rating-card.rating-selectable:hover {
+    border-color: var(--color-primary, #6366f1);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.07);
+}
+
+.attribute-rating-card.rating-selected {
+    border-color: var(--color-primary, #6366f1) !important;
+    background: rgba(99, 102, 241, 0.06) !important;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3) !important;
+}
+
+.attribute-rating-card.rating-selected .rating-dots-indicator {
+    color: var(--color-primary, #6366f1) !important;
+}
+
 
 

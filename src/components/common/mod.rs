@@ -33,3 +33,9 @@ pub use dice_sound::*;
 pub mod image_compressor;
 pub use image_compressor::*;
 
+pub mod modal;
+pub use modal::{Modal, ModalSize};
+
+pub mod stat_box;
+pub use stat_box::StatBox;
+

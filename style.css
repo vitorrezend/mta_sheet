@@ -2,6 +2,7 @@
    MAGO: A ASCENSÃO — SUÍTE DE ESTILOS MODULAR
    ========================================================================== */
 
+@import url('/styles/00-tokens.css');
 @import url('/styles/01-variables.css');
 @import url('/styles/02-common.css');
 @import url('/styles/03-sheet-layout.css');
@@ -19,4 +20,9 @@
 @import url('/styles/auth.css');
 @import url('/styles/rooms.css');
 @import url('/styles/logs.css');
+@import url('/styles/feed.css');
+@import url('/styles/profile.css');
+@import url('/styles/share.css');
+@import url('/styles/about.css');
+@import url('/styles/compendium-navigation.css');
 

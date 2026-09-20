@@ -1,0 +1,458 @@
+/* ==========================================================================
+   PÁGINA SOBRE & COLABORAÇÃO (OPEN SOURCE) — MTA SHEET
+   Estilos com Design Tokens Canônicos (sem hexadecimais avulsos)
+   ========================================================================== */
+
+.about-container {
+    max-width: 1050px;
+    width: 95%;
+    margin: 2rem auto 4rem auto;
+    padding: 2.5rem;
+    background: var(--paper-bg);
+    border: 1px solid var(--surface-card-border);
+    border-radius: 14px;
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+}
+
+/* ─── Cabeçalho ───────────────────────────────────────────────────────── */
+.about-header {
+    background: linear-gradient(135deg, var(--purple-deep) 0%, var(--purple-mid) 100%);
+    border: 1px solid var(--purple-bright);
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    color: var(--surface-paper);
+    margin-bottom: 2.5rem;
+    box-shadow: 0 8px 24px rgba(23, 4, 40, 0.25);
+    text-align: center;
+}
+
+.about-header-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: var(--gold-light);
+    background: rgba(202, 167, 93, 0.2);
+    border: 1px solid var(--gold-primary);
+    padding: 0.25rem 0.8rem;
+    border-radius: 9999px;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+}
+
+.about-title {
+    color: var(--gold-light);
+    margin: 0 0 1rem 0;
+    font-size: 2.1rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    font-family: var(--font-title, 'Cinzel', serif);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.about-title-icon {
+    font-size: 2rem;
+}
+
+.about-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.05rem;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* ─── Card em Destaque do GitHub ─────────────────────────────────────── */
+.github-showcase-card {
+    background: var(--surface-card);
+    border: 1px solid var(--purple-bright);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2.75rem;
+    box-shadow: 0 6px 20px rgba(147, 51, 234, 0.08);
+}
+
+.github-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+.github-brand-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    flex: 1;
+    min-width: 280px;
+}
+
+.github-brand-icon {
+    color: var(--gold-primary);
+    background: var(--purple-deep);
+    border: 1px solid var(--purple-bright);
+    padding: 0.6rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.github-repo-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    margin: 0 0 0.35rem 0;
+    font-family: monospace;
+}
+
+.github-repo-desc {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.github-badges-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.tech-tag {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: 6px;
+    background: var(--surface-paper);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+.tag-rust {
+    border-color: #f97316;
+    color: #c2410c;
+    background: rgba(249, 115, 22, 0.08);
+}
+
+.tag-leptos {
+    border-color: #3b82f6;
+    color: #1d4ed8;
+    background: rgba(59, 130, 246, 0.08);
+}
+
+.tag-sqlite {
+    border-color: #0284c7;
+    color: #0369a1;
+    background: rgba(2, 132, 199, 0.08);
+}
+
+.tag-mit {
+    border-color: var(--gold-primary);
+    color: var(--gold-dark);
+    background: var(--gold-badge-bg);
+}
+
+/* ─── Bloco de Clone ─────────────────────────────────────────────────── */
+.github-clone-row {
+    margin: 1.25rem 0 1.5rem 0;
+    padding: 1rem 1.25rem;
+    background: var(--surface-paper);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.clone-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.clone-code-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 260px;
+    justify-content: flex-end;
+}
+
+.clone-code-box code {
+    background: var(--surface-card);
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--surface-card-border);
+    font-family: monospace;
+    font-size: 0.88rem;
+    color: var(--primary-color);
+    overflow-x: auto;
+}
+
+.clone-copy-btn {
+    padding: 0.45rem 0.85rem;
+    background: var(--purple-deep);
+    color: var(--gold-light);
+    border: 1px solid var(--purple-bright);
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.clone-copy-btn:hover {
+    background: var(--purple-mid);
+    color: var(--surface-paper);
+}
+
+/* ─── Ações do Card GitHub ───────────────────────────────────────────── */
+.github-actions-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-github-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.btn-github-primary {
+    background: var(--purple-deep);
+    color: var(--gold-light);
+    border: 1px solid var(--gold-primary);
+}
+
+.btn-github-primary:hover {
+    background: var(--purple-mid);
+    color: var(--surface-paper);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(23, 4, 40, 0.2);
+}
+
+.btn-github-secondary {
+    background: var(--surface-paper);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.btn-github-secondary:hover {
+    border-color: var(--purple-bright);
+    color: var(--purple-bright);
+    transform: translateY(-2px);
+}
+
+/* ─── Seções de Conteúdo ─────────────────────────────────────────────── */
+.about-section {
+    margin-bottom: 2.75rem;
+}
+
+.section-title {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--gold-line);
+    font-family: var(--font-title, 'Cinzel', serif);
+}
+
+.section-lead {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin: 0 0 1.5rem 0;
+    line-height: 1.6;
+}
+
+.about-text-block p {
+    font-size: 1rem;
+    color: var(--text-color);
+    line-height: 1.7;
+    margin: 0 0 1rem 0;
+}
+
+/* ─── Grid de Colaboração (4 Cards) ──────────────────────────────────── */
+.collab-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1.25rem;
+}
+
+.collab-card {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-card-border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.collab-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--gold-primary);
+    box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.08);
+}
+
+.collab-card-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+.collab-card-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    margin: 0 0 0.5rem 0;
+}
+
+.collab-card-desc {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* ─── Guia de Desenvolvedores ────────────────────────────────────────── */
+.dev-guide-card {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-card-border);
+    border-radius: 10px;
+    padding: 1.75rem;
+}
+
+.dev-guide-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    margin: 0 0 1rem 0;
+}
+
+.dev-steps-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.dev-steps-list li {
+    font-size: 0.95rem;
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.dev-steps-list code {
+    background: var(--surface-paper);
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    font-family: monospace;
+    font-size: 0.88rem;
+    color: var(--purple-bright);
+}
+
+/* ─── Rodapé Legal ───────────────────────────────────────────────────── */
+.about-legal-footer {
+    margin-top: 3rem;
+    padding: 1.75rem;
+    background: var(--surface-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.legal-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 0.75rem 0;
+}
+
+.legal-text {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0 0 0.5rem 0;
+}
+
+.legal-text:last-child {
+    margin-bottom: 0;
+}
+
+.legal-text a {
+    color: var(--purple-bright);
+    text-decoration: underline;
+}
+
+/* ─── Responsividade ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .about-container {
+        width: 100%;
+        margin: 0 auto 2rem auto;
+        padding: 1.25rem 1rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .about-header {
+        padding: 1.75rem 1rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .about-title {
+        font-size: 1.6rem;
+    }
+
+    .about-subtitle {
+        font-size: 0.95rem;
+    }
+
+    .github-showcase-card {
+        padding: 1.25rem;
+    }
+
+    .github-actions-row {
+        flex-direction: column;
+    }
+
+    .btn-github-action {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .clone-code-box {
+        justify-content: stretch;
+        width: 100%;
+    }
+
+    .clone-code-box code {
+        flex: 1;
+    }
+}

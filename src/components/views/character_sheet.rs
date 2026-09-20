@@ -1,6 +1,6 @@
 use leptos::*;
 use leptos_router::*;
-use crate::state::{get_sheet, update_sheet, CharacterData, DotOrigin};
+use crate::state::{clone_sheet, get_sheet, update_sheet, CharacterData, DotOrigin};
 use crate::components::{Callback, Sheet};
 use crate::components::mta_sheet::page1::{Abilities, AdvantagesMta, Attributes, InfoHeader, Spheres};
 use crate::components::mta_sheet::page2::PageMagicCombat;
@@ -12,6 +12,7 @@ use crate::components::mta_sheet::page5::{
 use crate::components::mta_sheet::page6::PageNotes;
 use crate::components::mta_sheet::sheet::{
     ActiveDotOriginContext, CostBreakdownModal, QuizModal, SaveStatus, SheetPageTab, SheetTabs, SheetTopBar,
+    SheetShareModal,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -20,6 +21,8 @@ pub enum CompendiumTarget {
     Instrument(Option<usize>),
     Archetype(Option<ArchetypeTarget>),
     Attribute,
+    Background(Option<usize>),
+    Sphere(Option<usize>),
     Weapon(Option<usize>),
 }
 
@@ -47,15 +50,21 @@ fn get_current_time_str() -> &'static str {
 #[component]
 pub fn CharacterSheet() -> impl IntoView {
     let params = use_params_map();
+    let query = use_query_map();
     let id = move || params.with(|p| p.get("id").cloned().unwrap_or_default());
     let get_id_untracked = move || params.with_untracked(|p| p.get("id").cloned().unwrap_or_default());
+    let token = move || query.with(|q| q.get("token").cloned());
+    let get_token_untracked = move || query.with_untracked(|q| q.get("token").cloned());
 
-    let sheet_resource = create_local_resource(id, |id| async move {
-        if id.is_empty() {
-            return Err(ServerFnError::new("ID da ficha não fornecido"));
+    let sheet_resource = create_local_resource(
+        move || (id(), token()),
+        |(id, token)| async move {
+            if id.is_empty() {
+                return Err(ServerFnError::new("ID da ficha não fornecido"));
+            }
+            get_sheet(id, token).await
         }
-        get_sheet(id).await
-    });
+    );
 
     let (data, set_data) = create_signal(CharacterData::default());
     let (save_status, set_save_status) = create_signal(SaveStatus::Idle);
@@ -64,6 +73,8 @@ pub fn CharacterSheet() -> impl IntoView {
     let (active_origin, set_active_origin) = create_signal(DotOrigin::Base);
     let (active_tab, set_active_tab) = create_signal(SheetPageTab::Main);
     let (show_breakdown, set_show_breakdown) = create_signal(false);
+    let (show_share_modal, set_show_share_modal) = create_signal(false);
+    let (show_clone_login_modal, set_show_clone_login_modal) = create_signal(false);
     let navigate = use_navigate();
 
     // Provide the sheet data and active dot origin as context for all child components
@@ -84,6 +95,9 @@ pub fn CharacterSheet() -> impl IntoView {
         if is_dirty.try_get_untracked().unwrap_or(false) {
             let current_id = get_id_untracked();
             if let Some(current_data) = data.try_get_untracked() {
+                if !current_data.can_edit {
+                    return;
+                }
                 if !current_id.is_empty() {
                     spawn_local(async move {
                         let _ = update_sheet(current_id.clone(), current_data).await;
@@ -120,6 +134,11 @@ pub fn CharacterSheet() -> impl IntoView {
     create_effect(move |_| {
         data.track();
         if is_loaded.try_get_untracked().unwrap_or(false) {
+            if let Some(current_data) = data.try_get_untracked() {
+                if !current_data.can_edit {
+                    return;
+                }
+            }
             let _ = set_is_dirty.try_set(true);
             let _ = set_save_status.try_set(SaveStatus::Pending);
 
@@ -134,6 +153,9 @@ pub fn CharacterSheet() -> impl IntoView {
                 if seq_check.get() == next_seq && is_dirty.try_get_untracked().unwrap_or(false) {
                     let current_id = get_id_untracked();
                     if let Some(current_data) = data.try_get_untracked() {
+                        if !current_data.can_edit {
+                            return;
+                        }
                         if !current_id.is_empty() {
                             if is_mounted_task.get() {
                                 let _ = set_save_status.try_set(SaveStatus::Saving);
@@ -183,6 +205,10 @@ pub fn CharacterSheet() -> impl IntoView {
                         None => break,
                     };
 
+                    if !current_data.can_edit {
+                        break;
+                    }
+
                     if is_dirty.try_get_untracked().unwrap_or(false) {
                         let current_id = get_id_untracked();
                         if !current_id.is_empty() && is_mounted_task.get() {
@@ -209,6 +235,9 @@ pub fn CharacterSheet() -> impl IntoView {
     let do_manual_save = Callback::new(move |_: ev::MouseEvent| {
         let current_id = get_id_untracked();
         if let Some(current_data) = data.try_get_untracked() {
+            if !current_data.can_edit {
+                return;
+            }
             if !current_id.is_empty() {
                 let _ = set_save_status.try_set(SaveStatus::Saving);
                 spawn_local(async move {
@@ -239,12 +268,17 @@ pub fn CharacterSheet() -> impl IntoView {
     });
 
     // Navegação ao clicar em "← Início" garantindo salvamento antes de sair
+    let nav_for_back = navigate.clone();
     let on_back_click = Callback::new(move |ev: ev::MouseEvent| {
         ev.prevent_default();
         if is_dirty.try_get_untracked().unwrap_or(false) {
             let current_id = get_id_untracked();
             if let Some(current_data) = data.try_get_untracked() {
-                let nav = navigate.clone();
+                if !current_data.can_edit {
+                    nav_for_back.clone()("/", Default::default());
+                    return;
+                }
+                let nav = nav_for_back.clone();
                 let _ = set_save_status.try_set(SaveStatus::Saving);
                 spawn_local(async move {
                     if !current_id.is_empty() {
@@ -259,12 +293,55 @@ pub fn CharacterSheet() -> impl IntoView {
                     nav("/", Default::default());
                 });
             } else {
-                navigate.clone()("/", Default::default());
+                nav_for_back.clone()("/", Default::default());
             }
         } else {
-            navigate.clone()("/", Default::default());
+            nav_for_back.clone()("/", Default::default());
         }
     });
+
+    let (is_cloning, set_is_cloning) = create_signal(false);
+    let nav_for_clone = navigate.clone();
+    let on_clone_sheet = Callback::new(move |_: ()| {
+        let current_id = get_id_untracked();
+        if current_id.is_empty() || is_cloning.get() {
+            return;
+        }
+        set_is_cloning.set(true);
+        let nav = nav_for_clone.clone();
+        let tok = get_token_untracked();
+        spawn_local(async move {
+            match clone_sheet(current_id, tok).await {
+                Ok(new_id) => {
+                    crate::logging::log_client(
+                        "user_actions",
+                        "INFO",
+                        "Ficha clonada com sucesso",
+                        Some(&format!("new_id={}", new_id)),
+                    );
+                    nav(&format!("/sheet/{}", new_id), Default::default());
+                }
+                Err(e) => {
+                    crate::logging::log_client(
+                        "errors",
+                        "ERROR",
+                        "Erro ao clonar ficha",
+                        Some(&e.to_string()),
+                    );
+                    set_is_cloning.set(false);
+                    let err_str = e.to_string();
+                    if err_str.contains("logado") || err_str.contains("autenticado") {
+                        set_show_clone_login_modal.set(true);
+                    } else if let Some(w) = web_sys::window() {
+                        let _ = w.alert_with_message(&format!("Não foi possível clonar a ficha: {}", err_str));
+                    }
+                }
+            }
+        });
+    });
+
+    let can_edit = Signal::derive(move || data.with(|d| d.can_edit));
+    let author_username = Signal::derive(move || data.with(|d| d.author_username.clone()));
 
     let costs = create_memo(move |_| data.with(|d| d.calculate_costs()));
     let is_public = Signal::derive(move || data.with(|d| d.is_public));
@@ -365,6 +442,24 @@ pub fn CharacterSheet() -> impl IntoView {
         set_show_practice_modal.set(true);
     });
 
+    let open_background_compendium = Callback::new(move |(slot, query): (Option<usize>, String)| {
+        set_compendium_state.set(CompendiumModalState {
+            section: CompendiumSection::Backgrounds,
+            query,
+            target: CompendiumTarget::Background(slot),
+        });
+        set_show_practice_modal.set(true);
+    });
+
+    let open_sphere_compendium = Callback::new(move |(slot, query): (Option<usize>, String)| {
+        set_compendium_state.set(CompendiumModalState {
+            section: CompendiumSection::Spheres,
+            query,
+            target: CompendiumTarget::Sphere(slot),
+        });
+        set_show_practice_modal.set(true);
+    });
+
     provide_context(PracticeCompendiumContext {
         open: open_practice_compendium.clone(),
         open_practice: open_practice_compendium,
@@ -372,6 +467,8 @@ pub fn CharacterSheet() -> impl IntoView {
         open_archetype: open_archetype_compendium,
         open_attribute: open_attribute_compendium,
         open_weapon: open_weapon_compendium,
+        open_background: open_background_compendium,
+        open_sphere: open_sphere_compendium,
     });
 
     let on_practice_selected_from_modal = Callback::new(move |selected_name: String| {
@@ -463,9 +560,69 @@ pub fn CharacterSheet() -> impl IntoView {
         let _ = set_is_dirty.try_set(true);
     });
 
+    let on_background_selected_from_modal = Callback::new(move |(slot_opt, selected_name, selected_level): (Option<usize>, String, i32)| {
+        let slot = slot_opt.or_else(|| match compendium_state.with(|s| s.target.clone()) {
+            CompendiumTarget::Background(slot) => slot,
+            _ => None,
+        });
+        let current_origin = active_origin.get();
+        set_data.update(|s| {
+            let list = s.custom_lists.entry("Antecedentes".to_string()).or_default();
+            let target_id = if let Some(idx) = slot {
+                if idx < list.len() {
+                    list[idx].clone()
+                } else {
+                    let id = format!("bg_{}", uuid::Uuid::new_v4());
+                    list.push(id.clone());
+                    id
+                }
+            } else {
+                let id = format!("bg_{}", uuid::Uuid::new_v4());
+                list.push(id.clone());
+                id
+            };
+            s.labels.insert(target_id.clone(), selected_name);
+            s.set_attribute_with_origin(&target_id, Some(selected_level), None, current_origin);
+        });
+        let _ = set_is_dirty.try_set(true);
+    });
+
     view! {
-        <div class="sheet-page-container">
+        <div class="sheet-page-container" class:sheet-readonly=move || !can_edit.get()>
             <leptos_meta::Title text=move || format!("{} | MTA Sheet", data.with(|d| d.get_display_name())) />
+            <leptos_meta::Meta
+                name="description"
+                content=move || {
+                    data.with(|d| {
+                        let name = d.get_display_name();
+                        let trad_val = d.get_tradition();
+                        let tradition = if trad_val.trim().is_empty() { "Mago" } else { trad_val.trim() };
+                        let concept = d.get_label("Concept");
+                        let concept_trimmed = concept.trim();
+                        if concept_trimmed.is_empty() {
+                            format!("Ficha de personagem {} ({}) para Mago: A Ascensão (M20) no MTA Sheet.", name, tradition)
+                        } else {
+                            format!("Ficha de personagem {} ({}) - Conceito: {}. Sistema Mago: A Ascensão (M20).", name, tradition, concept_trimmed)
+                        }
+                    })
+                }
+            />
+            <leptos_meta::Meta
+                name="robots"
+                content=move || if is_public.get() { "index, follow" } else { "noindex, nofollow" }
+            />
+            <leptos_meta::Meta property="og:title" content=move || format!("{} | MTA Sheet", data.with(|d| d.get_display_name())) />
+            <leptos_meta::Meta
+                property="og:description"
+                content=move || {
+                    data.with(|d| {
+                        let name = d.get_display_name();
+                        let trad_val = d.get_tradition();
+                        let tradition = if trad_val.trim().is_empty() { "Mago" } else { trad_val.trim() };
+                        format!("Ficha de personagem {} ({}) para Mago: A Ascensão (M20) no MTA Sheet.", name, tradition)
+                    })
+                }
+            />
             // Barra Superior e Seletor de Modos
             <SheetTopBar 
                 active_origin=active_origin
@@ -481,7 +638,49 @@ pub fn CharacterSheet() -> impl IntoView {
                 on_export_json=on_export_json
                 on_import_json=on_import_json
                 set_show_pdf_modal=set_show_pdf_modal
+                set_show_share_modal=set_show_share_modal
+                can_edit=can_edit
+                author_username=author_username
+                on_clone_sheet=on_clone_sheet
             />
+
+            // Modal de Compartilhamento (Estilo Google Drive)
+            <SheetShareModal
+                show_modal=show_share_modal
+                set_show_modal=set_show_share_modal
+                sheet_id=Signal::derive(move || get_id_untracked())
+                sheet_name=Signal::derive(move || data.with(|d| d.get_display_name()))
+            />
+
+            // Modal de Aviso de Login para Clonar
+            <crate::components::common::Modal
+                is_open=show_clone_login_modal
+                on_close=crate::components::common::SafeCallback::new(move |_| set_show_clone_login_modal.set(false))
+                title="Salvar Cópia da Ficha"
+                icon=Some("📋")
+                size=crate::components::common::ModalSize::Sm
+            >
+                <div class="clone-prompt-content">
+                    <div class="clone-prompt-icon">"✨"</div>
+                    <h4 class="clone-prompt-title">"Crie sua cópia pessoal!"</h4>
+                    <p class="clone-prompt-desc">
+                        "Para clonar esta ficha e editá-la livremente em sua própria biblioteca, faça login na sua conta ou crie um cadastro gratuito."
+                    </p>
+                    <div class="clone-prompt-actions">
+                        <a href="/login" class="clone-prompt-login-btn">
+                            <span>"🔑"</span>
+                            <span>"Entrar ou Cadastrar"</span>
+                        </a>
+                        <button
+                            type="button"
+                            class="clone-prompt-close-btn"
+                            on:click=move |_| set_show_clone_login_modal.set(false)
+                        >
+                            "Fechar"
+                        </button>
+                    </div>
+                </div>
+            </crate::components::common::Modal>
 
             // Modal de Extrato de Custos
             <CostBreakdownModal 
@@ -621,10 +820,12 @@ pub fn CharacterSheet() -> impl IntoView {
                 }).into())
                 target_slot=Some(Signal::derive(move || match compendium_state.with(|s| s.target.clone()) {
                     CompendiumTarget::Weapon(w) => w,
+                    CompendiumTarget::Background(b) => b,
                     _ => None,
                 }).into())
                 on_select_weapon=on_weapon_selected_from_modal
                 on_select_maneuver=on_maneuver_selected_from_modal
+                on_select_background=on_background_selected_from_modal
             />
         </div>
     }

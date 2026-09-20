@@ -1,8 +1,6 @@
-﻿/* ==========================================================================
-   01: VARIÃVEIS, RESET, TIPOGRAFIA E PÃGINAS GLOBAIS (HOME, AUTH, ROOMS, LOGS)
+/* ==========================================================================
+   01: VARIÁVEIS, RESET, TIPOGRAFIA E PÁGINAS GLOBAIS (HOME, AUTH, ROOMS, LOGS)
    ========================================================================== */
-
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&display=swap');
 
 :root {
     --page-width: 210mm;
@@ -19,6 +17,14 @@
     --gold-line: rgba(184, 147, 71, 0.45);
 }
 
+html {
+    box-sizing: border-box;
+}
+
+*, *:before, *:after {
+    box-sizing: inherit;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -27,7 +33,15 @@ body {
     color: var(--text-color);
     display: flex;
     justify-content: center;
-    padding: 40px 0;
+    width: 100%;
+    min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 0;
+        overflow-x: hidden;
+    }
 }
 
 
@@ -185,18 +199,22 @@ body {
    Global Navbar
    ========================================== */
 .main-navbar {
-    width: 100%;
+    max-width: 1150px;
+    width: 95%;
+    margin: 1.25rem auto 1.25rem auto;
     background: #1e293b;
-    border-bottom: 1px solid #334155;
+    border: 1px solid #334155;
+    border-radius: 12px;
     position: sticky;
-    top: 0;
+    top: 1rem;
     z-index: 500;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    margin-bottom: 1.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
 }
 
 .navbar-container {
-    max-width: 1080px;
+    width: 100%;
+    max-width: 100%;
     margin: 0 auto;
     padding: 0.75rem 1.5rem;
     display: flex;
@@ -299,6 +317,170 @@ body {
 .login-link:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(99, 102, 241, 0.4);
+}
+
+.home-page {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+/* ─── App Shell & Layout Canônico ─────────────────────────────────── */
+.app-shell {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.app-main-content {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    animation: fadeInPage 0.18s ease-in-out;
+}
+
+@keyframes fadeInPage {
+    from {
+        opacity: 0.88;
+        transform: translateY(2px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ─── Breadcrumbs & Navegação de Retorno ───────────────────────────── */
+.page-breadcrumb-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
+}
+
+.breadcrumb-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--purple-bright);
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.breadcrumb-back-link:hover {
+    color: var(--gold-primary);
+    text-decoration: underline;
+}
+
+.breadcrumb-separator {
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+.breadcrumb-current {
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+@media (max-width: 680px) {
+    .main-navbar {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 0 0.75rem 0;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        border-top: none;
+        top: 0;
+    }
+
+    .navbar-container {
+        padding: 0.5rem 0.75rem;
+        flex-wrap: wrap;
+        row-gap: 0.5rem;
+    }
+
+    .navbar-brand {
+        order: 1;
+    }
+
+    .navbar-brand .brand-title {
+        font-size: 1.1rem;
+    }
+
+    .navbar-auth {
+        order: 2;
+        gap: 0.4rem;
+    }
+
+    .navbar-links {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        gap: 0.5rem;
+        padding-top: 0.45rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-link {
+        padding: 0.35rem 0.65rem;
+        font-size: 0.84rem;
+    }
+
+    .login-link {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .user-pill {
+        padding: 0.25rem 0.6rem;
+        gap: 0.4rem;
+    }
+
+    .user-greeting {
+        font-size: 0.8rem;
+    }
+
+    .logout-btn {
+        font-size: 0.75rem;
+        padding: 0.15rem 0.3rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .navbar-container {
+        padding: 0.4rem 0.5rem;
+    }
+
+    .navbar-brand .brand-title {
+        font-size: 1rem;
+    }
+
+    .brand-icon {
+        font-size: 1.2rem;
+    }
+
+    .version-pill-badge {
+        font-size: 0.65rem;
+        padding: 0.15rem 0.35rem;
+    }
+
+    .login-link {
+        padding: 0.3rem 0.55rem;
+        font-size: 0.75rem;
+    }
+
+    .nav-link {
+        padding: 0.28rem 0.45rem;
+        font-size: 0.78rem;
+    }
 }
 
 

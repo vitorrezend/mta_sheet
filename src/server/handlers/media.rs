@@ -1,12 +1,35 @@
 use axum::response::IntoResponse;
 use sqlx::Row;
 
+async fn extract_auth_user_from_headers(headers: &http::HeaderMap, pool: &sqlx::SqlitePool) -> Option<String> {
+    let cookie_hdr = headers.get(http::header::COOKIE)?.to_str().ok()?;
+    let mut found_token = None;
+    for pair in cookie_hdr.split(';') {
+        let mut parts = pair.trim().splitn(2, '=');
+        if let (Some(k), Some(v)) = (parts.next(), parts.next()) {
+            if k == "session_token" {
+                found_token = Some(v.trim().to_string());
+                break;
+            }
+        }
+    }
+    let token = found_token?;
+    let row = sqlx::query("SELECT user_id FROM sessions WHERE id = ? AND expires_at > CURRENT_TIMESTAMP")
+        .bind(token)
+        .fetch_optional(pool)
+        .await
+        .ok()
+        .flatten()?;
+    Some(row.get("user_id"))
+}
+
 pub async fn export_json_handler(
+    headers: http::HeaderMap,
     axum::extract::Path(id): axum::extract::Path<String>,
 ) -> impl IntoResponse {
     let pool = crate::database::get_db().await;
 
-    let row = match sqlx::query("SELECT name, data FROM character_sheets WHERE id = ?")
+    let row = match sqlx::query("SELECT name, data, user_id, room_id, is_public FROM character_sheets WHERE id = ?")
         .bind(&id)
         .fetch_optional(&pool)
         .await
@@ -14,6 +37,33 @@ pub async fn export_json_handler(
         Ok(Some(r)) => r,
         _ => return (http::StatusCode::NOT_FOUND, "Ficha não encontrada").into_response(),
     };
+
+    let sheet_user_id: Option<String> = row.get("user_id");
+    let room_id: Option<String> = row.get("room_id");
+    let is_public: bool = row.get::<i64, _>("is_public") == 1;
+
+    let auth_user_id = extract_auth_user_from_headers(&headers, &pool).await;
+    let is_owner = auth_user_id.is_some() && auth_user_id == sheet_user_id;
+    let mut is_gm = false;
+    if let (Some(u_id), Some(r_id)) = (&auth_user_id, &room_id) {
+        is_gm = sqlx::query("SELECT 1 FROM rooms WHERE id = ? AND gm_id = ?")
+            .bind(r_id)
+            .bind(u_id)
+            .fetch_optional(&pool)
+            .await
+            .ok()
+            .flatten()
+            .is_some();
+    }
+
+    if !is_owner && !is_gm && !is_public && sheet_user_id.is_some() {
+        return (
+            http::StatusCode::FORBIDDEN,
+            [(http::header::CONTENT_TYPE, "text/plain; charset=utf-8".to_string())],
+            "Permissão negada: Esta ficha é privada e pertence a outro usuário.".as_bytes().to_vec(),
+        )
+            .into_response();
+    }
 
     let name: String = row.get("name");
     let data_str: String = row.get("data");
@@ -47,8 +97,20 @@ pub async fn export_json_handler(
 }
 
 pub async fn upload_image_handler(
+    headers: http::HeaderMap,
     mut multipart: axum::extract::Multipart,
 ) -> impl IntoResponse {
+    let pool = crate::database::get_db().await;
+    let auth_user = extract_auth_user_from_headers(&headers, &pool).await;
+    if auth_user.is_none() {
+        return (
+            http::StatusCode::UNAUTHORIZED,
+            [(http::header::CONTENT_TYPE, "application/json")],
+            serde_json::json!({"error": "Autenticação necessária para enviar imagens"}).to_string(),
+        )
+            .into_response();
+    }
+
     let mut file_bytes = Vec::new();
 
     while let Ok(Some(field)) = multipart.next_field().await {

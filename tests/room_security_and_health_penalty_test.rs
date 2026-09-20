@@ -79,6 +79,7 @@ fn test_room_summary_and_details_public_and_password_serialization() {
         map_data: RoomMapData::default(),
         members: vec![],
         sheets: vec![],
+        sheet_order: vec!["sheet-1".to_string(), "sheet-2".to_string()],
     };
 
     let json_details = serde_json::to_string(&details).expect("serialize details");
@@ -571,5 +572,115 @@ fn test_gm_wheel_and_willpower_direct_actions() {
     assert_eq!(&summary.quintessence_paradox_track[0..2], "11");
     assert_eq!(summary.quintessence_paradox_track.chars().nth(18).unwrap(), '2');
 }
+
+#[test]
+fn test_room_sheet_custom_order_sorting() {
+    use mta_sheet::rooms::RoomSheetSummary;
+
+    fn mock_summary(id: &str, name: &str) -> RoomSheetSummary {
+        RoomSheetSummary {
+            id: id.to_string(),
+            name: name.to_string(),
+            player_name: "Player".to_string(),
+            tradition: "Verbena".to_string(),
+            essence: "Dinâmica".to_string(),
+            concept: "Bruxa".to_string(),
+            demeanor: "Sobrevivente".to_string(),
+            sheet_type: "mage".to_string(),
+            arete: 2,
+            willpower_total: 5,
+            willpower_current: 5,
+            quintessence: 0,
+            paradox: 0,
+            quintessence_paradox_track: "0".repeat(20),
+            photo_url: String::new(),
+            photo_focus_y: 50,
+            photo_focus_x: 50,
+            health_label: "Íntegro".to_string(),
+            health_penalty: "0".to_string(),
+            health_badge_class: "health-healthy".to_string(),
+            health_damage_str: "Nenhum dano".to_string(),
+            health_boxes: vec![],
+            spheres: vec![],
+            is_hidden: false,
+            is_owner: true,
+            dexterity: 2,
+            wits: 2,
+            initiative_base: 4,
+            health_penalty_val: 0,
+            updated_at: "2026-09-18 10:00:00".to_string(),
+        }
+    }
+
+    // 1. Initial list sorted alphabetically
+    let mut sheets = vec![
+        mock_summary("id-1", "Alister"),
+        mock_summary("id-2", "Beatrice"),
+        mock_summary("id-3", "Constantine"),
+        mock_summary("id-4", "Diana"),
+    ];
+
+    // 2. Custom order where Diana is moved to first, and Alister to last: ["id-4", "id-3", "id-2", "id-1"]
+    let custom_order = vec![
+        "id-4".to_string(),
+        "id-3".to_string(),
+        "id-2".to_string(),
+        "id-1".to_string(),
+    ];
+
+    sheets.sort_by_key(|s| {
+        custom_order.iter().position(|id| id == &s.id).unwrap_or(usize::MAX)
+    });
+
+    assert_eq!(sheets[0].name, "Diana");
+    assert_eq!(sheets[1].name, "Constantine");
+    assert_eq!(sheets[2].name, "Beatrice");
+    assert_eq!(sheets[3].name, "Alister");
+
+    // 3. If a new sheet joins that is not yet in sheet_order, it goes to the end
+    let mut sheets_with_new = vec![
+        mock_summary("id-1", "Alister"),
+        mock_summary("id-5", "Edward"),
+        mock_summary("id-4", "Diana"),
+    ];
+    sheets_with_new.sort_by_key(|s| {
+        custom_order.iter().position(|id| id == &s.id).unwrap_or(usize::MAX)
+    });
+
+    assert_eq!(sheets_with_new[0].name, "Diana");
+    assert_eq!(sheets_with_new[1].name, "Alister");
+    assert_eq!(sheets_with_new[2].name, "Edward"); // Not in custom_order, falls to end
+}
+
+#[test]
+fn test_room_sheet_drag_and_drop_slot_shift() {
+    let mut ids = vec!["A", "B", "C", "D"];
+
+    // Simula arrastar "D" para a posição de "A" (to = 0)
+    let source = "D";
+    let target = "A";
+    let from_pos = ids.iter().position(|s| s == &source);
+    let to_pos = ids.iter().position(|s| s == &target);
+
+    if let (Some(from), Some(to)) = (from_pos, to_pos) {
+        let item = ids.remove(from);
+        ids.insert(to, item);
+    }
+
+    // "D" agora está no topo, "A", "B", "C" deslizaram 1 posição para a direita/baixo
+    assert_eq!(ids, vec!["D", "A", "B", "C"]);
+
+    // Simula arrastar "B" (agora índice 2) para a posição de "C" (índice 3)
+    let from_pos2 = ids.iter().position(|s| s == &"B");
+    let to_pos2 = ids.iter().position(|s| s == &"C");
+
+    if let (Some(from), Some(to)) = (from_pos2, to_pos2) {
+        let item = ids.remove(from);
+        ids.insert(to, item);
+    }
+
+    assert_eq!(ids, vec!["D", "A", "C", "B"]);
+}
+
 
 

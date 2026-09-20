@@ -1,0 +1,9 @@
+### Alternate Identity
+
+Sometimes you’ve gotta be ready to disappear. Especially for shapechangers, clones, or people in dangerous professions (spies, informers, assassins, etc.), the ability to adopt alternate identities can mean the difference between a new life and an unmarked grave. With this Background, you can duck behind a fake identity; the higher the rating, the more support you have for that identity’s existence. Each dot in Alternate Identity provides a certain level of official recognition that stands up to increasing degrees of scrutiny. A cheap fake ID could get you past a bouncer, but it won’t fool the Highway Patrol!
+
+By itself, an alternate identity is useful but not extremely so. You can use a new ID for a short time, but that’ll leave you starting fresh unless you’re planning to rebuild your life from scratch. Other Background Traits, however, can be linked to an alternate identity; you won’t be able to get a new [Avatar](mta://backgrounds/avatar), of course, but you might have [Allies](mta://backgrounds/allies), [Resources](mta://backgrounds/resources), and [Spies](mta://backgrounds/spies) that are connected to that new you.
+
+For each dot in the Alternate Identity Background, you may add one dot’s worth of other Background Traits to your other self (you still pay points for those Backgrounds). Still, if and when you need to ditch your previous identity, you could have new resources waiting for you.
+
+> **Game System:** To penetrate an alternate identity, a character must roll a Mental Trait like [Perception](mta://attributes/perception) + Investigation against a difficulty of your Alternate Identity + 3. Disguise or magick should be used to provide distinct appearances.

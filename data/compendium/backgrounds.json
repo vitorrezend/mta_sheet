@@ -1,0 +1,1540 @@
+{
+  "theory": {
+    "id": "theory_background_rules",
+    "title": "Background Rules: Traits Over Five & Pooling Resources",
+    "title_pt": "Regras de Antecedentes: Pontuações Acima de 5 & Agrupamento na Cabala",
+    "page_ref": "M20, pp. 301-303",
+    "content": "M20 Canonical Background Rules:\n\n1. TRAITS OVER FIVE (p. 301):\nNormally, human characters cannot purchase Background Traits over five dots. In high-powered elder chronicles, mythic games, or when pooling resources, certain Traits (Allies, Backup, Chantry, Contacts, Cult, Node, Resources, Spies, Wonder) can go up to 10 dots. Ratings beyond five reflect immense global influence, ancient super-structures, or small private armies.\n\n2. POOLING BACKGROUNDS (pp. 301-302):\nMages who share a common bond (a Cabala, a Technocratic Amalgam, or a Chantry) may combine their Background points to build shared assets. Shared Chantries, communal Nodes, joint Libraries, corporate front Resources, and shared Cults are constructed this way. If a member dies or leaves, the cabala loses those contributed points unless experience points are spent to make up the deficit.\n\n3. DIFFERENTIAL BACKGROUNDS (p. 304):\nWhen establishing Alternate Identities, players may link distinct backgrounds (Allies, Resources, Spies) specifically to that fake ID, keeping their primary persona separate.",
+    "content_pt": "Regras Canônicas de Antecedentes em M20:\n\n1. PONTUAÇÕES ACIMA DE 5 PONTOS (p. 301):\nNormalmente, personagens mortais e magos recém-criados possuem o teto de 5 pontos em Antecedentes. Em crônicas de anciões, mesas de alta potência mítica ou através do agrupamento comunitário na cabala, certos Antecedentes (Aliados, Reforço, Capela, Contatos, Culto, Nó, Recursos, Espiões, Maravilhas) podem alcançar até 10 bolinhas. Níveis acima de 5 representam influência em escala planetária, fortalezas hiper-dimensionais ou exércitos particulares.\n\n2. AGRUPAMENTO DE ANTECEDENTES NA CABALA (pp. 301-302):\nMagos que compartilham uma base de operações ou juramento conjunto (uma Cabala das Tradições ou um Amálgama Tecnocrata) podem somar seus pontos de criação ou bônus para financiar ativos compartilhados. Capelas, Nós de Quintessência, Bibliotecas Ocultas, Recursos corporativos e Cultos de fiéis costumam ser forjados dessa maneira. Se um membro perecer ou trair o grupo, seus pontos são deduzidos a menos que a cabala pague a diferença com pontos de Experiência (XP).\n\n3. ANTECEDENTES DIFERENCIAIS (p. 304):\nAo constituir Identidades Alternativas, o jogador pode vincular recursos específicos (Aliados, Recursos, Espiões) exclusivamente àquela identidade falsa, mantendo a vida do seu mago original isolada."
+  },
+  "backgrounds": [
+    {
+      "id": "allies",
+      "name": "Allies",
+      "name_pt": "Aliados",
+      "technocracy_name": null,
+      "technocracy_name_pt": null,
+      "page_ref": "M20, pp. 303-304",
+      "max_dots": 10,
+      "description": "In times of need, you’ve got folks who’ve got your back. These allies might be badass friends, helpful animals, people with connections they can work in your favor, errand-runners, or maybe even minor spirits who’ll lend you the occasional favor if and when they feel like doing so. Generally, this Background refers to unAwakened humans or fairly intelligent animals (like a wolf pack or a troupe of apes). They’re probably aware of the weirder side of your life, but they don’t know the details of mage society or your true powers unless you choose to endanger them by sharing those secrets. Whatever their nature, or their relationship to you, these allies are characters in their own right, with needs, fears, motivations, and agendas that might coincide with your mage’s goals but also may occasionally clash with them.",
+      "description_pt": "Em momentos de necessidade, você conta com pessoas que cobrem sua retaguarda. Esses aliados podem ser amigos durões, animais úteis, indivíduos com conexões influentes que trabalham a seu favor, mensageiros de recados ou até espíritos menores dispostos a prestar favores ocasionais. Geralmente, este Antecedente refere-se a humanos Adormecidos ou animais razoavelmente inteligentes (como uma alcateia de lobos ou um bando de primatas). Eles provavelmente têm ciência do lado bizarro de sua vida, mas desconhecem os detalhes da sociedade dos magos e seus verdadeiros poderes, a menos que você decida colocá-los em risco compartilhando tais segredos. Sejam quem forem, esses aliados são personagens por mérito próprio, com necessidades, temores, motivações e agendas que podem coincidir com os objetivos do seu mago, mas também colidir ocasionalmente com eles.",
+      "system": "Each dot in this Background gives you one ally with some moderately useful abilities, or two allies who essentially run errands and do busywork. At two dots and above, you can increase the ability of your moderate allies or buy a larger number of lesser and moderate allies. For example, at two dots you could select two moderate allies, get four sidekicks, or make a single major ally who’s more capable. Magick-using Allies count as major ones. If your allies get killed or quit your company, this Background loses the dots that represented those characters until you recruit new allies to replace them.",
+      "system_pt": "Cada ponto neste Antecedente concede um aliado com habilidades moderadamente úteis, ou dois aliados que realizam tarefas simples e recados. Em dois pontos ou mais, você pode aprimorar a capacidade de seus aliados moderados ou adquirir um número maior de aliados menores e moderados. Por exemplo, com dois pontos você pode selecionar dois aliados moderados, obter quatro capangas/ajudantes, ou forjar um único aliado maior consideravelmente mais competente. Aliados usuários de mágica contam como aliados maiores. Se seus aliados forem mortos ou abandonarem sua companhia, este Antecedente perde as bolinhas correspondentes até que você recrute substitutos.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No allies who’d help you in times of need.",
+          "description_pt": "Nenhum aliado disposto a ajudá-lo em momentos de necessidade."
+        },
+        {
+          "dots": 1,
+          "description": "One ally of moderate power, or two minor sidekicks.",
+          "description_pt": "Um aliado de poder moderado, ou dois companheiros/capangas menores."
+        },
+        {
+          "dots": 2,
+          "description": "Two moderate allies, four sidekicks, or a single, more powerful one.",
+          "description_pt": "Dois aliados moderados, quatro companheiros menores, ou um único aliado mais poderoso."
+        },
+        {
+          "dots": 3,
+          "description": "Three moderate allies, or a combination of lesser and greater ones.",
+          "description_pt": "Três aliados moderados, ou uma combinação balanceada de aliados menores e maiores."
+        },
+        {
+          "dots": 4,
+          "description": "Four moderate allies, six minor sidekicks, or a combination of all three types.",
+          "description_pt": "Quatro aliados moderados, seis companheiros menores, ou uma combinação dos três tipos."
+        },
+        {
+          "dots": 5,
+          "description": "Five moderate allies, or an assortment of lesser and greater ones.",
+          "description_pt": "Cinco aliados moderados, ou um sortimento diversificado de aliados menores e maiores."
+        },
+        {
+          "dots": 6,
+          "description": "Six moderate allies, a small gang of sidekicks, or one or two really powerful friends.",
+          "description_pt": "Seis aliados moderados, uma pequena gangue de ajudantes, ou um a dois amigos realmente poderosos."
+        },
+        {
+          "dots": 7,
+          "description": "Seven moderates, a staff of sidekicks, or a handful of strong companions.",
+          "description_pt": "Sete aliados moderados, uma equipe completa de ajudantes, ou um punhado de companheiros fortes."
+        },
+        {
+          "dots": 8,
+          "description": "Eight moderates, a bunch of followers, or a few major badasses.",
+          "description_pt": "Oito moderados, um grupo de seguidores dedicados, ou alguns aliados de peso considerável."
+        },
+        {
+          "dots": 9,
+          "description": "Nine moderates, a private militia, or a pack of major friends.",
+          "description_pt": "Nove aliados moderados, uma milícia privada, ou uma matilha de amigos influentes."
+        },
+        {
+          "dots": 10,
+          "description": "Ten capable allies, a small army, or a truly deadly gang.",
+          "description_pt": "Dez aliados altamente capazes, um pequeno exército particular, ou uma gangue verdadeiramente letal."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "alternate_identity",
+      "name": "Alternate Identity",
+      "name_pt": "Identidade Alternativa",
+      "technocracy_name": null,
+      "technocracy_name_pt": null,
+      "page_ref": "M20, p. 304",
+      "max_dots": 5,
+      "description": "Sometimes you’ve gotta be ready to disappear. Especially for shapechangers, clones, or people in dangerous professions (spies, informers, assassins, etc.), the ability to adopt alternate identities can mean the difference between a new life and an unmarked grave. With this Background, you can duck behind a fake identity; the higher the rating, the more support you have for that identity’s existence. Each dot in Alternate Identity provides a certain level of official recognition that stands up to increasing degrees of scrutiny. A cheap fake ID could get you past a bouncer, but it won’t fool the Highway Patrol!",
+      "description_pt": "Às vezes você precisa estar pronto para desaparecer. Especialmente para metamorfos, clones ou profissionais em ocupações perigosas (espiões, informantes, assassinos), a capacidade de adotar identidades alternativas pode significar a fronteira entre uma vida nova e uma cova anônima. Com este Antecedente, você pode se ocultar sob uma identidade falsa; quanto maior a pontuação, mais suporte e verossimilhança essa persona possui no mundo real. Cada ponto fornece um patamar de reconhecimento oficial resistente a escrutínios cada vez mais rigorosos. Um documento falso barato engana o segurança da balada, mas jamais enganará a Polícia Rodoviária!",
+      "system": "To penetrate an alternate identity, an investigator rolls Mental Trait + Investigation against a difficulty of your Alternate Identity + 3. For each dot in Alternate Identity, you may link one dot of other Background Traits (Allies, Resources, Spies, etc.) to that new identity (you must still pay points for those Backgrounds). You can purchase this Trait several times for multiple identities. Even so, disguises or magick should be used to provide distinct physical appearances.",
+      "system_pt": "Para desmascarar uma identidade alternativa, um investigador deve rolar Atributo Mental + Investigação contra dificuldade igual à sua Identidade Alternativa + 3. Para cada ponto neste Antecedente, você pode vincular um ponto de outros Antecedentes (Aliados, Recursos, Espiões, etc.) a essa persona (os pontos desses outros antecedentes ainda devem ser pagos normalmente). Você pode adquirir este Traço várias vezes para manter múltiplas identidades. Ainda assim, é recomendável usar disfarces ou mágica para fornecer aparências físicas distintas entre elas.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "You’re just you.",
+          "description_pt": "Você é apenas você mesmo; sem documentos falsos ou registros paralelos."
+        },
+        {
+          "dots": 1,
+          "description": "A fake driver’s license that kinda looks like you.",
+          "description_pt": "Uma carteira de motorista falsa que lembra razoavelmente sua aparência."
+        },
+        {
+          "dots": 2,
+          "description": "A passable fake ID, plus a few supporting documents.",
+          "description_pt": "Uma identidade falsa aceitável, acompanhada de alguns documentos básicos de suporte."
+        },
+        {
+          "dots": 3,
+          "description": "Respectable identification papers and support documents that’ll pass casual inspection.",
+          "description_pt": "Documentos de identificação respeitáveis e papéis de apoio que passam em inspeções casuais."
+        },
+        {
+          "dots": 4,
+          "description": "An established alternative identity.",
+          "description_pt": "Uma identidade alternativa estabelecida, com histórico financeiro e profissional comprovável."
+        },
+        {
+          "dots": 5,
+          "description": "A fully supported identity with complete history, support documents, witnesses, fake family photos, alternate homes and so on.",
+          "description_pt": "Uma identidade totalmente fundamentada com histórico completo, certidões, testemunhas, fotos de família forjadas, residências alternativas e presença consolidada no sistema."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "arcane",
+      "name": "Arcane / Cloaking",
+      "name_pt": "Arcano / Camuflagem",
+      "technocracy_name": "Cloaking",
+      "technocracy_name_pt": "Camuflagem",
+      "page_ref": "M20, p. 304",
+      "max_dots": 5,
+      "description": "You know the fine art of disappearing. Whether this involves a not-so-simple trick, the ability to cloud men’s minds, nanotech sensory disrupters, or some nameless power of obscurity, you possess a talent for getting lost. Especially in the age of cell-phone cameras, global databases, electronic trackers, DNA samples, and CCTV monitors on every corner, Arcane – or its Technocratic version, Cloaking – is a useful Trait to have. Records get lost; cameras malfunction or record fuzzy images in your place; folks recall 'Some guy… or girl, I guess – I’m really not sure.' Although this talent isn’t invisibility per se, it helps you blend in with crowds, blurs your features on camera, and allows you to slide in between the cracks of an increasingly monitored world.",
+      "description_pt": "Você domina a refinada arte do desaparecimento. Seja por meio de truques nada banais, a capacidade de nublar a mente dos homens, disruptores sensoriais nanotecnológicos ou algum poder inominável de obscuridade, você possui o dom de se perder. Especialmente na era das câmeras de smartphones, bancos de dados globais, rastreadores eletrônicos, amostras de DNA e circuitos fechados de TV a cada esquina, Arcano — ou sua versão Tecnocrata, Camuflagem — é um Traço inestimável. Arquivos se perdem; câmeras sofrem panes ou registram vultos borrados; testemunhas dizem 'Era alguém... homem ou mulher, não tenho certeza'. Embora não seja invisibilidade propriamente dita, permite escorregar pelas frestas de um mundo hiper-vigiado.",
+      "system": "Add your Arcane/Cloaking dots as extra dice on all Stealth-related rolls. Opponents reduce their Perception or Investigation dice pools by that same amount whenever tracking you down. This benefit lasts as long as you remain inconspicuous. In combat, folks can see you normally, although recordings remain blurred. Obvious or extreme features (e.g. glowing hair, full facial tattoos) are not concealed, though witnesses will disagree about specifics.",
+      "system_pt": "Adicione seus pontos em Arcano/Camuflagem como dados extras em todas as rolagens relacionadas a Furtividade. Adversários reduzem suas paradas de dados de Percepção ou Investigação na mesma proporção ao tentar localizá-lo ou rastreá-lo. O benefício permanece enquanto você mantiver discrição. Em combate direto, as pessoas o enxergam normalmente, embora gravações em vídeo continuem borradas. Características físicas berrantes (como tatuagens faciais ou cabelos fluorescentes) não são ocultadas, mas testemunhas discordarão dos detalhes.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "You’re as obvious as anybody else.",
+          "description_pt": "Você é tão visível e memorável quanto qualquer outra pessoa comum."
+        },
+        {
+          "dots": 1,
+          "description": "You blend into crowds.",
+          "description_pt": "Você se mistura perfeitamente em meio a multidões."
+        },
+        {
+          "dots": 2,
+          "description": "Your presence slides out of memory.",
+          "description_pt": "Sua presença e feições escorregam da memória das pessoas em instantes."
+        },
+        {
+          "dots": 3,
+          "description": "You’re that person no one easily recalls.",
+          "description_pt": "Você é aquela pessoa anônima que ninguém consegue recordar com precisão."
+        },
+        {
+          "dots": 4,
+          "description": "Records, pictures, even memories of you are few and hard to find.",
+          "description_pt": "Registros digitais, fotografias e lembranças de você são escassos e quase impossíveis de achar."
+        },
+        {
+          "dots": 5,
+          "description": "You’re like a ghost in this world, known only to the folks you want to trust.",
+          "description_pt": "Você é como um fantasma no mundo, conhecido unicamente por quem escolhe confiar."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "avatar",
+      "name": "Avatar / Genius",
+      "name_pt": "Avatar / Gênio",
+      "technocracy_name": "Genius",
+      "technocracy_name_pt": "Gênio",
+      "page_ref": "M20, pp. 304-305",
+      "max_dots": 5,
+      "description": "Awakening defines the mage. Whether she refers to it as some mystic inner god or the scientifically explainable Enlightenment of higher consciousness, the Avatar or Genius allows a willworker to do the things she does. Some Avatars, though, are more potent and effective than others. This Trait measures your Awakened self, reflects its ability to shift and hold Quintessence, and determines how real it is in your character’s perceptions. Every mage character has an Avatar of some kind; unless you purchase at least one dot in this Trait, however, your ability to actually do much with your magick is extremely limited.",
+      "description_pt": "O Despertar define o mago. Quer ela o chame de um deus interior místico ou da Iluminação cientificamente explicável de uma consciência superior, o Avatar ou Gênio permite ao dobrador de vontades realizar seus prodígios. Alguns Avatares, todavia, são muito mais potentes e atuantes que outros. Este Traço mensura seu eu Desperto, reflete sua capacidade de absorver e gastar Quintessência e determina quão vívida e tangível é a manifestação da entidade nas percepções do personagem.",
+      "system": "A mage’s ability to absorb or expend Quintessence per turn is based on the Avatar Trait. While magick-casting rolls are based on Arete, a character with zero dots in Avatar cannot spend Quintessence to lower spell difficulties, nor draw Quintessence from Nodes easily. A higher Avatar rating reflects an inner presence whose personality, guidance, and visions feel intensely real.",
+      "system_pt": "A capacidade do mago de absorver e canalizar Quintessência por turno é estritamente regulada pela pontuação em Avatar. Embora a rolagem de lançamento de mágica seja baseada em Arete, um personagem sem pontos em Avatar não consegue gastar Quintessência para reduzir dificuldades de feitiços nem canalizar energias de Nós com facilidade. Pontuações elevadas refletem uma presença interior cuja personalidade, conselhos e visões soam extraordinariamente nítidos.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "An ephemeral Avatar hardly capable of magick.",
+          "description_pt": "Um Avatar efêmero, brasa adormecida quase incapaz de canalizar mágica."
+        },
+        {
+          "dots": 1,
+          "description": "A notable presence that lets you absorb or expend one point of Quintessence.",
+          "description_pt": "Presença notável: permite absorver ou gastar 1 ponto de Quintessência por turno."
+        },
+        {
+          "dots": 2,
+          "description": "A dynamic presence that lets you absorb or expend two points of Quintessence.",
+          "description_pt": "Presença dinâmica: permite absorver ou gastar 2 pontos de Quintessência por turno."
+        },
+        {
+          "dots": 3,
+          "description": "A discernable entity that lets you absorb or expend three points of Quintessence.",
+          "description_pt": "Entidade discernível: permite absorver ou gastar 3 pontos de Quintessência por turno."
+        },
+        {
+          "dots": 4,
+          "description": "A potent spirit that lets you absorb or expend four points of Quintessence.",
+          "description_pt": "Espírito potente: permite absorver ou gastar 4 pontos de Quintessência por turno."
+        },
+        {
+          "dots": 5,
+          "description": "A powerful force of Enlightenment that lets you absorb or expend five points of Quintessence.",
+          "description_pt": "Poderosa força de Iluminação: permite absorver ou gastar 5 pontos de Quintessência por turno."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "backup",
+      "name": "Backup",
+      "name_pt": "Reforço",
+      "technocracy_name": null,
+      "technocracy_name_pt": null,
+      "page_ref": "M20, pp. 305-306",
+      "max_dots": 10,
+      "description": "You can call in the cavalry and expect help when needed… in a limited capacity, anyhow. Thanks to your membership in some organization, you’re able to request Backup and have a small team of useful folks swoop in and take care of business. Unlike Allies, these people are largely faceless, have limited skills, and are more or less expendable. Essentially, they come in to handle simple tasks, then disperse back to the organization to which you all belong.",
+      "description_pt": "Você pode chamar a cavalaria e contar com auxílio quando o bicho pegar... em capacidade limitada, pelo menos. Graças à sua filiação a alguma organização, você é capaz de solicitar Reforço e ter uma pequena equipe de pessoas úteis aparecendo para resolver a bronca. Diferente de Aliados, essas pessoas são largamente anônimas, têm perícias limitadas e são mais ou menos descartáveis. Essencialmente, chegam para lidar com tarefas pontuais e depois dispersam de volta para a estrutura da organização.",
+      "system": "Typical Backup personnel have Traits in the 1-3 range, with one or two notable Skills. Elite Backup agents (mercenaries, ninja, cyborgs, minor spirits, large animals) cost twice as much as typical agents (two agent slots per elite) but have Traits in the 3-5 range. Characters must belong to an established organization (gang, police, Syndicate, military, Tradition hierarchy) and perform duties for it to keep this Trait.",
+      "system_pt": "Pessoal típico de Reforço tem Traços na faixa de 1 a 3, com uma ou duas Habilidades notáveis. Agentes de elite (mercenários, ninjas, ciborgues, espíritos menores, grandes predadores) custam o dobro (2 cotas de agente por especialista), mas possuem Traços na faixa de 3 a 5 e alto potencial de combate. O mago deve pertencer a uma organização maior e prestar serviços periódicos a ela para preservar este Antecedente.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "You’re on your own, kid!",
+          "description_pt": "Você está por sua própria conta, parceiro!"
+        },
+        {
+          "dots": 1,
+          "description": "Two typical agents.",
+          "description_pt": "Dois agentes típicos."
+        },
+        {
+          "dots": 2,
+          "description": "Four basic agents or two skilled 'temps'.",
+          "description_pt": "Quatro agentes básicos ou dois especialistas temporários."
+        },
+        {
+          "dots": 3,
+          "description": "Six agents.",
+          "description_pt": "Seis agentes de suporte."
+        },
+        {
+          "dots": 4,
+          "description": "Eight agents or four 'temps'.",
+          "description_pt": "Oito agentes básicos ou quatro especialistas temporários."
+        },
+        {
+          "dots": 5,
+          "description": "10 agents.",
+          "description_pt": "Dez agentes de apoio."
+        },
+        {
+          "dots": 6,
+          "description": "12 agents or six 'temps'.",
+          "description_pt": "12 agentes básicos ou 6 especialistas temporários."
+        },
+        {
+          "dots": 7,
+          "description": "14 agents.",
+          "description_pt": "14 agentes de apoio."
+        },
+        {
+          "dots": 8,
+          "description": "16 agents or eight 'temps'.",
+          "description_pt": "16 agentes básicos ou 8 especialistas temporários."
+        },
+        {
+          "dots": 9,
+          "description": "18 agents.",
+          "description_pt": "18 agentes de apoio."
+        },
+        {
+          "dots": 10,
+          "description": "20 agents, or 10 'temps'.",
+          "description_pt": "20 agentes, ou 10 especialistas temporários altamente treinados."
+        }
+      ],
+      "backup_teams": [
+        {
+          "archetype": "All / Generic",
+          "archetype_pt": "Geral / Todos",
+          "members": "Students, drivers, receptionists, couriers, lab techs, political activists, merchants, manual laborers, EMTs, cult members, thugs.",
+          "members_pt": "Estudantes, motoristas, recepcionistas, entregadores, técnicos de laboratório, ativistas políticos, comerciantes, operários, socorristas, cultistas, capangas."
+        },
+        {
+          "archetype": "Agents of Authority",
+          "archetype_pt": "Agentes da Autoridade",
+          "members": "Cops and detectives, military personnel, reporters, EMTs, cleanup crews.",
+          "members_pt": "Policiais e detetives, militares, repórteres investigativos, socorristas médicos, equipes de limpeza de cena."
+        },
+        {
+          "archetype": "Celebrities",
+          "archetype_pt": "Celebridades & Mídia",
+          "members": "Fans, roadies, personal assistants, photographers, road-crew, journalists, makeup artists.",
+          "members_pt": "Fãs ardorosos, roadies de turnê, assessores pessoais, fotógrafos, jornalistas, maquiadores."
+        },
+        {
+          "archetype": "Clergy",
+          "archetype_pt": "Clero & Religiosos",
+          "members": "Acolytes, lesser and lay clergy, healers, devotees of your religion.",
+          "members_pt": "Acólitos de altar, clero leigo, curandeiros e rezadeiras, fiéis devotos da sua fé."
+        },
+        {
+          "archetype": "Cyborgs / Techs",
+          "archetype_pt": "Ciborgues & Engenheiros",
+          "members": "Mechanics, technicians, soldiers, cybernetic 'temps'.",
+          "members_pt": "Mecânicos de precisão, programadores, soldados armados, especialistas cibernéticos."
+        },
+        {
+          "archetype": "Feral folk",
+          "archetype_pt": "Povos Selvagens & Xamãs",
+          "members": "Animals, healers, medicine people, tribal elders, natives of the region.",
+          "members_pt": "Animais guardiões, curandeiros tradicionais, anciãos tribais, guerreiros nativos."
+        },
+        {
+          "archetype": "Gangsters and Vigilantes",
+          "archetype_pt": "Criminosos & Vigilantes",
+          "members": "Gang members, hookers, allied cops, street people, junkies, journalists, petty crooks.",
+          "members_pt": "Membros de gangue, prostitutas, policiais comprados, moradores de rua, batedores de carteira."
+        },
+        {
+          "archetype": "Hackers",
+          "archetype_pt": "Hackers & Transumanistas",
+          "members": "Technicians, bloggers, hacker 'temps', political activists, anarchists, IT specialists.",
+          "members_pt": "Técnicos de rede, blogueiros, hackers mercenários, ativistas anarquistas, especialistas em TI."
+        },
+        {
+          "archetype": "Martial artists",
+          "archetype_pt": "Artistas Marciais",
+          "members": "Healers, philosophers, martial arts students, 'temp' fighters, spiritual devotees.",
+          "members_pt": "Acupunturistas, filósofos, discípulos do dojo, lutadores temporários, devotos da linhagem."
+        },
+        {
+          "archetype": "Ritual magicians",
+          "archetype_pt": "Magos Rituais & Herméticos",
+          "members": "Occultists, cultists, acolytes, academics, aspiring apprentices, minor imps or spirit 'temps'.",
+          "members_pt": "Ocultistas, cultistas submissos, acadêmicos de línguas mortas, aprendizes ávidos, diabinhos ou espíritos menores."
+        },
+        {
+          "archetype": "Scholars",
+          "archetype_pt": "Eruditos & Pesquisadores",
+          "members": "Research assistants, librarians, bloggers, academics, former students, grad students.",
+          "members_pt": "Assistentes de pesquisa, bibliotecários, pós-graduandos, pesquisadores acadêmicos."
+        },
+        {
+          "archetype": "Scientists",
+          "archetype_pt": "Cientistas da Tecnocracia",
+          "members": "Techs, research aides, robots, misshapen or enhanced assistant 'temps'.",
+          "members_pt": "Técnicos de laboratório, assistentes de bancada, drones robóticos, clones modificados."
+        },
+        {
+          "archetype": "Spies and Assassins",
+          "archetype_pt": "Espiões & Assassinos",
+          "members": "Informants, gang members, sleeper agents, cleanup crews.",
+          "members_pt": "Informantes anônimos, agentes adormecidos, equipes de contenção e descarte."
+        },
+        {
+          "archetype": "Tycoons",
+          "archetype_pt": "Magnatas & Corporações",
+          "members": "Corporate subordinates, flunkies, office personnel, journalists, security guards.",
+          "members_pt": "Subordinados corporativos, assessores puxa-saco, secretárias executivas, seguranças privados."
+        },
+        {
+          "archetype": "Witches",
+          "archetype_pt": "Bruxas & Feiticeiros",
+          "members": "Animals, devotees, New Agers, Pagan activists, healers, minor spirits.",
+          "members_pt": "Animais familiares, devotos pagãos, ativistas ecológicos, rezadeiras, espíritos da natureza."
+        }
+      ],
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "blessing",
+      "name": "Blessing",
+      "name_pt": "Bênção",
+      "technocracy_name": null,
+      "technocracy_name_pt": null,
+      "page_ref": "M20, pp. 306-307",
+      "max_dots": 5,
+      "description": "Someone out there has left its mark on you. That mark is usually beneficial, but it comes with uncanny side effects. Maybe you always find a few extra bucks when you need them but get stuck with the check when you grab some drinks with the girls. Perhaps you’re lucky in lust but can’t find a lasting partnership. This Background gives you a minor perk at the cost of a related quirk.",
+      "description_pt": "Alguém lá fora deixou uma marca em você. Essa marca costuma ser imensamente benéfica, mas acompanha efeitos colaterais peculiares. Talvez você sempre encontre alguns trocados extras no bolso quando mais precisa, mas acabe ficando com a conta inteira do bar quando sai com os amigos. Talvez tenha sorte insana no flerte, mas seja incapaz de manter um relacionamento estável. Este Antecedente concede uma regalia narrativa ao custo de uma peculiaridade excêntrica.",
+      "system": "Choose one non-combat, story-based ability connected to your paradigm and patron. It does not alter combat rolls or magick casting difficulties. However, in high-stakes non-combat rolls related to this gift, subtract -1 from the difficulty per dot in this Background. A corresponding story-based quirk mirrors the Blessing.",
+      "system_pt": "Escolha uma aptidão narrativa, não voltada ao combate nem ao lançamento direto de esferas mágicas, ligada ao seu paradigma e figura patrona (deus, heroína, arquétipo, fada). Em situações cruciais de alta tensão que demandem rolagem associada a esse dom, subtraia 1 da dificuldade do teste por ponto neste Antecedente. A bênção sempre é acompanhada por uma peculiaridade mística equivalente.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No figure favors you.",
+          "description_pt": "Nenhuma figura mítica ou patrono favorece você."
+        },
+        {
+          "dots": 1,
+          "description": "Life gives you small favors: your clothes always look clean and pressed, your kitchen never gets filthy, you find dollar bills on the ground, etc.",
+          "description_pt": "Pequenos favores cotidianos: roupas sempre parecem limpas e passadas, pia nunca acumula sujeira, você acha notas de dinheiro no chão."
+        },
+        {
+          "dots": 2,
+          "description": "Little things go your way: You always find a parking space, win small amounts whenever you play the lottery, score someone’s phone number whenever you ask for it, etc.",
+          "description_pt": "Pequenas coisas conspiram a seu favor: sempre encontra vaga para estacionar, ganha prêmios pequenos na loteria, obtém o telefone de quem paquera."
+        },
+        {
+          "dots": 3,
+          "description": "You possess a strange affinity for certain things: your cooking always tastes good, you never get lost or lose your keys, babies fall asleep as soon as you start rocking them, etc.",
+          "description_pt": "Afinidade misteriosa: sua comida sempre fica deliciosa, você nunca perde chaves nem se desorienta, bebês adormecem no instante em que você os nina."
+        },
+        {
+          "dots": 4,
+          "description": "Your knack gets downright uncanny: kids shut up as soon as you tell them to, your suggestions always sound reasonable, you score with whomever appeals to you, etc.",
+          "description_pt": "Dom impressionante: crianças calam a boca ao seu menor pedido, suas sugestões sempre soam sensatas a estranhos, atrai qualquer pessoa de seu interesse."
+        },
+        {
+          "dots": 5,
+          "description": "A major blessing follows you: your wallet and bank account always have one dollar left, your gun has one final bullet, you know secrets no one should be able to know about, etc.",
+          "description_pt": "Uma bênção colossal: sua carteira ou conta bancária sempre guarda um último dólar, sua arma sempre tem uma bala derradeira, você sabe segredos ocultos que ninguém deveria saber."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "certification",
+      "name": "Certification",
+      "name_pt": "Certificação / Licença",
+      "technocracy_name": null,
+      "technocracy_name_pt": null,
+      "page_ref": "M20, p. 307",
+      "max_dots": 5,
+      "description": "In an age when you need permits for every damn thing imaginable, the right certifications can save you a world of aggravation. With this Background, your character has official papers that allow her to pursue some regulated activity: hunting, driving, operating heavy machinery, practicing medicine, owning certain weapons, and so on. Generally, such activities involve risk, demand special training, affect society at large, or a combination of the three. Simple certifications, like a fishing permit, are easy to obtain, whereas really hazardous or complex activities demand higher levels of certification.",
+      "description_pt": "Em uma era na qual você precisa de permissões oficiais para quase tudo que se possa imaginar, as certificações certas poupam um mundo de aborrecimentos. Com este Antecedente, seu personagem dispõe de documentos autênticos e registrados que lhe permitem exercer atividades regulamentadas: caçar, conduzir máquinas pesadas, praticar medicina, possuir armas de alto calibre e assim por diante. Atividades simples são fáceis de obter; já tarefas arriscadas exigem níveis elevados de licenciamento.",
+      "system": "Unless obtained by bribery or fraud, characters must have at least one dot in a related Ability per dot in this Background (e.g. Medicine 4 for a medical license). Highly visible permits (like heavy weapons) also mean police suspect you first when crimes involving such items take place.",
+      "system_pt": "A menos que obtidas por meio de fraude ou suborno, o personagem precisa possuir pelo menos 1 ponto em uma Habilidade associada para cada ponto neste Antecedente (por exemplo, Medicina 4 para registro médico pleno). Licenças chamativas (como armas pesadas) também garantem que você seja um dos primeiros investigados pela polícia caso crimes ocorram com tal equipamento.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "The usual stuff – driver’s license, government ID card, nothing special.",
+          "description_pt": "Documentação comum do cotidiano: carteira de habilitação, RG, nada fora do padrão."
+        },
+        {
+          "dots": 1,
+          "description": "Hunting license, business license, passport to an open country, etc.",
+          "description_pt": "Licença de caça esportiva, alvará de funcionamento comercial simples, passaporte regular."
+        },
+        {
+          "dots": 2,
+          "description": "Teaching certificate, bodywork license, PADI certification, CPA, trucker’s or motorcycle license, basic firearms permit, etc.",
+          "description_pt": "Certificado de magistério, licença de massoterapia, credencial PADI de mergulho, registro contábil CPA, carteira profissional de motorista de caminhão, porte civil básico de arma de fogo."
+        },
+        {
+          "dots": 3,
+          "description": "Concealed weapons permit, HAZMAT disposal license, church-ordained clergy, lifeguard certification, private investigator’s license, private pilot’s permit, etc.",
+          "description_pt": "Porte velado de armas, licença de descarte de materiais perigosos (HAZMAT), clero ordenado reconhecido, licença de detetive particular, brevê de piloto de avião privado."
+        },
+        {
+          "dots": 4,
+          "description": "Class C weapons permit, board-certified medical or legal professional, professional aircraft pilot’s license, government intelligence operative, etc.",
+          "description_pt": "Porte de armamento pesado Classe C, registro profissional médico ou jurídico pleno (OAB/CRM), brevê de piloto de linha aérea comercial, credencial de agente de inteligência governamental."
+        },
+        {
+          "dots": 5,
+          "description": "Diplomatic immunity, license to kill.",
+          "description_pt": "Imunidade diplomática internacional irrevogável, autorização operacional de uso de força letal (licença para matar)."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "chantry",
+      "name": "Chantry / Construct",
+      "name_pt": "Capela / Constructo",
+      "technocracy_name": "Construct",
+      "technocracy_name_pt": "Constructo",
+      "page_ref": "M20, pp. 307-308",
+      "max_dots": 10,
+      "description": "In the hazardous world of the Awakened, it’s always a good idea to have some like-minded associates and a stronghold with some fair security. Since the Golden Age of Wizardry, such places have been called Covenants: centers where a group of allied mages stake out territory, consolidate resources, and agreed to assist and defend one another when need be. In later years, the Order of Reason adopted that idea and built the Technocratic Union around that principle. By the 20th century, Tradition mages call those places Chantries, the Union calls them Constructs, and other mages call them by whatever sounds like a culturally appropriate name (temple, lodge, mosque, etc.)",
+      "description_pt": "No mundo perigoso dos Despertos, é sempre sábio manter associados de mesma visão e uma fortaleza com segurança substancial. Desde a Era de Ouro da Magia, tais refúgios têm sido chamados de Convênios: centros onde um grupo de magos aliados demarca território, consolida recursos e firma juramentos de auxílio mútuo. Séculos mais tarde, a Ordem da Razão adotou essa ideia e ergueu a União Tecnocrática sob o mesmo alicerce. No século XXI, os magos das Tradições chamam esses locais de Capelas, a União os chama de Constructos, e outros artífices adotam designações culturais próprias (templos, guildas, mesquitas, laboratórios de ponta).",
+      "system": "A character begins as a member of an established base, or members can pool points to create a new shared Chantry. Construction points reflect time, money, and favors. Other Backgrounds linked to a Chantry (Allies, Arcane, Backup, Cult, Familiar, Influence, Library, Mentor, Node, Patron, Retainers, Resources, Spies, Wonder) can be pooled together.",
+      "system_pt": "O personagem inicia como membro de uma base estabelecida, ou os membros da cabala podem reunir seus pontos para fundar uma nova Capela compartilhada. Pontos de construção refletem tempo, capital, patronato e trabalho conjunto. Vários outros Antecedentes vinculados à sede (Aliados, Arcano, Reforço, Culto, Familiar, Influência, Biblioteca, Mentor, Nó, Patrono, Lacaios, Recursos, Espiões e Maravilhas) podem ser agrupados entre o grupo.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No place to call home.",
+          "description_pt": "Sem refúgio ou base para chamar de lar."
+        },
+        {
+          "dots": 2,
+          "description": "One pool point or membership in a tiny Squat (10-20 point pool).",
+          "description_pt": "1 ponto de reserva para a piscina da cabala, ou filiação em uma humilde Ocupação Segura (piscina de 10 a 20 pontos)."
+        },
+        {
+          "dots": 4,
+          "description": "Two pool points or membership in a small Sanctuary (21-30 point pool).",
+          "description_pt": "2 pontos de reserva, ou filiação em um Pequeno Santuário fortificado (piscina de 21 a 30 pontos)."
+        },
+        {
+          "dots": 6,
+          "description": "Three pool points or membership in an average Chantry or Construct (30-70 point pool).",
+          "description_pt": "3 pontos de reserva, ou filiação em uma Capela ou Constructo de porte médio (piscina de 30 a 70 pontos)."
+        },
+        {
+          "dots": 8,
+          "description": "Four pool points or membership in a Stronghold (71-100 point pool).",
+          "description_pt": "4 pontos de reserva, ou filiação em uma Fortaleza consagrada (piscina de 71 a 100 pontos)."
+        },
+        {
+          "dots": 10,
+          "description": "Five pool points or membership in a Power Center (101+ point pool).",
+          "description_pt": "5 pontos de reserva, ou filiação em um grandioso Centro de Poder (piscina de 101+ pontos)."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": [
+        {
+          "pool_range": "10-20 pts",
+          "name": "Secure Squat",
+          "name_pt": "Ocupação Segura",
+          "description": "Modest hideout with basic mundane locks, simple wards, and minimal communications.",
+          "description_pt": "Esconderijo modesto com trancas mundanas reforçadas, proteções místicas simples e comunicação básica."
+        },
+        {
+          "pool_range": "21-30 pts",
+          "name": "Small Sanctuary",
+          "name_pt": "Pequeno Santuário",
+          "description": "Dedicated safehouse, private workshop or secluded country retreat with reliable security.",
+          "description_pt": "Refúgio estruturado, oficina privativa ou propriedade rural reclusa com defesas consolidadas."
+        },
+        {
+          "pool_range": "30-70 pts",
+          "name": "Mystic Chantry / Construct",
+          "name_pt": "Capela Mística / Constructo",
+          "description": "Paranormal amenities: scrying pools, portals to Horizon Realms, spirit guardians, hypertech defenses.",
+          "description_pt": "Instalações paranormais: espelhos de vidência, portais para Reinos do Horizonte, guardiões espirituais e hipertecnologia."
+        },
+        {
+          "pool_range": "71-100 pts",
+          "name": "Stronghold",
+          "name_pt": "Fortaleza Avançada",
+          "description": "Heavily fortified facility with extensive mundane and mystic resources, research labs, and defensive squads.",
+          "description_pt": "Complexo impenetrável com amplos recursos arcanos e mundanos, laboratórios de ponta e esquadrões de contenção."
+        },
+        {
+          "pool_range": "101+ pts",
+          "name": "Power Center",
+          "name_pt": "Centro de Poder",
+          "description": "Legendary stronghold of international or Umbral renown, colossal reserves of Quintessence, and reality-altering wards.",
+          "description_pt": "Sede de magnitude planetária ou Umbral lendária, com reservas massivas de Quintessência e proteções que moldam a Realidade."
+        }
+      ],
+      "requisitions_chart": null
+    },
+    {
+      "id": "contacts",
+      "name": "Contacts",
+      "name_pt": "Contatos",
+      "technocracy_name": null,
+      "technocracy_name_pt": null,
+      "page_ref": "M20, p. 308",
+      "max_dots": 10,
+      "description": "You know people who know things. Although such contacts aren’t as helpful or reliable as Allies, they can help you dig up information, spread messages, pull strings, and call in small favors (scoring tickets to a sold-out concert, locating a low-rent apartment, getting a meeting with the police chief, and so on). Naturally, these folks will want occasional help from you as well. So long as one hand washes the other, though, these folks can prove remarkably helpful.",
+      "description_pt": "Você conhece pessoas que sabem das coisas. Embora esses contatos não sejam tão dedicados ou confiáveis quanto Aliados, eles podem ajudá-lo a levantar informações privilegiadas, disseminar mensagens, puxar cordas nos bastidores e obter pequenos favores (ingressos para eventos esgotados, aluguel de imóveis discretos, reuniões com chefes de polícia). Naturalmente, essas fontes também cobrarão favores eventuais em troca. Enquanto uma mão lavar a outra, essa rede se provará valiosíssima.",
+      "system": "Roll an appropriate Social Attribute + Contacts against a difficulty set by the Storyteller based on sensitivity of the favor or data. Success yields the information; a botch burns the contact or causes them to sell you out. Each dot represents one major, fleshed-out character. Casual contacts can be activated with a +2 difficulty penalty.",
+      "system_pt": "Role um Atributo Social cabível + Contatos contra dificuldade estipulada pelo Narrador conforme o sigilo da informação ou tamanho do favor. Sucessos entregam o dado desejado; uma falha crítica queima o informante ou faz com que ele o traia. Cada ponto representa um Contato Maior detalhado. Contatos casuais podem ser acionados com penalidade de +2 na dificuldade.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "Nope – it’s all on you.",
+          "description_pt": "Nenhum informante na rede — tudo depende de seus próprios passos."
+        },
+        {
+          "dots": 1,
+          "description": "One major contact.",
+          "description_pt": "1 contato principal detalhado."
+        },
+        {
+          "dots": 2,
+          "description": "Two major contacts.",
+          "description_pt": "2 contatos principais."
+        },
+        {
+          "dots": 3,
+          "description": "Three major contacts.",
+          "description_pt": "3 contatos principais."
+        },
+        {
+          "dots": 4,
+          "description": "Four major contacts.",
+          "description_pt": "4 contatos principais com bom alcance."
+        },
+        {
+          "dots": 5,
+          "description": "Five major contacts.",
+          "description_pt": "5 contatos principais influentes."
+        },
+        {
+          "dots": 6,
+          "description": "Six contacts.",
+          "description_pt": "6 contatos em múltiplas esferas sociais."
+        },
+        {
+          "dots": 7,
+          "description": "Seven contacts.",
+          "description_pt": "7 contatos com vasta cobertura de informações."
+        },
+        {
+          "dots": 8,
+          "description": "Eight contacts.",
+          "description_pt": "8 contatos altamente conectados."
+        },
+        {
+          "dots": 9,
+          "description": "Nine contacts.",
+          "description_pt": "9 contatos em círculos estratégicos e governamentais."
+        },
+        {
+          "dots": 10,
+          "description": "10 contacts forming a wide information web.",
+          "description_pt": "10 contatos de elite compondo uma rede formidável de inteligência."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "cult",
+      "name": "Cult",
+      "name_pt": "Culto",
+      "technocracy_name": null,
+      "technocracy_name_pt": null,
+      "page_ref": "M20, pp. 308-309",
+      "max_dots": 5,
+      "description": "Any mage with charisma can have friends; this Cult, however, goes beyond mere friendship. These devotees trust and revere you so deeply that, when gathered and directed, they can lend their beliefs to your rituals. The nature of your cult isn’t important: you might be a religious figure with a congregation, an artist with especially devoted fans, a professor whose students literally revere him, or any other similar arrangement. What matters is the belief: your cult accepts you as someone who works wonders, and they want to be part of that magic… and so they are.",
+      "description_pt": "Qualquer mago carismático pode fazer amizades; este Culto, todavia, vai muito além de mera camaradagem. Esses devotos confiam e reverenciam você tão profundamente que, quando congregados e orientados, emprestam a força ardente de suas crenças aos seus rituais. A natureza do grupo é indiferente: pode ser uma congregação religiosa, um artista com fãs obsessivos, um mestre acadêmico cujos discípulos veneram cada palavra ou um líder de movimento oculto. O que importa é a convicção absoluta: o culto o enxerga como alguém capaz de operar milagres, e anseia participar dessa maravilha.",
+      "system": "When gathered in physical space (or linked via Mind magick / network technology) without outside distractions, the cult adds extra dice to ritual casting pools according to its size rating (+1 to +5 dice). Cultists are typical Sleepers whose primary asset is blind faith. If the mage loses their faith or breaks their trust, the benefits vanish.",
+      "system_pt": "Quando reunidos em comunhão (no mesmo espaço físico ou vinculados por mágica de Mente ou tecnologia de rede) e focados na cerimônia, os fiéis adicionam dados adicionais à parada de dados de rituais conforme o nível do Antecedente (+1 a +5 dados). Membros do culto são Adormecidos comuns cujo maior trunfo é a fé convicta. Se o mago quebrar a confiança ou desonrar o dogma, os bônus cessam imediatamente.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No cult.",
+          "description_pt": "Nenhum culto ou seguidores devotos."
+        },
+        {
+          "dots": 1,
+          "description": "Tiny cult: 3-7 people. Add one die to the dice pool of a ritual cast with that group’s assistance.",
+          "description_pt": "Culto minúsculo: 3 a 7 fiéis. Adiciona +1 dado à parada de dados de rituais realizados com o suporte do grupo reunido."
+        },
+        {
+          "dots": 2,
+          "description": "Small cult: 8-12 people. Add two dice to rituals cast when that group is gathered.",
+          "description_pt": "Pequeno culto: 8 a 12 devotos. Adiciona +2 dados a rituais mágicos quando o grupo está reunido."
+        },
+        {
+          "dots": 3,
+          "description": "Moderate cult: 13-17 people. Add three dice to rituals cast in the presence of the whole group.",
+          "description_pt": "Culto moderado: 13 a 17 seguidores. Adiciona +3 dados a rituais realizados na presença de todo o grupo."
+        },
+        {
+          "dots": 4,
+          "description": "Large cult: 18-22 people. Add four dice to rituals cast with that group behind them.",
+          "description_pt": "Grande culto: 18 a 22 devotos fervorosos. Adiciona +4 dados a rituais conduzidos com o grupo reunido."
+        },
+        {
+          "dots": 5,
+          "description": "Huge cult, between 23-30 people. Add five dice to rituals cast when the entire cult has gathered.",
+          "description_pt": "Culto colossal: 23 a 30 fiéis em comunhão absoluta. Adiciona +5 dados a rituais realizados com a congregação inteira."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "demesne",
+      "name": "Demesne",
+      "name_pt": "Domínio / Feudo Mental",
+      "technocracy_name": null,
+      "technocracy_name_pt": null,
+      "page_ref": "M20, pp. 309-310",
+      "max_dots": 5,
+      "description": "A mage’s mind is her castle. There, she can get away from it all to a world of her own making. Classical and Renaissance treatises refer to memory palaces, wherein a person builds a structure in her mind as an aid to meditation, study, reflection, and, of course, memory. Shaped from the builder’s consciousness, these constructs have no physical form, yet they offer a type of refuge. With this Background, you have such a place. Cosmologically, a Demesne exists in the Maya as a semipermanent Dream Realm inspired by your dreaming mind.",
+      "description_pt": "A mente de um mago é seu castelo inviolável. Nela, é possível refugiar-se das turbulências do mundo para uma realidade de sua própria manufatura. Tratados clássicos e renascentistas referiam-se aos palácios da memória, nos quais uma mente brilhante esculpe estruturas interiores para meditação, estudo, retenção mnemônica e descanso. Cosmologicamente, o Domínio existe em Maya como um Reino Onírico semipermanente gerado pelo inconsciente do Desperto.",
+      "system": "Characters can enter their Demesne while dreaming or meditating via a Perception + Demesne roll (difficulty 5-6 normal, 7-9 under distress or torture) without needing Mind 3. The astral form travels there, leaving the body behind. Mages can alter their appearance, confront subconscious trauma, recall deeply buried memories (Intelligence + Meditation/Demesne), or trap foreign intruders via Willpower contests.",
+      "system_pt": "O mago projeta sua forma astral no Domínio ao meditar ou sonhar com um teste de Percepção + Domínio (dificuldade 5-6 em paz, 7-9 sob dor ou tortura), sem necessitar da Esfera Mente 3. No Domínio, ele pode moldar sua forma visual, confrontar perturbações do Silêncio, resgatar memórias profundas (Inteligência + Meditação/Domínio) e até atrair e conter consciências invasoras em disputas de Força de Vontade.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No Dream Realm to speak of.",
+          "description_pt": "Nenhum Reino Onírico estruturado ou acessível."
+        },
+        {
+          "dots": 1,
+          "description": "Occasional visitor to the Realm. You have a name for it and recognize a few significant features.",
+          "description_pt": "Visitante ocasional ao Reino. Você lhe atribuiu um nome e reconhece alguns marcos simbólicos."
+        },
+        {
+          "dots": 2,
+          "description": "A regular visitor, you’ve traveled extensively through the Demesne.",
+          "description_pt": "Visitante regular; você viajou com frequência pelas extensões oníricas do Domínio."
+        },
+        {
+          "dots": 3,
+          "description": "In your dreams, you know this place quite well.",
+          "description_pt": "Em sonhos e transes, você conhece a geografia e os recantos deste santuário com intimidade."
+        },
+        {
+          "dots": 4,
+          "description": "This is your Realm, and though you don’t command its every feature or resident, they know and recognize you as someone of authority there.",
+          "description_pt": "Este é o seu Reino: embora não governe cada átomo ou residente, as entidades locais o reconhecem como soberano legítimo."
+        },
+        {
+          "dots": 5,
+          "description": "Lord or Lady of the Demesne, you know and command this Realm as if it were your kingdom… because it is.",
+          "description_pt": "Senhor ou Senhora do Domínio: você governa este Reino mental como seu império particular — porque de fato ele o é."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "destiny",
+      "name": "Destiny",
+      "name_pt": "Destino",
+      "technocracy_name": null,
+      "technocracy_name_pt": null,
+      "page_ref": "M20, p. 310",
+      "max_dots": 5,
+      "description": "You’re a Chosen One, destined to play a vital role in the cosmic drama. Prophecies hint at your coming greatness; statistical analysis points toward your significance. Most importantly, you know you’re fated to be special. When things seem bleak, you can call upon this knowledge to get you through.",
+      "description_pt": "Você é um Escolhido, fadado a desempenhar papel indispensável no grande drama cósmico. Profecias arcanas insinuam sua grandeza vindoura; análises estatísticas da Tecnocracia apontam anomalias gritantes de relevância histórica ao redor dos seus passos. Acima de tudo, você sente na alma que nasceu para algo extraordinário. Quando o abismo se aproximar, você pode recorrer a essa certeza inabalável para resistir à queda.",
+      "system": "Once per session, when facing a grave crisis after all Willpower points have been exhausted, roll your Destiny dice pool against difficulty 8. Each success immediately restores one point of temporary Willpower. When the character reaches their climactic 'Moment of Destiny', the Background fulfills its purpose and transforms or fades.",
+      "system_pt": "Uma vez por sessão, ao encarar uma crise devastadora com todos os seus pontos de Força de Vontade exauridos, role sua parada de dados de Destino contra dificuldade 8. Cada sucesso obtido recupera instantaneamente um ponto de Força de Vontade temporária. Quando o clímax de sua jornada chegar — o Momento do Destino —, o Antecedente cumpre seu fado e se extingue ou se transforma.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "You’re not especially important.",
+          "description_pt": "Você não possui um fado ou propósito cósmico manifesto."
+        },
+        {
+          "dots": 1,
+          "description": "A minor destiny; roll one die.",
+          "description_pt": "Destino menor: role 1 dado para recuperar Força de Vontade durante a crise."
+        },
+        {
+          "dots": 2,
+          "description": "You’re significant; roll two dice.",
+          "description_pt": "Fado significativo: role 2 dados para recuperar Força de Vontade."
+        },
+        {
+          "dots": 3,
+          "description": "You’re important; roll three dice.",
+          "description_pt": "Destino importante no drama cósmico: role 3 dados."
+        },
+        {
+          "dots": 4,
+          "description": "You’re destined for great things; roll four dice.",
+          "description_pt": "Destinado a feitos épicos que abalarão o mundo: role 4 dados."
+        },
+        {
+          "dots": 5,
+          "description": "Someday soon, you’ll be a legend; roll five dice.",
+          "description_pt": "Em breve você se tornará uma lenda viva do cenário: role 5 dados."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "dream",
+      "name": "Dream / Hypercram",
+      "name_pt": "Sonho / Hiperaprendizado",
+      "technocracy_name": "Hypercram",
+      "technocracy_name_pt": "Hiperaprendizado",
+      "page_ref": "M20, pp. 310-311",
+      "max_dots": 5,
+      "description": "Knowledge is everything to a mage. Being the conduits to cosmic consciousness that they can be, certain mages are able to access information that they have not personally studied or practiced. After taking a bit of time to meditate (or, in the case of Technocrats and other scientifically-minded willworkers, to Hypercram), such mages can temporarily tap into the wealth of knowledge and experience that’s out there, channeling Ability Traits they don’t normally possess.",
+      "description_pt": "Conhecimento é tudo para um mago. Atuando como condutores da consciência universal e dos fluxos akáshicos, certos Despertos conseguem acessar informações e reflexos que jamais praticaram ou estudaram na vida. Após um breve período de recolhimento e meditação (ou, no caso de tecnocratas e cientistas, de Hiperaprendizado neuroquímico), esses magos canalizam temporariamente Traços de Habilidade que não possuem normalmente na ficha.",
+      "system": "Roll Perception + Dream (difficulty 6) after an uninterrupted trance or intense study session. On a success, substitute your Dream rating for any related Ability required for a single, uninterrupted task (a combat encounter, an exam, a board meeting). Usable once per day. Does not add to existing Ability dots; it replaces them for that task.",
+      "system_pt": "Role Percepção + Sonho (dificuldade 6) após um transe ou sessão concentrada de estudo. Em caso de sucesso, você substitui sua pontuação de Sonho pelo valor de qualquer Habilidade conexa para realizar uma única tarefa ininterrupta (uma luta inteira, uma prova, uma negociação comercial). Usável uma vez por dia. Não soma pontos a Habilidades já existentes; substitui a pontuação durante a tarefa.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "You lack that special connection to the collective consciousness.",
+          "description_pt": "Você não possui conexão especial com a consciência cósmica ou repositórios mnemônicos."
+        },
+        {
+          "dots": 1,
+          "description": "You catch hazy bits of related information. One die for the task.",
+          "description_pt": "Vislumbres vagos de informações relacionadas. Fornece 1 dado na Habilidade temporária."
+        },
+        {
+          "dots": 2,
+          "description": "Helpful insights present themselves during a trance. Two dice for the task.",
+          "description_pt": "Percepções úteis afloram durante o transe ou hiper-estudo. Fornece 2 dados na Habilidade temporária."
+        },
+        {
+          "dots": 3,
+          "description": "Your meditations produce serious results. Three dice for the task.",
+          "description_pt": "Meditações com resultados substanciais e precisos. Fornece 3 dados na Habilidade temporária."
+        },
+        {
+          "dots": 4,
+          "description": "From a trance, you can pull amazing bits of knowledge. Four dice for the task.",
+          "description_pt": "Do transe mental você extrai conhecimentos e reflexos assombrosos. Fornece 4 dados na Habilidade temporária."
+        },
+        {
+          "dots": 5,
+          "description": "You’ve got a direct line to the collective consciousness. Given time to focus, you can pick up phenomenal things. Five dice for the task.",
+          "description_pt": "Linha direta com os Registros Akáshicos ou bancos de hiper-dados: com tempo para focar, manifesta perícias magistrais. Fornece 5 dados na Habilidade temporária."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "enhancement",
+      "name": "Enhancement",
+      "name_pt": "Aprimoramento",
+      "technocracy_name": "Enhancements / Biotech",
+      "technocracy_name_pt": "Aprimoramentos / Biotecnologia",
+      "page_ref": "M20, pp. 308-309",
+      "max_dots": 5,
+      "description": "Enlightened hypertech can accomplish incredible things, few of them more staggering (or, to some mages, unholy) than the modification of living tissue with the power of machines. Such enhancements improve upon (or desecrate) Nature’s work, creating permanent mutations – cybernetic limbs or genegineered biomods that give the subject powers far beyond normal human limits.\n\nAn Enhanced character chooses one of three exclusive paths:\n• Cybernetics: Biomechanical devices integrated into the flesh (Primium bones, subcutaneous armor, ocular implants). Conveys permanent Paradox points on the Paradox Wheel and makes the character susceptible to extra damage from Life magick.\n• Biomods: Permanent organic modifications grafted, grown, or implanted. Avoids Life magick vulnerability, but obvious biomods inflict permanent Paradox points and require Genetic Flaws.\n• Genegineering: Subtle cellular modifications raising physical or mental Attributes above human limits (up to 8), at the cost of permanent Genetic Flaws.\n\nOnly the following Attributes may be boosted: Strength, Dexterity, Stamina, Appearance, Perception, Intelligence, and Health levels.",
+      "description_pt": "A hipertecnologia Iluminada é capaz de proezas assombrosas, e poucas são tão impressionantes (ou, para certos místicos, profanas) quanto a modificação do tecido vivo pelo poder das máquinas e da manipulação genética. Tais aprimoramentos aperfeiçoam (ou corrompem) a obra da Natureza, criando mutações permanentes — membros cibernéticos, implantes biomecânicos ou biomodificações genéticas que concedem poderes muito além dos limites humanos normais.\n\nUm personagem Aprimorado escolhe uma de três vertentes exclusivas:\n• Cibernética: Dispositivos biomecânicos integrados ao corpo (ossos de Primium, lâminas retráteis, scanners infravermelhos). Adiciona pontos permanentes de Paradoxo à esteira e torna o organismo vulnerável a dano agravado extra de mágica da Vida.\n• Biomods: Enxertos e tecidos orgânicos hiperdesenvolvidos enxertados cirurgicamente. Não sofre penalidade de mágica da Vida, mas biomods evidentes geram Paradoxo permanente e exigem Defeitos Genéticos.\n• Engenharia Genética: Aperfeiçoamento sutil do DNA que eleva Atributos até 8 sem implantes visíveis, ao custo de Defeitos Genéticos permanentes.\n\nApenas os seguintes Atributos podem ser elevados por Aprimoramentos: Força, Destreza, Vigor, Aparência, Percepção, Inteligência e níveis de Vitalidade.",
+      "system": "CUSTO ESPECIAL: Este Antecedente custa 2 pontos por bolinha na criação (em vez de 1 ponto normal). Não pode ser agrupado ou compartilhado em Cabala. Cada ponto concede +1 Atributo (máximo 8) ou 3 pontos para compra de Dispositivos Cibernéticos, ao custo de 1 ponto permanente de Paradoxo na esteira ou 1 Defeito Genético por nível.",
+      "system_pt": "SPECIAL COST: This Background costs TWO points per dot (instead of the usual one point). It cannot be shared or pooled. Each dot provides +1 Attribute dot (up to rating 8) or 3 points for cybernetic Devices, at the cost of 1 permanent Paradox point or 1 Genetic Flaw per dot.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No special modifications.",
+          "description_pt": "Nenhuma modificação cibernética ou biológica especial."
+        },
+        {
+          "dots": 1,
+          "description": "+1 Attribute dot, or 3 points for Devices. One Paradox point or Genetic Flaw.",
+          "description_pt": "+1 ponto de Atributo, ou 3 pontos para Dispositivos. 1 ponto de Paradoxo permanente ou Defeito Genético."
+        },
+        {
+          "dots": 2,
+          "description": "+2 Attribute dots, or 6 points for Devices. Two Paradox points or Genetic Flaws.",
+          "description_pt": "+2 pontos de Atributos, ou 6 pontos para Dispositivos. 2 pontos de Paradoxo permanentes ou Defeitos Genéticos."
+        },
+        {
+          "dots": 3,
+          "description": "+3 Attribute dots, or 9 points for Devices. Three Paradox points or Genetic Flaws.",
+          "description_pt": "+3 pontos de Atributos, ou 9 pontos para Dispositivos. 3 pontos de Paradoxo permanentes ou Defeitos Genéticos."
+        },
+        {
+          "dots": 4,
+          "description": "+4 Attribute dots, or 12 points for Devices. Four Paradox points or Genetic Flaws.",
+          "description_pt": "+4 pontos de Atributos, ou 12 pontos para Dispositivos. 4 pontos de Paradoxo permanentes ou Defeitos Genéticos."
+        },
+        {
+          "dots": 5,
+          "description": "+5 Attribute dots, or 15 points for Devices. Five Paradox points or Genetic Flaws.",
+          "description_pt": "+5 pontos de Atributos, ou 15 pontos para Dispositivos. 5 pontos de Paradoxo permanentes ou Defeitos Genéticos."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "fame",
+      "name": "Fame",
+      "name_pt": "Fama",
+      "technocracy_name": null,
+      "technocracy_name_pt": null,
+      "page_ref": "M20, p. 309",
+      "max_dots": 5,
+      "description": "For some story-based reason, you’re famous within the Sleeper world: a pop star, athlete, politician, internet celebrity, or visionary creator. Fame confers status at the cost of visibility and allows you to get away with coincidences few normal people could manage.\n\nHowever, fame is a double-edged sword: authorities watch you closely, cameras and fans follow your movements, and casting spells in public creates viral footage in minutes. It also attracts stalkers, haters, and relentless scrutiny.",
+      "description_pt": "Por razões da crônica, você é famoso no mundo Adormecido: uma estrela da música, atleta de elite, líder político, celebridade viral ou criador aclamado. A Fama concede prestígio e acesso privilegiado ao custo de constante exposição pública, permitindo justificar coincidências com as quais uma pessoa comum jamais conseguiria escapar.\n\nContudo, a Fama é uma faca de dois gumes: o escrutínio de autoridades e fãs é implacável, câmeras e paparazzi vigiam seus passos, e realizar efeitos mágicos em público gera vídeos virais em questão de minutos. Além disso, atrai perseguidores, detratores e rivais implacáveis.",
+      "system": "A successful Charisma, Manipulation, or Appearance + Fame roll can open doors, secure VIP privileges, or sway public sentiment. However, you can rarely go anywhere incognito without disguises, and public slip-ups damage your standing.",
+      "system_pt": "Um teste bem-sucedido de Carisma, Manipulação ou Aparência + Fama pode abrir portas exclusivas, garantir favores diplomáticos ou moldar a opinião pública. No entanto, é quase impossível agir incógnito sem disfarces elaborados, e gafes públicas deterioram sua reputação.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No one of consequence.",
+          "description_pt": "Ninguém de relevância ou visibilidade pública."
+        },
+        {
+          "dots": 1,
+          "description": "Within a select subculture, folks know your name. Perhaps you were more famous once.",
+          "description_pt": "Conhecido dentro de uma subcultura específica, cena alternativa, ou teve notoriedade no passado."
+        },
+        {
+          "dots": 2,
+          "description": "A local celebrity, you’re known by all the right people in your community.",
+          "description_pt": "Uma celebridade local; reconhecido pelas pessoas certas na sua cidade e comunidade."
+        },
+        {
+          "dots": 3,
+          "description": "Someone of note, you’re recognized by large portions of the population at large.",
+          "description_pt": "Figura pública de destaque; reconhecido por amplas parcelas da população geral."
+        },
+        {
+          "dots": 4,
+          "description": "A national, or perhaps even international, figure, you’re recognized by large crowds.",
+          "description_pt": "Notoriedade nacional ou internacional; presença constante na mídia e reconhecimento imediato."
+        },
+        {
+          "dots": 5,
+          "description": "You’re famous almost everywhere; a superstar.",
+          "description_pt": "Famoso em quase todo o mundo; ícone cultural global com legiões de seguidores."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "familiar",
+      "name": "Familiar",
+      "name_pt": "Familiar",
+      "technocracy_name": "Companion",
+      "technocracy_name_pt": "Companheiro",
+      "page_ref": "M20, pp. 309-311",
+      "max_dots": 5,
+      "description": "Animal allies and mystical entities remain an integral part of the classical mage’s lore: the witch’s cat, telepathic raven, clockwork hound, or cyber-enhanced drone. Tradition mages call them familiars; Technocrats label them Companions.\n\nA Familiar is an autonomous Storyteller-directed character bound by mutual pact. Beyond companionship, it provides:\n• Advice: Lends insight through occult knowledges with a dice pool equal to Background rating.\n• Empathy: Senses emotional states and warns of immediate danger.\n• Paradox Nullification (The Feast of Nettles): Can absorb up to 5 points of Paradox per dot from the mage, bleeding off 1 point per week. If filled to max capacity, a violent Burn backlash strikes both.\n• Quintessence Feeding: Must be fed 1 point of Quintessence or Tass per dot per week. If neglected, it departs.\n\nIf the Familiar dies, the mage loses 1 permanent Willpower plus 2 Quintessence per dot (unpayable Quintessence becomes permanent Paradox).",
+      "description_pt": "Aliados animais e entidades espirituais são parte indissociável da mística do mago clássico: o gato da bruxa, o corvo telepático, o cão autômato ou o bio-clone cibernético. As Tradições os chamam de familiares; a Tecnocracia os designa como Companheiros.\n\nO Familiar é um personagem autônomo conduzido pelo Narrador e selado por um pacto mútuo. Além de lealdade, concede:\n• Aconselhamento: Concede dados de Conhecimentos Arcanos (Cosmologia, Enigmas, Ocultismo) iguais à sua pontuação.\n• Empatia Sensorial: Compartilha sentimentos e alerta sobre emboscadas e perigos.\n• Anulação de Paradoxo (O Banquete de Urtigas): Pode drenar até 5 pontos de Paradoxo por bolinha do mago (dissipando 1 ponto por semana). Ao atingir a capacidade máxima, explode em um Choque de Retorno letal para ambos.\n• Alimentação de Quintessência: Consome 1 ponto de Quintessência ou Tass por bolinha por semana. Se privado, desfaz o vínculo e parte.\n\nSe o Familiar for destruído, o mago perde 1 Força de Vontade permanente e 2 de Quintessência por bolinha (pontos não quitados viram Paradoxo imediato).",
+      "system": "Roll dice pool equal to Familiar rating for advice rolls. The Familiar absorbs up to (Dots × 5) Paradox points when within 10 yards. Weekly maintenance requires (Dots) points of Quintessence or Tass.",
+      "system_pt": "Role uma parada de dados igual à pontuação de Familiar para testes de consulta e conselho. O Familiar absorve até (Bolinhas × 5) pontos de Paradoxo a até 10 metros do mago. A manutenção exige (Bolinhas) pontos de Quintessência ou Tass por semana.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No special pets or mystic beasts.",
+          "description_pt": "Nenhum animal místico, mascote inteligente ou companheiro hipertecnológico."
+        },
+        {
+          "dots": 1,
+          "description": "Your Companion has access to scattered bits of helpful information. (Requires 1 Quintessence/week, absorbs up to 5 Paradox).",
+          "description_pt": "Conselhos e pistas esparsas. (Requer 1 Quintessência por semana; absorve até 5 pontos de Paradoxo)."
+        },
+        {
+          "dots": 2,
+          "description": "You’ve got a pretty cool Companion. (Requires 2 Quintessence/week, absorbs up to 10 Paradox).",
+          "description_pt": "Companheiro expressivo e confiável. (Requer 2 Quintessência por semana; absorve até 10 pontos de Paradoxo)."
+        },
+        {
+          "dots": 3,
+          "description": "A magnificent Companion shares its wisdom and loyalty with you. (Requires 3 Quintessence/week, absorbs up to 15 Paradox).",
+          "description_pt": "Companheiro magnífico com sabedoria profunda e lealdade firme. (Requer 3 Quintessência por semana; absorve até 15 de Paradoxo)."
+        },
+        {
+          "dots": 4,
+          "description": "Favored with a smart and miraculous creature. (Requires 4 Quintessence/week, absorbs up to 20 Paradox).",
+          "description_pt": "Entidade prodigiosa e miraculosa com intelecto perspicaz. (Requer 4 Quintessência por semana; absorve até 20 de Paradoxo)."
+        },
+        {
+          "dots": 5,
+          "description": "Your Familiar probably knows more than you do, with an outspoken personality. (Requires 5 Quintessence/week, absorbs up to 25 Paradox).",
+          "description_pt": "Entidade ancestral ou cibernética superior com vontade forte e exigências altas. (Requer 5 Quintessência por semana; absorve até 25 de Paradoxo)."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "influence",
+      "name": "Influence",
+      "name_pt": "Influência",
+      "technocracy_name": null,
+      "technocracy_name_pt": null,
+      "page_ref": "M20, p. 311",
+      "max_dots": 10,
+      "description": "You command attention and respect within the Sleepers’ institutions: politics, law enforcement, corporate boards, media networks, or religious hierarchies. When you speak, people listen, doors open, and bureaucracy bends in your favor.\n\nInfluence is a double-edged sword: individuals with high Influence are constantly scrutinized. Public scandals or abusive behavior can diminish your Influence rating.",
+      "description_pt": "Você comanda atenção, respeito e autoridade dentro das instituições dos Adormecidos: câmaras legislativas, órgãos de segurança, diretorias executivas, redes de mídia ou ordens religiosas. Quando você se pronuncia, as pessoas acatam, portas se abrem e trâmites burocráticos são acelerados a seu favor.\n\nInfluência impõe responsabilidade pública constante: escândalos ou abusos desmedidos atraem repercussão devastadora e podem degradar sua pontuação.",
+      "system": "Passively grants social deference without rolling. For active manipulation or leverage, roll an appropriate Social or Mental Trait + Influence (e.g. Manipulation + Influence to bend a politician, Perception + Influence to track confidential police memos). Ratings above 5 reflect global geopolitical power.",
+      "system_pt": "Concede deferência social passiva dispensando testes para favores rotineiros. Para ações ativas, teste Atributo Social ou Mental adequado + Influência (ex: Manipulação + Influência para dobrar burocratas; Percepção + Influência para interceptar relatórios confidenciais). Pontuações de 6 a 10 refletem projeção geopolítica global.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No influence to speak of.",
+          "description_pt": "Nenhuma influência expressiva no mundo Adormecido."
+        },
+        {
+          "dots": 1,
+          "description": "Folks within your profession recognize you.",
+          "description_pt": "Reconhecido e ouvido dentro de sua categoria profissional imediata."
+        },
+        {
+          "dots": 2,
+          "description": "You’ve got various associates and a small degree of clout.",
+          "description_pt": "Contatos em cargos-chave e autoridade respeitada em nível comunitário."
+        },
+        {
+          "dots": 3,
+          "description": "People within your field respect your abilities.",
+          "description_pt": "Autoridade sólida e peso institucional respeitado em sua área de atuação."
+        },
+        {
+          "dots": 4,
+          "description": "You’ve got quite a bit of clout across the city or region.",
+          "description_pt": "Grande peso político, institucional ou corporativo regional."
+        },
+        {
+          "dots": 5,
+          "description": "You’re a force to be reckoned with state-wide or provincially.",
+          "description_pt": "Uma força pública formidável; suas decisões alteram políticas estaduais ou regionais."
+        },
+        {
+          "dots": 6,
+          "description": "You command influence within your nation’s political affairs.",
+          "description_pt": "Influência direta sobre os rumos políticos e econômicos nacionais."
+        },
+        {
+          "dots": 7,
+          "description": "Your actions influence various allied nations.",
+          "description_pt": "Suas decisões moldam acordos e posturas diplomáticas entre nações aliadas."
+        },
+        {
+          "dots": 8,
+          "description": "You command vast respect across whole cultural regions.",
+          "description_pt": "Liderança reconhecida sobre regiões continentais e culturais inteiras."
+        },
+        {
+          "dots": 9,
+          "description": "Your dominance extends across whole socio-political spheres (EU, UN, etc.).",
+          "description_pt": "Domínio e voz ativa em megablocos sociopolíticos globais (ONU, União Europeia, etc.)."
+        },
+        {
+          "dots": 10,
+          "description": "Your influence extends across the mortal world, with some respect granted even in the Otherworlds.",
+          "description_pt": "Influência hegemônica por todo o globo terrestre, reverenciada até nos Outros Mundos."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "legend",
+      "name": "Legend",
+      "name_pt": "Lenda",
+      "technocracy_name": null,
+      "technocracy_name_pt": null,
+      "page_ref": "M20, p. 312",
+      "max_dots": 5,
+      "description": "Humanity’s collective imagination focuses on you. While you might not be the literal reincarnation of King Arthur, Joan of Arc, or Jimi Hendrix, you evoke their archetype on a primal level. As a result, you function as a walking Node, able to restore Quintessence by embodying that mythic persona.\n\nOnce per story, you can roll your Legend rating to refresh Quintessence or infuse items linked to your deeds with Tass. Companions who actively partake in your mythic journey can also tap into this walking wellspring.",
+      "description_pt": "A imaginação coletiva da humanidade converge sobre você. Mesmo que não seja a reencarnação literal do Rei Arthur, Joana d’Arc ou Jimi Hendrix, você evoca a força desses arquétipos em nível primordial. Como resultado, você opera como um Nó Ambulante, capaz de renovar Quintessência ao incorporar essa persona mítica.\n\nUma vez por história, você pode rolar sua Lenda para reabastecer Quintessência ou imbuir Tass em objetos ligados aos seus atos lendários. Aliados que participem ativamente do seu mito também podem extrair energia dessa fonte ambulante.",
+      "system": "Once per story, roll Legend (difficulty 6 for famous archetypes, up to 9 for obscure ones). Each success restores 1 point of Quintessence into your pool. You can also imbue items connected to your legend with Tass (up to your Legend rating total) once per story.",
+      "system_pt": "Uma vez por história, teste Lenda (dificuldade 6 para arquétipos célebres, até 9 para lendas obscuras). Cada sucesso restaura 1 ponto de Quintessência em sua reserva. Você também pode consagrar itens ligados à sua lenda com pontos de Tass (igual à pontuação total de Lenda) uma vez por história.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No legendary connection.",
+          "description_pt": "Nenhuma ressonância lendária ou arquetípica."
+        },
+        {
+          "dots": 1,
+          "description": "An obscure legend (Clever Gretel, Abou Hassan) or minor pop culture figure (Grumpy Cat).",
+          "description_pt": "Lenda obscura ou ícone menor da cultura pop (Gretel Esperta, meme viral de época)."
+        },
+        {
+          "dots": 2,
+          "description": "A minor legend (Sinbad the Sailor, Don Quixote) or significant pop culture figure (Janis Joplin).",
+          "description_pt": "Lenda secundária ou figura marcante da cultura pop (Simbad, Dom Quixote, Janis Joplin)."
+        },
+        {
+          "dots": 3,
+          "description": "A famous legend (Guy Fawkes, Shaka Zulu) or pop culture icon (Batman, Elvis).",
+          "description_pt": "Lenda amplamente famosa ou ícone histórico consagrado (Guy Fawkes, Shaka Zulu, Batman, Elvis)."
+        },
+        {
+          "dots": 4,
+          "description": "A major legend (George Washington, Geronimo, Red Riding Hood).",
+          "description_pt": "Grande lenda mitológica ou histórica venerada (George Washington, Gerônimo, Chapeuzinho Vermelho)."
+        },
+        {
+          "dots": 5,
+          "description": "A universally popular legend (Cinderella, King Arthur, the Mona Lisa).",
+          "description_pt": "Lenda arquetípica de apelo universal (Cinderela, Rei Arthur, Monalisa)."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "library",
+      "name": "Library",
+      "name_pt": "Biblioteca",
+      "technocracy_name": "Data Retrieval / Archive",
+      "technocracy_name_pt": "Bancos de Dados / Arquivo",
+      "page_ref": "M20, pp. 312-313",
+      "max_dots": 10,
+      "description": "Even in the digital era, specialized knowledge, ancient grimoires, proprietary blueprints, and occult codices cannot simply be found on a search engine. This Background reflects access to a multimedia repository of specialized lore tailored to the mage’s pursuits.\n\nLibraries allow research to reduce training times for Abilities and Spheres. Cabals can pool their Library Background: the shared rating equals the highest contributor’s rating plus 1 dot for each additional contributing member.",
+      "description_pt": "Mesmo na era da internet rápida, conhecimentos esotéricos ancestrais, manuais de hipertecnologia restrita e grimórios cifrados não estão disponíveis em mecanismos de busca públicos. Este Antecedente representa um acervo multimídia de registros vitais para os estudos do mago.\n\nBibliotecas permitem pesquisas aprofundadas para reduzir tempos de aprendizado de Habilidades e Esferas. Membros de uma Cabala podem agrupar suas Bibliotecas: a pontuação coletiva é igual à do membro com maior valor +1 bolinha por integrante adicional contribuinte.",
+      "system": "Roll an appropriate Mental Trait + Library to research unknown phenomena, translate dead tongues, or prepare for learning new Abilities and Spheres. Can be pooled within a Cabal/Amalgam. Ratings 6-10 represent institutional national archives and classified intelligence vaults.",
+      "system_pt": "Role Atributo Mental adequado + Biblioteca para pesquisar fenômenos desconhecidos, decifrar códigos ou reduzir tempo de aprendizado de Habilidades e Esferas. Pode ser agrupado na Cabala (maior valor + 1 por membro). Pontuações de 6 a 10 refletem arquivos confidenciais de segurança nacional e inteligência global.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "Cosmo won’t help you learn Spheres.",
+          "description_pt": "Revistas comuns e fóruns superficiais não ensinam Esferas ou Tecnologias Avançadas."
+        },
+        {
+          "dots": 1,
+          "description": "You’ve got a few New Age paperbacks or introductory technical manuals.",
+          "description_pt": "Poucos livros esotéricos de bolso ou manuais técnicos introdutórios."
+        },
+        {
+          "dots": 2,
+          "description": "Lots of fiction, conspiracy theories, little deep substance.",
+          "description_pt": "Muita ficção, teorias conspiratórias e pouca substância hermética real."
+        },
+        {
+          "dots": 3,
+          "description": "There’s useful research material when you take time to dig for it.",
+          "description_pt": "Acervo com materiais substanciais e úteis mediante pesquisa paciente."
+        },
+        {
+          "dots": 4,
+          "description": "Your collection of arcane or scientific data is respectable.",
+          "description_pt": "Coleção respeitável de tratados arcanos, patentes raras e registros históricos."
+        },
+        {
+          "dots": 5,
+          "description": "Decent collection of diverse lore, ancient codices, or proprietary algorithms.",
+          "description_pt": "Acervo de primeira linha com grimórios raros, manuscritos preservados e bases de dados restritas."
+        },
+        {
+          "dots": 6,
+          "description": "You enjoy a huge personal archive or private server farm.",
+          "description_pt": "Acervo monumental privativo ou datacenter com milhares de arquivos sigilosos."
+        },
+        {
+          "dots": 7,
+          "description": "Your database features extensive written, recorded, and virtual information.",
+          "description_pt": "Base massiva combinando códices históricos, gravações originais e redes digitais criptografadas."
+        },
+        {
+          "dots": 8,
+          "description": "You’ve got full access to a national archive or elite university collection.",
+          "description_pt": "Acesso irrestrito a bibliotecas nacionais e acervos acadêmicos protegidos."
+        },
+        {
+          "dots": 9,
+          "description": "Unrestricted access to personal, national, and classified government databases.",
+          "description_pt": "Acesso total a redes governamentais sigilosas, arquivos de inteligência e laboratórios de ponta."
+        },
+        {
+          "dots": 10,
+          "description": "Given enough time, you can access almost anything ever recorded by humanity.",
+          "description_pt": "Acesso a praticamente qualquer conhecimento registrado e preservado na história humana."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "mentor",
+      "name": "Mentor",
+      "name_pt": "Mentor",
+      "technocracy_name": "Superior / Supervisor",
+      "technocracy_name_pt": "Superior / Supervisor",
+      "page_ref": "M20, p. 313",
+      "max_dots": 5,
+      "description": "An elder mage or senior Technocrat has taken a personal interest in your career, offering training, philosophical guidance, and occasional intervention. This Background reflects how helpful your mentor is to you, rather than just raw power.\n\nMentors demand respect, loyalty, and service in return. A student’s failures reflect upon their mentor, and an alienated mentor can become a formidable antagonist.",
+      "description_pt": "Um mago ancião ou oficial sênior da Tecnocracia tomou interesse pessoal pelo seu desenvolvimento, concedendo instrução nas Artes ou hiperciências, aconselhamento estratégico e intervenções em crises graves. Esta pontuação reflete o quão prestativo e acessível o mentor é para você.\n\nMentores exigem respeito, lealdade e tarefas em contrapartida. As gafes do aprendiz mancham o prestígio do tutor, e um mestre alienado ou traído pode se transformar em um adversário temível.",
+      "system": "Mentors can teach Spheres, Abilities, and esoteric lores, pull political strings, or provide resources during pivotal moments. The Storyteller determines the mentor’s true motivations and degree of direct involvement.",
+      "system_pt": "Mentores podem ensinar Esferas, Habilidades e segredos herméticos, intervir em tribunais políticos ou prover recursos e refúgio em momentos decisivos. O Narrador conduz o mentor e determina suas verdadeiras intenções.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No mentor worth mentioning.",
+          "description_pt": "Nenhum mentor ou tutor digno de nota."
+        },
+        {
+          "dots": 1,
+          "description": "An unreliable or inexperienced mentor.",
+          "description_pt": "Um mentor inexperiente, relapso ou com pouca influência na ordem."
+        },
+        {
+          "dots": 2,
+          "description": "A helpful yet eccentric guide.",
+          "description_pt": "Um guia atencioso, porém excêntrico e com métodos de ensino peculiares."
+        },
+        {
+          "dots": 3,
+          "description": "A good and noteworthy teacher.",
+          "description_pt": "Um mestre experiente e respeitado, comprometido com seu treinamento."
+        },
+        {
+          "dots": 4,
+          "description": "A wise, helpful, and respected elder.",
+          "description_pt": "Um ancião ou supervisor sênior de grande prestígio e vasta sabedoria."
+        },
+        {
+          "dots": 5,
+          "description": "A powerful elder with serious investments in your success.",
+          "description_pt": "Um arquimago ou diretor de alto escalão com forte investimento pessoal em sua vitória."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "node",
+      "name": "Node",
+      "name_pt": "Nó",
+      "technocracy_name": "Node / Power Plant",
+      "technocracy_name_pt": "Nó / Usina Energética",
+      "page_ref": "M20, pp. 313-314",
+      "max_dots": 10,
+      "description": "In a world starved of magick, you have access to a rare sanctuary: a Node where you can meditate to restore Quintessence or harvest materialized Tass. Nodes carry strong Resonance matching the forces that formed them (blood and ash from battle sites, pristine waters in secluded springs, humming dynamos in high-tech labs).\n\nNodes are prime targets for rival mages, werewolves (who view them as caerns), and Technocratic sanitization teams. Cabals can pool this Background to secure and fortify larger Nodes.",
+      "description_pt": "Em um mundo carente de mágica, você controla o acesso a um refúgio precioso: um Nó de poder onde é possível meditar para reabastecer Quintessência ou colher Tass materializado. Os Nós manifestam forte Ressonância originada dos eventos que os geraram (cinzas e sangue em campos de batalha, águas límpidas em bosques sagrados, dínamos zunindo em laboratórios de ponta).\n\nNós são alvos cobiçados por magos rivais, lobisomens (que os consideram caerns sagrados de Gaia) e equipes tecnocráticas de contenção. A Cabala pode agrupar pontos deste Antecedente para sustentar e blindar instalações maiores.",
+      "system": "Produces Quintessence and Tass each week. Standard guideline: 2 points of energy per dot per week (half free ambient Quintessence for meditation, half harvested Tass). Can be pooled among cabal members. Ratings 6-10 indicate legendary font sites of regional or continental impact.",
+      "system_pt": "Gera Quintessência ambiente e Tass semanalmente. Diretriz padrão: 2 pontos de energia por bolinha por semana (metade em Quintessência livre para meditação e metade colhida como Tass). Pode ser agrupado na Cabala. Pontuações de 6 a 10 representam pontos de força lendários de impacto continental.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No place of power.",
+          "description_pt": "Nenhum santuário ou ponto de poder sob seu domínio."
+        },
+        {
+          "dots": 1,
+          "description": "A tiny site of minor significance. (Level 1 caern).",
+          "description_pt": "Um local diminuto de importância modesta. (Caern Nível 1)."
+        },
+        {
+          "dots": 2,
+          "description": "A small trickle of metaphysical energy. (Level 1 caern).",
+          "description_pt": "Pequeno gotejamento constante de energia metafísica. (Caern Nível 1)."
+        },
+        {
+          "dots": 3,
+          "description": "A steady flow of Quintessence. (Level 2 caern).",
+          "description_pt": "Fluxo estável e confiável de Quintessência. (Caern Nível 2)."
+        },
+        {
+          "dots": 4,
+          "description": "A pulse of energy, plus generous quantities of materialized Tass. (Level 2 caern).",
+          "description_pt": "Pulso vibrante de energia e produção generosa de Tass físico. (Caern Nível 2)."
+        },
+        {
+          "dots": 5,
+          "description": "A powerful wellspring of energetic abundance. (Level 3 caern).",
+          "description_pt": "Uma nascente caudalosa de tremenda fartura energética. (Caern Nível 3)."
+        },
+        {
+          "dots": 6,
+          "description": "A focused Node, with both Tass and ambient energy refined by Prime. (Level 3 caern).",
+          "description_pt": "Nó refinado por mágica de Primórdio ou usina hipertecnológica avançada. (Caern Nível 3)."
+        },
+        {
+          "dots": 7,
+          "description": "A considerable force of metaphysical power. (Level 4 caern).",
+          "description_pt": "Vórtice de poder metafísico monumental com alta emanação mística. (Caern Nível 4)."
+        },
+        {
+          "dots": 8,
+          "description": "A rare and wondrous place, brimming with incarnate Prime Force. (Level 4 caern).",
+          "description_pt": "Santuário sagrado raríssimo transbordando Força Primordial pura. (Caern Nível 4)."
+        },
+        {
+          "dots": 9,
+          "description": "One of the grandest sacred spots, or most potent refineries, on Earth. (Level 5 caern).",
+          "description_pt": "Um dos maiores santuários ou refinarias energéticas mais potentes do globo. (Caern Nível 5)."
+        },
+        {
+          "dots": 10,
+          "description": "One of the rarest sites on Earth; a key battleground of the Ascension War. (Level 5 caern).",
+          "description_pt": "Local lendário de poder inestimável; campo de batalha histórico da Guerra da Ascensão. (Caern Nível 5)."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "past_lives",
+      "name": "Past Lives",
+      "name_pt": "Vidas Passadas",
+      "technocracy_name": null,
+      "technocracy_name_pt": null,
+      "page_ref": "M20, p. 314",
+      "max_dots": 5,
+      "description": "Reincarnation allows certain Awakened souls to tap into ancient memories across lifetimes. Through meditation or spontaneous insight, experiences from bygone eras surface to assist your current dilemma.\n\nHowever, a botch on Past Lives plunges the character into past-life trauma: memories overwhelm the present conscious mind, paralyzing the character at a crucial juncture.",
+      "description_pt": "A reencarnação permite que certas almas Despertas acessem memórias e perícias acumuladas ao longo de sucessivas vidas passadas. Por meio de meditação ou intuições repentinas, lembranças de eras remotas emergem para solucionar dilemas do presente.\n\nContudo, uma falha crítica em Vidas Passadas submerge o personagem em traumas pretéritos: a sobrecarga de memórias de mortes ou tragédias antigas paralisa a consciência no momento crítico.",
+      "system": "Once per session, roll Past Lives (difficulty 8). Each success grants one bonus die to use on an upcoming roll with another Ability, or grants temporary access to an Ability the character does not normally possess.",
+      "system_pt": "Uma vez por sessão, teste Vidas Passadas (dificuldade 8). Cada sucesso concede um dado bônus para ser utilizado em um teste iminente de outra Habilidade, ou confere uma parada temporária em uma Habilidade que o personagem não possui.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No past lives to speak of.",
+          "description_pt": "Nenhuma recordação ou conexão com encarnações pregressas."
+        },
+        {
+          "dots": 1,
+          "description": "Faint traces of some previous incarnation.",
+          "description_pt": "Vestígios tênues e esporádicos de uma vida anterior."
+        },
+        {
+          "dots": 2,
+          "description": "Frequent cases of déjà vu.",
+          "description_pt": "Casos frequentes de déjà vu e intuição familiar em situações históricas."
+        },
+        {
+          "dots": 3,
+          "description": "Definite memories of other lives.",
+          "description_pt": "Memórias claras e discerníveis de vivências e perícias do passado."
+        },
+        {
+          "dots": 4,
+          "description": "Clear recall of previous experiences and distinct historical lives.",
+          "description_pt": "Recordação nítida e voluntária de múltiplos conhecimentos e identidades prévias."
+        },
+        {
+          "dots": 5,
+          "description": "Which life is this one again? Instant access to centuries of reincarnated lore.",
+          "description_pt": "Passado e presente se fundem; acesso imediato a séculos de sabedoria reencarnada."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "patron",
+      "name": "Patron",
+      "name_pt": "Patrono",
+      "technocracy_name": "Shadow Benefactor",
+      "technocracy_name_pt": "Benfeitor nas Sombras",
+      "page_ref": "M20, pp. 314-315",
+      "max_dots": 5,
+      "description": "In the high-stakes chess match of the Ascension factions, powerful benefactors operate from the shadows. One of those players looks out for you: orders get reversed, warrants disappear, funding materializes, and warnings arrive anonymously.\n\nUnlike a Mentor, you rarely know who your Patron is or what their ultimate agenda might be. Someday, they will call in their markers, demanding a favor that cannot be refused.",
+      "description_pt": "No jogo de xadrez de alta espionagem das facções da Ascensão, mestres ocultos movem peças nas sombras. Um desses jogadores decidiu zelar pelo seu destino: ordens hostis são revogadas, mandados de prisão desaparecem, orçamentos surgem do nada e alertas chegam anonimamente.\n\nDiferente de um Mentor, você raramente sabe a verdadeira identidade do seu Patrono ou seus planos finais. Algum dia, contudo, as dívidas serão cobradas na forma de favores que não poderão ser recusados.",
+      "system": "A Storyteller-managed asset. Grants sudden mysterious reprieves, classified intelligence drops, or resource infusions when your character faces dire political or operational dead-ends. Divination magick cannot pierce the Patron's identity.",
+      "system_pt": "Recurso conduzido pelo Narrador. Proporciona anistias misteriosas, pistas confidenciais e injeções de recursos quando o personagem atinge becos sem saída políticos. Mágicas de Adivinhação não conseguem revelar a identidade do Patrono.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No special benefactors.",
+          "description_pt": "Nenhum protetor ou patrono nas sombras."
+        },
+        {
+          "dots": 1,
+          "description": "A shadowy someone pulling occasional strings.",
+          "description_pt": "Uma figura enigmática que mexe pauzinhos discretos em seu favor de vez em quando."
+        },
+        {
+          "dots": 2,
+          "description": "A helpful benefactor who chooses to remain concealed.",
+          "description_pt": "Um benfeitor generoso que prefere permanecer no anonimato."
+        },
+        {
+          "dots": 3,
+          "description": "A superior or elder who helps you for mysterious reasons.",
+          "description_pt": "Um superior ou ancião influente que intervém a seu favor por razões próprias e ocultas."
+        },
+        {
+          "dots": 4,
+          "description": "A powerful party who appears to favor your faction.",
+          "description_pt": "Uma facção de alto escalão ou autoridade de grande calibre que zela pelo seu sucesso."
+        },
+        {
+          "dots": 5,
+          "description": "A high-ranking mage or Technocrat dedicated to your well-being (for now).",
+          "description_pt": "Um arquimago ou conselheiro de topo ativamente comprometido com sua proteção (ao menos por ora)."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "rank",
+      "name": "Rank",
+      "name_pt": "Posto",
+      "technocracy_name": "Clearance / Officer Rank",
+      "technocracy_name_pt": "Patente / Nível de Acesso",
+      "page_ref": "M20, p. 315",
+      "max_dots": 5,
+      "description": "You hold a title of distinction within mortal institutions: a military commission, corporate executive suite, ecclesiastical office, or government agency. Your rank grants deference, command over subordinates, and institutional access.\n\nHowever, Rank binds you to duty: a general cannot abandon their post on a whim. Furthermore, this status applies to Sleeper institutions; other mages may respect your secular power, but it does not equate to Awakened prestige.",
+      "description_pt": "Você ocupa um posto de distinção e autoridade em instituições mundanas: patente militar, diretoria corporativa, liderança eclesiástica ou cargo governamental. Sua patente confere respeito, comando sobre subordinados e trânsito em círculos de poder.\n\nContudo, o Posto impõe responsabilidades severas: generais e juízes não podem sumir em aventuras sem prestar contas. Além disso, reflete hierarquia no mundo Adormecido; magos livres respeitam sua influência secular, mas isso não equivale a status entre os Despertos.",
+      "system": "Commands Influence equal to Rank among people under your dominion (or half Rank among outsiders). When acting in official capacity, you can draw upon Resources equal to half your Rank (or as Storyteller permits as an expense account perk).",
+      "system_pt": "Concede Influência igual à Patente sobre subordinados de sua jurisdição (ou metade da Patente sobre pessoas de fora). Em funções oficiais, permite acessar Recursos equivalentes à metade do seu Posto como despesas corporativas ou governamentais.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No rank worth noticing.",
+          "description_pt": "Sem patente ou cargo de autoridade formal relevante."
+        },
+        {
+          "dots": 1,
+          "description": "Minor rank: Army sergeant, squire, deacon, junior corporate manager.",
+          "description_pt": "Posto inicial: Sargento do exército, diácono, escudeiro, supervisor corporativo júnior."
+        },
+        {
+          "dots": 2,
+          "description": "Low rank: Junior officer, knight, prior, city councilor, professor.",
+          "description_pt": "Posto subordinado: Tenente, cavaleiro, prior, vereador, professor universitário."
+        },
+        {
+          "dots": 3,
+          "description": "Medium rank: Captain, baron, abbot, mayor, corporate middle-management.",
+          "description_pt": "Posto intermediário: Capitão, barão, abade, prefeito, gerente executivo sênior."
+        },
+        {
+          "dots": 4,
+          "description": "High rank: Major, count, bishop, governor, corporate department head.",
+          "description_pt": "Posto elevado: Major/coronel, conde, bispo, governador, diretor regional corporativo."
+        },
+        {
+          "dots": 5,
+          "description": "Command staff: General, prince, archbishop, senator, corporate VP, dean.",
+          "description_pt": "Comando supremo: General, príncipe/duque, arcebispo, senador, vice-presidente executivo."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": null
+    },
+    {
+      "id": "requisitions",
+      "name": "Requisitions",
+      "name_pt": "Requisições",
+      "technocracy_name": "Requisitions (Technocracy Exclusive)",
+      "technocracy_name_pt": "Requisições (Exclusivo Tecnocracia)",
+      "page_ref": "M20, pp. 315-316",
+      "max_dots": 10,
+      "description": "One of the key reasons for Technocratic supremacy is the epic arsenal and logistical resources available to loyal operatives. With this Background – available ONLY to Technocrats in good standing – you can formally request advanced hypertech Devices, black-budget vehicles, weapons, and tactical gear for specific missions.\n\nAt mission’s end, borrowed equipment must be returned in good condition. If Q Division has to retrieve their gear themselves, your clearance is revoked. Damaged or lost gear penalizes your rating, while flawless execution may earn permanent promotions. Amalgams can pool Requisitions together.",
+      "description_pt": "Uma das principais razões da hegemonia da Tecnocracia é o monumental arsenal logístico e tecnológico disponível para seus agentes leais. Com este Antecedente — exclusivo para Tecnocratas com boa reputação na Ordem — você pode requisitar formalmente Dispositivos hipertecnológicos, veículos táticos, protótipos e armamentos avançados para missões oficiais.\n\nAo término da missão, o equipamento emprestado deve ser devolvido em perfeito estado. Se a Divisão Q tiver que resgatar os aparelhos, sua autorização será suspensa. Equipamentos perdidos ou entregues a Deviantes da Realidade rebaixam sua pontuação, enquanto vitórias impecáveis rendem condecorações. Amálgamas podem agrupar Requisições.",
+      "system": "Roll Requisitions as a dice pool. The difficulty is determined by the agent’s loyalty standing on the Requisitions Chart (Difficulty 5 for Total Loyalty down to 9 for Doubtful Loyalty). Each success grants 5 Background points to spend on mission Devices. Three or more successes provide all necessary mundane tech without cost. Borrowed gear must be returned after the assignment.",
+      "system_pt": "Role a pontuação de Requisições como parada de dados. A dificuldade é definida pelo nível de Lealdade do agente na Tabela de Requisições (Dificuldade 5 para Lealdade Total até 9 para Lealdade Duvidosa). Cada sucesso concede 5 pontos de Antecedente para aquisição de Dispositivos para a missão. 3 ou mais sucessos concedem tecnologia mundana irrestrita. Todo equipamento deve ser devolvido ao final da missão.",
+      "ratings": [
+        {
+          "dots": 0,
+          "description": "No dice: “Get out of my office.”",
+          "description_pt": "Nenhum dado: “Saia da minha sala imediatamente.”"
+        },
+        {
+          "dots": 1,
+          "description": "One die: They don’t take you seriously.",
+          "description_pt": "1 dado: A intendência e os superiores não levam você muito a sério."
+        },
+        {
+          "dots": 2,
+          "description": "Two dice: “There might be something left over here for you…”",
+          "description_pt": "2 dados: “Talvez haja alguma sobra de equipamento nos estoques para você…”"
+        },
+        {
+          "dots": 3,
+          "description": "Three dice: You’ve earned their trust.",
+          "description_pt": "3 dados: Você conquistou a confiança básica da intendência da União."
+        },
+        {
+          "dots": 4,
+          "description": "Four dice: Q Division likes you.",
+          "description_pt": "4 dados: A Divisão Q e os armeiros aprovam seus pedidos com rapidez."
+        },
+        {
+          "dots": 5,
+          "description": "Five dice: You’re a trusted and valuable operative.",
+          "description_pt": "5 dados: Você é um operativo valioso, respeitado e de total confiança."
+        },
+        {
+          "dots": 6,
+          "description": "Six dice: A squad of proven agents.",
+          "description_pt": "6 dados: Liberação de esquadrões de agentes comprovados e armamento tático de ponta."
+        },
+        {
+          "dots": 7,
+          "description": "Seven dice: A trusted team of loyal ops.",
+          "description_pt": "7 dados: Equipe de elite de operativos leais e veículos especializados à disposição."
+        },
+        {
+          "dots": 8,
+          "description": "Eight dice: A team of specialists.",
+          "description_pt": "8 dados: Equipe de especialistas de vanguarda e protótipos avançados de laboratório."
+        },
+        {
+          "dots": 9,
+          "description": "Nine dice: An elite strike force with the utmost confidence from above.",
+          "description_pt": "9 dados: Força de ataque de elite autorizada com máxima confiança do alto comando."
+        },
+        {
+          "dots": 10,
+          "description": "Ten dice: Maximum clearance, trust, and favor from above.",
+          "description_pt": "10 dados: Credencial máxima, acesso a tecnologia experimental e apoio ilimitado da diretoria."
+        }
+      ],
+      "backup_teams": null,
+      "chantry_pools": null,
+      "requisitions_chart": [
+        {
+          "relationship": "Doubtful Loyalty",
+          "relationship_pt": "Lealdade Duvidosa",
+          "difficulty": 9
+        },
+        {
+          "relationship": "Questionable Loyalty",
+          "relationship_pt": "Lealdade Questionável",
+          "difficulty": 8
+        },
+        {
+          "relationship": "Assumed Loyalty",
+          "relationship_pt": "Lealdade Presumida",
+          "difficulty": 7
+        },
+        {
+          "relationship": "Assured Loyalty",
+          "relationship_pt": "Lealdade Assegurada",
+          "difficulty": 6
+        },
+        {
+          "relationship": "Total Loyalty",
+          "relationship_pt": "Lealdade Total",
+          "difficulty": 5
+        }
+      ]
+    }
+  ]
+}

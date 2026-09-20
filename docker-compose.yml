@@ -1,4 +1,4 @@
-﻿services:
+services:
   mta_sheet:
     build:
       context: .
@@ -7,7 +7,8 @@
     container_name: mta_sheet_app
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      # Porta 8080 liberada no host para acesso local direto via HTTP (http://localhost:8080)
+      - "8080:3000"
     environment:
       - DATABASE_URL=sqlite:/app/data/mta_sheet.db?mode=rwc
       - LEPTOS_SITE_ADDR=0.0.0.0:3000
@@ -15,6 +16,7 @@
     volumes:
       - mta_data:/app/data
       - mta_uploads:/app/uploads
+      - mta_logs:/app/logs
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/"]
       interval: 30s
@@ -22,8 +24,31 @@
       retries: 3
       start_period: 10s
 
+  caddy:
+    image: caddy:alpine
+    container_name: mta_sheet_caddy
+    restart: unless-stopped
+    ports:
+      # Portas padrão para HTTPS e redirecionamento HTTP da internet
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - mta_sheet
+
 volumes:
   mta_data:
     name: mta_sheet_data
   mta_uploads:
     name: mta_sheet_uploads
+  mta_logs:
+    name: mta_sheet_logs
+  caddy_data:
+    name: mta_sheet_caddy_data
+  caddy_config:
+    name: mta_sheet_caddy_config

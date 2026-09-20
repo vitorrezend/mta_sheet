@@ -474,7 +474,7 @@ fn test_do_special_techniques_stats_and_lookups() {
     let kiai_item = kiai.to_weapon_item(Language::PtBr);
     assert_eq!(kiai_item.name, "Kiaijutsu (Grito de Ferro)");
     assert_eq!(kiai_item.diff, "7 / Vontade + 3 / 8");
-    assert_eq!(kiai_item.range, "Corpo a corpo");
+    assert_eq!(kiai_item.range, "C/C");
 
     let kiai_item_en = kiai.to_weapon_item(Language::EnUs);
     assert_eq!(kiai_item_en.name, "Kiaijutsu (Iron Shout)");
@@ -582,4 +582,35 @@ fn test_eight_limbs_and_do_rules_canonical_articles() {
     assert_eq!(hardened.title(Language::PtBr), "Defesa Endurecida");
     assert!(hardened.rule(Language::PtBr).contains("mãos nuas"));
     assert!(hardened.rule(Language::EnUs).contains("bare palms"));
+}
+
+#[test]
+fn test_find_combat_entity_quick_index() {
+    use mta_sheet::compendium::weapons::{find_combat_entity, CombatEntity};
+
+    // 1. Armas exatas e parciais
+    assert!(matches!(find_combat_entity("Katana"), Some(CombatEntity::Weapon(w)) if w.id == "katana"));
+    assert!(matches!(find_combat_entity("Espada Longa"), Some(CombatEntity::Weapon(w)) if w.id == "sword"));
+    assert!(matches!(find_combat_entity("Espada Longa +1"), Some(CombatEntity::Weapon(w)) if w.id == "sword"));
+    assert!(matches!(find_combat_entity("Pistola Pesada (Glock 9mm)"), Some(CombatEntity::Weapon(w)) if w.id == "pistol_hvy"));
+    assert!(matches!(find_combat_entity("Revólver Pesado .44"), Some(CombatEntity::Weapon(w)) if w.id == "revolver_hvy"));
+
+    // 2. Manobras de combate gerais e marciais
+    assert!(matches!(find_combat_entity("Soco"), Some(CombatEntity::Maneuver(m)) if m.id == "punch"));
+    assert!(matches!(find_combat_entity("Punch"), Some(CombatEntity::Maneuver(m)) if m.id == "punch"));
+    assert!(matches!(find_combat_entity("Chute"), Some(CombatEntity::Maneuver(m)) if m.id == "kick"));
+    assert!(matches!(find_combat_entity("Desarmar"), Some(CombatEntity::Maneuver(m)) if m.id == "disarm"));
+    assert!(matches!(find_combat_entity("Agarrar"), Some(CombatEntity::Maneuver(m)) if m.id == "grapple"));
+    assert!(matches!(find_combat_entity("Arremesso Furacão"), Some(CombatEntity::Maneuver(m)) if m.id == "hurricane_throw"));
+    assert!(matches!(find_combat_entity("Aparar Flechas"), Some(CombatEntity::Maneuver(m)) if m.id == "arrow_cutting"));
+
+    // 3. Técnicas especiais de Dô com parênteses geradas pelo sistema
+    assert!(matches!(find_combat_entity("Kiaijutsu (Grito de Ferro)"), Some(CombatEntity::Maneuver(m)) if m.id == "kiaijutsu"));
+    assert!(matches!(find_combat_entity("Kiaijutsu (Iron Shout)"), Some(CombatEntity::Maneuver(m)) if m.id == "kiaijutsu"));
+    assert!(matches!(find_combat_entity("Desabrochar da Flor de Ameixeira"), Some(CombatEntity::Maneuver(m)) if m.id == "plum_flower_blossom"));
+
+    // 4. Casos vazios ou inválidos
+    assert!(find_combat_entity("").is_none());
+    assert!(find_combat_entity("   ").is_none());
+    assert!(find_combat_entity("item_totalmente_inexistente_12345").is_none());
 }

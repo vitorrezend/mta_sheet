@@ -510,6 +510,9 @@ mod tests {
             is_owner: true,
             updated_at: "2026-08-21 17:00:00".to_string(),
             folder_id: None,
+            author_username: Some("constantine".to_string()),
+            likes_count: 0,
+            is_liked: false,
         };
 
         let json = serde_json::to_string(&summary).unwrap();
@@ -527,6 +530,7 @@ mod tests {
         assert_eq!(recovered.spheres, vec![("Tempo".to_string(), 3), ("Mente".to_string(), 2)]);
         assert!(recovered.is_public);
         assert!(recovered.is_owner);
+        assert_eq!(recovered.author_username, Some("constantine".to_string()));
 
         // Backward compatibility: old JSON without the new fields
         let legacy_json = r#"{"id":"legacy_1","name":"Mago Antigo","updated_at":"2026-08-20"}"#;

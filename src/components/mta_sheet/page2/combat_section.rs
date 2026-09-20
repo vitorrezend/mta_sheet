@@ -3,6 +3,29 @@ use crate::components::{Callback, StableTextArea, StableTextInput};
 use crate::state::{CharacterData, WeaponItem};
 use crate::compendium::weapons::{WeaponDefinition, ALL_RULE_NOTES};
 
+fn translate_damage_str(val: &str, lang: crate::i18n::Language) -> String {
+    let mut s = val.to_string();
+    match lang {
+        crate::i18n::Language::EnUs => {
+            if s.contains("Força") { s = s.replace("Força", "Str"); }
+            if s.contains("força") { s = s.replace("força", "str"); }
+            if s.contains("Vontade") { s = s.replace("Vontade", "Willpower"); }
+            if s.contains("Especial") { s = s.replace("Especial", "Special"); }
+            if s.contains("Nenhum") { s = s.replace("Nenhum", "None"); }
+            if s.contains("/C") { s = s.replace("/C", "/B"); }
+        }
+        crate::i18n::Language::PtBr => {
+            if s.contains("Str") { s = s.replace("Str", "Força"); }
+            if s.contains("str") { s = s.replace("str", "força"); }
+            if s.contains("Willpower") { s = s.replace("Willpower", "Vontade"); }
+            if s.contains("Special") { s = s.replace("Special", "Especial"); }
+            if s.contains("None") { s = s.replace("None", "Nenhum"); }
+            if s.contains("/B") { s = s.replace("/B", "/C"); }
+        }
+    }
+    s
+}
+
 #[component]
 pub fn CombatSection() -> impl IntoView {
     let data = use_context::<ReadSignal<CharacterData>>()
@@ -88,17 +111,109 @@ pub fn CombatSection() -> impl IntoView {
     let compendium_ctx_for_rows = compendium_ctx.clone();
     let render_weapon_row = move |idx: usize| {
         let compendium_ctx_for_click = compendium_ctx_for_rows.clone();
-        let name_val = Signal::derive(move || data.with(|d| d.weapons.get(idx).map(|w| w.name.clone()).unwrap_or_default()));
-        let diff_val = Signal::derive(move || data.with(|d| d.weapons.get(idx).map(|w| w.diff.clone()).unwrap_or_default()));
-        let dmg_val = Signal::derive(move || data.with(|d| d.weapons.get(idx).map(|w| w.damage.clone()).unwrap_or_default()));
-        let range_val = Signal::derive(move || data.with(|d| d.weapons.get(idx).map(|w| w.range.clone()).unwrap_or_default()));
+        let name_val = Signal::derive(move || {
+            let l = lang();
+            data.with(|d| {
+                if let Some(w) = d.weapons.get(idx) {
+                    if let Some(entity) = crate::compendium::weapons::find_combat_entity(&w.name) {
+                        return entity.name(l).to_string();
+                    }
+                    w.name.clone()
+                } else {
+                    String::new()
+                }
+            })
+        });
+
+        let diff_val = Signal::derive(move || {
+            let l = lang();
+            data.with(|d| {
+                if let Some(w) = d.weapons.get(idx) {
+                    if let Some(entity) = crate::compendium::weapons::find_combat_entity(&w.name) {
+                        let diff_pt = entity.difficulty(crate::i18n::Language::PtBr);
+                        let diff_en = entity.difficulty(crate::i18n::Language::EnUs);
+                        let w_diff = w.diff.trim();
+                        if w_diff.is_empty() || w_diff == diff_pt || w_diff == diff_en {
+                            return entity.difficulty(l);
+                        }
+                    }
+                    w.diff.clone()
+                } else {
+                    String::new()
+                }
+            })
+        });
+
+        let dmg_val = Signal::derive(move || {
+            let l = lang();
+            data.with(|d| {
+                if let Some(w) = d.weapons.get(idx) {
+                    if let Some(entity) = crate::compendium::weapons::find_combat_entity(&w.name) {
+                        let dmg_pt = entity.damage(crate::i18n::Language::PtBr);
+                        let dmg_en = entity.damage(crate::i18n::Language::EnUs);
+                        let w_dmg = w.damage.trim();
+                        if w_dmg.is_empty() || w_dmg == dmg_pt || w_dmg == dmg_en {
+                            return entity.damage(l).to_string();
+                        }
+                    }
+                    translate_damage_str(&w.damage, l)
+                } else {
+                    String::new()
+                }
+            })
+        });
+
+        let range_val = Signal::derive(move || {
+            let l = lang();
+            data.with(|d| {
+                if let Some(w) = d.weapons.get(idx) {
+                    let r = w.range.trim();
+                    if r.eq_ignore_ascii_case("c/c") || r.eq_ignore_ascii_case("close") || r.eq_ignore_ascii_case("corpo a corpo") {
+                        return match l {
+                            crate::i18n::Language::PtBr => "C/C".to_string(),
+                            crate::i18n::Language::EnUs => "Close".to_string(),
+                        };
+                    }
+                    if let Some(entity) = crate::compendium::weapons::find_combat_entity(&w.name) {
+                        let canon_pt = entity.range(crate::i18n::Language::PtBr);
+                        let canon_en = entity.range(crate::i18n::Language::EnUs);
+                        if r.is_empty() || r.eq_ignore_ascii_case(canon_pt) || r.eq_ignore_ascii_case(canon_en) {
+                            return entity.range(l).to_string();
+                        }
+                    }
+                    w.range.clone()
+                } else {
+                    String::new()
+                }
+            })
+        });
+
         let rate_val = Signal::derive(move || data.with(|d| d.weapons.get(idx).map(|w| w.rate.clone()).unwrap_or_default()));
         let clip_val = Signal::derive(move || data.with(|d| d.weapons.get(idx).map(|w| w.clip.clone()).unwrap_or_default()));
         let conceal_val = Signal::derive(move || data.with(|d| d.weapons.get(idx).map(|w| w.conceal.clone()).unwrap_or_default()));
 
         let notes_vec = Signal::derive(move || {
+            let l = lang();
             data.with(|d| {
                 if let Some(w) = d.weapons.get(idx) {
+                    if let Some(entity) = crate::compendium::weapons::find_combat_entity(&w.name) {
+                        let canon_pt = entity.notes(crate::i18n::Language::PtBr);
+                        let canon_en = entity.notes(crate::i18n::Language::EnUs);
+                        let w_notes = w.notes.trim();
+                        if w_notes.is_empty() 
+                            || w_notes.eq_ignore_ascii_case(&canon_pt) 
+                            || w_notes.eq_ignore_ascii_case(&canon_en) 
+                        {
+                            let active_notes = entity.notes(l);
+                            if !active_notes.is_empty() {
+                                return active_notes.split(',')
+                                    .map(|s| s.trim().to_string())
+                                    .filter(|s| !s.is_empty())
+                                    .collect();
+                            }
+                        }
+                    }
+
                     if !w.notes.trim().is_empty() {
                         return w.notes.split(',')
                             .map(|s| s.trim().to_string())
@@ -122,9 +237,14 @@ pub fn CombatSection() -> impl IntoView {
                         <button
                             type="button"
                             class="weapon-picker-btn"
-                            title=move || match lang() {
-                                crate::i18n::Language::PtBr => "Consultar / Preencher com Arma M20",
-                                crate::i18n::Language::EnUs => "Browse / Pre-fill with M20 Weapon",
+                            title=move || {
+                                let cur_name = data.with(|d| d.weapons.get(idx).map(|w| w.name.trim().to_string()).unwrap_or_default());
+                                match (cur_name.is_empty(), lang()) {
+                                    (true, crate::i18n::Language::PtBr) => "Consultar / Preencher com Arma ou Manobra M20".to_string(),
+                                    (true, crate::i18n::Language::EnUs) => "Browse / Pre-fill with M20 Weapon or Maneuver".to_string(),
+                                    (false, crate::i18n::Language::PtBr) => format!("Índice Rápido: Ver descrição detalhada de '{}' no Compêndio M20", cur_name),
+                                    (false, crate::i18n::Language::EnUs) => format!("Quick Index: View detailed description of '{}' in M20 Compendium", cur_name),
+                                }
                             }
                             on:click={
                                 let compendium_ctx = compendium_ctx_for_click.clone();
@@ -199,9 +319,23 @@ pub fn CombatSection() -> impl IntoView {
                         })
                     />
                 </td>
-                <td class="td-range">
+                <td 
+                    class="td-range tooltip-container"
+                    title=move || {
+                        let r = range_val.get();
+                        let r_trim = r.trim().to_lowercase();
+                        if r_trim == "c/c" || r_trim == "corpo a corpo" || r_trim == "close" {
+                            match lang() {
+                                crate::i18n::Language::PtBr => "Corpo a Corpo".to_string(),
+                                crate::i18n::Language::EnUs => "Close Combat".to_string(),
+                            }
+                        } else {
+                            String::new()
+                        }
+                    }
+                >
                     <StableTextInput 
-                        class="table-cell-input text-center"
+                        class="table-cell-input text-center font-bold"
                         placeholder=Signal::derive(move || String::new())
                         value=range_val
                         on_change=Callback::new(move |val| {
@@ -211,6 +345,21 @@ pub fn CombatSection() -> impl IntoView {
                             });
                         })
                     />
+                    {move || {
+                        let r = range_val.get();
+                        let r_trim = r.trim().to_lowercase();
+                        if r_trim == "c/c" || r_trim == "corpo a corpo" || r_trim == "close" {
+                            let label = match lang() {
+                                crate::i18n::Language::PtBr => "Corpo a Corpo",
+                                crate::i18n::Language::EnUs => "Close Combat",
+                            };
+                            view! {
+                                <span class="tooltip-text">{label}</span>
+                            }.into_view()
+                        } else {
+                            view! { <span></span> }.into_view()
+                        }
+                    }}
                 </td>
                 <td class="td-rate">
                     <StableTextInput 
@@ -324,7 +473,10 @@ pub fn CombatSection() -> impl IntoView {
                                 on:click=add_weapon_row
                                 title=move || crate::i18n::tr("add_weapon", lang())
                             >
-                                "+ Arma"
+                                {move || match lang() {
+                                    crate::i18n::Language::PtBr => "+ Arma",
+                                    crate::i18n::Language::EnUs => "+ Weapon",
+                                }}
                             </button>
                         </div>
                     </div>
@@ -388,8 +540,20 @@ pub fn CombatSection() -> impl IntoView {
                                     <span class="quick-legend-ref">"M20, pp. 450-451"</span>
                                 </div>
                                 <div class="quick-legend-params-row">
-                                    <span><strong>"Tipo:"</strong> " B = Contundente • L = Letal • A = Agravado"</span>
-                                    <span><strong>"Ocult.:"</strong> " P = Bolso • J = Jaqueta • T = Sobretudo • N = N/A"</span>
+                                    <span>
+                                        <strong>{move || match lang() { crate::i18n::Language::PtBr => "Tipo:", crate::i18n::Language::EnUs => "Type:" }}</strong>
+                                        {move || match lang() {
+                                            crate::i18n::Language::PtBr => " B = Contundente • L = Letal • A = Agravado",
+                                            crate::i18n::Language::EnUs => " B = Bashing • L = Lethal • A = Aggravated",
+                                        }}
+                                    </span>
+                                    <span>
+                                        <strong>{move || match lang() { crate::i18n::Language::PtBr => "Ocult.:", crate::i18n::Language::EnUs => "Conceal:" }}</strong>
+                                        {move || match lang() {
+                                            crate::i18n::Language::PtBr => " P = Bolso • J = Jaqueta • T = Sobretudo • N = N/A",
+                                            crate::i18n::Language::EnUs => " P = Pocket • J = Jacket • T = Trenchcoat • N = N/A",
+                                        }}
+                                    </span>
                                 </div>
                                 <div class="quick-legend-grid">
                                     {ALL_RULE_NOTES.iter().map(|n| {

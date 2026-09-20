@@ -136,24 +136,34 @@ pub fn PdfExportModal(
             let p6_has = data.with(|d| d.is_page_has_content(5));
 
             view! {
-                <div class="modal-overlay" on:click=move |_| set_show_modal.set(false)>
-                    <div class="modal-card pdf-export-modal" on:click=move |ev| ev.stop_propagation()>
-                        <div class="modal-header">
-                            <div class="modal-title-group">
-                                <h2 class="modal-title">
-                                    {match current_lang {
-                                        crate::i18n::Language::PtBr => "🖨️ Opções de Exportação para PDF",
-                                        crate::i18n::Language::EnUs => "🖨️ PDF Export Options",
-                                    }}
-                                </h2>
-                                <span class="modal-subtitle">
-                                    {match current_lang {
-                                        crate::i18n::Language::PtBr => "Escolha como deseja gerar o documento oficial em folha A4",
-                                        crate::i18n::Language::EnUs => "Choose how you want to generate the official A4 document",
-                                    }}
-                                </span>
+                <div class="mta-modal-overlay" on:click=move |_| set_show_modal.set(false)>
+                    <div class="mta-modal-card mta-modal-lg pdf-export-modal" on:click=move |ev| ev.stop_propagation()>
+                        <div class="mta-modal-header">
+                            <div class="mta-modal-title-wrap">
+                                <div>
+                                    <h2 class="mta-modal-title">
+                                        {match current_lang {
+                                            crate::i18n::Language::PtBr => "🖨️ Opções de Exportação para PDF",
+                                            crate::i18n::Language::EnUs => "🖨️ PDF Export Options",
+                                        }}
+                                    </h2>
+                                    <span class="mta-modal-subtitle">
+                                        {match current_lang {
+                                            crate::i18n::Language::PtBr => "Escolha como deseja gerar o documento oficial em folha A4",
+                                            crate::i18n::Language::EnUs => "Choose how you want to generate the official A4 document",
+                                        }}
+                                    </span>
+                                </div>
                             </div>
-                            <button class="modal-close-btn" on:click=move |_| set_show_modal.set(false)>"✕"</button>
+                            <button 
+                                type="button" 
+                                class="mta-modal-close-btn" 
+                                on:click=move |_| set_show_modal.set(false)
+                                aria-label="Fechar modal"
+                                title="Fechar (Esc)"
+                            >
+                                "×"
+                            </button>
                         </div>
 
                         <div class="pdf-modal-body">

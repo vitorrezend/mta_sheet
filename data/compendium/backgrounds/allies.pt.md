@@ -1,0 +1,9 @@
+### Aliados (Allies)
+
+Em momentos de necessidade, você conta com pessoas que cobrem sua retaguarda. Esses aliados podem ser amigos durões, animais leais, pessoas com conexões influentes que trabalham a seu favor, mensageiros de recados ou até espíritos menores dispostos a prestar favores ocasionais quando bem entenderem. De modo geral, este Antecedente refere-se a humanos Adormecidos ou animais razoavelmente inteligentes (como uma alcateia de lobos ou um bando de primatas).
+
+Eles provavelmente têm ciência do lado bizarro e perigoso da sua vida, mas desconhecem os detalhes da sociedade dos magos e de seus verdadeiros poderes, a menos que você decida colocá-los em risco compartilhando tais segredos. Sejam quem forem, ou qual for o relacionamento que possuam com você, esses aliados são personagens por mérito próprio, com necessidades, medos, motivações e agendas pessoais que podem coincidir com os objetivos do seu mago, mas também colidir ocasionalmente com eles.
+
+Cada ponto neste Antecedente concede um aliado com habilidades moderadamente úteis, ou dois aliados que realizam tarefas simples, entregas e recados. Em dois pontos ou mais, você pode aprimorar a capacidade de seus aliados moderados ou adquirir um número maior de aliados menores e moderados. Com dois pontos, por exemplo, você pode selecionar dois aliados moderados, obter quatro capangas/ajudantes, ou forjar um único aliado maior consideravelmente mais competente. Aliados usuários de mágica contam como aliados maiores. Se seus aliados forem mortos ou abandonarem sua companhia, este Antecedente perde as bolinhas correspondentes até que você recrute substitutos no decorrer da crônica.
+
+> **Regra Especial:** Em crônicas de alta potência ou ativos comunitários, este Antecedente pode ultrapassar o teto padrão e atingir até 10 pontos. Consulte [Regras de Antecedentes Acima de 5](mta://backgrounds/theory_background_rules).

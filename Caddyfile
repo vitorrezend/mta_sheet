@@ -1,0 +1,25 @@
+# ==============================================================================
+# MTA Sheet - Caddy Reverse Proxy & HTTPS Configuration
+# ==============================================================================
+
+# O Caddy le o dominio configurado na variavel DOMAIN_NAME do arquivo .env
+# Se DOMAIN_NAME nao estiver definido, usa 'localhost' como fallback seguro.
+{$DOMAIN_NAME:localhost} {
+    reverse_proxy mta_sheet:3000
+
+    # Compressao automatica de trafego HTTP
+    encode zstd gzip
+
+    # Cabecalhos de seguranca essenciais
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    # Logs formatados no console do container
+    log {
+        output stdout
+        format console
+    }
+}

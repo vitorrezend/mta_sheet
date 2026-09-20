@@ -1,5 +1,64 @@
 use axum::response::IntoResponse;
 use sqlx::Row;
+use std::sync::{Arc, Mutex, LazyLock};
+use std::collections::HashMap;
+use std::time::{Duration, Instant};
+
+struct AuthRateLimiter {
+    attempts: HashMap<String, Vec<Instant>>,
+}
+
+static AUTH_RATE_LIMITER: LazyLock<Arc<Mutex<AuthRateLimiter>>> = LazyLock::new(|| {
+    Arc::new(Mutex::new(AuthRateLimiter {
+        attempts: HashMap::new(),
+    }))
+});
+
+pub fn check_auth_rate_limit(client_ip: &str, max_attempts: usize, window: Duration) -> bool {
+    let mut limiter = match AUTH_RATE_LIMITER.lock() {
+        Ok(g) => g,
+        Err(poisoned) => poisoned.into_inner(),
+    };
+    let now = Instant::now();
+    let entry = limiter.attempts.entry(client_ip.to_string()).or_default();
+    entry.retain(|&time| now.duration_since(time) < window);
+    if entry.len() >= max_attempts {
+        false
+    } else {
+        entry.push(now);
+        true
+    }
+}
+
+pub fn reset_auth_rate_limit_for_test() {
+    let mut limiter = match AUTH_RATE_LIMITER.lock() {
+        Ok(g) => g,
+        Err(poisoned) => poisoned.into_inner(),
+    };
+    limiter.attempts.clear();
+}
+
+use crate::server::middleware::security::extract_client_ip;
+
+fn is_secure_connection(headers: &http::HeaderMap) -> bool {
+    let is_prod = std::env::var("LEPTOS_ENV").map(|e| e.to_lowercase() == "production" || e.to_lowercase() == "prod").unwrap_or(false)
+        || std::env::var("ENABLE_SECURE_COOKIE").map(|e| e == "1" || e.to_lowercase() == "true").unwrap_or(false);
+
+    if is_prod {
+        return true;
+    }
+
+    if let Some(proto) = headers.get("x-forwarded-proto").and_then(|h| h.to_str().ok()) {
+        return proto.eq_ignore_ascii_case("https");
+    }
+
+    false
+}
+
+fn build_session_cookie(session_token: &str, is_secure: bool) -> String {
+    let secure_flag = if is_secure { "; Secure" } else { "" };
+    format!("session_token={}; Path=/; SameSite=Lax; HttpOnly{}; Max-Age=2592000", session_token, secure_flag)
+}
 
 #[derive(serde::Deserialize)]
 pub struct FormAuthPayload {
@@ -10,8 +69,18 @@ pub struct FormAuthPayload {
 }
 
 pub async fn form_login_handler(
+    headers: http::HeaderMap,
     axum::extract::Form(payload): axum::extract::Form<FormAuthPayload>,
 ) -> impl IntoResponse {
+    let client_ip = extract_client_ip(&headers);
+    if !check_auth_rate_limit(&client_ip, 10, Duration::from_secs(60)) {
+        return (
+            [(http::header::LOCATION, "/login?error=Muitas+tentativas+de+login.+Aguarde+1+minuto+antes+de+tentar+novamente.".to_string())],
+            http::StatusCode::SEE_OTHER,
+        )
+            .into_response();
+    }
+
     let clean_user = payload.username.trim().to_string();
     if clean_user.is_empty() || payload.password.is_empty() {
         return (
@@ -42,14 +111,18 @@ pub async fn form_login_handler(
     let password_hash: String = row.get("password_hash");
 
     if bcrypt::verify(&payload.password, &password_hash).unwrap_or(false) {
-        let session_token = uuid::Uuid::new_v4().to_string();
-        let _ = sqlx::query("INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, datetime('now', '+30 days'))")
-            .bind(&session_token)
-            .bind(&user_id)
-            .execute(&pool)
-            .await;
+        let session_token = match crate::auth::create_session_with_fifo(&pool, &user_id).await {
+            Ok(t) => t,
+            Err(e) => {
+                log::error!("Erro ao criar sessão FIFO no login: {}", e);
+                return (
+                    [(http::header::LOCATION, "/login?error=Erro+interno+ao+criar+sess%C3%A3o".to_string())],
+                    http::StatusCode::SEE_OTHER,
+                ).into_response();
+            }
+        };
 
-        let cookie_str = format!("session_token={}; Path=/; SameSite=Lax; HttpOnly; Max-Age=2592000", session_token);
+        let cookie_str = build_session_cookie(&session_token, is_secure_connection(&headers));
         (
             [
                 (http::header::SET_COOKIE, cookie_str),
@@ -68,12 +141,36 @@ pub async fn form_login_handler(
 }
 
 pub async fn form_register_handler(
+    headers: http::HeaderMap,
     axum::extract::Form(payload): axum::extract::Form<FormAuthPayload>,
 ) -> impl IntoResponse {
-    let clean_user = payload.username.trim().to_string();
-    if clean_user.len() < 3 || payload.password.len() < 4 {
+    let client_ip = extract_client_ip(&headers);
+    if !check_auth_rate_limit(&client_ip, 5, Duration::from_secs(60)) {
         return (
-            [(http::header::LOCATION, "/login?tab=register&error=Usu%C3%A1rio+(m%C3%ADnimo+3+caracteres)+ou+senha+(m%C3%ADnimo+4+caracteres)+inv%C3%A1lidos".to_string())],
+            [(http::header::LOCATION, "/login?tab=register&error=Muitas+tentativas+de+cadastro.+Aguarde+1+minuto+antes+de+tentar+novamente.".to_string())],
+            http::StatusCode::SEE_OTHER,
+        )
+            .into_response();
+    }
+
+    let clean_user = payload.username.trim().to_string();
+    if clean_user.len() < 3 {
+        return (
+            [(http::header::LOCATION, "/login?tab=register&error=Nome+de+usu%C3%A1rio+deve+ter+no+m%C3%ADnimo+3+caracteres".to_string())],
+            http::StatusCode::SEE_OTHER,
+        )
+            .into_response();
+    }
+
+    if let Err(err) = crate::auth::validate_password_strength(&payload.password) {
+        let err_url = match err {
+            "A senha deve ter no mínimo 8 caracteres." => "A+senha+deve+ter+no+m%C3%ADnimo+8+caracteres.",
+            "A senha não pode exceder 128 caracteres." => "A+senha+n%C3%A3o+pode+exceder+128+caracteres.",
+            "A senha deve conter pelo menos uma letra e um número." => "A+senha+deve+conter+pelo+menos+uma+letra+e+um+n%C3%BAmero.",
+            _ => "Senha+inv%C3%A1lida",
+        };
+        return (
+            [(http::header::LOCATION, format!("/login?tab=register&error={}", err_url))],
             http::StatusCode::SEE_OTHER,
         )
             .into_response();
@@ -127,14 +224,18 @@ pub async fn form_register_handler(
             .into_response();
     }
 
-    let session_token = uuid::Uuid::new_v4().to_string();
-    let _ = sqlx::query("INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, datetime('now', '+30 days'))")
-        .bind(&session_token)
-        .bind(&user_id)
-        .execute(&pool)
-        .await;
+    let session_token = match crate::auth::create_session_with_fifo(&pool, &user_id).await {
+        Ok(t) => t,
+        Err(e) => {
+            log::error!("Erro ao criar sessão FIFO no registro: {}", e);
+            return (
+                [(http::header::LOCATION, "/login?tab=register&error=Erro+interno+ao+criar+sess%C3%A3o".to_string())],
+                http::StatusCode::SEE_OTHER,
+            ).into_response();
+        }
+    };
 
-    let cookie_str = format!("session_token={}; Path=/; SameSite=Lax; HttpOnly; Max-Age=2592000", session_token);
+    let cookie_str = build_session_cookie(&session_token, is_secure_connection(&headers));
     (
         [
             (http::header::SET_COOKIE, cookie_str),

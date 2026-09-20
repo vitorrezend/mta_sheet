@@ -253,6 +253,79 @@ mod compliance_tests {
 
                 let size = fs::metadata(&modular_file).map(|m| m.len()).unwrap_or(0);
                 assert!(size > 0, "❌ Arquivo de estilo {:?} está com 0 bytes!", modular_file);
+
+                let bytes = fs::read(&modular_file).expect("Falha ao ler bytes do estilo modular");
+                assert!(
+                    !bytes.starts_with(b"\xef\xbb\xbf"),
+                    "❌ Arquivo {:?} contém BOM UTF-8 (Byte Order Mark), que quebra a concatenação de CSS!",
+                    modular_file
+                );
+
+                if filename != "00-tokens.css" {
+                    let text = String::from_utf8_lossy(&bytes);
+                    assert!(
+                        !text.contains("@import"),
+                        "❌ Arquivo {:?} contém @import fora do arquivo inicial (00-tokens.css), o que invalida regras subsequentes pelo padrão W3C!",
+                        modular_file
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_release_scripts_include_all_modular_styles() {
+        let style_css = Path::new("style.css");
+        let content = fs::read_to_string(style_css).expect("Falha ao ler style.css");
+
+        let mut imported_files = Vec::new();
+        for line in content.lines() {
+            let trimmed = line.trim();
+            if trimmed.starts_with("@import url('/styles/") || trimmed.starts_with("@import url(\"/styles/") {
+                let filename = trimmed
+                    .replace("@import url('/styles/", "")
+                    .replace("@import url(\"/styles/", "")
+                    .replace("');", "")
+                    .replace("\");", "");
+                imported_files.push(filename);
+            }
+        }
+
+        assert!(!imported_files.is_empty(), "style.css deve conter imports de estilos modulares!");
+
+        let bat_script = Path::new("scripts/build_release.bat");
+        if bat_script.exists() {
+            let bat_content = fs::read_to_string(bat_script).expect("Falha ao ler scripts/build_release.bat");
+            for file in &imported_files {
+                assert!(
+                    bat_content.contains(file),
+                    "❌ scripts/build_release.bat não contém o arquivo de estilo modular: {}",
+                    file
+                );
+            }
+        }
+
+        let sh_script = Path::new("scripts/build_release.sh");
+        if sh_script.exists() {
+            let sh_content = fs::read_to_string(sh_script).expect("Falha ao ler scripts/build_release.sh");
+            for file in &imported_files {
+                assert!(
+                    sh_content.contains(file),
+                    "❌ scripts/build_release.sh não contém o arquivo de estilo modular: {}",
+                    file
+                );
+            }
+        }
+
+        let dockerfile = Path::new("Dockerfile");
+        if dockerfile.exists() {
+            let docker_content = fs::read_to_string(dockerfile).expect("Falha ao ler Dockerfile");
+            for file in &imported_files {
+                assert!(
+                    docker_content.contains(file),
+                    "❌ Dockerfile não contém o arquivo de estilo modular: {}",
+                    file
+                );
             }
         }
     }

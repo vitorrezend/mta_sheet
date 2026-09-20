@@ -54,9 +54,22 @@ async fn main() {
     let routes = generate_route_list(mta_sheet::App);
     let db = database::get_db().await;
 
-    // Garante que o diretório de uploads exista e limpa logs antigos (>30 dias)
+    // Garante que os diretórios existam, limpa logs antigos (>14 dias) e aplica limites de rotação
     let _ = tokio::fs::create_dir_all("uploads").await;
-    mta_sheet::logging::server::cleanup_old_logs(30);
+    mta_sheet::logging::server::cleanup_old_logs(14);
+    mta_sheet::logging::server::enforce_all_category_limits();
+
+    // Tarefa em segundo plano para manutenção contínua e limpeza de logs a cada 12 horas
+    tokio::spawn(async {
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(12 * 3600));
+        // O primeiro tick ocorre de imediato; pulamos ele pois a limpeza inicial já foi executada no startup
+        interval.tick().await;
+        loop {
+            interval.tick().await;
+            mta_sheet::logging::server::cleanup_old_logs(14);
+            mta_sheet::logging::server::enforce_all_category_limits();
+        }
+    });
 
     // Sincroniza mta_sheet.wasm <-> mta_sheet_bg.wasm para que ambos existam e estejam sempre atualizados
     let wasm_file = std::path::Path::new("target/site/pkg/mta_sheet.wasm");

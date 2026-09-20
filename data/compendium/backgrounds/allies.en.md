@@ -1,0 +1,9 @@
+### Allies
+
+In times of need, you’ve got folks who’ve got your back. These allies might be badass friends, helpful animals, people with connections they can work in your favor, errand-runners, or maybe even minor spirits who’ll lend you the occasional favor if and when they feel like doing so. Generally, this Background refers to unAwakened humans or fairly intelligent animals (like a wolf pack or a troupe of apes).
+
+They’re probably aware of the weirder side of your life, but they don’t know the details of mage society or your true powers unless you choose to endanger them by sharing those secrets. Whatever their nature, or their relationship to you, these allies are characters in their own right, with needs, fears, motivations, and agendas that might coincide with your mage’s goals but also may occasionally clash with them.
+
+Each dot in this Background gives you one ally with some moderately useful abilities, or two allies who essentially run errands and do busywork. At two dots and above, you can increase the ability of your moderate allies or buy a larger number of lesser and moderate allies. If you get two dots, for example, you could select two moderate allies, get four sidekicks, or make a single major ally who’s more capable than those lesser ones. Magick-using Allies count as major ones. If your allies get killed or wind up quitting your company some other way, this Background loses the dots that represented those characters until you recruit new allies to replace the departed ones.
+
+> **Special Rule:** In high-powered chronicles or shared cabal assets, this Trait can exceed the usual cap and reach up to 10 dots. See [Background Rules Over 5](mta://backgrounds/theory_background_rules).

@@ -8,6 +8,8 @@ pub fn MeritsFlaws() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
     let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
     let active_origin_ctx = use_context::<ActiveDotOriginContext>();
+    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
+    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
 
     let merits_list = Signal::derive(move || {
         data.with(|d| d.custom_lists.get(keys::CAT_MERITS).cloned().unwrap_or_default())
@@ -22,7 +24,7 @@ pub fn MeritsFlaws() -> impl IntoView {
             let list = s.custom_lists.entry(keys::CAT_MERITS.to_string()).or_default();
             let id = format!("merit_{}", uuid::Uuid::new_v4());
             list.push(id.clone());
-            s.labels.insert(id, "Nova Qualidade".to_string());
+            s.labels.insert(id, crate::i18n::tr("new_merit", lang()).to_string());
         });
     };
 
@@ -31,7 +33,7 @@ pub fn MeritsFlaws() -> impl IntoView {
             let list = s.custom_lists.entry(keys::CAT_FLAWS.to_string()).or_default();
             let id = format!("flaw_{}", uuid::Uuid::new_v4());
             list.push(id.clone());
-            s.labels.insert(id, "Novo Defeito".to_string());
+            s.labels.insert(id, crate::i18n::tr("new_flaw", lang()).to_string());
         });
     };
 
@@ -63,10 +65,25 @@ pub fn MeritsFlaws() -> impl IntoView {
         let id_up_level = id.clone();
         let id_up_mod = id.clone();
         let id_up_dot = id.clone();
+        let id_sup = id.clone();
+        let id_up_sup = id.clone();
 
         let label = Signal::derive({
             let id = id_label.clone();
-            move || data.with(|d| d.labels.get(&id).cloned().unwrap_or_default())
+            move || {
+                let l = lang();
+                data.with(|d| {
+                    let lbl = d.labels.get(&id).cloned().unwrap_or_default();
+                    let lbl_trim = lbl.trim();
+                    if lbl_trim == "Nova Qualidade" || lbl_trim == "New Merit" {
+                        crate::i18n::tr("new_merit", l).to_string()
+                    } else if lbl_trim == "Novo Defeito" || lbl_trim == "New Flaw" {
+                        crate::i18n::tr("new_flaw", l).to_string()
+                    } else {
+                        lbl
+                    }
+                })
+            }
         });
 
         let level = Signal::derive({
@@ -84,6 +101,11 @@ pub fn MeritsFlaws() -> impl IntoView {
             move || data.with(|d| d.attributes.get(&id).map(|a| a.get_origins(10)).unwrap_or_else(|| vec![DotOrigin::Base; 10]))
         });
 
+        let is_supernatural = Signal::derive({
+            let id = id_sup.clone();
+            move || data.with(|d| d.is_attribute_supernatural(&id))
+        });
+
         let on_dot_origin_change = {
             let id = id_up_dot.clone();
             Callback::new(move |(idx, orig)| {
@@ -94,13 +116,24 @@ pub fn MeritsFlaws() -> impl IntoView {
             })
         };
 
+        let on_toggle_supernatural = {
+            let id = id_up_sup.clone();
+            Callback::new(move |_| {
+                let id = id.clone();
+                set_data.update(|s| {
+                    s.toggle_attribute_supernatural(&id);
+                });
+            })
+        };
+
         view! {
             <ValueField 
                 label=label
                 level=level
                 modifier=modifier
                 origins=origins
-                max_level=10
+                is_supernatural=is_supernatural
+                on_toggle_supernatural=on_toggle_supernatural
                 min_level=0
                 on_level_change={
                     let id = id_up_level.clone();
@@ -127,9 +160,6 @@ pub fn MeritsFlaws() -> impl IntoView {
             />
         }
     };
-
-    let lang_ctx = use_context::<crate::i18n::LanguageContext>();
-    let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
 
     view! {
         <div class="group-box">

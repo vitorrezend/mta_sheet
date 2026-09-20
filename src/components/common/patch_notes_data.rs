@@ -19,6 +19,52 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.20.0",
+        date: "2026-09-20",
+        tag: "v0.20.0",
+        title: "Compartilhamento Granular de Fichas (ACL), Isolamento de Iniciativa, Arquitetura Limpa e Blindagem Anti-Mojibake",
+        highlight: "Novo sistema completo de compartilhamento de fichas (Pessoas, Salas e Link Geral estilo Google Drive), correção e purga de iniciativa em salas de crônica, unificação e arquitetura limpa dos datasets do compêndio, remoção de redundâncias visuais e salvaguarda automatizada contra corrupção de encoding UTF-8.",
+        sections: &[
+            PatchSection {
+                category: "🔗 Compartilhamento Granular de Fichas & ACL",
+                icon: "🔗",
+                items: &[
+                    "👥 Compartilhamento com Pessoas: Conceda permissões nominais de Leitura (Viewer) ou Edição (Editor) para outros usuários cadastrados na plataforma.",
+                    "🏛️ Vinculação a Crônicas & Salas: Compartilhe o acesso da ficha diretamente com todos os membros de uma mesa de RPG.",
+                    "🌐 Acesso Geral por Link: Três modos de visibilidade estilo Google Drive: Restrito, Qualquer pessoa com o link pode Ler, ou Qualquer pessoa com o link pode Editar.",
+                    "🛡️ Painel de Permissões Interativo: Modal SheetShareModal acessível pela barra superior com gerenciamento de acessos em tempo real.",
+                ],
+            },
+            PatchSection {
+                category: "⚔️ Central da Crônica & Rastreamento de Iniciativa",
+                icon: "🎲",
+                items: &[
+                    "🧹 Purga de Fichas Fantasmas: O rastreador de iniciativa agora isola estritamente os personagens ativos da sala, eliminando fichas de jogadores desvinculados.",
+                    "⚡ Sincronização Estável: Correção de estados e reatividade em tempo real na rolagem de combate e iniciativa da cabala.",
+                    "🧪 Teste de Regressão Automatizado: Suíte tests/initiative_tracker_test.rs garantindo integridade de participantes em sessões ativas.",
+                ],
+            },
+            PatchSection {
+                category: "📚 Arquitetura Limpa do Compêndio M20",
+                icon: "🏛️",
+                items: &[
+                    "📦 Unificação de Datasets: Eliminação do fatiamento artificial numérico (data_part*.rs) nas Esferas e Antecedentes, consolidando o catálogo em módulos coesos data.rs.",
+                    "📜 Exceção Arquitetural Canônica: Atualização formal das diretrizes em .agent/skills/mta-clean-architecture para datasets e compêndios estáticos.",
+                    "🚀 Compilação Otimizada: Redução do overhead de módulos e melhoria nos tempos de análise do rust-analyzer.",
+                ],
+            },
+            PatchSection {
+                category: "🛡️ Blindagem de Encoding & Usabilidade",
+                icon: "✨",
+                items: &[
+                    "🔤 Correção de Mojibake: Restauração completa de termos acentuados e pontuações tipográficas em todo o compêndio de regras M20.",
+                    "🧪 Teste Anti-Mojibake Automatizado: Suíte tests/anti_patterns_test.rs com verificação contínua contra caracteres corrompidos no código-fonte.",
+                    "🔮 Quintessência & Paradoxo Refinados: Remoção de títulos redundantes acima do círculo místico na Página 1, destacando os valores centrais.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.19.0",
         date: "2026-09-18",
         tag: "v0.19.0",

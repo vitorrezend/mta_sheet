@@ -1,0 +1,533 @@
+/* ==========================================================================
+   MTA SHEET — SISTEMA DE COMPARTILHAMENTO ESTILO GOOGLE DRIVE
+   Compatível com o Design System Canônico & Tokens (Dark Gothic / Arcane)
+   ========================================================================== */
+
+/* ── Botão de Compartilhar na Barra Superior (SheetTopBar) ── */
+.share-top-bar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--surface-card-subtle, #f9f6ef);
+    border: 1px solid var(--gold-line, rgba(202, 167, 93, 0.45));
+    border-radius: var(--radius-md, 6px);
+    color: var(--primary-color, #2c3e50);
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.share-top-bar-btn:hover {
+    background: var(--gold-light, #f7e6b5);
+    border-color: var(--gold-primary, #caa75d);
+    color: var(--purple-deep, #170428);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+}
+
+.share-top-bar-btn .btn-icon {
+    font-size: 0.95rem;
+}
+
+/* ── Modal de Compartilhamento (SheetShareModal) ── */
+.sheet-share-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 0.5rem 0.25rem;
+    box-sizing: border-box;
+}
+
+.share-section-divider {
+    height: 1px;
+    background: var(--border-color, #e2e8f0);
+    margin: 0.25rem 0;
+}
+
+.share-section-heading {
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gold-dark, #7a5b20);
+    margin-bottom: 0.65rem;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+/* ── Seletor de Abas de Destinatário (Usuário / Crônica / Público) ── */
+.share-type-tabs {
+    display: flex;
+    gap: 0.4rem;
+    background: var(--surface-card-subtle, #f9f6ef);
+    border: 1px solid var(--surface-card-border, #e5dccb);
+    padding: 0.3rem;
+    border-radius: var(--radius-md, 6px);
+}
+
+.share-type-tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.6rem;
+    border: none;
+    border-radius: var(--radius-sm, 4px);
+    background: transparent;
+    color: var(--text-muted, #64748b);
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.share-type-tab-btn:hover {
+    color: var(--primary-color, #2c3e50);
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.share-type-tab-btn.active {
+    background: var(--surface-paper, #ffffff);
+    color: var(--purple-bright, #9333ea);
+    box-shadow: var(--shadow-xs, 0 1px 2px rgba(0, 0, 0, 0.04));
+    border: 1px solid var(--gold-line, rgba(202, 167, 93, 0.45));
+}
+
+/* ── Formulário de Adicionar Permissão ── */
+.share-grant-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    background: var(--surface-card-subtle, #f9f6ef);
+    border: 1px solid var(--surface-card-border, #e5dccb);
+    border-radius: var(--radius-lg, 8px);
+    padding: 0.9rem 1rem;
+    box-sizing: border-box;
+}
+
+.share-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    width: 100%;
+}
+
+.share-field-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted, #64748b);
+}
+
+.share-target-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--surface-card-border, #e5dccb);
+    border-radius: var(--radius-md, 6px);
+    font-size: 0.88rem;
+    background: var(--surface-paper, #ffffff);
+    color: var(--text-color, #333333);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.share-target-input:focus {
+    outline: none;
+    border-color: var(--gold-primary, #caa75d);
+    box-shadow: 0 0 0 3px var(--gold-badge-bg, rgba(202, 167, 93, 0.15));
+}
+
+.share-public-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--purple-badge-bg, rgba(147, 51, 234, 0.18));
+    border: 1px solid var(--purple-light, #d8b4fe);
+    border-radius: var(--radius-md, 6px);
+    padding: 0.65rem 0.85rem;
+}
+
+.share-public-icon {
+    font-size: 1.35rem;
+    flex-shrink: 0;
+}
+
+.share-public-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.share-public-text strong {
+    font-size: 0.86rem;
+    color: var(--purple-deep, #170428);
+}
+
+.share-public-text span {
+    font-size: 0.78rem;
+    color: var(--purple-mid, #2d0a4e);
+}
+
+.share-actions-row {
+    display: flex;
+    gap: 0.65rem;
+    align-items: flex-end;
+    width: 100%;
+}
+
+.share-perm-select-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.share-perm-select {
+    width: 100%;
+    box-sizing: border-box;
+    height: 38px;
+    padding: 0 0.65rem;
+    border: 1px solid var(--surface-card-border, #e5dccb);
+    border-radius: var(--radius-md, 6px);
+    font-size: 0.86rem;
+    background: var(--surface-paper, #ffffff);
+    color: var(--text-color, #333333);
+    cursor: pointer;
+}
+
+.share-perm-select:focus {
+    outline: none;
+    border-color: var(--gold-primary, #caa75d);
+}
+
+.share-add-btn {
+    height: 38px;
+    padding: 0 1.1rem;
+    background: var(--gold-primary, #caa75d);
+    color: var(--purple-deep, #170428);
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-weight: 700;
+    font-size: 0.84rem;
+    border: none;
+    border-radius: var(--radius-md, 6px);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.share-add-btn:hover:not(:disabled) {
+    background: var(--gold-bright, #ffd700);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+}
+
+.share-add-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* ── Lista de Pessoas com Acesso Ativo ── */
+.share-entries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    max-height: 180px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+.share-entry-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 0.75rem;
+    background: var(--surface-paper, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 6px);
+    transition: background-color 0.15s ease;
+}
+
+.share-entry-item:hover {
+    background: var(--surface-card-subtle, #f9f6ef);
+}
+
+.share-entry-left {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+}
+
+.share-entry-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.share-entry-name {
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--primary-color, #2c3e50);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.share-entry-right {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-shrink: 0;
+}
+
+.share-perm-badge {
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm, 4px);
+}
+
+.share-perm-badge.badge-owner {
+    background: var(--gold-badge-bg, rgba(202, 167, 93, 0.15));
+    color: var(--gold-dark, #7a5b20);
+    border: 1px solid var(--gold-line, rgba(202, 167, 93, 0.45));
+}
+
+.share-perm-badge.badge-admin {
+    background: var(--purple-badge-bg, rgba(147, 51, 234, 0.18));
+    color: var(--purple-deep, #170428);
+    border: 1px solid var(--purple-light, #d8b4fe);
+}
+
+.share-perm-badge.badge-write {
+    background: var(--color-difficulty-bg, rgba(30, 58, 138, 0.12));
+    color: var(--color-difficulty, #1e3a8a);
+    border: 1px solid rgba(30, 58, 138, 0.25);
+}
+
+.share-perm-badge.badge-read {
+    background: var(--surface-card, #f4eee1);
+    color: var(--text-muted, #64748b);
+    border: 1px solid var(--surface-card-border, #e5dccb);
+}
+
+.share-revoke-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-damage, #991b1b);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.15rem 0.35rem;
+    border-radius: var(--radius-sm, 4px);
+    transition: all 0.15s ease;
+    line-height: 1;
+}
+
+.share-revoke-btn:hover {
+    background: var(--color-damage-bg, rgba(153, 27, 27, 0.12));
+}
+
+/* ── Seção de Acesso Geral por Link (Google Drive Style) ── */
+.share-general-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    background: var(--surface-card-subtle, #f9f6ef);
+    border: 1px solid var(--gold-line, rgba(202, 167, 93, 0.45));
+    border-radius: var(--radius-lg, 8px);
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.share-general-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    justify-content: space-between;
+}
+
+.share-general-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+}
+
+.share-general-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.share-general-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.share-general-text strong {
+    font-size: 0.88rem;
+    color: var(--primary-color, #2c3e50);
+}
+
+.share-general-text span {
+    font-size: 0.78rem;
+    color: var(--text-muted, #64748b);
+}
+
+.share-general-select-col {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.share-general-select {
+    height: 36px;
+    padding: 0 0.65rem;
+    border: 1px solid var(--surface-card-border, #e5dccb);
+    border-radius: var(--radius-md, 6px);
+    font-size: 0.84rem;
+    background: var(--surface-paper, #ffffff);
+    color: var(--primary-color, #2c3e50);
+    cursor: pointer;
+}
+
+.share-link-actions-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding-top: 0.5rem;
+    border-top: 1px dashed var(--surface-card-border, #e5dccb);
+}
+
+.share-copy-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: var(--purple-bright, #9333ea);
+    color: #ffffff;
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-size: 0.84rem;
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: var(--radius-md, 6px);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.share-copy-link-btn:hover {
+    background: var(--purple-mid, #2d0a4e);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+}
+
+.share-copy-link-btn.copied {
+    background: var(--color-success, #16a34a);
+}
+
+.share-reset-link-btn {
+    background: transparent;
+    border: 1px solid var(--surface-card-border, #e5dccb);
+    border-radius: var(--radius-md, 6px);
+    color: var(--text-muted, #64748b);
+    font-size: 0.78rem;
+    padding: 0.45rem 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.share-reset-link-btn:hover {
+    border-color: var(--gold-primary, #caa75d);
+    color: var(--gold-dark, #7a5b20);
+    background: var(--surface-paper, #ffffff);
+}
+
+/* ── Modal de Convite para Login ao Clonar ── */
+.clone-prompt-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+    padding: 1rem 0.5rem;
+}
+
+.clone-prompt-icon {
+    font-size: 2.8rem;
+}
+
+.clone-prompt-title {
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--primary-color, #2c3e50);
+    margin: 0;
+}
+
+.clone-prompt-desc {
+    font-size: 0.88rem;
+    color: var(--text-muted, #64748b);
+    line-height: 1.45;
+    max-width: 380px;
+    margin: 0;
+}
+
+.clone-prompt-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    width: 100%;
+    max-width: 320px;
+}
+
+.clone-prompt-login-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: var(--gold-primary, #caa75d);
+    color: var(--purple-deep, #170428);
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-weight: 700;
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius-md, 6px);
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.clone-prompt-login-btn:hover {
+    background: var(--gold-bright, #ffd700);
+}
+
+.clone-prompt-close-btn {
+    padding: 0.6rem 1rem;
+    background: transparent;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 6px);
+    color: var(--text-muted, #64748b);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* ── Feedback de Toast ao Copiar ── */
+.share-toast {
+    background: var(--surface-dark-slate, #0f172a);
+    color: #ffffff;
+    font-size: 0.82rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: var(--radius-md, 6px);
+    border: 1px solid var(--gold-line, rgba(202, 167, 93, 0.45));
+    animation: mtaModalFadeIn 0.15s ease;
+}

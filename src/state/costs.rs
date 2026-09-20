@@ -91,9 +91,22 @@ impl CharacterData {
         // 3. Esferas (Orçamento: 6 pontos, +1 grátis de afinidade)
         let mut spheres_spent = 0;
         for &sph in &STANDARD_SPHERES {
-            if let Some(attr) = self.attributes.get(sph) {
+            let attr_opt = self.attributes.get(sph).or_else(|| {
+                match sph {
+                    "Correspondência" => self.attributes.get("Dados").or_else(|| self.attributes.get("Data")),
+                    "Primórdio" => self.attributes.get("Utilidade Primordial").or_else(|| self.attributes.get("Primal Utility")),
+                    "Espírito" => self.attributes.get("Ciência Dimensional").or_else(|| self.attributes.get("Dimensional Science")),
+                    _ => None,
+                }
+            });
+            if let Some(attr) = attr_opt {
                 let (base, _, _, _) = attr.count_origins();
-                let is_affinity = affinity_sphere.as_ref().map(|s| s.eq_ignore_ascii_case(sph)).unwrap_or(false);
+                let is_affinity = affinity_sphere.as_ref().map(|s| {
+                    s.eq_ignore_ascii_case(sph)
+                        || (sph == "Correspondência" && (s.eq_ignore_ascii_case("Dados") || s.eq_ignore_ascii_case("Data")))
+                        || (sph == "Primórdio" && (s.eq_ignore_ascii_case("Utilidade Primordial") || s.eq_ignore_ascii_case("Primal Utility")))
+                        || (sph == "Espírito" && (s.eq_ignore_ascii_case("Ciência Dimensional") || s.eq_ignore_ascii_case("Dimensional Science")))
+                }).unwrap_or(false);
                 if is_affinity && base > 0 {
                     spheres_spent += base - 1;
                 } else {
@@ -296,8 +309,35 @@ impl CharacterData {
 
         // 3. Esferas
         for &sphere_name in &STANDARD_SPHERES {
+            let active_name = match sphere_name {
+                "Correspondência" => {
+                    if self.attributes.contains_key("Dados") || self.labels.get("sphere_slot_correspondence").map(|v| v.eq_ignore_ascii_case("Dados")).unwrap_or(false) {
+                        "Dados"
+                    } else {
+                        "Correspondência"
+                    }
+                }
+                "Primórdio" => {
+                    if self.attributes.contains_key("Utilidade Primordial") || self.labels.get("sphere_slot_prime").map(|v| v.eq_ignore_ascii_case("Utilidade Primordial")).unwrap_or(false) {
+                        "Utilidade Primordial"
+                    } else {
+                        "Primórdio"
+                    }
+                }
+                "Espírito" => {
+                    if self.attributes.contains_key("Ciência Dimensional") || self.labels.get("sphere_slot_spirit").map(|v| v.eq_ignore_ascii_case("Ciência Dimensional")).unwrap_or(false) {
+                        "Ciência Dimensional"
+                    } else {
+                        "Espírito"
+                    }
+                }
+                _ => sphere_name,
+            };
             visited_keys.insert(sphere_name.to_string());
-            traits_to_process.push((sphere_name.to_string(), sphere_name.to_string(), "Esfera".to_string(), true, false, false, false, false, false));
+            if active_name != sphere_name {
+                visited_keys.insert(active_name.to_string());
+            }
+            traits_to_process.push((active_name.to_string(), active_name.to_string(), "Esfera".to_string(), true, false, false, false, false, false));
         }
 
         // 4. Arete
@@ -493,7 +533,10 @@ impl CharacterData {
     pub fn get_dot_cost_description(trait_name: &str, dot_idx: usize, origin: DotOrigin, is_affinity: bool) -> (i32, String) {
         let cat = if trait_name == keys::KEY_ARETE {
             TraitCategory::Arete
-        } else if STANDARD_SPHERES.contains(&trait_name) {
+        } else if STANDARD_SPHERES.contains(&trait_name)
+            || trait_name == "Dados" || trait_name == "Data"
+            || trait_name == "Utilidade Primordial" || trait_name == "Primal Utility"
+            || trait_name == "Ciência Dimensional" || trait_name == "Dimensional Science" {
             TraitCategory::Sphere
         } else if trait_name == keys::KEY_WILLPOWER_TOTAL {
             TraitCategory::Willpower

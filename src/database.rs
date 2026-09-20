@@ -4,60 +4,65 @@ use sqlx::{sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, 
 use std::str::FromStr;
 
 #[cfg(feature = "ssr")]
+static DB_POOL: tokio::sync::OnceCell<SqlitePool> = tokio::sync::OnceCell::const_new();
+
+#[cfg(feature = "ssr")]
 pub async fn get_db() -> SqlitePool {
-    let mut database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "mta_sheet.db".to_string());
+    DB_POOL.get_or_init(|| async {
+        let mut database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "mta_sheet.db".to_string());
 
-    let db_path = if database_url.starts_with("sqlite:") {
-        &database_url[7..]
-    } else {
-        &database_url
-    };
+        let db_path = if database_url.starts_with("sqlite:") {
+            &database_url[7..]
+        } else {
+            &database_url
+        };
 
-    // Ensure parent directory exists
-    if let Some(parent) = std::path::Path::new(db_path).parent() {
-        if !parent.as_os_str().is_empty() {
-            std::fs::create_dir_all(parent).ok();
+        // Ensure parent directory exists
+        if let Some(parent) = std::path::Path::new(db_path).parent() {
+            if !parent.as_os_str().is_empty() {
+                std::fs::create_dir_all(parent).ok();
+            }
         }
-    }
 
-    if !database_url.starts_with("sqlite:") {
-        database_url = format!("sqlite:{}", database_url);
-    }
+        if !database_url.starts_with("sqlite:") {
+            database_url = format!("sqlite:{}", database_url);
+        }
 
-    log::info!("Connecting to SQLite database at {}", database_url);
+        log::info!("Connecting to SQLite database at {}", database_url);
 
-    let options = SqliteConnectOptions::from_str(&database_url)
-        .expect("Invalid DATABASE_URL")
-        .create_if_missing(true)
-        .journal_mode(SqliteJournalMode::Wal)
-        .synchronous(SqliteSynchronous::Normal)
-        .busy_timeout(std::time::Duration::from_secs(5))
-        .foreign_keys(true)
-        .log_statements(log::LevelFilter::Debug);
+        let options = SqliteConnectOptions::from_str(&database_url)
+            .expect("Invalid DATABASE_URL")
+            .create_if_missing(true)
+            .journal_mode(SqliteJournalMode::Wal)
+            .synchronous(SqliteSynchronous::Normal)
+            .busy_timeout(std::time::Duration::from_secs(5))
+            .foreign_keys(true)
+            .log_statements(log::LevelFilter::Debug);
 
-    let pool = SqlitePoolOptions::new()
-        .max_connections(10)
-        .acquire_timeout(std::time::Duration::from_secs(5))
-        .connect_with(options)
-        .await
-        .expect("Failed to connect to SQLite");
+        let pool = SqlitePoolOptions::new()
+            .max_connections(10)
+            .acquire_timeout(std::time::Duration::from_secs(5))
+            .connect_with(options)
+            .await
+            .expect("Failed to connect to SQLite");
 
-    // Initialize schema and migrations
-    if let Err(e) = ensure_schema(&pool).await {
-        log::error!("Falha crítica ao inicializar schema do banco de dados: {}", e);
-    }
+        // Initialize schema and migrations
+        if let Err(e) = ensure_schema(&pool).await {
+            log::error!("Falha crítica ao inicializar schema do banco de dados: {}", e);
+        }
 
-    // Automatic extraction of legacy base64 images from JSON to static uploads and media_assets
-    migrate_and_extract_base64_images(&pool).await;
+        // Automatic extraction of legacy base64 images from JSON to static uploads and media_assets
+        migrate_and_extract_base64_images(&pool).await;
 
-    // Automatic re-hydration of uploads from database backup if missing on disk
-    rehydrate_media_assets_if_needed(&pool).await;
+        // Automatic re-hydration of uploads from database backup if missing on disk
+        rehydrate_media_assets_if_needed(&pool).await;
 
-    // Seed das perguntas clássicas e migração de respostas existentes
-    seed_quiz_questions(&pool).await;
-    migrate_existing_quiz_answers(&pool).await;
+        // Seed das perguntas clássicas e migração de respostas existentes
+        seed_quiz_questions(&pool).await;
+        migrate_existing_quiz_answers(&pool).await;
 
-    pool
+        pool
+    }).await.clone()
 }
 
 #[cfg(feature = "ssr")]
@@ -194,6 +199,42 @@ pub async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         )"
     ).execute(pool).await?;
 
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS sheet_acls (
+            id TEXT PRIMARY KEY,
+            sheet_id TEXT NOT NULL REFERENCES character_sheets(id) ON DELETE CASCADE,
+            grantee_type TEXT NOT NULL,
+            grantee_id TEXT,
+            permission TEXT NOT NULL DEFAULT 'read',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (sheet_id, grantee_type, grantee_id)
+        )"
+    ).execute(pool).await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS sheet_likes (
+            sheet_id TEXT NOT NULL REFERENCES character_sheets(id) ON DELETE CASCADE,
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (sheet_id, user_id)
+        )"
+    ).execute(pool).await?;
+
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheet_likes_sheet_id ON sheet_likes(sheet_id)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheet_likes_user_id ON sheet_likes(user_id)").execute(pool).await?;
+
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS system_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    ).execute(pool).await?;
+
+    sqlx::query(
+        "INSERT OR IGNORE INTO system_settings (key, value) VALUES ('feature_tactical_grid', 'admin_only')"
+    ).execute(pool).await?;
+
     // 2. Colunas evolutivas checadas via PRAGMA (sem erros descartados com let _ =)
     ensure_column(pool, "users", "is_admin", "INTEGER NOT NULL DEFAULT 0").await?;
     ensure_column(pool, "sheet_folders", "parent_id", "TEXT REFERENCES sheet_folders(id) ON DELETE CASCADE").await?;
@@ -204,12 +245,15 @@ pub async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     ensure_column(pool, "character_sheets", "is_public", "INTEGER NOT NULL DEFAULT 0").await?;
     ensure_column(pool, "character_sheets", "is_hidden_in_room", "INTEGER NOT NULL DEFAULT 0").await?;
     ensure_column(pool, "character_sheets", "summary_json", "TEXT").await?;
+    ensure_column(pool, "character_sheets", "share_token", "TEXT").await?;
+    ensure_column(pool, "character_sheets", "share_permission", "TEXT NOT NULL DEFAULT 'none'").await?;
     ensure_column(pool, "rooms", "chantry_data", "TEXT DEFAULT ''").await?;
     ensure_column(pool, "rooms", "chronicle_notes", "TEXT DEFAULT ''").await?;
     ensure_column(pool, "rooms", "initiative_data", "TEXT DEFAULT ''").await?;
     ensure_column(pool, "rooms", "map_data", "TEXT DEFAULT ''").await?;
     ensure_column(pool, "rooms", "is_public", "INTEGER NOT NULL DEFAULT 0").await?;
     ensure_column(pool, "rooms", "password_hash", "TEXT DEFAULT ''").await?;
+    ensure_column(pool, "rooms", "sheet_order", "TEXT DEFAULT '[]'").await?;
 
     // 3. Índices de alta performance
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_user_id ON character_sheets (user_id)").execute(pool).await?;
@@ -220,6 +264,9 @@ pub async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheet_folders_parent ON sheet_folders (parent_id)").execute(pool).await?;
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_folder_acls_folder ON folder_acls (folder_id)").execute(pool).await?;
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_folder_acls_grantee ON folder_acls (grantee_type, grantee_id)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheet_acls_sheet ON sheet_acls (sheet_id)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheet_acls_grantee ON sheet_acls (grantee_type, grantee_id)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_share_token ON character_sheets (share_token)").execute(pool).await?;
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_sheets_updated_at ON character_sheets (updated_at DESC)").execute(pool).await?;
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id)").execute(pool).await?;
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions (expires_at)").execute(pool).await?;
@@ -229,8 +276,16 @@ pub async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_quiz_questions_splat ON quiz_questions (splat, sort_order)").execute(pool).await?;
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_character_quiz_answers_char ON character_quiz_answers (character_id)").execute(pool).await?;
 
-    // 4. Limpeza de sessões expiradas na inicialização
+    // 4. Limpeza de sessões expiradas e aplicação da política FIFO global na inicialização
     sqlx::query("DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP").execute(pool).await?;
+    let _ = sqlx::query(
+        "DELETE FROM sessions WHERE id NOT IN (
+            SELECT id FROM (
+                SELECT id, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC, rowid DESC) as rn
+                FROM sessions
+            ) WHERE rn <= 5
+        )"
+    ).execute(pool).await;
 
     Ok(())
 }

@@ -1,12 +1,12 @@
 use leptos::*;
-use super::models::{CharacterData, CharacterSummary, QuizQuestionEntry, SheetFolder, FolderAclEntry};
+use super::models::{CharacterData, CharacterSummary, QuizQuestionEntry};
 
 // ==========================================
 // Server Functions with Robust Error Handling
 // ==========================================
 
 #[cfg(feature = "ssr")]
-use crate::repositories::{SheetRepository, FolderRepository, AclRepository};
+use crate::repositories::SheetRepository;
 
 #[server(endpoint = "get_sheets")]
 pub async fn get_sheets() -> Result<Vec<CharacterSummary>, ServerFnError> {
@@ -66,7 +66,7 @@ pub async fn get_public_sheets() -> Result<Vec<CharacterSummary>, ServerFnError>
 }
 
 #[server(endpoint = "get_sheet")]
-pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
+pub async fn get_sheet(id: String, token: Option<String>) -> Result<CharacterData, ServerFnError> {
     if id.trim().is_empty() {
         return Err(ServerFnError::new("ID da ficha não fornecido"));
     }
@@ -97,9 +97,23 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
         is_gm = SheetRepository::check_room_gm(&pool, r_id, u_id).await.unwrap_or(false);
     }
 
-    // Validação de Permissão de Leitura
-    if !is_owner && !is_gm && !is_public && sheet_user_id.is_some() {
-        return Err(ServerFnError::new("Permissão negada: Esta ficha é privada e pertence a outro usuário."));
+    let mut has_acl_read = false;
+    let mut has_acl_write = false;
+    if let Some(ref u_id) = auth_user_id {
+        has_acl_write = crate::repositories::SheetAclRepository::check_sheet_permission(&pool, &id, u_id, "write").await.unwrap_or(false);
+        if has_acl_write {
+            has_acl_read = true;
+        } else {
+            has_acl_read = crate::repositories::SheetAclRepository::check_sheet_permission(&pool, &id, u_id, "read").await.unwrap_or(false);
+        }
+    }
+
+    let has_token_access = crate::repositories::SheetAclRepository::verify_token_or_public(&pool, &id, token.as_deref()).await.unwrap_or(false);
+
+    // Validação de Permissão de Leitura (Proprietário, GM, Pública, ACL nominal ou Token de Compartilhamento válido)
+    let can_read = is_owner || is_gm || is_public || has_acl_read || has_token_access || sheet_user_id.is_none();
+    if !can_read {
+        return Err(ServerFnError::new("Permissão negada: Esta ficha é privada. Verifique se possui permissão ou se o link de compartilhamento expirou."));
     }
 
     let mut data: CharacterData = match CharacterData::parse_from_db(&id, &data_json) {
@@ -119,6 +133,12 @@ pub async fn get_sheet(id: String) -> Result<CharacterData, ServerFnError> {
         data.sheet_type = sheet_type_db;
     }
     data.is_public = is_public;
+    data.can_edit = is_owner || is_gm || has_acl_write || sheet_user_id.is_none();
+    data.author_username = if let Some(ref uid) = sheet_user_id {
+        SheetRepository::find_username_by_id(&pool, uid).await.ok().flatten()
+    } else {
+        None
+    };
     data.sanitize();
 
     // Carrega respostas relacionais salvas na tabela character_quiz_answers
@@ -165,10 +185,21 @@ pub fn validate_image_magic_bytes(bytes: &[u8]) -> Result<(&'static str, &'stati
         return Ok(("image/webp", "webp"));
     }
 
-    // SVG / XML text (allow <svg or <?xml ... <svg)
+    // SVG / XML text (allow safe <svg or <?xml ... <svg)
     if bytes.len() >= 4 {
-        let snippet = String::from_utf8_lossy(&bytes[0..std::cmp::min(bytes.len(), 512)]).to_lowercase();
-        if snippet.contains("<svg") {
+        let text = String::from_utf8_lossy(bytes).to_lowercase();
+        if text.contains("<svg") {
+            // Rejeitar scripts ou eventos embutidos que possibilitem Stored XSS
+            if text.contains("<script")
+                || text.contains("javascript:")
+                || text.contains("onload")
+                || text.contains("onerror")
+                || text.contains("onclick")
+                || text.contains("onmouseover")
+                || text.contains("<foreignobject")
+            {
+                return Err(ServerFnError::new("SVG inseguro rejeitado: scripts e manipuladores de eventos embutidos não são permitidos."));
+            }
             return Ok(("image/svg+xml", "svg"));
         }
     }
@@ -621,401 +652,259 @@ pub async fn save_uploaded_media(
     Ok(relative_url)
 }
 
-// ==========================================
-// Folder Management Server Functions
-// ==========================================
+pub use super::server_fns_folders::*;
+pub use super::server_fns_share::*;
 
-#[server(endpoint = "get_folders")]
-pub async fn get_folders() -> Result<Vec<SheetFolder>, ServerFnError> {
+#[server(endpoint = "clone_sheet")]
+pub async fn clone_sheet(id: String, token: Option<String>) -> Result<String, ServerFnError> {
+    if id.trim().is_empty() {
+        return Err(ServerFnError::new("ID da ficha não fornecido"));
+    }
+
     use sqlx::SqlitePool;
+    use uuid::Uuid;
+
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in get_folders", None);
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in clone_sheet", Some(&format!("id={}", id)));
+        ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
+    })?;
+
+    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None)
+        .ok_or_else(|| ServerFnError::new("Você precisa estar logado para clonar uma ficha."))?;
+
+    // Limite de cota de 50 fichas por conta
+    let count = SheetRepository::count_by_user(&pool, &auth_user_id).await.unwrap_or(0);
+    if count >= 50 {
+        return Err(ServerFnError::new("Limite de 50 fichas por conta atingido. Exclua fichas antigas para clonar novas."));
+    }
+
+    let (sheet_user_id, room_id, data_json, sheet_type_db, is_public) = SheetRepository::find_raw_by_id(&pool, &id)
+        .await
+        .map_err(|e| {
+            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Error querying sheet for cloning {}", id), Some(&e.to_string()));
+            ServerFnError::new("Erro ao buscar ficha no banco de dados.")
+        })?
+        .ok_or_else(|| {
+            ServerFnError::new(format!("Ficha com ID '{}' não encontrada", id))
+        })?;
+
+    let is_owner = auth_user_id == sheet_user_id.clone().unwrap_or_default();
+    let mut is_gm = false;
+    if let Some(r_id) = room_id.as_deref() {
+        is_gm = SheetRepository::check_room_gm(&pool, r_id, &auth_user_id).await.unwrap_or(false);
+    }
+
+    let has_acl_read = crate::repositories::SheetAclRepository::check_sheet_permission(&pool, &id, &auth_user_id, "read").await.unwrap_or(false);
+    let has_token_access = crate::repositories::SheetAclRepository::verify_token_or_public(&pool, &id, token.as_deref()).await.unwrap_or(false);
+
+    let can_clone = is_owner || is_gm || is_public || has_acl_read || has_token_access || sheet_user_id.is_none();
+    if !can_clone {
+        return Err(ServerFnError::new("Permissão negada: Esta ficha é privada e não pode ser clonada."));
+    }
+
+    let mut data: CharacterData = CharacterData::parse_from_db(&id, &data_json)
+        .ok_or_else(|| ServerFnError::new("Dados da ficha corrompidos para clonagem."))?;
+
+    let new_id = Uuid::new_v4().to_string();
+    data.id = new_id.clone();
+    let base_name = data.get_display_name();
+    let cloned_name = format!("{} (Cópia)", if base_name.is_empty() { "Novo Mago" } else { &base_name });
+    data.name = cloned_name.clone();
+    data.labels.insert(crate::state::keys::HEADER_NOME.to_string(), cloned_name.clone());
+    data.is_public = false;
+    data.can_edit = true;
+    data.author_username = None;
+    data.sanitize();
+
+    let new_data_json = serde_json::to_string(&data).map_err(|e| ServerFnError::new(e.to_string()))?;
+    let summary = data.to_summary(String::new(), false, true);
+    let summary_json = serde_json::to_string(&summary).unwrap_or_default();
+
+    let final_sheet_type = if !data.sheet_type.is_empty() { data.sheet_type.clone() } else { sheet_type_db };
+
+    SheetRepository::create(
+        &pool,
+        &new_id,
+        Some(&auth_user_id),
+        &cloned_name,
+        &new_data_json,
+        &final_sheet_type,
+        None,
+        &summary_json,
+    )
+    .await
+    .map_err(|e| {
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to insert cloned sheet {}", new_id), Some(&e.to_string()));
+        ServerFnError::new("Falha ao salvar ficha clonada no banco de dados.")
+    })?;
+
+    crate::logging::server::write_log(
+        crate::logging::LogCategory::Database,
+        "INFO",
+        &format!("Ficha clonada com sucesso: origem='{}', novo_id='{}', usuario='{}'", id, new_id, auth_user_id),
+        None,
+    );
+
+    Ok(new_id)
+}
+
+#[server(endpoint = "get_user_profile")]
+pub async fn get_user_profile(username: Option<String>) -> Result<crate::state::models::UserProfileData, ServerFnError> {
+    use sqlx::SqlitePool;
+
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in get_user_profile", None);
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
     })?;
 
     let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
-    if auth_user_id.is_none() {
-        return Ok(Vec::new());
-    }
-    let user_id = auth_user_id.unwrap_or_default();
 
-    let folders = FolderRepository::list_by_user(&pool, &user_id).await.map_err(|e| {
-        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to fetch folders", Some(&e.to_string()));
-        ServerFnError::new("Falha ao consultar pastas.")
-    })?;
+    let (target_user_id, target_username, target_created_at, is_self) = match username {
+        Some(ref name) if !name.trim().is_empty() => {
+            let user_row = SheetRepository::find_user_by_username(&pool, name.trim())
+                .await
+                .map_err(|e| ServerFnError::new(e.to_string()))?
+                .ok_or_else(|| ServerFnError::new(format!("Usuário '{}' não encontrado", name)))?;
 
-    Ok(folders)
-}
-
-#[server(endpoint = "create_folder")]
-pub async fn create_folder(
-    name: String,
-    icon: Option<String>,
-    color: Option<String>,
-    parent_id: Option<String>,
-) -> Result<SheetFolder, ServerFnError> {
-    use sqlx::SqlitePool;
-    use uuid::Uuid;
-    let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
-    })?;
-
-    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None)
-        .ok_or_else(|| ServerFnError::new("Você precisa estar autenticado para criar pastas."))?;
-
-    let clean_name = name.trim().to_string();
-    if clean_name.is_empty() {
-        return Err(ServerFnError::new("O nome da pasta não pode ser vazio."));
-    }
-    if clean_name.len() > 60 {
-        return Err(ServerFnError::new("O nome da pasta não pode ter mais de 60 caracteres."));
-    }
-
-    if let Some(ref pid) = parent_id {
-        let parent_owner = FolderRepository::find_owner_id(&pool, pid).await
-            .map_err(|_| ServerFnError::new("Erro ao validar pasta pai."))?;
-        match parent_owner {
-            Some(owner_id) if owner_id == auth_user_id => {},
-            _ => return Err(ServerFnError::new("Pasta pai não encontrada ou acesso negado.")),
+            let is_self = auth_user_id.as_deref() == Some(&user_row.0);
+            (user_row.0, user_row.1, user_row.2, is_self)
         }
-    }
+        _ => {
+            let uid = auth_user_id.ok_or_else(|| ServerFnError::new("Você precisa estar logado para acessar seu perfil."))?;
+            let user_row = SheetRepository::find_user_by_id(&pool, &uid)
+                .await
+                .map_err(|e| ServerFnError::new(e.to_string()))?
+                .ok_or_else(|| ServerFnError::new("Usuário não encontrado."))?;
+            (user_row.0, user_row.1, user_row.2, true)
+        }
+    };
 
-    let count = FolderRepository::count_by_user(&pool, &auth_user_id).await.unwrap_or(0);
-    if count >= 60 {
-        return Err(ServerFnError::new("Limite de 60 pastas por conta atingido."));
-    }
+    let total_sheets = SheetRepository::count_by_user(&pool, &target_user_id).await.unwrap_or(0);
+    let public_sheets_count = SheetRepository::count_public_by_user(&pool, &target_user_id).await.unwrap_or(0);
+    let private_sheets_count = total_sheets.saturating_sub(public_sheets_count);
+    let (mage_sheets_count, gods_monsters_sheets_count) = SheetRepository::count_sheets_by_splat(&pool, &target_user_id).await.unwrap_or((0, 0));
+    let folders_count = SheetRepository::count_folders_by_user(&pool, &target_user_id).await.unwrap_or(0);
 
-    let id = Uuid::new_v4().to_string();
-    let folder_icon = icon.unwrap_or_else(|| "📁".to_string());
-    let folder_color = color.unwrap_or_else(|| "#b89347".to_string());
+    let gm_rooms_count = SheetRepository::count_rooms_by_user(&pool, &target_user_id).await.unwrap_or(0);
+    let player_rooms_count = SheetRepository::count_player_rooms_by_user(&pool, &target_user_id).await.unwrap_or(0);
+    let rooms_count = gm_rooms_count + player_rooms_count;
 
-    FolderRepository::create(
-        &pool,
-        &id,
-        &auth_user_id,
-        parent_id.as_deref(),
-        &clean_name,
-        &folder_icon,
-        &folder_color,
-        count as i32,
-    )
-    .await
-    .map_err(|e| {
-        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to create folder", Some(&e.to_string()));
-        ServerFnError::new("Falha ao criar pasta no banco de dados.")
-    })?;
+    let active_sessions_count = if is_self {
+        SheetRepository::count_active_sessions_by_user(&pool, &target_user_id).await.unwrap_or(1)
+    } else {
+        0
+    };
 
-    Ok(SheetFolder {
-        id,
-        user_id: auth_user_id,
-        parent_id,
-        name: clean_name,
-        icon: folder_icon,
-        color: folder_color,
-        sort_order: count as i32,
-        sheet_count: 0,
-        created_at: String::new(),
+    let is_admin_db: i64 = sqlx::query_scalar("SELECT is_admin FROM users WHERE id = ?")
+        .bind(&target_user_id)
+        .fetch_optional(&pool)
+        .await
+        .unwrap_or(None)
+        .unwrap_or(0);
+    let is_admin = is_admin_db == 1 || crate::auth::is_username_in_admin_env(&target_username);
+
+    let sheets = if is_self {
+        SheetRepository::list_by_user(&pool, &target_user_id).await.unwrap_or_default()
+    } else {
+        SheetRepository::list_by_user_public_only(&pool, &target_user_id, Some(&target_username)).await.unwrap_or_default()
+    };
+
+    Ok(crate::state::models::UserProfileData {
+        id: target_user_id,
+        username: target_username,
+        created_at: target_created_at,
+        is_self,
+        is_admin,
+        total_sheets,
+        public_sheets_count,
+        private_sheets_count,
+        mage_sheets_count,
+        gods_monsters_sheets_count,
+        folders_count,
+        rooms_count,
+        gm_rooms_count,
+        player_rooms_count,
+        active_sessions_count,
+        sheets,
     })
 }
 
-#[server(endpoint = "move_folder")]
-pub async fn move_folder(folder_id: String, target_parent_id: Option<String>) -> Result<(), ServerFnError> {
-    use sqlx::SqlitePool;
-    let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
-    })?;
-
-    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None)
-        .ok_or_else(|| ServerFnError::new("Acesso negado."))?;
-
-    let folder_owner = FolderRepository::find_owner_id(&pool, &folder_id).await
-        .map_err(|_| ServerFnError::new("Erro ao buscar pasta."))?;
-
-    match folder_owner {
-        Some(owner_id) if owner_id == auth_user_id => {},
-        _ => return Err(ServerFnError::new("Pasta não encontrada ou acesso não autorizado.")),
-    }
-
-    if let Some(ref target_id) = target_parent_id {
-        if target_id == &folder_id {
-            return Err(ServerFnError::new("Não é possível mover uma pasta para dentro de si mesma."));
-        }
-
-        let target_owner = FolderRepository::find_owner_id(&pool, target_id).await
-            .map_err(|_| ServerFnError::new("Erro ao buscar pasta destino."))?;
-
-        match target_owner {
-            Some(owner_id) if owner_id == auth_user_id => {},
-            _ => return Err(ServerFnError::new("Pasta destino não encontrada ou acesso negado.")),
-        }
-
-        let is_descendant = FolderRepository::is_descendant(&pool, &folder_id, target_id).await
-            .map_err(|_| ServerFnError::new("Erro ao validar hierarquia de pastas."))?;
-
-        if is_descendant {
-            return Err(ServerFnError::new("Operação inválida: não é possível mover uma pasta para dentro de uma de suas subpastas."));
-        }
-    }
-
-    FolderRepository::move_folder(&pool, &folder_id, target_parent_id.as_deref(), &auth_user_id).await
-        .map_err(|e| {
-            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to move folder", Some(&e.to_string()));
-            ServerFnError::new("Falha ao mover pasta.")
+#[server(endpoint = "get_system_stats")]
+pub async fn get_system_stats() -> Result<crate::state::models::SystemStats, ServerFnError> {
+    #[cfg(feature = "ssr")]
+    {
+        use sqlx::SqlitePool;
+        let pool = use_context::<SqlitePool>().ok_or_else(|| {
+            ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
         })?;
 
-    Ok(())
+        SheetRepository::get_system_stats(&pool)
+            .await
+            .map_err(|e| {
+                crate::logging::server::write_log(
+                    crate::logging::LogCategory::Errors,
+                    "ERROR",
+                    "Falha ao consultar estatísticas do sistema",
+                    Some(&e.to_string()),
+                );
+                ServerFnError::new("Falha ao consultar estatísticas do sistema.")
+            })
+    }
+    #[cfg(not(feature = "ssr"))]
+    {
+        unreachable!()
+    }
 }
 
-#[server(endpoint = "update_folder")]
-pub async fn update_folder(folder_id: String, name: String, icon: Option<String>, color: Option<String>) -> Result<(), ServerFnError> {
-    use sqlx::SqlitePool;
-    let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
-    })?;
-
-    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None)
-        .ok_or_else(|| ServerFnError::new("Acesso negado."))?;
-
-    let clean_name = name.trim().to_string();
-    if clean_name.is_empty() {
-        return Err(ServerFnError::new("O nome da pasta não pode ser vazio."));
-    }
-    if clean_name.len() > 60 {
-        return Err(ServerFnError::new("O nome da pasta não pode ter mais de 60 caracteres."));
-    }
-
-    let folder_icon = icon.unwrap_or_else(|| "📁".to_string());
-    let folder_color = color.unwrap_or_else(|| "#b89347".to_string());
-
-    let rows_affected = FolderRepository::update(
-        &pool,
-        &folder_id,
-        &auth_user_id,
-        &clean_name,
-        &folder_icon,
-        &folder_color,
-    )
-    .await
-    .map_err(|e| {
-        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to update folder", Some(&e.to_string()));
-        ServerFnError::new("Falha ao atualizar pasta.")
-    })?;
-
-    if rows_affected == 0 {
-        return Err(ServerFnError::new("Pasta não encontrada ou acesso não autorizado."));
-    }
-
-    Ok(())
-}
-
-#[server(endpoint = "delete_folder")]
-pub async fn delete_folder(folder_id: String) -> Result<(), ServerFnError> {
-    use sqlx::SqlitePool;
-    let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
-    })?;
-
-    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None)
-        .ok_or_else(|| ServerFnError::new("Acesso negado."))?;
-
-    let rows_affected = FolderRepository::delete(&pool, &folder_id, &auth_user_id).await
-        .map_err(|e| {
-            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to delete folder", Some(&e.to_string()));
-            ServerFnError::new("Falha ao excluir pasta.")
-        })?;
-
-    if rows_affected == 0 {
-        return Err(ServerFnError::new("Pasta não encontrada ou acesso não autorizado."));
-    }
-
-    Ok(())
-}
-
-#[cfg(feature = "ssr")]
-pub async fn check_folder_permission_internal(
-    pool: &sqlx::SqlitePool,
-    folder_id: &str,
-    user_id: &str,
-    required_permission: &str,
-) -> Result<bool, sqlx::Error> {
-    AclRepository::check_folder_permission(pool, folder_id, user_id, required_permission).await
-}
-
-#[server(endpoint = "move_sheet_to_folder")]
-pub async fn move_sheet_to_folder(sheet_id: String, folder_id: Option<String>) -> Result<(), ServerFnError> {
-    use sqlx::SqlitePool;
-    let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
-    })?;
-
-    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None)
-        .ok_or_else(|| ServerFnError::new("Acesso negado."))?;
-
-    if let Some(ref fid) = folder_id {
-        let is_allowed = check_folder_permission_internal(&pool, fid, &auth_user_id, "write").await
-            .map_err(|_| ServerFnError::new("Erro ao validar permissões na pasta de destino."))?;
-
-        if !is_allowed {
-            return Err(ServerFnError::new("Pasta de destino não encontrada ou acesso negado."));
+#[server(endpoint = "toggle_sheet_like")]
+pub async fn toggle_sheet_like(sheet_id: String) -> Result<crate::state::models::LikeToggleResult, ServerFnError> {
+    #[cfg(feature = "ssr")]
+    {
+        let clean_id = sheet_id.trim().to_string();
+        if clean_id.is_empty() {
+            return Err(ServerFnError::new("ID da ficha não fornecido"));
         }
-    }
 
-    let rows_affected = SheetRepository::move_to_folder(&pool, &sheet_id, folder_id.as_deref(), &auth_user_id)
-        .await
-        .map_err(|e| {
-            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to move sheet to folder", Some(&e.to_string()));
-            ServerFnError::new("Falha ao mover ficha para a pasta.")
+        use sqlx::SqlitePool;
+        let pool = use_context::<SqlitePool>().ok_or_else(|| {
+            ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
         })?;
 
-    if rows_affected == 0 {
-        return Err(ServerFnError::new("Ficha não encontrada ou acesso não autorizado."));
-    }
+        let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None)
+            .ok_or_else(|| ServerFnError::new("Você precisa estar logado para curtir fichas."))?;
 
-    Ok(())
+        let (is_liked, likes_count) = SheetRepository::toggle_like(&pool, &clean_id, &auth_user_id)
+            .await
+            .map_err(|e| {
+                crate::logging::server::write_log(
+                    crate::logging::LogCategory::Errors,
+                    "ERROR",
+                    &format!("Erro ao alterar like da ficha {}", clean_id),
+                    Some(&e.to_string()),
+                );
+                ServerFnError::new("Falha ao registrar curtida. Tente novamente.")
+            })?;
+
+        crate::logging::server::write_log(
+            crate::logging::LogCategory::UserActions,
+            "INFO",
+            &format!("LIKE TOGGLE: sheet_id='{}', user_id='{}', is_liked={}, count={}", clean_id, auth_user_id, is_liked, likes_count),
+            None,
+        );
+
+        Ok(crate::state::models::LikeToggleResult {
+            sheet_id: clean_id,
+            is_liked,
+            likes_count,
+        })
+    }
+    #[cfg(not(feature = "ssr"))]
+    {
+        let _ = sheet_id;
+        unreachable!()
+    }
 }
 
-#[server(endpoint = "get_folder_acls")]
-pub async fn get_folder_acls(folder_id: String) -> Result<Vec<FolderAclEntry>, ServerFnError> {
-    use sqlx::SqlitePool;
-    let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
-    })?;
 
-    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None)
-        .ok_or_else(|| ServerFnError::new("Acesso negado."))?;
 
-    // Check ownership or admin
-    let is_allowed = check_folder_permission_internal(&pool, &folder_id, &auth_user_id, "admin").await
-        .map_err(|_| ServerFnError::new("Erro ao verificar permissão de administração da pasta."))?;
-
-    if !is_allowed {
-        return Err(ServerFnError::new("Apenas o proprietário ou administrador pode gerenciar permissões da pasta."));
-    }
-
-    let entries = AclRepository::list_for_folder(&pool, &folder_id).await
-        .map_err(|e| {
-            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to fetch folder ACLs", Some(&e.to_string()));
-            ServerFnError::new("Falha ao consultar permissões da pasta.")
-        })?;
-
-    Ok(entries)
-}
-
-#[server(endpoint = "grant_folder_acl")]
-pub async fn grant_folder_acl(
-    folder_id: String,
-    grantee_type: String,
-    grantee_identifier: String,
-    permission: String,
-) -> Result<FolderAclEntry, ServerFnError> {
-    use sqlx::SqlitePool;
-    use uuid::Uuid;
-    let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
-    })?;
-
-    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None)
-        .ok_or_else(|| ServerFnError::new("Acesso negado."))?;
-
-    let is_allowed = check_folder_permission_internal(&pool, &folder_id, &auth_user_id, "admin").await
-        .map_err(|_| ServerFnError::new("Erro ao verificar permissão."))?;
-
-    if !is_allowed {
-        return Err(ServerFnError::new("Apenas o proprietário ou administrador pode compartilhar a pasta."));
-    }
-
-    let clean_perm = match permission.to_lowercase().as_str() {
-        "admin" => "admin".to_string(),
-        "write" | "editor" => "write".to_string(),
-        _ => "read".to_string(),
-    };
-
-    let (grantee_id, grantee_name) = match grantee_type.to_lowercase().as_str() {
-        "user" => {
-            let clean_user = grantee_identifier.trim();
-            if clean_user.is_empty() {
-                return Err(ServerFnError::new("Digite o nome de usuário para compartilhar."));
-            }
-            let u_opt = AclRepository::find_user_by_name(&pool, clean_user).await
-                .map_err(|_| ServerFnError::new("Erro ao buscar usuário."))?;
-
-            match u_opt {
-                Some((uid, uname)) => {
-                    if uid == auth_user_id {
-                        return Err(ServerFnError::new("Você já é o proprietário desta pasta."));
-                    }
-                    (Some(uid), uname)
-                }
-                None => return Err(ServerFnError::new(format!("Usuário '{}' não encontrado.", clean_user))),
-            }
-        }
-        "room" => {
-            let clean_room = grantee_identifier.trim();
-            if clean_room.is_empty() {
-                return Err(ServerFnError::new("Selecione uma sala para compartilhar."));
-            }
-            let r_opt = AclRepository::find_room_by_id_or_code(&pool, clean_room).await
-                .map_err(|_| ServerFnError::new("Erro ao buscar sala."))?;
-
-            match r_opt {
-                Some((rid, rname)) => (Some(rid), rname),
-                None => return Err(ServerFnError::new("Sala de crônica não encontrada.")),
-            }
-        }
-        "public" => (None, "Público".to_string()),
-        _ => return Err(ServerFnError::new("Tipo de destinatário inválido.")),
-    };
-
-    let acl_id = Uuid::new_v4().to_string();
-    AclRepository::grant(&pool, &acl_id, &folder_id, &grantee_type, grantee_id.as_deref(), &clean_perm)
-        .await
-        .map_err(|e| {
-            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to grant folder ACL", Some(&e.to_string()));
-            ServerFnError::new("Falha ao salvar permissão da pasta.")
-        })?;
-
-    Ok(FolderAclEntry {
-        id: acl_id,
-        folder_id,
-        grantee_type,
-        grantee_id,
-        grantee_name,
-        permission: clean_perm,
-        created_at: String::new(),
-    })
-}
-
-#[server(endpoint = "revoke_folder_acl")]
-pub async fn revoke_folder_acl(acl_id: String) -> Result<(), ServerFnError> {
-    use sqlx::SqlitePool;
-    let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
-    })?;
-
-    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None)
-        .ok_or_else(|| ServerFnError::new("Acesso negado."))?;
-
-    let folder_id = AclRepository::find_folder_id_by_acl(&pool, &acl_id).await
-        .map_err(|_| ServerFnError::new("Erro ao buscar permissão."))?;
-
-    let fid = match folder_id {
-        Some(f) => f,
-        None => return Err(ServerFnError::new("Regra de permissão não encontrada.")),
-    };
-
-    let is_allowed = check_folder_permission_internal(&pool, &fid, &auth_user_id, "admin").await
-        .map_err(|_| ServerFnError::new("Erro ao verificar permissão."))?;
-
-    if !is_allowed {
-        return Err(ServerFnError::new("Acesso negado: apenas o proprietário ou administrador pode revogar permissões."));
-    }
-
-    AclRepository::revoke(&pool, &acl_id).await
-        .map_err(|e| {
-            crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Failed to revoke folder ACL", Some(&e.to_string()));
-            ServerFnError::new("Falha ao revogar permissão.")
-        })?;
-
-    Ok(())
-}
 

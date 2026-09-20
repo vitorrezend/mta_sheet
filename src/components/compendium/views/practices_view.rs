@@ -168,8 +168,10 @@ pub fn PracticesView(
                         }.into_view()
                     } else {
                         let practice = active_practice.get();
-                        let on_sel = on_select_act.clone();
-                        let on_cls = on_close_act.clone();
+                        let on_sel_header = on_select_act.clone();
+                        let on_sel_footer = on_select_act.clone();
+                        let on_cls_header = on_close_act.clone();
+                        let on_cls_footer = on_close_act.clone();
                         let on_nav = on_nav_inst.clone();
 
                         view! {
@@ -177,10 +179,41 @@ pub fn PracticesView(
                                 // Cabeçalho do Detalhe com Nome e Página
                                 <div class="practice-detail-header">
                                     <div class="practice-title-row">
-                                        <div class="practice-main-name">{move || practice.name(current_lang.get())}</div>
-                                        <span class="practice-page-badge">
-                                            "📖 " {practice.page_ref}
-                                        </span>
+                                        <div class="practice-title-left">
+                                            <div class="practice-main-name">{move || practice.name(current_lang.get())}</div>
+                                            <span class="practice-page-badge">
+                                                "📖 " {practice.page_ref}
+                                            </span>
+                                        </div>
+
+                                        {if let Some(cb) = on_sel_header {
+                                            let p_name = practice.name(current_lang.get()).to_string();
+                                            let on_cls_h = on_cls_header;
+                                            view! {
+                                                <div class="compendium-header-actions">
+                                                    <button
+                                                        type="button"
+                                                        class="compendium-action-btn compendium-btn-emerald"
+                                                        on:click=move |_| {
+                                                            cb.call(p_name.clone());
+                                                            if let Some(c) = &on_cls_h {
+                                                                c.call(());
+                                                            }
+                                                        }
+                                                    >
+                                                        <span class="compendium-btn-icon">"✦"</span>
+                                                        <span class="compendium-btn-label">
+                                                            {move || match current_lang.get() {
+                                                                Language::PtBr => "Usar na Ficha",
+                                                                Language::EnUs => "Use on Sheet",
+                                                            }}
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                            }.into_view()
+                                        } else {
+                                            view! { <span></span> }.into_view()
+                                        }}
                                     </div>
                                     <div class="practice-aliases">
                                         <span class="practice-aliases-label">
@@ -318,14 +351,14 @@ pub fn PracticesView(
                                 </div>
 
                                 // Botão de Ação: Selecionar Prática para o Slot da Ficha
-                                {if let Some(cb) = on_sel {
+                                {if let Some(cb) = on_sel_footer {
                                     let p_name = practice.name(current_lang.get()).to_string();
-                                    let on_cls_action = on_cls;
+                                    let on_cls_action = on_cls_footer;
                                     view! {
-                                        <div class="practice-action-row" style="margin-top: 1.5rem;">
+                                        <div class="compendium-footer-actions">
                                             <button
                                                 type="button"
-                                                class="practice-select-btn"
+                                                class="compendium-action-btn compendium-btn-emerald compendium-btn-large"
                                                 on:click=move |_| {
                                                     cb.call(p_name.clone());
                                                     if let Some(c) = &on_cls_action {
@@ -333,10 +366,13 @@ pub fn PracticesView(
                                                     }
                                                 }
                                             >
-                                                {move || match current_lang.get() {
-                                                    Language::PtBr => format!("✦ Usar '{}' no Slot de Prática", practice.name(current_lang.get())),
-                                                    Language::EnUs => format!("✦ Use '{}' for Practice Slot", practice.name(current_lang.get())),
-                                                }}
+                                                <span class="compendium-btn-icon">"✦"</span>
+                                                <span class="compendium-btn-label">
+                                                    {move || match current_lang.get() {
+                                                        Language::PtBr => format!("Usar '{}' no Slot de Prática", practice.name(current_lang.get())),
+                                                        Language::EnUs => format!("Use '{}' for Practice Slot", practice.name(current_lang.get())),
+                                                    }}
+                                                </span>
                                             </button>
                                         </div>
                                     }.into_view()

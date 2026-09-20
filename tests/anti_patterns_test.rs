@@ -491,3 +491,124 @@ fn test_no_signal_storms_in_stable_inputs() {
     );
 }
 
+#[test]
+fn test_room_and_party_grid_mobile_responsiveness() {
+    let rooms_css = fs::read_to_string("styles/rooms.css")
+        .expect("styles/rooms.css deve existir");
+
+    // 1. Garante que a grade de personagens da sala tenha coluna única (1fr) no mobile
+    assert!(
+        rooms_css.contains("@media (max-width: 768px)") && rooms_css.contains("grid-template-columns: 1fr"),
+        "styles/rooms.css DEVE possuir uma media query @media (max-width: 768px) definindo 'grid-template-columns: 1fr' \
+         para que os cards de personagens da mesa não sejam cortados horizontalmente em telas de celular."
+    );
+
+    // 2. Garante que a barra de abas da sala suporte rolagem touch suave
+    assert!(
+        rooms_css.contains("-webkit-overflow-scrolling: touch") && rooms_css.contains("overflow-x: auto"),
+        "styles/rooms.css DEVE possuir '-webkit-overflow-scrolling: touch' e 'overflow-x: auto' em .room-tabs-nav \
+         para permitir navegação suave e acessível por toque em smartphones."
+    );
+
+    // 3. Garante que as caixas de estatísticas do card (Arete / Jogador) estejam separadas verticalmente
+    let common_css = fs::read_to_string("styles/02-common.css")
+        .expect("styles/02-common.css deve existir");
+    assert!(
+        common_css.contains(".party-stat-box") && common_css.contains("flex-direction: column"),
+        "styles/02-common.css DEVE estilizar .party-stat-box com 'flex-direction: column' \
+         para impedir que rótulo e valor (ex: Arete1 / JogadorSaint) fiquem colados na mesma linha."
+    );
+}
+
+#[test]
+fn test_mobile_tactical_party_card_and_spheres_pills() {
+    let common_css = fs::read_to_string("styles/02-common.css")
+        .expect("styles/02-common.css deve existir");
+    assert!(
+        common_css.contains(".pill-sphere"),
+        "styles/02-common.css DEVE possuir a classe .pill-sphere para estilização de pílulas de esferas com nível."
+    );
+
+    let rooms_css = fs::read_to_string("styles/rooms.css")
+        .expect("styles/rooms.css deve existir");
+    assert!(
+        rooms_css.contains(".party-card-desktop") && rooms_css.contains(".party-card-mobile"),
+        "styles/rooms.css DEVE conter classes para .party-card-desktop e .party-card-mobile."
+    );
+
+    assert!(
+        rooms_css.contains("@media (max-width: 768px)") && rooms_css.contains(".party-card-desktop") && rooms_css.contains("display: none !important"),
+        "styles/rooms.css DEVE ocultar o card desktop no mobile via display: none !important."
+    );
+
+    assert!(
+        rooms_css.contains("@media (min-width: 769px)") && rooms_css.contains(".party-card-mobile") && rooms_css.contains("display: none !important"),
+        "styles/rooms.css DEVE ocultar o card tático mobile em telas desktop via display: none !important."
+    );
+
+    // Clean Architecture: Todos os arquivos devem respeitar o limite de 1000 linhas
+    let room_view = fs::read_to_string("src/components/rooms/room_view.rs")
+        .expect("src/components/rooms/room_view.rs deve existir");
+    let room_view_lines = room_view.lines().count();
+    assert!(
+        room_view_lines < 1000,
+        "src/components/rooms/room_view.rs excedeu o limite de 1000 linhas da Clean Architecture (atual: {} linhas).",
+        room_view_lines
+    );
+
+    let desktop_card = fs::read_to_string("src/components/rooms/party_card_desktop.rs")
+        .expect("src/components/rooms/party_card_desktop.rs deve existir");
+    let desktop_lines = desktop_card.lines().count();
+    assert!(
+        desktop_lines < 1000,
+        "src/components/rooms/party_card_desktop.rs deve estar abaixo de 1000 linhas (atual: {} linhas).",
+        desktop_lines
+    );
+
+    let mobile_card = fs::read_to_string("src/components/rooms/party_card_mobile.rs")
+        .expect("src/components/rooms/party_card_mobile.rs deve existir");
+    let mobile_lines = mobile_card.lines().count();
+    assert!(
+        mobile_lines < 1000,
+        "src/components/rooms/party_card_mobile.rs deve estar abaixo de 1000 linhas (atual: {} linhas).",
+        mobile_lines
+    );
+}
+
+/// Garante que nenhum arquivo de código-fonte Rust (.rs) contenha
+/// sequências de Mojibake (corrupção típica de decodificação UTF-8 lida como ANSI/Windows-1252).
+#[test]
+fn test_no_mojibake_encoding_artifacts() {
+    let rs_files = get_all_rs_files(Path::new("src"));
+    let mut violations = Vec::new();
+
+    let mojibake_patterns = [
+        // Letras acentuadas corrompidas (UTF-8 decodificado como Windows-1252 / ISO-8859-1)
+        "Ã¡", "Ã©", "Ã\u{ad}", "Ã³", "Ãº", "Ã£", "Ãµ", "Ã¢", "Ãª", "Ã´",
+        "Ã§", "Ã ", "Ã€", "Ã‰", "Ã“", "Ãš", "Ãƒ", "Ã•", "Ã‚", "ÃŠ", "Ã”", "Ã‡",
+        // Pontuação e símbolos tipográficos corrompidos (UTF-8 3-bytes decodificados como Windows-1252)
+        "â€œ", "â€", "â€¦", "â€”", "â€“", "â€™", "â€˜",
+    ];
+
+    for file_path in &rs_files {
+        let content = fs::read_to_string(file_path).expect("Failed to read file");
+        for pattern in &mojibake_patterns {
+            if content.contains(pattern) {
+                violations.push(format!(
+                    "[{:?}] Artefato de codificação Mojibake detectado: '{}'. O arquivo foi salvo com encoding corrompido.",
+                    file_path, pattern
+                ));
+                break;
+            }
+        }
+    }
+
+    assert!(
+        violations.is_empty(),
+        "Arquivos com corrupção de encoding UTF-8 encontrados:\n{}",
+        violations.join("\n")
+    );
+}
+
+
+

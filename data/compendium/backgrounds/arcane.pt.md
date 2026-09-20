@@ -1,0 +1,9 @@
+### Arcano / Ocultamento Tecnocrata (Arcane / Cloaking)
+
+Você domina a nobre arte do desaparecimento. Quer isso envolva um truque sutil, a capacidade psíquica de obscurecer a mente humana, disruptores sensoriais nanotecnológicos ou algum poder inominável de obscuridade mística, você possui o dom de se perder no mundo. Especialmente na era das câmeras de smartphones, bancos de dados globais, rastreadores eletrônicos, amostras de DNA e circuitos fechados de TV (CFTV) em cada esquina, o Arcano — ou sua versão Tecnocrata, Ocultamento — é um Traço indispensável.
+
+Arquivos sobre você se perdem; câmeras sofrem falhas eletromagnéticas ou gravam silhuetas borradas; pessoas interrogadas recordam apenas de 'Algum cara... ou mulher, eu acho — realmente não tenho certeza'. Embora não seja invisibilidade literal, esse talento permite que você se misture perfeitamente a multidões, borre suas feições em gravações digitais e deslize pelas frestas de uma sociedade cada vez mais vigiada.
+
+Para magos místicos, o Arcano é uma curvatura da realidade provocada por flutuações de energia metafísica, ecoando como uma Ressonância estática. Para a Tecnocracia, trata-se de um fenômeno perfeitamente explicável pela física de partículas e bloqueadores de frequência. A União monitora indivíduos misteriosos como o Agente Secreto John Courage, que manifestam esse efeito de Ocultamento em níveis extremos.
+
+> **Sistema de Jogo:** Adicione seus pontos de Arcano como dados extras em todas as jogadas relacionadas a Furtividade. Oponentes reduzem suas paradas de [Percepção](mta://attributes/perception) na mesma quantidade ao tentar rastreá-lo. Não oculta características físicas extravagantes (como cabelos roxos fluorescentes ou tatuagens faciais brilhantes).

@@ -36,15 +36,22 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
         let k4 = key_trait.clone();
         let k5 = key_trait.clone();
         let k6 = key_trait.clone();
+        let k_sup = key_trait.clone();
+        let k_toggle_sup = key_trait;
         let kl1 = key_label.clone();
-        let kl2 = key_label.clone();
+        let kl2 = key_label;
 
         let label = Signal::derive(move || data.with(|d| d.get_label(&kl1)));
         let level = Signal::derive(move || data.with(|d| d.get_attribute_level(&k1, 0)));
         let modifier = Signal::derive(move || data.with(|d| d.get_attribute_modifier(&k2)));
-        let origins = Signal::derive(move || data.with(|d| d.attributes.get(&k3).map(|a| a.get_origins(5)).unwrap_or_else(|| vec![DotOrigin::Base; 5])));
+        let origins = Signal::derive(move || data.with(|d| d.attributes.get(&k3).map(|a| a.get_origins(10)).unwrap_or_else(|| vec![DotOrigin::Base; 10])));
+        let is_supernatural = Signal::derive(move || data.with(|d| d.is_attribute_supernatural(&k_sup)));
 
         let on_dot_origin_change = Callback::new(move |(idx, orig)| update_other_trait_dot(k6.clone(), idx, orig));
+        let on_toggle_supernatural = Callback::new(move |_| {
+            let k = k_toggle_sup.clone();
+            set_data.update(|s| s.toggle_attribute_supernatural(&k));
+        });
 
         view! {
             <ValueField 
@@ -52,6 +59,8 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
                 level=level
                 modifier=modifier
                 origins=origins
+                is_supernatural=is_supernatural
+                on_toggle_supernatural=on_toggle_supernatural
                 on_level_change=move |v| update_other_trait(k4.clone(), Some(v), None)
                 on_modifier_change=move |m| update_other_trait(k5.clone(), None, Some(m))
                 on_dot_origin_change=on_dot_origin_change

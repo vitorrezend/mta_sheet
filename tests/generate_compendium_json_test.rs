@@ -4,7 +4,7 @@ use serde::Serialize;
 use mta_sheet::compendium::{
     ALL_WEAPONS, ALL_RULE_NOTES, ALL_COMBAT_MANEUVERS, ALL_PRACTICES, BOX_LEFT_AND_RIGHT_HAND_PATHS,
     ALL_INSTRUMENTS, ALL_THEORY_ARTICLES, ALL_ARCHETYPES, ARCHETYPE_THEORY_RULES,
-    ALL_ATTRIBUTES,
+    ALL_ATTRIBUTES, ALL_BACKGROUNDS, BACKGROUND_THEORY_RULES,
 };
 
 #[derive(Serialize)]
@@ -35,6 +35,12 @@ struct ArchetypesCompendiumPayload {
 #[derive(Serialize)]
 struct AttributesCompendiumPayload {
     attributes: &'static [mta_sheet::compendium::attributes::AttributeDefinition],
+}
+
+#[derive(Serialize)]
+struct BackgroundsCompendiumPayload {
+    theory: &'static mta_sheet::compendium::backgrounds::BackgroundTheoryArticle,
+    backgrounds: &'static [mta_sheet::compendium::backgrounds::BackgroundDefinition],
 }
 
 #[test]
@@ -82,9 +88,18 @@ fn test_generate_compendium_json_files() {
     let attributes_json = serde_json::to_string_pretty(&attributes_payload).expect("Failed to serialize attributes");
     fs::write(out_dir.join("attributes.json"), attributes_json).expect("Failed to write attributes.json");
 
+    // 6. backgrounds.json
+    let backgrounds_payload = BackgroundsCompendiumPayload {
+        theory: &BACKGROUND_THEORY_RULES,
+        backgrounds: ALL_BACKGROUNDS,
+    };
+    let backgrounds_json = serde_json::to_string_pretty(&backgrounds_payload).expect("Failed to serialize backgrounds");
+    fs::write(out_dir.join("backgrounds.json"), backgrounds_json).expect("Failed to write backgrounds.json");
+
     assert!(out_dir.join("weapons.json").exists());
     assert!(out_dir.join("practices.json").exists());
     assert!(out_dir.join("instruments.json").exists());
     assert!(out_dir.join("archetypes.json").exists());
     assert!(out_dir.join("attributes.json").exists());
+    assert!(out_dir.join("backgrounds.json").exists());
 }
