@@ -105,6 +105,8 @@ echo   -^> [CSS Bundle] Empacotando suite de estilos em target\site\pkg\mta_shee
     type styles\share.css
     echo.
     type styles\about.css
+    echo.
+    type styles\compendium-navigation.css
 ) > target\site\pkg\mta_sheet.css
 
 echo [4/4] Empacotando executavel standalone...

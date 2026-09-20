@@ -33,7 +33,7 @@ fi
 
 # Empacota toda a suite de estilos em um unico arquivo CSS otimizado
 echo "  -> [CSS Bundle] Concatenando suite de estilos em target/site/pkg/mta_sheet.css..."
-cat styles/00-tokens.css styles/01-variables.css styles/02-common.css styles/03-sheet-layout.css styles/04-page1-main.css styles/05-page2-magic-combat.css styles/06-page3-expanded.css styles/07-page4-history-visuals.css styles/08-print-pdf.css styles/09-gods-and-monsters.css styles/10-page5-grimoire.css styles/11-page6-notes.css styles/12-compendium.css styles/patch_notes.css styles/home.css styles/auth.css styles/rooms.css styles/logs.css styles/feed.css styles/profile.css styles/share.css styles/about.css > target/site/pkg/mta_sheet.css
+cat styles/00-tokens.css styles/01-variables.css styles/02-common.css styles/03-sheet-layout.css styles/04-page1-main.css styles/05-page2-magic-combat.css styles/06-page3-expanded.css styles/07-page4-history-visuals.css styles/08-print-pdf.css styles/09-gods-and-monsters.css styles/10-page5-grimoire.css styles/11-page6-notes.css styles/12-compendium.css styles/patch_notes.css styles/home.css styles/auth.css styles/rooms.css styles/logs.css styles/feed.css styles/profile.css styles/share.css styles/about.css styles/compendium-navigation.css > target/site/pkg/mta_sheet.css
 
 echo "[3/3] Empacotando executavel standalone..."
 SERVER_BIN=""
