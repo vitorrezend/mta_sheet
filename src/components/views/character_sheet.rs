@@ -1,6 +1,6 @@
 use leptos::*;
 use leptos_router::*;
-use crate::state::{clone_sheet, get_sheet, update_sheet, CharacterData, DotOrigin};
+use crate::state::{clone_sheet, get_sheet, update_sheet, CharacterData, DotOrigin, keys};
 use crate::components::{Callback, Sheet};
 use crate::components::mta_sheet::page1::{Abilities, AdvantagesMta, Attributes, InfoHeader, Spheres};
 use crate::components::mta_sheet::page2::PageMagicCombat;
@@ -24,6 +24,8 @@ pub enum CompendiumTarget {
     Background(Option<usize>),
     Sphere(Option<usize>),
     Weapon(Option<usize>),
+    Ability(Option<usize>),
+    MeritFlaw(Option<usize>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -460,6 +462,24 @@ pub fn CharacterSheet() -> impl IntoView {
         set_show_practice_modal.set(true);
     });
 
+    let open_ability_compendium = Callback::new(move |(slot, query): (Option<usize>, String)| {
+        set_compendium_state.set(CompendiumModalState {
+            section: CompendiumSection::Abilities,
+            query,
+            target: CompendiumTarget::Ability(slot),
+        });
+        set_show_practice_modal.set(true);
+    });
+
+    let open_merit_flaw_compendium = Callback::new(move |(slot, query): (Option<usize>, String)| {
+        set_compendium_state.set(CompendiumModalState {
+            section: CompendiumSection::MeritsFlaws,
+            query,
+            target: CompendiumTarget::MeritFlaw(slot),
+        });
+        set_show_practice_modal.set(true);
+    });
+
     provide_context(PracticeCompendiumContext {
         open: open_practice_compendium.clone(),
         open_practice: open_practice_compendium,
@@ -469,6 +489,8 @@ pub fn CharacterSheet() -> impl IntoView {
         open_weapon: open_weapon_compendium,
         open_background: open_background_compendium,
         open_sphere: open_sphere_compendium,
+        open_ability: open_ability_compendium,
+        open_merit_flaw: open_merit_flaw_compendium,
     });
 
     let on_practice_selected_from_modal = Callback::new(move |selected_name: String| {
@@ -585,6 +607,91 @@ pub fn CharacterSheet() -> impl IntoView {
             s.set_attribute_with_origin(&target_id, Some(selected_level), None, current_origin);
         });
         let _ = set_is_dirty.try_set(true);
+    });
+
+    let on_merit_flaw_selected_from_modal = Callback::new(move |(slot_opt, selected_name, selected_cost, is_flaw): (Option<usize>, String, i32, bool)| {
+        let slot = slot_opt.or_else(|| match compendium_state.with(|s| s.target.clone()) {
+            CompendiumTarget::MeritFlaw(slot) => slot,
+            _ => None,
+        });
+        let category = if is_flaw { keys::CAT_FLAWS } else { keys::CAT_MERITS };
+        let prefix = if is_flaw { "flaw" } else { "merit" };
+        let current_origin = active_origin.get();
+        set_data.update(|s| {
+            let list = s.custom_lists.entry(category.to_string()).or_default();
+            let target_id = if let Some(idx) = slot {
+                if idx < list.len() {
+                    list[idx].clone()
+                } else {
+                    let id = format!("{}_{}", prefix, uuid::Uuid::new_v4());
+                    list.push(id.clone());
+                    id
+                }
+            } else {
+                let id = format!("{}_{}", prefix, uuid::Uuid::new_v4());
+                list.push(id.clone());
+                id
+            };
+            s.labels.insert(target_id.clone(), selected_name);
+            s.set_attribute_with_origin(&target_id, Some(selected_cost), None, current_origin);
+        });
+        let _ = set_is_dirty.try_set(true);
+    });
+
+    let on_ability_selected_from_modal = Callback::new(move |(slot_opt, selected_name): (Option<usize>, String)| {
+        let slot = slot_opt.or_else(|| match compendium_state.with(|s| s.target.clone()) {
+            CompendiumTarget::Ability(slot) => slot,
+            _ => None,
+        });
+        let category = {
+            let matched = crate::compendium::abilities::ALL_ABILITIES.iter().find(|a| {
+                selected_name.starts_with(a.name_pt) || selected_name.starts_with(a.name) || selected_name.starts_with(a.id)
+            });
+            match matched.map(|a| a.category) {
+                Some(crate::compendium::abilities::AbilityCategory::Talents) => "Talentos",
+                Some(crate::compendium::abilities::AbilityCategory::Skills) => "Perícias",
+                Some(crate::compendium::abilities::AbilityCategory::Knowledges) => "Conhecimentos",
+                None => "Talentos",
+            }
+        };
+        let category_prefix = match category {
+            "Talentos" => "tal",
+            "Perícias" => "per",
+            "Conhecimentos" => "con",
+            _ => "ab",
+        };
+        set_data.update(|s| {
+            let list = s.custom_lists.entry(category.to_string()).or_default();
+            let target_id = if let Some(idx) = slot {
+                if idx < list.len() {
+                    list[idx].clone()
+                } else {
+                    let id = format!("ab_{}_{}", category_prefix, uuid::Uuid::new_v4());
+                    list.push(id.clone());
+                    id
+                }
+            } else {
+                let id = format!("ab_{}_{}", category_prefix, uuid::Uuid::new_v4());
+                list.push(id.clone());
+                id
+            };
+            s.labels.insert(target_id.clone(), selected_name);
+        });
+        let _ = set_is_dirty.try_set(true);
+    });
+
+    let active_spheres_signal = Signal::derive(move || {
+        data.with(|s| s.get_active_spheres())
+    });
+
+    let on_sphere_selected_from_modal = Callback::new(move |chosen_id: String| {
+        let mut changed = false;
+        set_data.update(|s| {
+            changed = s.swap_sphere_variant(&chosen_id);
+        });
+        if changed {
+            let _ = set_is_dirty.try_set(true);
+        }
     });
 
     view! {
@@ -821,11 +928,17 @@ pub fn CharacterSheet() -> impl IntoView {
                 target_slot=Some(Signal::derive(move || match compendium_state.with(|s| s.target.clone()) {
                     CompendiumTarget::Weapon(w) => w,
                     CompendiumTarget::Background(b) => b,
+                    CompendiumTarget::Ability(a) => a,
+                    CompendiumTarget::MeritFlaw(m) => m,
                     _ => None,
                 }).into())
                 on_select_weapon=on_weapon_selected_from_modal
                 on_select_maneuver=on_maneuver_selected_from_modal
                 on_select_background=on_background_selected_from_modal
+                on_select_sphere=on_sphere_selected_from_modal
+                on_select_ability=on_ability_selected_from_modal
+                on_select_merit_flaw=on_merit_flaw_selected_from_modal
+                active_spheres=active_spheres_signal
             />
         </div>
     }

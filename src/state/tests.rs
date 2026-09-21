@@ -323,7 +323,7 @@ mod tests {
         let mut char_data = res.unwrap();
         char_data.sanitize();
 
-        assert_eq!(char_data.wonders.len(), 4);
+        assert_eq!(char_data.wonders.len(), 1);
         let wonder = &char_data.wonders[0];
         assert_eq!(wonder.name, "Grimório Antigo");
         assert_eq!(wonder.points.level, 5);
@@ -351,7 +351,11 @@ mod tests {
             let mut char_data = res.unwrap();
             char_data.sanitize();
             assert!(!char_data.name.is_empty(), "Sanitize should ensure non-empty name");
-            assert_eq!(char_data.wonders.len(), 4, "Sanitize should ensure 4 wonder slots");
+            if idx < 3 {
+                assert_eq!(char_data.wonders.len(), 1, "Sanitize should preserve wonder slot");
+            } else {
+                assert_eq!(char_data.wonders.len(), 0, "Sanitize should preserve empty wonder slots");
+            }
         }
     }
 
@@ -387,7 +391,7 @@ mod tests {
         assert_eq!(data.get_attribute_level("Destreza", 0), 3);
         assert_eq!(data.get_attribute_level("Vigor", 0), 5);
         assert_eq!(data.get_label("Conceito"), "Sobrevivente");
-        assert_eq!(data.wonders.len(), 4);
+        assert_eq!(data.wonders.len(), 1);
         assert_eq!(data.wonders[0].name, "Amuleto");
         assert_eq!(data.wonders[0].points.level, 2);
     }

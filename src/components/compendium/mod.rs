@@ -11,12 +11,16 @@ use crate::compendium::weapons::{
 use crate::components::Callback;
 use crate::i18n::Language;
 
+pub mod category_selector;
 pub mod navigation;
 pub mod rich_text;
 pub mod views;
+pub mod query_resolver;
+pub use category_selector::*;
 pub use navigation::*;
 pub use rich_text::*;
 pub use views::*;
+pub use query_resolver::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CompendiumSection {
@@ -27,6 +31,8 @@ pub enum CompendiumSection {
     Backgrounds,
     Spheres,
     Weapons,
+    Abilities,
+    MeritsFlaws,
 }
 
 #[component]
@@ -43,9 +49,19 @@ pub fn CompendiumModal(
     #[prop(into, default = None)] on_select_weapon: Option<Callback<(Option<usize>, &'static WeaponDefinition)>>,
     #[prop(into, default = None)] on_select_maneuver: Option<Callback<(Option<usize>, &'static CombatManeuver)>>,
     #[prop(into, default = None)] on_select_background: Option<Callback<(Option<usize>, String, i32)>>,
+    #[prop(into, default = None)] on_select_sphere: Option<Callback<String>>,
+    #[prop(into, default = None)] active_spheres: Option<Signal<Vec<String>>>,
+    #[prop(into, default = None)] on_select_ability: Option<Callback<(Option<usize>, String)>>,
+    #[prop(into, default = None)] on_select_merit_flaw: Option<Callback<(Option<usize>, String, i32, bool)>>,
 ) -> impl IntoView {
-    // Seção ativa (Práticas, Instrumentos, Arquétipos, Atributos, Antecedentes, Esferas ou Armas)
+    // Seção ativa (Práticas, Instrumentos, Arquétipos, Atributos, Antecedentes, Esferas, Armas, Habilidades ou Qualidades/Defeitos)
     let active_section = create_rw_signal(CompendiumSection::Practices);
+
+    // ID da habilidade atualmente selecionada
+    let selected_ability_id = create_rw_signal("alertness".to_string());
+
+    // ID da qualidade ou defeito atualmente selecionado
+    let selected_merit_flaw_id = create_rw_signal("acute_senses".to_string());
 
     // ID da esfera atualmente selecionada
     let selected_sphere_id = create_rw_signal("correspondence".to_string());
@@ -148,196 +164,33 @@ pub fn CompendiumModal(
             let trimmed = q.trim();
 
             if !trimmed.is_empty() {
-                // Tenta casar primeiro com a seção já ativa indicada
-                match sec {
-                    CompendiumSection::Weapons => {
-                        if let Some(entity) = find_combat_entity(trimmed) {
-                            match entity {
-                                CombatEntity::Weapon(w) => {
-                                    selected_weapon_id.set(w.id.to_string());
-                                    combat_subtab.set(CombatSubTab::Weapons);
-                                    mobile_show_detail.set(true);
+                if let Some(loc) = resolve_compendium_query(sec, trimmed) {
+                    sec = loc.section;
+                    match loc.section {
+                        CompendiumSection::Abilities => selected_ability_id.set(loc.item_id),
+                        CompendiumSection::MeritsFlaws => selected_merit_flaw_id.set(loc.item_id),
+                        CompendiumSection::Spheres => selected_sphere_id.set(loc.item_id),
+                        CompendiumSection::Backgrounds => selected_background_id.set(loc.item_id),
+                        CompendiumSection::Weapons => {
+                            if let Some(sub) = loc.combat_subtab {
+                                combat_subtab.set(sub);
+                                if sub == CombatSubTab::Maneuvers {
+                                    selected_maneuver_id.set(loc.item_id);
+                                } else {
+                                    selected_weapon_id.set(loc.item_id);
                                 }
-                                CombatEntity::Maneuver(m) => {
-                                    selected_maneuver_id.set(m.id.to_string());
-                                    combat_subtab.set(CombatSubTab::Maneuvers);
-                                    mobile_show_detail.set(true);
-                                }
+                            } else {
+                                selected_weapon_id.set(loc.item_id);
                             }
-                        } else if let Some(matched_attr) = find_attribute(trimmed) {
-                            selected_attribute_id.set(matched_attr.id.to_string());
-                            sec = CompendiumSection::Attributes;
-                            mobile_show_detail.set(true);
-                        } else if let Some(matched_p) = find_practice(trimmed) {
-                            selected_practice_id.set(matched_p.id.to_string());
-                            sec = CompendiumSection::Practices;
-                            mobile_show_detail.set(true);
-                        } else {
-                            mobile_show_detail.set(false);
                         }
+                        CompendiumSection::Practices => selected_practice_id.set(loc.item_id),
+                        CompendiumSection::Instruments => selected_instrument_id.set(loc.item_id),
+                        CompendiumSection::Attributes => selected_attribute_id.set(loc.item_id),
+                        CompendiumSection::Archetypes => selected_archetype_id.set(loc.item_id),
                     }
-                    CompendiumSection::Attributes => {
-                        if let Some(matched_attr) = find_attribute(trimmed) {
-                            selected_attribute_id.set(matched_attr.id.to_string());
-                            mobile_show_detail.set(true);
-                        } else if trimmed.eq_ignore_ascii_case("rule")
-                            || trimmed.eq_ignore_ascii_case("regras")
-                            || trimmed.eq_ignore_ascii_case("especialidades")
-                            || trimmed.eq_ignore_ascii_case("specialties")
-                        {
-                            selected_attribute_id.set("rule_specialties".to_string());
-                            mobile_show_detail.set(true);
-                        } else if let Some(entity) = find_combat_entity(trimmed) {
-                            match entity {
-                                CombatEntity::Weapon(w) => {
-                                    selected_weapon_id.set(w.id.to_string());
-                                    combat_subtab.set(CombatSubTab::Weapons);
-                                    mobile_show_detail.set(true);
-                                }
-                                CombatEntity::Maneuver(m) => {
-                                    selected_maneuver_id.set(m.id.to_string());
-                                    combat_subtab.set(CombatSubTab::Maneuvers);
-                                    mobile_show_detail.set(true);
-                                }
-                            }
-                            sec = CompendiumSection::Weapons;
-                        } else if let Some(matched_p) = find_practice(trimmed) {
-                            selected_practice_id.set(matched_p.id.to_string());
-                            sec = CompendiumSection::Practices;
-                            mobile_show_detail.set(true);
-                        } else {
-                            mobile_show_detail.set(false);
-                        }
-                    }
-                    CompendiumSection::Archetypes => {
-                        if let Some(matched_a) = find_archetype(trimmed) {
-                            selected_archetype_id.set(matched_a.id.to_string());
-                            mobile_show_detail.set(true);
-                        } else if trimmed.eq_ignore_ascii_case("theory")
-                            || trimmed.eq_ignore_ascii_case("regras")
-                            || trimmed.eq_ignore_ascii_case("natureza")
-                            || trimmed.eq_ignore_ascii_case("comportamento")
-                        {
-                            selected_archetype_id.set("theory_nature_demeanor".to_string());
-                            mobile_show_detail.set(true);
-                        } else if let Some(matched_attr) = find_attribute(trimmed) {
-                            selected_attribute_id.set(matched_attr.id.to_string());
-                            sec = CompendiumSection::Attributes;
-                            mobile_show_detail.set(true);
-                        } else if let Some(entity) = find_combat_entity(trimmed) {
-                            match entity {
-                                CombatEntity::Weapon(w) => {
-                                    selected_weapon_id.set(w.id.to_string());
-                                    combat_subtab.set(CombatSubTab::Weapons);
-                                    mobile_show_detail.set(true);
-                                }
-                                CombatEntity::Maneuver(m) => {
-                                    selected_maneuver_id.set(m.id.to_string());
-                                    combat_subtab.set(CombatSubTab::Maneuvers);
-                                    mobile_show_detail.set(true);
-                                }
-                            }
-                            sec = CompendiumSection::Weapons;
-                        } else {
-                            mobile_show_detail.set(false);
-                        }
-                    }
-                    CompendiumSection::Instruments => {
-                        if let Some(matched_inst) = find_instrument(trimmed) {
-                            selected_instrument_id.set(matched_inst.id.to_string());
-                            mobile_show_detail.set(true);
-                        } else if let Some(matched_art) = find_theory_article(trimmed) {
-                            selected_instrument_id.set(matched_art.id.to_string());
-                            mobile_show_detail.set(true);
-                        } else if let Some(matched_p) = find_practice(trimmed) {
-                            selected_practice_id.set(matched_p.id.to_string());
-                            sec = CompendiumSection::Practices;
-                            mobile_show_detail.set(true);
-                        } else if let Some(entity) = find_combat_entity(trimmed) {
-                            match entity {
-                                CombatEntity::Weapon(w) => {
-                                    selected_weapon_id.set(w.id.to_string());
-                                    combat_subtab.set(CombatSubTab::Weapons);
-                                    mobile_show_detail.set(true);
-                                }
-                                CombatEntity::Maneuver(m) => {
-                                    selected_maneuver_id.set(m.id.to_string());
-                                    combat_subtab.set(CombatSubTab::Maneuvers);
-                                    mobile_show_detail.set(true);
-                                }
-                            }
-                            sec = CompendiumSection::Weapons;
-                        } else {
-                            mobile_show_detail.set(false);
-                        }
-                    }
-                    CompendiumSection::Practices => {
-                        if let Some(matched_p) = find_practice(trimmed) {
-                            selected_practice_id.set(matched_p.id.to_string());
-                            mobile_show_detail.set(true);
-                        } else if let Some(matched_inst) = find_instrument(trimmed) {
-                            selected_instrument_id.set(matched_inst.id.to_string());
-                            sec = CompendiumSection::Instruments;
-                            mobile_show_detail.set(true);
-                        } else if let Some(entity) = find_combat_entity(trimmed) {
-                            match entity {
-                                CombatEntity::Weapon(w) => {
-                                    selected_weapon_id.set(w.id.to_string());
-                                    combat_subtab.set(CombatSubTab::Weapons);
-                                    mobile_show_detail.set(true);
-                                }
-                                CombatEntity::Maneuver(m) => {
-                                    selected_maneuver_id.set(m.id.to_string());
-                                    combat_subtab.set(CombatSubTab::Maneuvers);
-                                    mobile_show_detail.set(true);
-                                }
-                            }
-                            sec = CompendiumSection::Weapons;
-                        } else if let Some(matched_attr) = find_attribute(trimmed) {
-                            selected_attribute_id.set(matched_attr.id.to_string());
-                            sec = CompendiumSection::Attributes;
-                            mobile_show_detail.set(true);
-                        } else if let Some(matched_a) = find_archetype(trimmed) {
-                            selected_archetype_id.set(matched_a.id.to_string());
-                            sec = CompendiumSection::Archetypes;
-                            mobile_show_detail.set(true);
-                        } else if let Some(matched_bg) = find_background(trimmed) {
-                            selected_background_id.set(matched_bg.id.to_string());
-                            sec = CompendiumSection::Backgrounds;
-                            mobile_show_detail.set(true);
-                        } else if let Some(matched_s) = find_sphere(trimmed) {
-                            selected_sphere_id.set(matched_s.id.to_string());
-                            sec = CompendiumSection::Spheres;
-                            mobile_show_detail.set(true);
-                        } else {
-                            mobile_show_detail.set(false);
-                        }
-                    }
-                    CompendiumSection::Backgrounds => {
-                        if let Some(matched_bg) = find_background(trimmed) {
-                            selected_background_id.set(matched_bg.id.to_string());
-                            mobile_show_detail.set(true);
-                        } else if trimmed.eq_ignore_ascii_case("theory")
-                            || trimmed.eq_ignore_ascii_case("regras")
-                            || trimmed.eq_ignore_ascii_case("cabala")
-                        {
-                            selected_background_id.set("theory_background_rules".to_string());
-                            mobile_show_detail.set(true);
-                        } else {
-                            mobile_show_detail.set(false);
-                        }
-                    }
-                    CompendiumSection::Spheres => {
-                        if let Some(matched_s) = find_sphere(trimmed) {
-                            selected_sphere_id.set(matched_s.id.to_string());
-                            mobile_show_detail.set(true);
-                        } else if matches!(trimmed.to_ascii_lowercase().as_str(), "theory" | "regras" | "rules" | "metafisica" | "metaphysics") {
-                            selected_sphere_id.set("theory_sphere_rules".to_string());
-                            mobile_show_detail.set(true);
-                        } else {
-                            mobile_show_detail.set(false);
-                        }
-                    }
+                    mobile_show_detail.set(true);
+                } else {
+                    mobile_show_detail.set(false);
                 }
             } else {
                 mobile_show_detail.set(false);
@@ -383,6 +236,8 @@ pub fn CompendiumModal(
         let selected_instrument_id = selected_instrument_id.clone();
         let selected_attribute_id = selected_attribute_id.clone();
         let selected_archetype_id = selected_archetype_id.clone();
+        let selected_ability_id = selected_ability_id.clone();
+        let selected_merit_flaw_id = selected_merit_flaw_id.clone();
         let combat_subtab = combat_subtab.clone();
         move |lang: Language| -> String {
             match active_section.get() {
@@ -411,6 +266,12 @@ pub fn CompendiumModal(
                 CompendiumSection::Archetypes => {
                     CompendiumTarget::Archetype(selected_archetype_id.get()).label(lang)
                 }
+                CompendiumSection::Abilities => {
+                    CompendiumTarget::Ability(selected_ability_id.get()).label(lang)
+                }
+                CompendiumSection::MeritsFlaws => {
+                    CompendiumTarget::MeritFlaw(selected_merit_flaw_id.get()).label(lang)
+                }
             }
         }
     };
@@ -425,6 +286,8 @@ pub fn CompendiumModal(
         let selected_instrument_id = selected_instrument_id.clone();
         let selected_attribute_id = selected_attribute_id.clone();
         let selected_archetype_id = selected_archetype_id.clone();
+        let selected_ability_id = selected_ability_id.clone();
+        let selected_merit_flaw_id = selected_merit_flaw_id.clone();
         let combat_subtab = combat_subtab.clone();
         let mobile_show_detail = mobile_show_detail.clone();
         let compendium_history = compendium_history.clone();
@@ -449,6 +312,8 @@ pub fn CompendiumModal(
                 CompendiumSection::Instruments => selected_instrument_id.get(),
                 CompendiumSection::Attributes => selected_attribute_id.get(),
                 CompendiumSection::Archetypes => selected_archetype_id.get(),
+                CompendiumSection::Abilities => selected_ability_id.get(),
+                CompendiumSection::MeritsFlaws => selected_merit_flaw_id.get(),
             };
             let cur_combat_subtab = if cur_section == CompendiumSection::Weapons {
                 Some(combat_subtab.get())
@@ -483,6 +348,8 @@ pub fn CompendiumModal(
                 CompendiumTarget::Instrument(id) => selected_instrument_id.set(id.clone()),
                 CompendiumTarget::Attribute(id) => selected_attribute_id.set(id.clone()),
                 CompendiumTarget::Archetype(id) => selected_archetype_id.set(id.clone()),
+                CompendiumTarget::Ability(id) => selected_ability_id.set(id.clone()),
+                CompendiumTarget::MeritFlaw(id) | CompendiumTarget::Derangement(id) => selected_merit_flaw_id.set(id.clone()),
             }
             mobile_show_detail.set(true);
         }
@@ -498,6 +365,8 @@ pub fn CompendiumModal(
         let selected_instrument_id = selected_instrument_id.clone();
         let selected_attribute_id = selected_attribute_id.clone();
         let selected_archetype_id = selected_archetype_id.clone();
+        let selected_ability_id = selected_ability_id.clone();
+        let selected_merit_flaw_id = selected_merit_flaw_id.clone();
         let combat_subtab = combat_subtab.clone();
         let mobile_show_detail = mobile_show_detail.clone();
         let compendium_history = compendium_history.clone();
@@ -528,6 +397,8 @@ pub fn CompendiumModal(
                     CompendiumSection::Instruments => selected_instrument_id.set(entry.item_id),
                     CompendiumSection::Attributes => selected_attribute_id.set(entry.item_id),
                     CompendiumSection::Archetypes => selected_archetype_id.set(entry.item_id),
+                    CompendiumSection::Abilities => selected_ability_id.set(entry.item_id),
+                    CompendiumSection::MeritsFlaws => selected_merit_flaw_id.set(entry.item_id),
                 }
                 mobile_show_detail.set(true);
             }
@@ -560,6 +431,9 @@ pub fn CompendiumModal(
     let on_select_w_cb = on_select_weapon;
     let on_select_m_cb = on_select_maneuver;
     let on_select_bg_cb = on_select_background;
+    let on_select_s_cb = on_select_sphere;
+    let on_select_ab_cb = on_select_ability;
+    let on_select_mf_cb = on_select_merit_flaw;
 
     view! {
         {
@@ -569,6 +443,9 @@ pub fn CompendiumModal(
             let on_select_w_cb = on_select_w_cb.clone();
             let on_select_m_cb = on_select_m_cb.clone();
             let on_select_bg_cb = on_select_bg_cb.clone();
+            let on_select_s_cb = on_select_s_cb.clone();
+            let on_select_ab_cb = on_select_ab_cb.clone();
+            let on_select_mf_cb = on_select_mf_cb.clone();
             let on_close_cb = on_close_cb.clone();
             let nav_to_instrument = nav_to_instrument.clone();
             let back_to_practice = back_to_practice.clone();
@@ -579,6 +456,9 @@ pub fn CompendiumModal(
                 let on_select_w_action = on_select_w_cb.clone();
                 let on_select_m_action = on_select_m_cb.clone();
                 let on_select_bg_action = on_select_bg_cb.clone();
+                let on_select_s_action = on_select_s_cb.clone();
+                let on_select_ab_action = on_select_ab_cb.clone();
+                let on_select_mf_action = on_select_mf_cb.clone();
                 let on_close_action = on_close_cb.clone();
                 let nav_to_inst_action = nav_to_instrument.clone();
                 let back_to_prac_action = back_to_practice.clone();
@@ -606,6 +486,8 @@ pub fn CompendiumModal(
                                             CompendiumSection::Backgrounds => "👥",
                                             CompendiumSection::Spheres => "🔮",
                                             CompendiumSection::Weapons => "⚔️",
+                                            CompendiumSection::Abilities => "🎯",
+                                            CompendiumSection::MeritsFlaws => "✨",
                                         }}
                                     </span>
                                     <div class="practice-modal-title-content">
@@ -626,6 +508,10 @@ pub fn CompendiumModal(
                                                 (CompendiumSection::Spheres, Language::EnUs) => "Spheres of Magick",
                                                 (CompendiumSection::Weapons, Language::PtBr) => "Armas, Manobras & Combate",
                                                 (CompendiumSection::Weapons, Language::EnUs) => "Weapons, Maneuvers & Combat",
+                                                (CompendiumSection::Abilities, Language::PtBr) => "Habilidades & Especialidades",
+                                                (CompendiumSection::Abilities, Language::EnUs) => "Abilities & Specialties",
+                                                (CompendiumSection::MeritsFlaws, Language::PtBr) => "Qualidades, Defeitos & Perturbações",
+                                                (CompendiumSection::MeritsFlaws, Language::EnUs) => "Merits, Flaws & Derangements",
                                             }}
                                         </h3>
                                         <span class="practice-modal-subtitle">
@@ -644,6 +530,10 @@ pub fn CompendiumModal(
                                                 (CompendiumSection::Spheres, Language::EnUs) => "M20, pp. 504-534 • Chapter 10: The Book of Common Magick (Canonical Spheres & Rules)",
                                                 (CompendiumSection::Weapons, Language::PtBr) => "M20, pp. 450-453 • Capítulo 9: Combate & Armamento (Brancas, Fogo, Arremesso)",
                                                 (CompendiumSection::Weapons, Language::EnUs) => "M20, pp. 450-453 • Chapter 9: Combat & Weaponry (Melee, Ranged, Thrown)",
+                                                (CompendiumSection::Abilities, Language::PtBr) => "M20, pp. 275-301 • Capítulo 6: Habilidades (Talentos, Perícias, Conhecimentos & Secundárias)",
+                                                (CompendiumSection::Abilities, Language::EnUs) => "M20, pp. 275-301 • Chapter 6: Abilities (Talents, Skills, Knowledges & Secondary)",
+                                                (CompendiumSection::MeritsFlaws, Language::PtBr) => "M20, pp. 642-650 • Apêndice II: Qualidades, Defeitos & Perturbações Mentais",
+                                                (CompendiumSection::MeritsFlaws, Language::EnUs) => "M20, pp. 642-650 • Appendix II: Merits, Flaws & Derangements",
                                             }}
                                         </span>
                                     </div>
@@ -715,134 +605,12 @@ pub fn CompendiumModal(
                                 </div>
                             </div>
 
-                            // Barra de Navegação entre Seções do Compêndio
-                            <div class="compendium-nav-bar">
-                                <button
-                                    type="button"
-                                    class=move || if active_section.get() == CompendiumSection::Practices { "compendium-nav-tab active" } else { "compendium-nav-tab" }
-                                    on:click=move |_| {
-                                        active_section.set(CompendiumSection::Practices);
-                                        mobile_show_detail.set(false);
-                                    }
-                                >
-                                    <span class="nav-tab-icon">"📜"</span>
-                                    <span class="nav-tab-label">
-                                        {move || match current_lang.get() {
-                                            Language::PtBr => "Práticas Mágicas",
-                                            Language::EnUs => "Magickal Practices",
-                                        }}
-                                    </span>
-                                    <span class="nav-tab-badge">"20"</span>
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class=move || if active_section.get() == CompendiumSection::Instruments { "compendium-nav-tab active" } else { "compendium-nav-tab" }
-                                    on:click=move |_| {
-                                        active_section.set(CompendiumSection::Instruments);
-                                        mobile_show_detail.set(false);
-                                    }
-                                >
-                                    <span class="nav-tab-icon">"🛠️"</span>
-                                    <span class="nav-tab-label">
-                                        {move || match current_lang.get() {
-                                            Language::PtBr => "Instrumentos & Focos",
-                                            Language::EnUs => "Instruments & Focus",
-                                        }}
-                                    </span>
-                                    <span class="nav-tab-badge">"54"</span>
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class=move || if active_section.get() == CompendiumSection::Archetypes { "compendium-nav-tab active" } else { "compendium-nav-tab" }
-                                    on:click=move |_| {
-                                        active_section.set(CompendiumSection::Archetypes);
-                                        mobile_show_detail.set(false);
-                                    }
-                                >
-                                    <span class="nav-tab-icon">"🎭"</span>
-                                    <span class="nav-tab-label">
-                                        {move || match current_lang.get() {
-                                            Language::PtBr => "Arquétipos",
-                                            Language::EnUs => "Archetypes",
-                                        }}
-                                    </span>
-                                    <span class="nav-tab-badge">"20"</span>
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class=move || if active_section.get() == CompendiumSection::Attributes { "compendium-nav-tab active" } else { "compendium-nav-tab" }
-                                    on:click=move |_| {
-                                        active_section.set(CompendiumSection::Attributes);
-                                        mobile_show_detail.set(false);
-                                    }
-                                >
-                                    <span class="nav-tab-icon">"🧠"</span>
-                                    <span class="nav-tab-label">
-                                        {move || match current_lang.get() {
-                                            Language::PtBr => "Atributos & Regras",
-                                            Language::EnUs => "Attributes & Rules",
-                                        }}
-                                    </span>
-                                    <span class="nav-tab-badge">"9"</span>
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class=move || if active_section.get() == CompendiumSection::Backgrounds { "compendium-nav-tab active" } else { "compendium-nav-tab" }
-                                    on:click=move |_| {
-                                        active_section.set(CompendiumSection::Backgrounds);
-                                        mobile_show_detail.set(false);
-                                    }
-                                >
-                                    <span class="nav-tab-icon">"👥"</span>
-                                    <span class="nav-tab-label">
-                                        {move || match current_lang.get() {
-                                            Language::PtBr => "Antecedentes",
-                                            Language::EnUs => "Backgrounds",
-                                        }}
-                                    </span>
-                                    <span class="nav-tab-badge">"33"</span>
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class=move || if active_section.get() == CompendiumSection::Spheres { "compendium-nav-tab active" } else { "compendium-nav-tab" }
-                                    on:click=move |_| {
-                                        active_section.set(CompendiumSection::Spheres);
-                                        mobile_show_detail.set(false);
-                                    }
-                                >
-                                    <span class="nav-tab-icon">"🔮"</span>
-                                    <span class="nav-tab-label">
-                                        {move || match current_lang.get() {
-                                            Language::PtBr => "Esferas",
-                                            Language::EnUs => "Spheres",
-                                        }}
-                                    </span>
-                                    <span class="nav-tab-badge">"13"</span>
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class=move || if active_section.get() == CompendiumSection::Weapons { "compendium-nav-tab active" } else { "compendium-nav-tab" }
-                                    on:click=move |_| {
-                                        active_section.set(CompendiumSection::Weapons);
-                                        mobile_show_detail.set(false);
-                                    }
-                                >
-                                    <span class="nav-tab-icon">"⚔️"</span>
-                                    <span class="nav-tab-label">
-                                         {move || match current_lang.get() {
-                                             Language::PtBr => "Armas & Manobras",
-                                             Language::EnUs => "Weapons & Maneuvers",
-                                         }}
-                                     </span>
-                                     <span class="nav-tab-badge">"126"</span>
-                                </button>
-                            </div>
+                            // Barra de Navegação Elegante com Seletor e Popover
+                            <CategorySelector 
+                                active_section=active_section 
+                                current_lang=current_lang 
+                                mobile_show_detail=mobile_show_detail 
+                            />
 
                             // Corpo Modular do Compêndio
                             <div class="practice-modal-body" on:click=on_modal_click.clone()>
@@ -918,12 +686,16 @@ pub fn CompendiumModal(
                                     }
                                     CompendiumSection::Spheres => {
                                         let on_cls = on_close_action.clone();
+                                        let on_sel = on_select_s_action.clone();
+                                        let act_s = active_spheres;
                                         view! {
                                             <SpheresView
                                                 selected_sphere_id=selected_sphere_id
                                                 current_lang=current_lang
                                                 mobile_show_detail=Some(mobile_show_detail)
                                                 on_close=Some(on_cls)
+                                                on_select_sphere=on_sel
+                                                active_spheres=act_s
                                             />
                                         }.into_view()
                                     }
@@ -943,6 +715,36 @@ pub fn CompendiumModal(
                                                 on_close=Some(on_cls)
                                                 combat_subtab=Some(combat_subtab)
                                                 selected_maneuver_id=Some(selected_maneuver_id)
+                                            />
+                                        }.into_view()
+                                    }
+                                    CompendiumSection::Abilities => {
+                                        let on_sel = on_select_ab_action.clone();
+                                        let on_cls = on_close_action.clone();
+                                        let t_slot = target_slot;
+                                        view! {
+                                            <AbilitiesView
+                                                selected_ability_id=selected_ability_id
+                                                current_lang=current_lang
+                                                mobile_show_detail=Some(mobile_show_detail)
+                                                target_slot=t_slot
+                                                on_select_ability=on_sel
+                                                on_close=Some(on_cls)
+                                            />
+                                        }.into_view()
+                                    }
+                                    CompendiumSection::MeritsFlaws => {
+                                        let on_sel = on_select_mf_action.clone();
+                                        let on_cls = on_close_action.clone();
+                                        let t_slot = target_slot;
+                                        view! {
+                                            <MeritsFlawsView
+                                                selected_item_id=selected_merit_flaw_id
+                                                current_lang=current_lang
+                                                mobile_show_detail=Some(mobile_show_detail)
+                                                target_slot=t_slot
+                                                on_select_merit_flaw=on_sel
+                                                on_close=Some(on_cls)
                                             />
                                         }.into_view()
                                     }
@@ -967,6 +769,10 @@ pub fn CompendiumModal(
                                         (CompendiumSection::Backgrounds, Language::EnUs) => "M20, pp. 301-311 • Official 13 Backgrounds & Trait Ratings Catalog".to_string(),
                                         (CompendiumSection::Spheres, Language::PtBr) => "M20, pp. 504-534 • Catálogo Canônico Oficial de 13 Esferas e Variantes".to_string(),
                                         (CompendiumSection::Spheres, Language::EnUs) => "M20, pp. 504-534 • Official 13 Spheres & Variants Catalog".to_string(),
+                                        (CompendiumSection::Abilities, Language::PtBr) => "M20, pp. 275-301 • Catálogo Oficial de 48 Habilidades e Regras Opcionais".to_string(),
+                                        (CompendiumSection::Abilities, Language::EnUs) => "M20, pp. 275-301 • Official 48 Abilities and Optional Rules Catalog".to_string(),
+                                        (CompendiumSection::MeritsFlaws, Language::PtBr) => "M20, pp. 642-650 • Catálogo Oficial de Qualidades, Defeitos e Perturbações".to_string(),
+                                        (CompendiumSection::MeritsFlaws, Language::EnUs) => "M20, pp. 642-650 • Official Merits, Flaws, and Derangements Catalog".to_string(),
                                     }}
                                 </span>
 

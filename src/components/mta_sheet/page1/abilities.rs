@@ -23,6 +23,7 @@ pub fn Abilities() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
     let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
     let active_origin_ctx = use_context::<ActiveDotOriginContext>();
+    let compendium_ctx = use_context::<crate::components::mta_sheet::page5::PracticeCompendiumContext>();
 
     // Função para atualizar uma habilidade
     let update_ability = move |name: String, level: Option<i32>, modifier: Option<String>| {
@@ -81,8 +82,10 @@ pub fn Abilities() -> impl IntoView {
     let lang_ctx = use_context::<crate::i18n::LanguageContext>();
     let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
 
+    let compendium_ctx_for_rows = compendium_ctx.clone();
+
     // Helper para criar o campo de habilidade (estático ou dinâmico)
-    let render_field = move |name: String, is_custom: bool, category: &'static str| {
+    let render_field = std::rc::Rc::new(move |name: String, is_custom: bool, category: &'static str| {
         let n_level = name.clone();
         let n_mod = name.clone();
         let n_origins = name.clone();
@@ -94,6 +97,8 @@ pub fn Abilities() -> impl IntoView {
         let n_remove = name.clone();
         let n_sup = name.clone();
         let n_toggle_sup = name.clone();
+        let n_for_open = name.clone();
+        let is_custom_row = is_custom;
         
         let label = Signal::derive({
             let id = n_label.clone();
@@ -137,7 +142,19 @@ pub fn Abilities() -> impl IntoView {
             Callback::new(move |_| update_ability_supernatural(name.clone()))
         };
 
-        if is_custom {
+        let compendium_ctx_row = compendium_ctx_for_rows.clone();
+        let on_row_open_compendium = move |_| {
+            if let Some(ref c) = compendium_ctx_row {
+                let query_str = if is_custom_row {
+                    data.with(|d| d.labels.get(&n_for_open).cloned().unwrap_or_default())
+                } else {
+                    n_for_open.clone()
+                };
+                c.open_ability.call((None, query_str));
+            }
+        };
+
+        let inner_field = if is_custom {
             let old = n_change_label.clone();
             let n = n_remove.clone();
             view! {
@@ -175,58 +192,141 @@ pub fn Abilities() -> impl IntoView {
                     is_editable=false
                 />
             }.into_view()
+        };
+
+        view! {
+            <div class="ability-row-wrapper" style="display: flex; align-items: center; gap: 0.15rem; width: 100%;">
+                <button
+                    type="button"
+                    class="compendium-row-btn"
+                    style="background: none; border: none; cursor: pointer; font-size: 0.78rem; padding: 0.1rem 0.2rem; opacity: 0.65; transition: opacity 0.15s ease; flex-shrink: 0;"
+                    on:click=on_row_open_compendium
+                    title=move || match lang() {
+                        crate::i18n::Language::PtBr => "Consultar regras desta Habilidade no Compêndio",
+                        crate::i18n::Language::EnUs => "Browse rules for this Ability in Compendium",
+                    }
+                >
+                    "📖"
+                </button>
+                <div style="flex: 1; min-width: 0;">
+                    {inner_field}
+                </div>
+            </div>
         }
-    };
+    });
+
+    let ctx_for_talents = compendium_ctx.clone();
+    let on_open_talents = Callback::new(move |_| {
+        if let Some(ref c) = ctx_for_talents {
+            c.open_ability.call((None, "Talentos".to_string()));
+        }
+    });
+
+    let ctx_for_skills = compendium_ctx.clone();
+    let on_open_skills = Callback::new(move |_| {
+        if let Some(ref c) = ctx_for_skills {
+            c.open_ability.call((None, "Perícias".to_string()));
+        }
+    });
+
+    let ctx_for_knowledges = compendium_ctx.clone();
+    let on_open_knowledges = Callback::new(move |_| {
+        if let Some(ref c) = ctx_for_knowledges {
+            c.open_ability.call((None, "Conhecimentos".to_string()));
+        }
+    });
 
     view! {
         <div class="group-box">
             <span class="group-title">{move || crate::i18n::tr("abilities", lang())}</span>
             <div class="attributes-block">
-                <AbilityColumn 
-                    title=Signal::derive(move || crate::i18n::tr("talents", lang()).to_string()) 
-                    on_add=Callback::new(move |_| add_custom("Talentos"))
-                >
-                    {TALENTOS.iter().map(|&n| render_field(n.to_string(), false, "Talentos")).collect_view()}
-                    <For
-                        each=move || data.with(|d| d.custom_lists.get("Talentos").cloned().unwrap_or_default())
-                        key=|n| n.clone()
-                        children=move |n| render_field(n, true, "Talentos")
-                    />
-                </AbilityColumn>
+                {
+                    let rf_static = render_field.clone();
+                    let rf_custom = render_field.clone();
+                    view! {
+                        <AbilityColumn 
+                            title=Signal::derive(move || crate::i18n::tr("talents", lang()).to_string()) 
+                            on_add=Callback::new(move |_| add_custom("Talentos"))
+                            on_compendium=Some(on_open_talents)
+                        >
+                            {TALENTOS.iter().map(move |&n| rf_static(n.to_string(), false, "Talentos")).collect_view()}
+                            <For
+                                each=move || data.with(|d| d.custom_lists.get("Talentos").cloned().unwrap_or_default())
+                                key=|n| n.clone()
+                                children=move |n| rf_custom(n, true, "Talentos")
+                            />
+                        </AbilityColumn>
+                    }
+                }
                 
-                <AbilityColumn 
-                    title=Signal::derive(move || crate::i18n::tr("skills", lang()).to_string())
-                    on_add=Callback::new(move |_| add_custom("Perícias"))
-                >
-                    {PERICIAS.iter().map(|&n| render_field(n.to_string(), false, "Perícias")).collect_view()}
-                    <For
-                        each=move || data.with(|d| d.custom_lists.get("Perícias").cloned().unwrap_or_default())
-                        key=|n| n.clone()
-                        children=move |n| render_field(n, true, "Perícias")
-                    />
-                </AbilityColumn>
+                {
+                    let rf_static = render_field.clone();
+                    let rf_custom = render_field.clone();
+                    view! {
+                        <AbilityColumn 
+                            title=Signal::derive(move || crate::i18n::tr("skills", lang()).to_string()) 
+                            on_add=Callback::new(move |_| add_custom("Perícias"))
+                            on_compendium=Some(on_open_skills)
+                        >
+                            {PERICIAS.iter().map(move |&n| rf_static(n.to_string(), false, "Perícias")).collect_view()}
+                            <For
+                                each=move || data.with(|d| d.custom_lists.get("Perícias").cloned().unwrap_or_default())
+                                key=|n| n.clone()
+                                children=move |n| rf_custom(n, true, "Perícias")
+                            />
+                        </AbilityColumn>
+                    }
+                }
 
-                <AbilityColumn 
-                    title=Signal::derive(move || crate::i18n::tr("knowledges", lang()).to_string())
-                    on_add=Callback::new(move |_| add_custom("Conhecimentos"))
-                >
-                    {CONHECIMENTOS.iter().map(|&n| render_field(n.to_string(), false, "Conhecimentos")).collect_view()}
-                    <For
-                        each=move || data.with(|d| d.custom_lists.get("Conhecimentos").cloned().unwrap_or_default())
-                        key=|n| n.clone()
-                        children=move |n| render_field(n, true, "Conhecimentos")
-                    />
-                </AbilityColumn>
+                {
+                    let rf_static = render_field.clone();
+                    let rf_custom = render_field.clone();
+                    view! {
+                        <AbilityColumn 
+                            title=Signal::derive(move || crate::i18n::tr("knowledges", lang()).to_string()) 
+                            on_add=Callback::new(move |_| add_custom("Conhecimentos"))
+                            on_compendium=Some(on_open_knowledges)
+                        >
+                            {CONHECIMENTOS.iter().map(move |&n| rf_static(n.to_string(), false, "Conhecimentos")).collect_view()}
+                            <For
+                                each=move || data.with(|d| d.custom_lists.get("Conhecimentos").cloned().unwrap_or_default())
+                                key=|n| n.clone()
+                                children=move |n| rf_custom(n, true, "Conhecimentos")
+                            />
+                        </AbilityColumn>
+                    }
+                }
             </div>
         </div>
     }
 }
 
 #[component]
-fn AbilityColumn(title: Signal<String>, children: Children, on_add: Callback<()>) -> impl IntoView {
+fn AbilityColumn(
+    title: Signal<String>, 
+    children: Children, 
+    on_add: Callback<()>,
+    #[prop(into, default = None)] on_compendium: Option<Callback<()>>,
+) -> impl IntoView {
     view! {
         <div class="attribute-column">
-            <h3 class="column-title">{move || title.get()}</h3>
+            <div class="attribute-column-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+                <h3 class="column-title" style="margin-bottom: 0;">{move || title.get()}</h3>
+                {if let Some(on_browse) = on_compendium {
+                    view! {
+                        <button
+                            type="button"
+                            class="field-compendium-lookup-btn"
+                            on:click=move |_| on_browse.call(())
+                            title="Consultar Compêndio M20 de Habilidades"
+                        >
+                            "📖"
+                        </button>
+                    }.into_view()
+                } else {
+                    view! { <span></span> }.into_view()
+                }}
+            </div>
             {children()}
             <button class="add-field-btn" on:click=move |_| on_add.call(())>"+"</button>
         </div>

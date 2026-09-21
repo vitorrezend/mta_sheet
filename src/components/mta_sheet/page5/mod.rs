@@ -1,11 +1,13 @@
 use leptos::*;
 use std::collections::HashSet;
-use crate::components::{Callback, StableTextArea, StableTextInput};
+use crate::components::{Callback, StableTextArea, StableTextInput, WysiwygEditor};
 use crate::state::{CharacterData, GrimoireRoteItem, RoteSphereRequirement};
 use crate::compendium::practices::get_practice_names;
 
 pub mod practice_compendium_modal;
+pub mod rote_description;
 pub use practice_compendium_modal::{PracticeCompendiumModal, CompendiumSection, ArchetypeTarget};
+pub use rote_description::RoteDescriptionEditor;
 
 #[derive(Clone)]
 pub struct PracticeCompendiumContext {
@@ -17,6 +19,8 @@ pub struct PracticeCompendiumContext {
     pub open_weapon: Callback<(Option<usize>, String)>,
     pub open_background: Callback<(Option<usize>, String)>,
     pub open_sphere: Callback<(Option<usize>, String)>,
+    pub open_ability: Callback<(Option<usize>, String)>,
+    pub open_merit_flaw: Callback<(Option<usize>, String)>,
 }
 
 #[component]
@@ -487,14 +491,15 @@ pub fn PageGrimoire() -> impl IntoView {
                     crate::i18n::Language::PtBr => "ANOTAÇÕES DO TOMO & SEGREDOS",
                     crate::i18n::Language::EnUs => "TOME NOTES & ARCANUM",
                 }}</span>
-                <StableTextArea 
-                    class="grimoire-notes-textarea"
+                <WysiwygEditor 
+                    class="grimoire-notes-wysiwyg"
                     placeholder=Signal::derive(move || match lang() {
                         crate::i18n::Language::PtBr => "Histórico do tomo, linhagem de mestres, linguagens herméticas ou enochianas, cifras secretas, senhas arcanas e anotações adicionais...".to_string(),
                         crate::i18n::Language::EnUs => "Tome history, master lineage, Enochian/Hermetic tongues, arcane ciphers, passwords, and extra notes...".to_string(),
                     })
                     value=general_notes
                     on_change=on_general_notes_change
+                    min_height="130px"
                 />
             </div>
         </div>
@@ -923,31 +928,18 @@ fn RoteCardComponent(
                 </div>
 
                 // Descrição Narrativa & Mecânica
-                <div class="rote-desc-wrap">
-                    <label class="rote-desc-label">
-                        <span class="desc-icon">"📜"</span> 
-                        {move || match lang() {
-                            crate::i18n::Language::PtBr => "DESCRIÇÃO NARRATIVA & EFEITOS MECÂNICOS:",
-                            crate::i18n::Language::EnUs => "NARRATIVE DESCRIPTION & MECHANICS:",
-                        }}
-                    </label>
-                    <StableTextArea 
-                        class="rote-desc-textarea"
-                        placeholder=Signal::derive(move || match lang() {
-                            crate::i18n::Language::PtBr => "Descreva o procedimento mágico, narrativa visual do feitiço, paradas de dados, dificuldade, gastos de quintessência, regras de paradoxo e efeitos...".to_string(),
-                            crate::i18n::Language::EnUs => "Describe the magical procedure, visual manifestation, dice pool, difficulty, quintessence cost, paradox, and mechanical effects...".to_string(),
-                        })
-                        value=r_desc_sig
-                        on_change=Callback::new({
-                            let on_update = on_update_rote.clone();
-                            move |val| {
-                                let mut r = rote_for_desc.clone();
-                                r.description = val;
-                                on_update.call(r);
-                            }
-                        })
-                    />
-                </div>
+                <RoteDescriptionEditor
+                    description=r_desc_sig
+                    on_change=Callback::new({
+                        let on_update = on_update_rote.clone();
+                        move |val| {
+                            let mut r = rote_for_desc.clone();
+                            r.description = val;
+                            on_update.call(r);
+                        }
+                    })
+                    lang=Signal::derive(move || lang())
+                />
             </div>
         </div>
     }

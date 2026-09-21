@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::components::{Callback, StableTextArea, StableTextInput};
+use crate::components::{Callback, StableTextInput, WysiwygEditor};
 use crate::state::CharacterData;
 
 #[component]
@@ -21,8 +21,8 @@ pub fn ExpandedBackgrounds() -> impl IntoView {
                 <div class="expanded-bg-col">
                     <div class="expanded-bg-item">
                         <label class="expanded-bg-label">{move || crate::i18n::tr("allies", lang())}</label>
-                        <StableTextArea 
-                            class="expanded-bg-textarea"
+                        <WysiwygEditor 
+                            class="expanded-bg-wysiwyg"
                             placeholder=Signal::derive(move || match lang() {
                                 crate::i18n::Language::PtBr => "Nomes, esferas de atuação, favores e detalhes dos aliados...".to_string(),
                                 crate::i18n::Language::EnUs => "Names, influence areas, favors, and ally details...".to_string(),
@@ -31,13 +31,15 @@ pub fn ExpandedBackgrounds() -> impl IntoView {
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.expanded_backgrounds.allies = val);
                             })
+                            compact=true
+                            min_height="75px"
                         />
                     </div>
 
                     <div class="expanded-bg-item">
                         <label class="expanded-bg-label">{move || crate::i18n::tr("contacts", lang())}</label>
-                        <StableTextArea 
-                            class="expanded-bg-textarea"
+                        <WysiwygEditor 
+                            class="expanded-bg-wysiwyg"
                             placeholder=Signal::derive(move || match lang() {
                                 crate::i18n::Language::PtBr => "Rede de informantes, círculos sociais e canais de comunicação...".to_string(),
                                 crate::i18n::Language::EnUs => "Informant networks, social circles, and contact channels...".to_string(),
@@ -46,13 +48,15 @@ pub fn ExpandedBackgrounds() -> impl IntoView {
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.expanded_backgrounds.contacts = val);
                             })
+                            compact=true
+                            min_height="75px"
                         />
                     </div>
 
                     <div class="expanded-bg-item">
                         <label class="expanded-bg-label">{move || crate::i18n::tr("fame", lang())}</label>
-                        <StableTextArea 
-                            class="expanded-bg-textarea"
+                        <WysiwygEditor 
+                            class="expanded-bg-wysiwyg"
                             placeholder=Signal::derive(move || match lang() {
                                 crate::i18n::Language::PtBr => "Reputação pública, notoriedade mundana ou mística...".to_string(),
                                 crate::i18n::Language::EnUs => "Public reputation, mundane or mystical renown...".to_string(),
@@ -61,13 +65,15 @@ pub fn ExpandedBackgrounds() -> impl IntoView {
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.expanded_backgrounds.fame = val);
                             })
+                            compact=true
+                            min_height="75px"
                         />
                     </div>
 
                     <div class="expanded-bg-item">
                         <label class="expanded-bg-label">{move || crate::i18n::tr("influence", lang())}</label>
-                        <StableTextArea 
-                            class="expanded-bg-textarea"
+                        <WysiwygEditor 
+                            class="expanded-bg-wysiwyg"
                             placeholder=Signal::derive(move || match lang() {
                                 crate::i18n::Language::PtBr => "Controle político, corporativo, acadêmico ou comunitário...".to_string(),
                                 crate::i18n::Language::EnUs => "Political, corporate, academic, or community sway...".to_string(),
@@ -76,13 +82,15 @@ pub fn ExpandedBackgrounds() -> impl IntoView {
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.expanded_backgrounds.influence = val);
                             })
+                            compact=true
+                            min_height="75px"
                         />
                     </div>
 
                     <div class="expanded-bg-item">
                         <label class="expanded-bg-label">{move || crate::i18n::tr("library", lang())}</label>
-                        <StableTextArea 
-                            class="expanded-bg-textarea"
+                        <WysiwygEditor 
+                            class="expanded-bg-wysiwyg"
                             placeholder=Signal::derive(move || match lang() {
                                 crate::i18n::Language::PtBr => "Acervo de tomos, pergaminhos, arquivos digitais e pesquisas...".to_string(),
                                 crate::i18n::Language::EnUs => "Collection of tomes, scrolls, digital archives, and research...".to_string(),
@@ -91,6 +99,8 @@ pub fn ExpandedBackgrounds() -> impl IntoView {
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.expanded_backgrounds.library = val);
                             })
+                            compact=true
+                            min_height="75px"
                         />
                     </div>
                 </div>
@@ -99,8 +109,8 @@ pub fn ExpandedBackgrounds() -> impl IntoView {
                 <div class="expanded-bg-col">
                     <div class="expanded-bg-item">
                         <label class="expanded-bg-label">{move || crate::i18n::tr("node", lang())}</label>
-                        <StableTextArea 
-                            class="expanded-bg-textarea"
+                        <WysiwygEditor 
+                            class="expanded-bg-wysiwyg"
                             placeholder=Signal::derive(move || match lang() {
                                 crate::i18n::Language::PtBr => "Localização, tipo de ressonância, taxa de quintessência e defesa...".to_string(),
                                 crate::i18n::Language::EnUs => "Location, resonance type, quintessence yield, and defenses...".to_string(),
@@ -109,13 +119,15 @@ pub fn ExpandedBackgrounds() -> impl IntoView {
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.expanded_backgrounds.node = val);
                             })
+                            compact=true
+                            min_height="75px"
                         />
                     </div>
 
                     <div class="expanded-bg-item">
                         <label class="expanded-bg-label">{move || crate::i18n::tr("resources", lang())}</label>
-                        <StableTextArea 
-                            class="expanded-bg-textarea"
+                        <WysiwygEditor 
+                            class="expanded-bg-wysiwyg"
                             placeholder=Signal::derive(move || match lang() {
                                 crate::i18n::Language::PtBr => "Renda mensal, patrimônio, contas bancárias e propriedades...".to_string(),
                                 crate::i18n::Language::EnUs => "Monthly income, assets, bank accounts, and real estate...".to_string(),
@@ -124,13 +136,15 @@ pub fn ExpandedBackgrounds() -> impl IntoView {
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.expanded_backgrounds.resources = val);
                             })
+                            compact=true
+                            min_height="75px"
                         />
                     </div>
 
                     <div class="expanded-bg-item">
                         <label class="expanded-bg-label">{move || crate::i18n::tr("retainers", lang())}</label>
-                        <StableTextArea 
-                            class="expanded-bg-textarea"
+                        <WysiwygEditor 
+                            class="expanded-bg-wysiwyg"
                             placeholder=Signal::derive(move || match lang() {
                                 crate::i18n::Language::PtBr => "Assistentes, guarda-costas, servos ou acólitos fiéis...".to_string(),
                                 crate::i18n::Language::EnUs => "Assistants, bodyguards, servants, or devoted acolytes...".to_string(),
@@ -139,13 +153,15 @@ pub fn ExpandedBackgrounds() -> impl IntoView {
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.expanded_backgrounds.retainers = val);
                             })
+                            compact=true
+                            min_height="75px"
                         />
                     </div>
 
                     <div class="expanded-bg-item">
                         <label class="expanded-bg-label">{move || crate::i18n::tr("sanctum", lang())}</label>
-                        <StableTextArea 
-                            class="expanded-bg-textarea"
+                        <WysiwygEditor 
+                            class="expanded-bg-wysiwyg"
                             placeholder=Signal::derive(move || match lang() {
                                 crate::i18n::Language::PtBr => "Laboratório protegido, oficina oculta, defesas mágicas e sigilos...".to_string(),
                                 crate::i18n::Language::EnUs => "Warded lab, occult workshop, magical wards, and sigils...".to_string(),
@@ -154,6 +170,8 @@ pub fn ExpandedBackgrounds() -> impl IntoView {
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.expanded_backgrounds.sanctum = val);
                             })
+                            compact=true
+                            min_height="75px"
                         />
                     </div>
 
@@ -172,8 +190,8 @@ pub fn ExpandedBackgrounds() -> impl IntoView {
                                 })
                             />
                         </div>
-                        <StableTextArea 
-                            class="expanded-bg-textarea"
+                        <WysiwygEditor 
+                            class="expanded-bg-wysiwyg"
                             placeholder=Signal::derive(move || match lang() {
                                 crate::i18n::Language::PtBr => "Detalhes e histórico deste antecedente personalizado...".to_string(),
                                 crate::i18n::Language::EnUs => "Details and history of this custom background...".to_string(),
@@ -182,6 +200,8 @@ pub fn ExpandedBackgrounds() -> impl IntoView {
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.expanded_backgrounds.other_text = val);
                             })
+                            compact=true
+                            min_height="75px"
                         />
                     </div>
                 </div>

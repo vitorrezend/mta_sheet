@@ -3,6 +3,33 @@ use crate::components::{Callback, ValueField};
 use crate::state::{CharacterData, DotOrigin};
 use crate::components::character_sheet::ActiveDotOriginContext;
 
+fn find_sphere_attr<'a>(d: &'a CharacterData, act: &str) -> Option<&'a crate::state::AttributeValue> {
+    if let Some(a) = d.attributes.get(act) {
+        return Some(a);
+    }
+    let alias = match act {
+        "Dados" => Some("Data"),
+        "Data" => Some("Dados"),
+        "Correspondência" => Some("Correspondence"),
+        "Correspondence" => Some("Correspondência"),
+        "Primórdio" => Some("Prime"),
+        "Prime" => Some("Primórdio"),
+        "Utilidade Primordial" => Some("Primal Utility"),
+        "Primal Utility" => Some("Utilidade Primordial"),
+        "Espírito" => Some("Spirit"),
+        "Spirit" => Some("Espírito"),
+        "Ciência Dimensional" => Some("Dimensional Science"),
+        "Dimensional Science" => Some("Ciência Dimensional"),
+        _ => None,
+    };
+    if let Some(alias_key) = alias {
+        if let Some(a) = d.attributes.get(alias_key) {
+            return Some(a);
+        }
+    }
+    None
+}
+
 #[component]
 pub fn Spheres() -> impl IntoView {
     let set_data = use_context::<WriteSignal<CharacterData>>().expect("CharacterData context not found");
@@ -22,10 +49,6 @@ pub fn Spheres() -> impl IntoView {
         });
     };
 
-    let affinity_name = Signal::derive(move || {
-        data.with(|d| d.get_affinity_sphere().unwrap_or_default())
-    });
-
     let compendium_ctx = use_context::<crate::components::mta_sheet::page5::PracticeCompendiumContext>();
     let lang_ctx = use_context::<crate::i18n::LanguageContext>();
     let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
@@ -43,14 +66,38 @@ pub fn Spheres() -> impl IntoView {
                 data.with(|d| {
                     if let Some(ref t) = techno {
                         if let Some(variant) = d.labels.get(&format!("sphere_slot_{}", slot)) {
-                            if variant.eq_ignore_ascii_case(t) || variant.eq_ignore_ascii_case("techno") {
+                            let is_techno = match slot.as_str() {
+                                "correspondence" => variant.eq_ignore_ascii_case("Dados") || variant.eq_ignore_ascii_case("Data") || variant.eq_ignore_ascii_case("techno"),
+                                "prime" => variant.eq_ignore_ascii_case("Utilidade Primordial") || variant.eq_ignore_ascii_case("Primal Utility") || variant.eq_ignore_ascii_case("techno"),
+                                "spirit" => variant.eq_ignore_ascii_case("Ciência Dimensional") || variant.eq_ignore_ascii_case("Dimensional Science") || variant.eq_ignore_ascii_case("techno"),
+                                _ => variant.eq_ignore_ascii_case(t) || variant.eq_ignore_ascii_case("techno"),
+                            };
+                            let is_mystic = match slot.as_str() {
+                                "correspondence" => variant.eq_ignore_ascii_case("Correspondência") || variant.eq_ignore_ascii_case("Correspondence") || variant.eq_ignore_ascii_case("mystic"),
+                                "prime" => variant.eq_ignore_ascii_case("Primórdio") || variant.eq_ignore_ascii_case("Prime") || variant.eq_ignore_ascii_case("mystic"),
+                                "spirit" => variant.eq_ignore_ascii_case("Espírito") || variant.eq_ignore_ascii_case("Spirit") || variant.eq_ignore_ascii_case("mystic"),
+                                _ => variant.eq_ignore_ascii_case(&mystic) || variant.eq_ignore_ascii_case("mystic"),
+                            };
+                            if is_techno {
                                 return t.clone();
-                            } else if variant.eq_ignore_ascii_case(&mystic) || variant.eq_ignore_ascii_case("mystic") {
+                            } else if is_mystic {
                                 return mystic.clone();
                             }
                         }
                         // Fallback: se attributes contém a variante tecnocrática mas não a mística
-                        if d.attributes.contains_key(t) && !d.attributes.contains_key(&mystic) {
+                        let has_techno_attr = match slot.as_str() {
+                            "correspondence" => d.attributes.contains_key("Dados") || d.attributes.contains_key("Data"),
+                            "prime" => d.attributes.contains_key("Utilidade Primordial") || d.attributes.contains_key("Primal Utility"),
+                            "spirit" => d.attributes.contains_key("Ciência Dimensional") || d.attributes.contains_key("Dimensional Science"),
+                            _ => d.attributes.contains_key(t),
+                        };
+                        let has_mystic_attr = match slot.as_str() {
+                            "correspondence" => d.attributes.contains_key("Correspondência") || d.attributes.contains_key("Correspondence"),
+                            "prime" => d.attributes.contains_key("Primórdio") || d.attributes.contains_key("Prime"),
+                            "spirit" => d.attributes.contains_key("Espírito") || d.attributes.contains_key("Spirit"),
+                            _ => d.attributes.contains_key(&mystic),
+                        };
+                        if has_techno_attr && !has_mystic_attr {
                             return t.clone();
                         }
                     }
@@ -65,15 +112,18 @@ pub fn Spheres() -> impl IntoView {
             move || {
                 let act = active_name.get();
                 data.with(|d| {
-                    let lvl = d.get_attribute_level(&act, 0);
-                    if lvl > 0 {
-                        return lvl;
+                    if let Some(a) = find_sphere_attr(d, &act) {
+                        if a.level > 0 {
+                            return a.level;
+                        }
                     }
                     if let Some(ref t) = techno {
                         let other = if act == *t { &mystic } else { t };
-                        return d.get_attribute_level(other, 0);
+                        if let Some(a) = find_sphere_attr(d, other) {
+                            return a.level;
+                        }
                     }
-                    lvl
+                    0
                 })
             }
         });
@@ -84,15 +134,17 @@ pub fn Spheres() -> impl IntoView {
             move || {
                 let act = active_name.get();
                 data.with(|d| {
-                    let mod_str = d.get_attribute_modifier(&act);
-                    if !mod_str.is_empty() {
-                        return mod_str;
+                    if let Some(a) = find_sphere_attr(d, &act) {
+                        if !a.modifier.is_empty() {
+                            return a.modifier.clone();
+                        }
                     }
                     if let Some(ref t) = techno {
                         let other = if act == *t { &mystic } else { t };
-                        let other_mod = d.get_attribute_modifier(other);
-                        if !other_mod.is_empty() {
-                            return other_mod;
+                        if let Some(a) = find_sphere_attr(d, other) {
+                            if !a.modifier.is_empty() {
+                                return a.modifier.clone();
+                            }
                         }
                     }
                     String::new()
@@ -106,13 +158,13 @@ pub fn Spheres() -> impl IntoView {
             move || {
                 let act = active_name.get();
                 data.with(|d| {
-                    if let Some(attr) = d.attributes.get(&act) {
-                        return attr.get_origins(5);
+                    if let Some(a) = find_sphere_attr(d, &act) {
+                        return a.get_origins(5);
                     }
                     if let Some(ref t) = techno {
                         let other = if act == *t { &mystic } else { t };
-                        if let Some(attr) = d.attributes.get(other) {
-                            return attr.get_origins(5);
+                        if let Some(a) = find_sphere_attr(d, other) {
+                            return a.get_origins(5);
                         }
                     }
                     vec![DotOrigin::Base; 5]
@@ -185,52 +237,6 @@ pub fn Spheres() -> impl IntoView {
             crate::compendium::spheres::get_suggested_specialties(&act, lang())
         });
 
-        let on_flip = techno.clone().map(|t| {
-            let mystic = mystic.clone();
-            let slot = slot.clone();
-            Callback::new(move |_| {
-                let current_act = active_name.get();
-                let (from_name, to_name) = if current_act == t {
-                    (t.clone(), mystic.clone())
-                } else {
-                    (mystic.clone(), t.clone())
-                };
-
-                set_data.update(|s| {
-                    if let Some(attr) = s.attributes.remove(&from_name) {
-                        s.attributes.insert(to_name.clone(), attr);
-                    }
-                    if let Some(ref aff) = s.get_affinity_sphere() {
-                        if aff.eq_ignore_ascii_case(&from_name) {
-                            s.set_affinity_sphere(Some(to_name.clone()));
-                        }
-                    }
-                    s.labels.insert(format!("sphere_slot_{}", slot), to_name);
-                });
-            })
-        });
-
-        let flip_tooltip = techno.map(|t| {
-            let mystic = mystic.clone();
-            Signal::derive(move || {
-                let current_lang = lang();
-                let act = active_name.get();
-                if act == t {
-                    let target_tr = crate::i18n::tr_sphere(&mystic, current_lang);
-                    match current_lang {
-                        crate::i18n::Language::PtBr => format!("Alternar para {} (Místico)", target_tr),
-                        crate::i18n::Language::EnUs => format!("Switch to {} (Mystic)", target_tr),
-                    }
-                } else {
-                    let target_tr = crate::i18n::tr_sphere(&t, current_lang);
-                    match current_lang {
-                        crate::i18n::Language::PtBr => format!("Alternar para {} (Tecnocracia)", target_tr),
-                        crate::i18n::Language::EnUs => format!("Switch to {} (Technocracy)", target_tr),
-                    }
-                }
-            })
-        });
-
         view! {
             <ValueField 
                 label=Signal::derive(move || crate::i18n::tr_sphere(&active_name.get(), lang()).to_string())
@@ -246,8 +252,6 @@ pub fn Spheres() -> impl IntoView {
                 suggested_specialties=suggested_specialties
                 on_open_compendium=on_open_compendium
                 compendium_page_ref=sphere_page_ref
-                on_flip=on_flip
-                flip_tooltip=flip_tooltip
                 min_level=0
                 max_chars=18
             />
@@ -257,35 +261,6 @@ pub fn Spheres() -> impl IntoView {
     view! {
         <div class="group-box spheres-group-box">
             <span class="group-title">{move || crate::i18n::tr("spheres", lang())}</span>
-            <div class="spheres-header-bar">
-                <span class="spheres-affinity-badge">
-                    <span class="affinity-star-icon active" style="font-size: 0.85rem; margin-right: 4px;">"★"</span>
-                    {move || {
-                        let aff = affinity_name.get();
-                        let current_lang = lang();
-                        if aff.is_empty() {
-                            view! {
-                                <span class="affinity-badge-text empty">
-                                    {match current_lang {
-                                        crate::i18n::Language::PtBr => "Clique na estrela ao lado de uma Esfera para marcar como Afinidade",
-                                        crate::i18n::Language::EnUs => "Click the star next to a Sphere to mark as Affinity",
-                                    }}
-                                </span>
-                            }.into_view()
-                        } else {
-                            let aff_translated = crate::i18n::tr_sphere(&aff, current_lang);
-                            view! {
-                                <span class="affinity-badge-text selected">
-                                    {match current_lang {
-                                        crate::i18n::Language::PtBr => format!("Afinidade: {} (XP: Atual × 7)", aff_translated),
-                                        crate::i18n::Language::EnUs => format!("Affinity: {} (XP: Current × 7)", aff_translated),
-                                    }}
-                                </span>
-                            }.into_view()
-                        }
-                    }}
-                </span>
-            </div>
             <div class="attributes-block">
                 <div class="attribute-column">
                     {sphere_field("correspondence", "Correspondência", Some("Dados"))}

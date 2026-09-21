@@ -15,6 +15,7 @@ pub use compendium::{CompendiumModal, CompendiumSection};
 pub use common::{
     Callback, LabelColumn, LabelField, Navbar, PatchNotesModal, SafeCallback, Sheet,
     StableTextArea, StableTextInput, ValueField, BoundAttributeField, StatBox,
+    WysiwygEditor, legacy_markdown_to_html, sanitize_wysiwyg_html,
 };
 
 // Re-export MTA sheet components

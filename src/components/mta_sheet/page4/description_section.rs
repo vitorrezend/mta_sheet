@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::components::{Callback, StableTextArea, StableTextInput};
+use crate::components::{Callback, StableTextArea, StableTextInput, WysiwygEditor};
 use crate::state::CharacterData;
 
 #[component]
@@ -174,8 +174,8 @@ pub fn DescriptionSection() -> impl IntoView {
                             crate::i18n::Language::PtBr => "DESCRIÇÃO FÍSICA (Aparência & Estilo)",
                             crate::i18n::Language::EnUs => "PHYSICAL DESCRIPTION (Appearance & Style)",
                         }}</label>
-                        <StableTextArea 
-                            class="narrative-textarea"
+                        <WysiwygEditor 
+                            class="narrative-wysiwyg"
                             placeholder=Signal::derive(move || match lang() {
                                 crate::i18n::Language::PtBr => "Porte físico, estilo de vestimenta, cicatrizes, tatuagens místicas, maneirismos e tom de voz...".to_string(),
                                 crate::i18n::Language::EnUs => "Physical build, clothing style, scars, mystic tattoos, mannerisms, voice tone...".to_string(),
@@ -184,6 +184,7 @@ pub fn DescriptionSection() -> impl IntoView {
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.description_data.physical_description = val);
                             })
+                            min_height="120px"
                         />
                     </div>
 
@@ -192,8 +193,8 @@ pub fn DescriptionSection() -> impl IntoView {
                             crate::i18n::Language::PtBr => "APARÊNCIA E NATUREZA DO AVATAR",
                             crate::i18n::Language::EnUs => "APPEARANCE & NATURE OF AVATAR",
                         }}</label>
-                        <StableTextArea 
-                            class="narrative-textarea narrative-avatar-textarea"
+                        <WysiwygEditor 
+                            class="narrative-wysiwyg narrative-avatar-wysiwyg"
                             placeholder=Signal::derive(move || match lang() {
                                 crate::i18n::Language::PtBr => "Essência do Avatar (Dinâmico, Estático, Primordial, Infinito), forma espiritual visível em meditação, voz e manifestações durante a magia...".to_string(),
                                 crate::i18n::Language::EnUs => "Avatar essence (Dynamic, Static, Primordial, Infinite), astral form seen in meditation, voice, manifestations during casting...".to_string(),
@@ -202,6 +203,7 @@ pub fn DescriptionSection() -> impl IntoView {
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.description_data.avatar_nature = val);
                             })
+                            min_height="120px"
                         />
                     </div>
                 </div>

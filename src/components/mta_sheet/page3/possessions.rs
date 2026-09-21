@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::components::{Callback, StableTextArea};
+use crate::components::{Callback, WysiwygEditor};
 use crate::state::CharacterData;
 
 #[component]
@@ -21,8 +21,8 @@ pub fn Possessions() -> impl IntoView {
                 <div class="possessions-col">
                     <label class="possessions-label">{move || crate::i18n::tr("gear_carried", lang())}</label>
                     <span class="possessions-sublabel">{move || crate::i18n::tr("gear_carried_sub", lang())}</span>
-                    <StableTextArea 
-                        class="possessions-textarea"
+                    <WysiwygEditor 
+                        class="possessions-wysiwyg"
                         placeholder=Signal::derive(move || match lang() {
                             crate::i18n::Language::PtBr => "Itens, ferramentas, bolsas e objetos no bolso...".to_string(),
                             crate::i18n::Language::EnUs => "Items, tools, bags, and everyday carried objects...".to_string(),
@@ -31,14 +31,16 @@ pub fn Possessions() -> impl IntoView {
                         on_change=Callback::new(move |val| {
                             set_data.update(|s| s.possessions.gear_carried = val);
                         })
+                        compact=true
+                        min_height="90px"
                     />
                 </div>
 
                 <div class="possessions-col">
                     <label class="possessions-label">{move || crate::i18n::tr("equipment_owned", lang())}</label>
                     <span class="possessions-sublabel">{move || crate::i18n::tr("equipment_owned_sub", lang())}</span>
-                    <StableTextArea 
-                        class="possessions-textarea"
+                    <WysiwygEditor 
+                        class="possessions-wysiwyg"
                         placeholder=Signal::derive(move || match lang() {
                             crate::i18n::Language::PtBr => "Veículos, cofres, eletrônicos e posses no refúgio...".to_string(),
                             crate::i18n::Language::EnUs => "Vehicles, safes, electronics, and owned property...".to_string(),
@@ -47,14 +49,16 @@ pub fn Possessions() -> impl IntoView {
                         on_change=Callback::new(move |val| {
                             set_data.update(|s| s.possessions.equipment_owned = val);
                         })
+                        compact=true
+                        min_height="90px"
                     />
                 </div>
 
                 <div class="possessions-col">
                     <label class="possessions-label">{move || crate::i18n::tr("foci_title", lang())}</label>
                     <span class="possessions-sublabel">{move || crate::i18n::tr("foci_sub", lang())}</span>
-                    <StableTextArea 
-                        class="possessions-textarea"
+                    <WysiwygEditor 
+                        class="possessions-wysiwyg"
                         placeholder=Signal::derive(move || match lang() {
                             crate::i18n::Language::PtBr => "Focos de paradigmas, varinhas, selos, instrumentos científicos...".to_string(),
                             crate::i18n::Language::EnUs => "Paradigm foci, wands, seals, scientific instruments...".to_string(),
@@ -63,6 +67,8 @@ pub fn Possessions() -> impl IntoView {
                         on_change=Callback::new(move |val| {
                             set_data.update(|s| s.possessions.foci = val);
                         })
+                        compact=true
+                        min_height="90px"
                     />
                 </div>
             </div>
@@ -72,8 +78,8 @@ pub fn Possessions() -> impl IntoView {
                 <div class="possessions-col">
                     <label class="possessions-label">{move || crate::i18n::tr("familiar_title", lang())}</label>
                     <span class="possessions-sublabel">{move || crate::i18n::tr("familiar_sub", lang())}</span>
-                    <StableTextArea 
-                        class="possessions-textarea"
+                    <WysiwygEditor 
+                        class="possessions-wysiwyg"
                         placeholder=Signal::derive(move || match lang() {
                             crate::i18n::Language::PtBr => "Forma, atributos, laço místico, poderes e reservas de paradoxo...".to_string(),
                             crate::i18n::Language::EnUs => "Form, stats, mystical bond, powers, and paradox soak...".to_string(),
@@ -82,14 +88,16 @@ pub fn Possessions() -> impl IntoView {
                         on_change=Callback::new(move |val| {
                             set_data.update(|s| s.possessions.familiar = val);
                         })
+                        compact=true
+                        min_height="90px"
                     />
                 </div>
 
                 <div class="possessions-col">
                     <label class="possessions-label">{move || crate::i18n::tr("grimoire_title", lang())}</label>
                     <span class="possessions-sublabel">{move || crate::i18n::tr("grimoire_sub", lang())}</span>
-                    <StableTextArea 
-                        class="possessions-textarea"
+                    <WysiwygEditor 
+                        class="possessions-wysiwyg"
                         placeholder=Signal::derive(move || match lang() {
                             crate::i18n::Language::PtBr => "Fórmulas arcanas, rotes transcritos, linguagens mágicas...".to_string(),
                             crate::i18n::Language::EnUs => "Arcane formulas, transcribed rotes, magical tongues...".to_string(),
@@ -98,6 +106,8 @@ pub fn Possessions() -> impl IntoView {
                         on_change=Callback::new(move |val| {
                             set_data.update(|s| s.possessions.grimoire = val);
                         })
+                        compact=true
+                        min_height="90px"
                     />
                 </div>
             </div>

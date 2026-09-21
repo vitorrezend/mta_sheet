@@ -210,11 +210,11 @@ pub fn BackgroundsView(
                                 >
                                     <span class="tab-indicator">{icon}</span>
                                     <div class="tab-text-wrap">
-                                        <div class="tab-name-row" style="display: flex; align-items: center; justify-content: space-between; gap: 0.3rem;">
+                                        <div class="tab-name-row">
                                             <span class="tab-name">{bg.name(lang)}</span>
                                             {if let Some(tec) = tec_badge {
                                                 view! {
-                                                    <span class="compendium-sub-pill" style="font-size: 0.65rem; padding: 0.1rem 0.35rem; border-radius: 4px; background: rgba(59, 130, 246, 0.12); color: #2563eb;">
+                                                    <span class="compendium-sub-pill">
                                                         {tec}
                                                     </span>
                                                 }.into_view()
@@ -256,29 +256,27 @@ pub fn BackgroundsView(
                     if is_rules_selected.get() {
                         let rule = &BACKGROUND_THEORY_RULES;
                         view! {
-                            <div class="box-reading-view">
-                                <div class="practice-detail-header special-box-header">
-                                    <div class="practice-title-group">
-                                        <div class="practice-main-name">
-                                            "📜 " {rule.title(lang)}
+                            <div class="box-reading-view grimoire-reading-view">
+                                <div class="grimoire-hero-banner special-box-header">
+                                    <div class="grimoire-hero-top">
+                                        <div class="grimoire-hero-left">
+                                            <div class="grimoire-hero-icon-box">"📜"</div>
+                                            <div class="grimoire-hero-titles">
+                                                <div class="grimoire-hero-sup">
+                                                    <span class="grimoire-badge-cat">"M20 • REGRA CANÔNICA"</span>
+                                                </div>
+                                                <h2 class="grimoire-hero-title">{rule.title(lang)}</h2>
+                                                <div class="grimoire-hero-sub">
+                                                    <span class="grimoire-hero-page">"📖 " {rule.page_ref}</span>
+                                                    <span class="grimoire-hero-secondary">
+                                                        {match lang {
+                                                            Language::PtBr => "Capítulo 6: Criação do Personagem (Regras de Antecedentes)",
+                                                            Language::EnUs => "Chapter 6: Creating the Character (Background Rules)",
+                                                        }}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <span class="practice-page-badge">
-                                            "📖 " {rule.page_ref}
-                                        </span>
-                                    </div>
-                                    <div class="practice-aliases">
-                                        <span class="practice-aliases-label">
-                                            {match lang {
-                                                Language::PtBr => "Fonte Canônica: ",
-                                                Language::EnUs => "Canonical Source: ",
-                                            }}
-                                        </span>
-                                        <span class="practice-aliases-val">
-                                            {match lang {
-                                                Language::PtBr => "M20, pp. 301-303 • Capítulo 6: Criação do Personagem (Regras de Antecedentes)",
-                                                Language::EnUs => "M20, pp. 301-303 • Chapter 6: Creating the Character (Background Rules)",
-                                            }}
-                                        </span>
                                     </div>
                                 </div>
 
@@ -339,32 +337,30 @@ pub fn BackgroundsView(
                         let cls_cb_footer = on_close.clone();
 
                         view! {
-                            <div class="practice-reading-view">
-                                <div class="practice-detail-header">
-                                    <div class="practice-title-row">
-                                        <div class="practice-title-left">
-                                            <div class="practice-main-name">
-                                                {bg_icon} " " {bg.name(lang)}
-                                                <span class="practice-title-secondary">
-                                                    " (" {bg.secondary_name(lang)} ")"
-                                                </span>
-                                            </div>
-                                            <div class="header-badges-row" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                                                {if let Some(tec) = bg.technocracy_name(lang) {
-                                                    view! {
-                                                        <span class="attribute-cat-badge badge-mental" title="Designação na União Tecnocrática">
-                                                            "🔬 " {tec}
-                                                        </span>
-                                                    }.into_view()
-                                                } else {
-                                                    view! { <span></span> }.into_view()
-                                                }}
-                                                <span class="attribute-cat-badge badge-social">
-                                                    {max_dots_label}
-                                                </span>
-                                                <span class="practice-page-badge">
-                                                    "📖 " {bg.page_ref}
-                                                </span>
+                            <div class="practice-reading-view grimoire-reading-view">
+                                <div class="grimoire-hero-banner">
+                                    <div class="grimoire-hero-top">
+                                        <div class="grimoire-hero-left">
+                                            <div class="grimoire-hero-icon-box">{bg_icon}</div>
+                                            <div class="grimoire-hero-titles">
+                                                <div class="grimoire-hero-sup">
+                                                    <span class="grimoire-badge-cat">"M20 • ANTECEDENTE"</span>
+                                                    <span class="grimoire-badge-dots">{max_dots_label}</span>
+                                                    {if let Some(tec) = bg.technocracy_name(lang) {
+                                                        view! {
+                                                            <span class="grimoire-badge-tec" title="Designação na União Tecnocrática">
+                                                                "🔬 " {tec}
+                                                            </span>
+                                                        }.into_view()
+                                                    } else {
+                                                        view! { <span></span> }.into_view()
+                                                    }}
+                                                </div>
+                                                <h2 class="grimoire-hero-title">{bg.name(lang)}</h2>
+                                                <div class="grimoire-hero-sub">
+                                                    <span class="grimoire-hero-secondary">" (" {bg.secondary_name(lang)} ")"</span>
+                                                    <span class="grimoire-hero-page">"📖 " {bg.page_ref}</span>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -377,7 +373,7 @@ pub fn BackgroundsView(
                                                 <div class="compendium-header-actions">
                                                     <button
                                                         type="button"
-                                                        class="compendium-action-btn compendium-btn-emerald"
+                                                        class="compendium-action-btn compendium-btn-emerald compendium-btn-large"
                                                         on:click=move |_| {
                                                             let spec = custom_spec.get();
                                                             let final_name = if spec.trim().is_empty() {
@@ -574,18 +570,18 @@ pub fn BackgroundsView(
                                     }.into_view()
                                 }}
 
-                                // Grade de Níveis de Pontuação (1 a 5 ou 1 a 10)
-                                <div class="attribute-ratings-section" style="margin-top: 1.5rem;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.4rem;">
-                                        <h4 class="compendium-section-title" style="margin-bottom: 0;">
+                                // Grade de Níveis de Pontuação (Trilha de Maestria)
+                                <div class="attribute-ratings-section grimoire-track">
+                                    <div class="grimoire-track-header">
+                                        <h4 class="grimoire-track-title">
                                             "📊 " {match lang {
-                                                Language::PtBr => format!("Escala de Pontuação & Diferenças ({})", max_dots_label),
-                                                Language::EnUs => format!("Rating Scale & Differences ({})", max_dots_label),
+                                                Language::PtBr => format!("Trilha de Maestria & Níveis ({})", max_dots_label),
+                                                Language::EnUs => format!("Mastery Track & Ratings ({})", max_dots_label),
                                             }}
                                         </h4>
                                         {if sel_cb.is_some() {
                                             view! {
-                                                <span style="font-size: 0.78rem; color: #6366f1; font-weight: 600;">
+                                                <span class="grimoire-track-hint">
                                                     "💡 " {match lang {
                                                         Language::PtBr => "Clique em qualquer nível para selecioná-lo",
                                                         Language::EnUs => "Click any level to choose it",
@@ -641,7 +637,7 @@ pub fn BackgroundsView(
                                                                 <div class="rating-card-actions" style="margin-left: auto;">
                                                                     {move || if is_selected.get() {
                                                                         view! {
-                                                                            <span class="rating-chosen-badge" style="font-size: 0.72rem; padding: 0.15rem 0.45rem; border-radius: 4px; background: #4f46e5; color: white; font-weight: 700;">
+                                                                            <span class="rating-chosen-badge">
                                                                                 "✔ " {match lang {
                                                                                     Language::PtBr => "Nível Escolhido",
                                                                                     Language::EnUs => "Selected Level",
@@ -652,8 +648,7 @@ pub fn BackgroundsView(
                                                                         view! {
                                                                             <button
                                                                                 type="button"
-                                                                                class="rating-pick-btn"
-                                                                                style="font-size: 0.72rem; padding: 0.15rem 0.45rem; border-radius: 4px; background: rgba(99, 102, 241, 0.1); color: #4f46e5; border: 1px solid rgba(99, 102, 241, 0.25); cursor: pointer;"
+                                                                                class="rating-choose-btn"
                                                                                 on:click=move |ev| {
                                                                                     ev.stop_propagation();
                                                                                     set_selected_level.set(dots);

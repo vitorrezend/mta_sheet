@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::components::common::StableTextArea;
+use crate::components::common::WysiwygEditor;
 use crate::components::Callback;
 use crate::state::{CharacterData, QuizQuestionEntry};
 
@@ -115,11 +115,12 @@ pub fn QuizModal(
                                             </div>
                                             <p class="quiz-question-prompt">{q_prompt}</p>
                                             <div class="quiz-textarea-wrapper">
-                                                <StableTextArea
+                                                <WysiwygEditor
                                                     value=answer_val
                                                     on_change=on_change
                                                     placeholder=placeholder_txt
-                                                    class="quiz-textarea"
+                                                    class="quiz-wysiwyg"
+                                                    min_height="120px"
                                                 />
                                             </div>
                                         </div>
@@ -186,11 +187,12 @@ pub fn QuizModal(
                                             </div>
                                             <p class="quiz-question-prompt">{q_prompt}</p>
                                             <div class="quiz-textarea-wrapper">
-                                                <StableTextArea
+                                                <WysiwygEditor
                                                     value=answer_val
                                                     on_change=on_change
                                                     placeholder=placeholder_txt
-                                                    class="quiz-textarea"
+                                                    class="quiz-wysiwyg"
+                                                    min_height="120px"
                                                 />
                                             </div>
                                         </div>

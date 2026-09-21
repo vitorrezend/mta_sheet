@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::components::{Callback, ValueField, StableTextArea, StableTextInput};
+use crate::components::{Callback, ValueField, StableTextArea, StableTextInput, WysiwygEditor};
 use crate::state::{CharacterData, DotOrigin, WeaponItem, MeritItem, FlawItem};
 use crate::components::character_sheet::ActiveDotOriginContext;
 use super::advantages::GodsLineInput;
@@ -231,33 +231,36 @@ pub fn GodsAndMonstersPage2() -> impl IntoView {
                     // History
                     <div class="group-box gods-box">
                         <span class="group-title">{move || crate::i18n::tr("history", lang())}</span>
-                        <StableTextArea
-                            class="gods-large-textarea"
+                        <WysiwygEditor
+                            class="gods-large-wysiwyg"
                             placeholder=Signal::derive(move || crate::i18n::tr("gods_history_ph", lang()).to_string())
                             value=Signal::derive(move || data.with(|d| d.get_label("gods_history")))
                             on_change=Callback::new(move |v| set_data.update(|s| s.set_label("gods_history", v)))
+                            min_height="110px"
                         />
                     </div>
 
                     // Description
                     <div class="group-box gods-box">
                         <span class="group-title">{move || crate::i18n::tr("description", lang())}</span>
-                        <StableTextArea
-                            class="gods-large-textarea"
+                        <WysiwygEditor
+                            class="gods-large-wysiwyg"
                             placeholder=Signal::derive(move || crate::i18n::tr("gods_desc_ph", lang()).to_string())
                             value=Signal::derive(move || data.with(|d| d.get_label("gods_description")))
                             on_change=Callback::new(move |v| set_data.update(|s| s.set_label("gods_description", v)))
+                            min_height="110px"
                         />
                     </div>
 
                     // Special Rules
                     <div class="group-box gods-box">
                         <span class="group-title">{move || crate::i18n::tr("special_rules", lang())}</span>
-                        <StableTextArea
-                            class="gods-large-textarea"
+                        <WysiwygEditor
+                            class="gods-large-wysiwyg"
                             placeholder=Signal::derive(move || crate::i18n::tr("gods_rules_ph", lang()).to_string())
                             value=Signal::derive(move || data.with(|d| d.get_label("gods_special_rules")))
                             on_change=Callback::new(move |v| set_data.update(|s| s.set_label("gods_special_rules", v)))
+                            min_height="110px"
                         />
                     </div>
 

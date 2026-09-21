@@ -181,7 +181,7 @@
 /* Sidebar Tab List */
 .practice-sidebar,
 .practice-sidebar-pane {
-    width: 280px;
+    width: 300px;
     height: 100% !important;
     max-height: 100% !important;
     min-height: 0 !important;
@@ -885,14 +885,48 @@
     flex: 1;
     min-width: 0;
     text-align: left;
+    width: 100%;
+}
+
+.tab-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.35rem;
+    width: 100%;
+    flex-wrap: wrap;
 }
 
 .tab-name {
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     font-weight: 700;
     color: #2b2112;
     line-height: 1.25;
-    word-break: break-word;
+    word-break: normal;
+    overflow-wrap: break-word;
+    text-wrap: pretty;
+    hyphens: none;
+}
+
+.compendium-sub-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.12rem 0.4rem;
+    border-radius: var(--radius-xs, 3px);
+    background: var(--color-difficulty-bg, rgba(30, 58, 138, 0.12));
+    color: var(--color-info, #2563eb);
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.compendium-sub-pill-purple {
+    background: var(--purple-badge-bg, rgba(147, 51, 234, 0.15));
+    color: var(--purple-mid, #2d0a4e);
+    border: 1px solid var(--purple-bright, #9333ea);
 }
 
 .tab-sub {
@@ -1449,6 +1483,17 @@
     background: rgba(0, 0, 0, 0.1);
     color: #1a150e !important;
     border-color: #baa684;
+}
+
+/* Variante Ativa / Confirmada na Ficha */
+.compendium-btn-active {
+    background: rgba(22, 163, 74, 0.12) !important;
+    border: 1px solid var(--color-success, #16a34a) !important;
+    color: var(--color-success, #16a34a) !important;
+    cursor: default !important;
+    opacity: 0.95;
+    box-shadow: none !important;
+    transform: none !important;
 }
 
 /* Botão de tamanho Grande / Rodapé */
@@ -3340,10 +3385,422 @@
     background: rgba(99, 102, 241, 0.06) !important;
     box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3) !important;
 }
+    margin: 0;
+}
+
+.advantage-rule,
+.do-advantage-desc {
+    font-size: 0.86rem;
+    color: #f1f5f9;
+    line-height: 1.55;
+    margin: 0;
+    text-align: justify;
+}
+
+/* Callout embutido de Dô na visualização de manobra */
+.maneuver-embedded-do-callout {
+    margin-top: 1.5rem;
+}
+
+.maneuver-embedded-do-card {
+    background: #ffffff;
+    border: 1px solid #dcd1be;
+    border-left: 4px solid #7c3aed;
+    border-radius: 8px;
+    padding: 1.15rem 1.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.maneuver-embedded-do-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.55rem;
+    border-bottom: 1px dashed rgba(124, 58, 237, 0.25);
+    padding-bottom: 0.45rem;
+}
+
+.maneuver-embedded-do-icon {
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.maneuver-embedded-do-title {
+    font-family: var(--font-title, 'Cinzel', serif);
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #4c1d95;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.maneuver-embedded-do-desc {
+    font-size: 0.84rem;
+    color: #334155;
+    line-height: 1.55;
+    margin: 0 0 1rem 0;
+    text-align: justify;
+}
+
+.maneuver-embedded-do-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.embedded-do-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #fef08a !important;
+    border: 1px solid #b89347;
+    border-radius: 6px;
+    padding: 0.65rem 1rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    flex: 1;
+    min-width: 190px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    font-family: inherit;
+    text-decoration: none;
+}
+
+.embedded-do-action-btn span {
+    color: inherit;
+}
+
+.embedded-do-action-btn:hover {
+    background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+    border-color: #fde68a;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    transform: translateY(-1px);
+}
+
+.embedded-do-btn-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.embedded-do-btn-label {
+    white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+    .embedded-do-action-btn {
+        width: 100%;
+        min-width: 100%;
+    }
+}
+
+/* ─── Painel de Seleção Interativa de Antecedentes & Níveis ───────────── */
+.compendium-background-picker-bar {
+    background: var(--surface-paper, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius-md, 8px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.picker-dot-btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 32px;
+    border-radius: var(--radius-sm, 4px);
+    border: 1px solid var(--border-color, #cbd5e1);
+    background: var(--surface-input, #f8fafc);
+    color: var(--text-secondary, #64748b);
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+    line-height: 1;
+    transition: all 0.15s ease;
+    padding: 2px 0;
+}
+
+.picker-dot-btn .dot-num {
+    font-size: 0.65rem;
+}
+
+.picker-dot-btn .dot-symbol {
+    font-size: 0.55rem;
+    opacity: 0.6;
+}
+
+.picker-dot-btn:hover {
+    border-color: var(--color-primary, #6366f1);
+    color: var(--color-primary, #6366f1);
+    background: rgba(99, 102, 241, 0.08);
+}
+
+.picker-dot-btn.active {
+    border-color: var(--color-primary, #6366f1);
+    background: var(--color-primary, #6366f1);
+    color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+}
+
+.picker-dot-btn.active .dot-symbol {
+    opacity: 1;
+    color: #ffffff;
+}
+
+.picker-dot-btn.epic {
+    border-style: dashed;
+}
+
+.picker-dot-btn.epic.active {
+    background: #d97706;
+    border-color: #b45309;
+    box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.25);
+}
+
+.attribute-rating-card.rating-selectable {
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.attribute-rating-card.rating-selectable:hover {
+    border-color: var(--color-primary, #6366f1);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.07);
+}
+
+.attribute-rating-card.rating-selected {
+    border-color: var(--color-primary, #6366f1) !important;
+    background: rgba(99, 102, 241, 0.06) !important;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3) !important;
+}
 
 .attribute-rating-card.rating-selected .rating-dots-indicator {
     color: var(--color-primary, #6366f1) !important;
 }
 
+/* ─── Compêndio M20: Qualidades, Defeitos & Perturbações ─────────────────── */
+.compendium-badge-sup.trait-badge-merit {
+    background: rgba(22, 163, 74, 0.12);
+    border: 1px solid rgba(22, 163, 74, 0.35);
+    color: var(--color-success, #16a34a);
+}
 
+.compendium-badge-sup.trait-badge-flaw {
+    background: rgba(220, 38, 38, 0.12);
+    border: 1px solid rgba(220, 38, 38, 0.35);
+    color: var(--color-paradox, #dc2626);
+}
 
+.trait-type-badge-merit {
+    background: rgba(22, 163, 74, 0.15);
+    color: var(--color-success, #16a34a);
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: var(--radius-xs, 3px);
+}
+
+.trait-type-badge-flaw {
+    background: rgba(220, 38, 38, 0.15);
+    color: var(--color-paradox, #dc2626);
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: var(--radius-xs, 3px);
+}
+
+/* ─── Larguras Otimizadas de Painéis Laterais ───────────────────────────── */
+.ability-sidebar-pane,
+.merit-flaw-sidebar-pane {
+    width: 340px !important;
+    min-width: 310px !important;
+    max-width: 370px !important;
+    flex-shrink: 0 !important;
+    padding: 0.8rem 0.65rem !important;
+}
+
+/* ─── Pílulas de Filtro nos Cabeçalhos de Habilidades e Qualidades ───────── */
+.compendium-filter-pills-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.35rem;
+    width: 100%;
+}
+
+.compendium-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    background: #ffffff;
+    border: 1px solid #c9baa0;
+    border-radius: 5px;
+    padding: 3px 7px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #4a3e2e;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    user-select: none;
+    line-height: 1.2;
+}
+
+.compendium-filter-pill:hover {
+    background: #ede3d0;
+    color: #1a150e;
+    border-color: #b89347;
+}
+
+.compendium-filter-pill.active {
+    background: linear-gradient(135deg, #241d13 0%, #15110a 100%);
+    color: #f1dfa8;
+    border-color: #b89347;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.compendium-filter-pill.rules-pill {
+    border-color: #d97706;
+    color: #b45309;
+}
+
+.compendium-filter-pill.rules-pill.active {
+    background: linear-gradient(135deg, #78350f 0%, #451a03 100%);
+    color: #fef3c7;
+    border-color: #f59e0b;
+}
+
+/* ─── Badges de Cabeçalho do Detalhe (Hero Header) ───────────────────────── */
+.hero-sup-badges {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.35rem;
+}
+
+.compendium-badge-sup {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold-primary, #b89347);
+    background: rgba(184, 147, 71, 0.12);
+    border: 1px solid rgba(184, 147, 71, 0.28);
+    border-radius: 4px;
+    padding: 0.15rem 0.45rem;
+    line-height: 1.2;
+}
+
+.compendium-scope-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    line-height: 1.2;
+}
+
+.scope-badge-core {
+    background: rgba(37, 99, 235, 0.12);
+    color: #2563eb;
+    border: 1px solid rgba(37, 99, 235, 0.28);
+}
+
+.scope-badge-sec,
+.scope-badge-secondary {
+    background: rgba(217, 119, 6, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(217, 119, 6, 0.28);
+}
+
+.scope-badge-category {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--color-primary, #6366f1);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.scope-badge-cost {
+    background: rgba(217, 119, 6, 0.1);
+    color: var(--color-warning, #d97706);
+    border: 1px solid rgba(217, 119, 6, 0.25);
+    font-weight: 700;
+}
+
+/* ─── Pílulas de Tipos e Pontos na Lista Lateral ─────────────────────────── */
+.compendium-sub-pill.trait-pill-merit {
+    background: rgba(22, 163, 74, 0.12);
+    color: #16a34a;
+    border: 1px solid rgba(22, 163, 74, 0.28);
+}
+
+.compendium-sub-pill.trait-pill-flaw {
+    background: rgba(234, 88, 12, 0.12);
+    color: #ea580c;
+    border: 1px solid rgba(234, 88, 12, 0.28);
+}
+
+.points-badge-pill {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #64748b;
+    background: rgba(100, 116, 139, 0.1);
+    border: 1px solid rgba(100, 116, 139, 0.2);
+    border-radius: 3px;
+    padding: 1px 5px;
+    line-height: 1.2;
+}
+
+.derangement-tab {
+    border-left: 3px solid var(--purple-bright, #9333ea) !important;
+}
+
+/* ─── Botões de Acesso Rápido ao Compêndio nas Linhas da Ficha ───────────── */
+.compendium-row-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.78rem;
+    padding: 0.1rem 0.2rem;
+    opacity: 0.65;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.compendium-row-btn:hover {
+    opacity: 1;
+    transform: scale(1.15);
+}
+
+.field-compendium-lookup-btn {
+    background: none;
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: var(--radius-sm, 4px);
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.4rem;
+    opacity: 0.75;
+    transition: all 0.15s ease;
+    line-height: 1;
+}
+
+.field-compendium-lookup-btn:hover {
+    opacity: 1;
+    background: rgba(99, 102, 241, 0.08);
+    border-color: var(--color-primary, #6366f1);
+    transform: translateY(-1px);
+}

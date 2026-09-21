@@ -148,12 +148,25 @@ A ficha divide-se em **6 páginas principais** mais um **Dossiê Anexo**:
 
 ## 🧪 7. Qualidade de Código & Testes
 
-O projeto conta com **63 testes automatizados** divididos em suítes especializadas:
-- `tests/access_detection_test.rs`: Testes unitários do classificador de tráfego (Humano vs Bot).
-- `tests/admin_auth_test.rs`: Testes de autenticação, migração SQLite e permissões de administrador.
-- `tests/quiz_data_test.rs`: Testes de inicialização, preservação de respostas e resolução síncrona do Dossiê.
-- `tests/security_limits_test.rs`: Testes das cotas de 50 fichas, 5MB JSON e validação de Magic Bytes em imagens.
-- `tests/anti_patterns_test.rs`: Testes de conformidade arquitetural (bloqueia loops reativos, closures instáveis e destruição indevida do DOM).
+O projeto conta com uma arquitetura de testes de alta performance com **quase 300 testes automatizados** (unitários e 195+ de integração).
+
+### Arquitetura Unificada de Testes (`tests/all_tests.rs`)
+Para eliminar o gargalo do linker no Windows e Linux (que compilava dezenas de binários de teste separados), todos os testes de integração estão organizados como submódulos isolados dentro de `tests/suites/` e consolidados em um **único binário executável (`all_tests`)**:
+- `tests/all_tests.rs`: Ponto de entrada canônico registrado como `[[test]] name = "all_tests"` no `Cargo.toml`.
+- `tests/suites/`: Diretório contendo as 36 suítes especializadas (regras de M20, segurança, anti-patterns, compêndios, WebAssembly, etc.).
+
+### Test Runner de Próxima Geração (`cargo-nextest`)
+O projeto adota oficialmente o `cargo-nextest` com configuração canônica em `.config/nextest.toml`:
+- **Isolamento de Processos:** Cada teste roda em processo próprio, prevenindo vazamentos de runtime reativo (Leptos) e colisões de lock no SQLite.
+- **Concorrência Total:** Execução paralela em todos os cores da CPU.
+- **Filtragem com Expressões (`-E`):** Execução cirúrgica de testes pontuais em frações de segundo (~0.2s).
+
+| Comando | Finalidade |
+| :--- | :--- |
+| `cargo nextest run --features ssr` | Execução ultra-rápida de toda a suíte com relatórios em streaming |
+| `cargo nextest run --features ssr -E 'test(spheres)'` | Executa apenas testes cujo nome ou módulo contenha `spheres` |
+| `cargo test --features ssr` | Execução tradicional com o test harness padrão do Rust |
+| `cargo test --test all_tests --features ssr` | Executa diretamente o binário unificado de integração |
 
 ---
 
@@ -166,3 +179,4 @@ O projeto segue a filosofia **Local-First**: todo o ciclo de desenvolvimento e t
 | **`dev.bat` / `dev.sh`** | Inicia o ambiente de desenvolvimento local com hot-reload (Leptos + WASM + Axum) no perfil **Dev** (`opt-level=0`, debug info total). Aceita argumento `build` para apenas compilar sem watcher. | `.\scripts\dev.bat` / `./scripts/dev.sh` |
 | **`build_release.bat` / `build_release.sh`** | Compila o binário standalone e o frontend WASM com otimizações máximas (`release`, `opt-level='z'`, LTO, strip), gerando o executável final autocontido. | `.\scripts\build_release.bat` / `./scripts/build_release.sh` |
 | **`docker.bat` / `docker.sh`** | Constrói a imagem Docker multi-stage ou executa a aplicação via Docker Compose em container. | `.\scripts\docker.bat` / `./scripts/docker.sh` |
+

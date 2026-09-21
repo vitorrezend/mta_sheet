@@ -9,6 +9,7 @@ use crate::rooms::{
 };
 use crate::state::get_sheets;
 use crate::components::Navbar;
+use crate::components::common::{Callback, WysiwygEditor};
 use crate::components::rooms::{InitiativeDrawer, BattleGrid, PartyCardDesktop, PartyCardMobile};
 use crate::rooms::RoomMapData;
 
@@ -598,7 +599,12 @@ pub fn RoomView() -> impl IntoView {
                                             </div>
                                             <div class="chantry-card chantry-card-full">
                                                 <h3>"Notas e Recursos Comuns"</h3>
-                                                <textarea rows="5" class="chantry-textarea" prop:value=move || chantry_notes.get() on:input=move |e| set_chantry_notes.set(event_target_value(&e))></textarea>
+                                                <WysiwygEditor
+                                                    value=chantry_notes
+                                                    on_change=Callback::new(move |val| set_chantry_notes.set(val))
+                                                    placeholder="Notas, recursos, aliados, defesas e relíquias guardadas na Capela..."
+                                                    min_height="120px"
+                                                />
                                             </div>
                                         </div>
                                     </section>
@@ -610,7 +616,12 @@ pub fn RoomView() -> impl IntoView {
                                             <h2>"Diário da Crônica & Mural"</h2>
                                             <button class="save-chantry-btn" on:click=on_save_chronicle>"Salvar Diário"</button>
                                         </div>
-                                        <textarea rows="14" class="chronicle-textarea" prop:value=move || chronicle_text.get() on:input=move |e| set_chronicle_text.set(event_target_value(&e))></textarea>
+                                        <WysiwygEditor
+                                            value=chronicle_text
+                                            on_change=Callback::new(move |val| set_chronicle_text.set(val))
+                                            placeholder="Diário da crônica, resumo das sessões, pistas investigativas e avisos para a Cabala..."
+                                            min_height="320px"
+                                        />
                                     </section>
                                 }.into_view()
                             } else if active_tab.get() == "settings" && is_gm_sig.get() {

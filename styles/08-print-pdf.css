@@ -110,6 +110,7 @@
     .add-sphere-inline-control,
     .sphere-pill-remove-btn,
     .add-field-btn,
+    .wonders-empty-state,
     .remove-btn,
     .vitality-reset-btn,
     .qc-info-wrapper,
@@ -302,9 +303,6 @@
         color: #d97706 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
-    }
-    .spheres-header-bar {
-        display: none !important;
     }
     .supernatural-modal-wrapper,
     .supernatural-trigger-btn,

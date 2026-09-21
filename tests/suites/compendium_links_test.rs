@@ -116,6 +116,18 @@ fn test_compendium_cross_links_integrity() {
                             let exists = id == "theory_sphere_rules" || find_sphere(id).is_some();
                             assert!(exists, "Link para esfera inexistente em {} ({:?}): {}", bg.id, lang, id);
                         }
+                        CompendiumTarget::Ability(id) => {
+                            let exists = id.starts_with("rule_") || mta_sheet::compendium::abilities::find_ability(id).is_some() || mta_sheet::compendium::abilities::find_ability_theory_rule(id).is_some();
+                            assert!(exists, "Link para habilidade inexistente em {} ({:?}): {}", bg.id, lang, id);
+                        }
+                        CompendiumTarget::MeritFlaw(id) => {
+                            let exists = mta_sheet::compendium::merits_flaws::find_merit_flaw(id).is_some();
+                            assert!(exists, "Link para qualidade/defeito inexistente em {} ({:?}): {}", bg.id, lang, id);
+                        }
+                        CompendiumTarget::Derangement(id) => {
+                            let exists = mta_sheet::compendium::merits_flaws::find_derangement(id).is_some();
+                            assert!(exists, "Link para perturbação inexistente em {} ({:?}): {}", bg.id, lang, id);
+                        }
                     }
 
                     // Valida que o label retorna texto legível

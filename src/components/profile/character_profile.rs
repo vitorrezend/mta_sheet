@@ -212,13 +212,14 @@ pub fn CharacterProfile() -> impl IntoView {
                             </span>
                         </div>
                         <div class="profile-textarea-container">
-                            <crate::components::StableTextArea
-                                class="profile-textarea"
+                            <crate::components::WysiwygEditor
+                                class="profile-wysiwyg"
                                 placeholder="Escreva aqui a trajetória do personagem: sua vida antes do Despertar, o momento da Epifania, a natureza de seu Avatar, mentores, tradição, alianças passadas, motivações e objetivos arcanos..."
                                 value=history_text
                                 on_change=Callback::new(move |val| {
                                     set_data.update(|s| s.set_history(val));
                                 })
+                                min_height="140px"
                             />
                         </div>
                     </div>
@@ -235,13 +236,14 @@ pub fn CharacterProfile() -> impl IntoView {
                         </span>
                     </div>
                     <div class="profile-textarea-container">
-                        <crate::components::StableTextArea
-                            class="profile-textarea notes-textarea"
+                        <crate::components::WysiwygEditor
+                            class="profile-wysiwyg notes-wysiwyg"
                             placeholder="Registre feitiços conhecidos (Rotes), instrumentos de foco mágico, aliados da Cabala, pertences místicos, sanctuários, diário de sessões e observações do narrador..."
                             value=notes_text
                             on_change=Callback::new(move |val| {
                                 set_data.update(|s| s.set_notes(val));
                             })
+                            min_height="140px"
                         />
                     </div>
                 </div>

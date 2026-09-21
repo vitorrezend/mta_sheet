@@ -8,11 +8,13 @@ pub mod navbar;
 pub mod sheet;
 pub mod sheet_frame;
 pub mod bound_trait_field;
+pub mod wysiwyg_editor;
 
 pub use callback::{Callback, SafeCallback};
 pub use value_field::ValueField;
 pub use specialty_picker::SpecialtyPicker;
 pub use stable_textarea::{StableTextArea, StableTextInput};
+pub use wysiwyg_editor::{WysiwygEditor, legacy_markdown_to_html, sanitize_wysiwyg_html};
 pub use label_field::LabelField;
 pub use label_column::LabelColumn;
 pub use navbar::Navbar;

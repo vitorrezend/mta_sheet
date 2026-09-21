@@ -31,14 +31,25 @@ pub fn MagicSection() -> impl IntoView {
             <div class="wonders-grid-2x2">
                 {move || {
                     let count = data.with(|d| d.wonders.len());
-                    (0..count).map(|idx| {
+                    if count == 0 {
                         view! {
-                            <WonderCard 
-                                idx=idx 
-                                on_image_click=Callback::new(move |url| set_modal_image_url.set(Some(url))) 
-                            />
-                        }
-                    }).collect_view()
+                            <div class="wonders-empty-state">
+                                {move || match lang() {
+                                    crate::i18n::Language::PtBr => "Nenhuma maravilha registrada. Clique em '+' abaixo para adicionar.",
+                                    crate::i18n::Language::EnUs => "No wonders registered. Click '+' below to add.",
+                                }}
+                            </div>
+                        }.into_view()
+                    } else {
+                        (0..count).map(|idx| {
+                            view! {
+                                <WonderCard 
+                                    idx=idx 
+                                    on_image_click=Callback::new(move |url| set_modal_image_url.set(Some(url))) 
+                                />
+                            }
+                        }).collect_view().into_view()
+                    }
                 }}
             </div>
 

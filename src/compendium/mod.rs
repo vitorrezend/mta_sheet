@@ -10,6 +10,8 @@ pub mod weapons;
 pub mod archetypes;
 pub mod backgrounds;
 pub mod spheres;
+pub mod abilities;
+pub mod merits_flaws;
 
 pub use practices::*;
 pub use instruments::*;
@@ -22,5 +24,13 @@ pub use backgrounds::{
 };
 pub use spheres::{
     find_sphere, get_all_spheres, ALL_SPHERES, SphereDefinition, SphereRank,
+};
+pub use abilities::{
+    find_ability, find_ability_theory_rule, ALL_ABILITIES, ABILITY_THEORY_RULES,
+    AbilityCategory, AbilityDefinition, AbilityRating, AbilityScope, AbilityTheoryArticle,
+};
+pub use merits_flaws::{
+    find_derangement, find_merit_flaw, ALL_DERANGEMENTS, ALL_FLAWS, ALL_MERITS, ALL_MERITS_FLAWS,
+    DerangementDefinition, MeritFlawDefinition, TraitCategory, TraitType,
 };
 

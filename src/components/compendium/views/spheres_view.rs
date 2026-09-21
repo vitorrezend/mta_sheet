@@ -46,6 +46,8 @@ pub fn SpheresView(
     current_lang: Signal<Language>,
     #[prop(into, default = None)] mobile_show_detail: Option<RwSignal<bool>>,
     #[prop(into, default = None)] on_close: Option<Callback<()>>,
+    #[prop(into, default = None)] on_select_sphere: Option<Callback<String>>,
+    #[prop(into, default = None)] active_spheres: Option<Signal<Vec<String>>>,
 ) -> impl IntoView {
     let _ = on_close;
     let (search_filter, set_search_filter) = create_signal(String::new());
@@ -245,29 +247,27 @@ pub fn SpheresView(
                     if is_rules_selected.get() {
                         let rule = &SPHERE_THEORY_RULES;
                         view! {
-                            <div class="box-reading-view">
-                                <div class="practice-detail-header special-box-header">
-                                    <div class="practice-title-group">
-                                        <div class="practice-main-name">
-                                            "📜 " {rule.title(lang)}
+                            <div class="box-reading-view grimoire-reading-view">
+                                <div class="grimoire-hero-banner special-box-header">
+                                    <div class="grimoire-hero-top">
+                                        <div class="grimoire-hero-left">
+                                            <div class="grimoire-hero-icon-box">"📜"</div>
+                                            <div class="grimoire-hero-titles">
+                                                <div class="grimoire-hero-sup">
+                                                    <span class="grimoire-badge-cat">"M20 • REGRA CANÔNICA"</span>
+                                                </div>
+                                                <h2 class="grimoire-hero-title">{rule.title(lang)}</h2>
+                                                <div class="grimoire-hero-sub">
+                                                    <span class="grimoire-hero-page">"📖 " {rule.page_ref}</span>
+                                                    <span class="grimoire-hero-secondary">
+                                                        {match lang {
+                                                            Language::PtBr => "Livro das Esferas (Metafísica & Regras Gerais)",
+                                                            Language::EnUs => "Book of Spheres (Metaphysics & General Rules)",
+                                                        }}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <span class="practice-page-badge">
-                                            "📖 " {rule.page_ref}
-                                        </span>
-                                    </div>
-                                    <div class="practice-aliases">
-                                        <span class="practice-aliases-label">
-                                            {match lang {
-                                                Language::PtBr => "Fonte Canônica: ",
-                                                Language::EnUs => "Canonical Source: ",
-                                            }}
-                                        </span>
-                                        <span class="practice-aliases-val">
-                                            {match lang {
-                                                Language::PtBr => "M20, pp. 511-512 • Livro das Esferas (Metafísica & Regras Gerais)",
-                                                Language::EnUs => "M20, pp. 511-512 • Book of Spheres (Metaphysics & General Rules)",
-                                            }}
-                                        </span>
                                     </div>
                                 </div>
 
@@ -354,61 +354,120 @@ pub fn SpheresView(
                         let s_icon = get_sphere_icon(sphere.id);
 
                         view! {
-                            <div class="practice-reading-view">
-                            <div class="practice-detail-header">
-                                <div class="practice-title-row">
-                                    <div class="practice-title-left">
-                                        <div class="practice-main-name">
-                                            {s_icon} " " {sphere.name(lang)}
-                                            <span class="practice-title-secondary">
-                                                " (" {sphere.secondary_name(lang)} ")"
-                                            </span>
+                            <div class="practice-reading-view grimoire-reading-view">
+                                <div class="grimoire-hero-banner">
+                                    <div class="grimoire-hero-top">
+                                        <div class="grimoire-hero-left">
+                                            <div class="grimoire-hero-icon-box">{s_icon}</div>
+                                            <div class="grimoire-hero-titles">
+                                                <div class="grimoire-hero-sup">
+                                                    <span class="grimoire-badge-cat">"M20 • ESFERA DA MÁGIKA"</span>
+                                                    {if let Some((label, val)) = sphere.equivalent_note(lang) {
+                                                        view! {
+                                                            <span class="grimoire-badge-tec">
+                                                                {label} ": " {val}
+                                                            </span>
+                                                        }.into_view()
+                                                    } else {
+                                                        view! { <span></span> }.into_view()
+                                                    }}
+                                                    {if let Some(equiv_id) = sphere.technocracy_equivalent.or(sphere.mystic_equivalent) {
+                                                        if let Some(target) = crate::compendium::spheres::find_sphere(equiv_id) {
+                                                            let t_id = target.id.to_string();
+                                                            view! {
+                                                                <button
+                                                                    type="button"
+                                                                    class="compendium-sub-pill compendium-sub-pill-purple"
+                                                                    style="cursor: pointer; font-size: 0.72rem;"
+                                                                    on:click=move |_| {
+                                                                        selected_sphere_id.set(t_id.clone());
+                                                                    }
+                                                                    title=match lang {
+                                                                        Language::PtBr => format!("Alternar visualização para {}", target.name(lang)),
+                                                                        Language::EnUs => format!("Switch view to {}", target.name(lang)),
+                                                                    }
+                                                                >
+                                                                    "⇄ " {match lang {
+                                                                        Language::PtBr => format!("Ver {}", target.name(lang)),
+                                                                        Language::EnUs => format!("View {}", target.name(lang)),
+                                                                    }}
+                                                                </button>
+                                                            }.into_view()
+                                                        } else {
+                                                            view! { <span></span> }.into_view()
+                                                        }
+                                                    } else {
+                                                        view! { <span></span> }.into_view()
+                                                    }}
+                                                </div>
+                                                <h2 class="grimoire-hero-title">{sphere.name(lang)}</h2>
+                                                <div class="grimoire-hero-sub">
+                                                    <span class="grimoire-hero-secondary">" (" {sphere.secondary_name(lang)} ")"</span>
+                                                    <span class="grimoire-hero-page">"📖 " {sphere.page_ref}</span>
+                                                    <span style="font-style: italic; color: #d5c7ab;">"— " {sphere.subtitle(lang)}</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="practice-subtitle" style="font-style: italic; color: var(--text-secondary, #64748b); font-size: 0.95rem; margin-top: 0.2rem;">
-                                            {sphere.subtitle(lang)}
-                                        </div>
-                                        <div class="header-badges-row" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-top: 0.4rem;">
-                                            <span class="practice-page-badge">
-                                                "📖 " {sphere.page_ref}
-                                            </span>
-                                            {if let Some((label, val)) = sphere.equivalent_note(lang) {
-                                                view! {
-                                                    <span class="attribute-cat-badge badge-mental" style="font-size: 0.75rem;">
-                                                        {label} <strong>{val}</strong>
-                                                    </span>
-                                                }.into_view()
-                                            } else {
-                                                view! { <span></span> }.into_view()
-                                            }}
-                                            {if let Some(equiv_id) = sphere.technocracy_equivalent.or(sphere.mystic_equivalent) {
-                                                if let Some(target) = crate::compendium::spheres::find_sphere(equiv_id) {
-                                                    let t_id = target.id.to_string();
+
+                                        // Ações do Cabeçalho: Ativação de Variante na Ficha
+                                        {
+                                            let act_spheres = active_spheres.clone();
+                                            let on_sel_sph = on_select_sphere.clone();
+                                            let s_id = sphere.id.to_string();
+                                            let has_variant = sphere.technocracy_equivalent.is_some() || sphere.mystic_equivalent.is_some();
+
+                                            move || {
+                                                if let Some(ref list_sig) = act_spheres {
+                                                    let cur_active_list = list_sig.get();
+                                                    let is_active = cur_active_list.iter().any(|id| id == &s_id);
+
                                                     view! {
-                                                        <button
-                                                            type="button"
-                                                            class="compendium-sub-pill"
-                                                            style="cursor: pointer; border: 1px solid #6366f1; background: rgba(99, 102, 241, 0.12); color: #4338ca; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.18rem 0.55rem; border-radius: 4px; font-size: 0.75rem;"
-                                                            on:click=move |_| {
-                                                                selected_sphere_id.set(t_id.clone());
-                                                            }
-                                                            title=match lang {
-                                                                Language::PtBr => format!("Alternar para {}", target.name(lang)),
-                                                                Language::EnUs => format!("Switch to {}", target.name(lang)),
-                                                            }
-                                                        >
-                                                            "⇄ " {match lang {
-                                                                Language::PtBr => format!("Ver {}", target.name(lang)),
-                                                                Language::EnUs => format!("View {}", target.name(lang)),
+                                                        <div class="compendium-header-actions">
+                                                            {if is_active {
+                                                                view! {
+                                                                    <button type="button" class="compendium-action-btn compendium-btn-active" disabled="disabled">
+                                                                        <span class="compendium-btn-icon">"✓"</span>
+                                                                        <span class="compendium-btn-label">
+                                                                            {match lang {
+                                                                                Language::PtBr => if has_variant { "Variante Ativa na Ficha" } else { "Esfera Ativa na Ficha" },
+                                                                                Language::EnUs => if has_variant { "Active Variant on Sheet" } else { "Active Sphere on Sheet" },
+                                                                            }}
+                                                                        </span>
+                                                                    </button>
+                                                                }.into_view()
+                                                            } else if let (false, true, Some(cb)) = (is_active, has_variant, on_sel_sph.clone()) {
+                                                                let chosen_id = s_id.clone();
+                                                                view! {
+                                                                    <button
+                                                                        type="button"
+                                                                        class="compendium-action-btn compendium-btn-purple"
+                                                                        on:click=move |_| {
+                                                                            cb.call(chosen_id.clone());
+                                                                        }
+                                                                        title=match lang {
+                                                                            Language::PtBr => format!("Ativar {} como a variante em uso na sua ficha", sphere.name(lang)),
+                                                                            Language::EnUs => format!("Activate {} as the variant on your character sheet", sphere.name(lang)),
+                                                                        }
+                                                                    >
+                                                                        <span class="compendium-btn-icon">"✦"</span>
+                                                                        <span class="compendium-btn-label">
+                                                                            {match lang {
+                                                                                Language::PtBr => "Ativar esta Variante na Ficha",
+                                                                                Language::EnUs => "Activate this Variant on Sheet",
+                                                                            }}
+                                                                        </span>
+                                                                    </button>
+                                                                }.into_view()
+                                                            } else {
+                                                                view! { <span></span> }.into_view()
                                                             }}
-                                                        </button>
+                                                        </div>
                                                     }.into_view()
                                                 } else {
                                                     view! { <span></span> }.into_view()
                                                 }
-                                            } else {
-                                                view! { <span></span> }.into_view()
-                                            }}
-                                        </div>
+                                            }
+                                        }
                                     </div>
                                 </div>
 
@@ -424,7 +483,6 @@ pub fn SpheresView(
                                         {sphere.specialties(lang)}
                                     </span>
                                 </div>
-                            </div>
 
                             // Alternância entre Modo Texto Integral M20 e Resumo dos Postos
                             <div class="compendium-view-mode-toggle" style="margin-top: 1rem;">

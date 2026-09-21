@@ -45,7 +45,6 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo [3/4] Compilando Frontend WASM e Servidor Backend via cargo-leptos [Release]...
-if exist "target\site\pkg" del /Q "target\site\pkg\*.*" >nul 2>nul
 cargo leptos build --release
 if %ERRORLEVEL% NEQ 0 (
     echo [ERRO CRITICO] A compilacao via cargo-leptos falhou.
@@ -109,6 +108,9 @@ echo   -^> [CSS Bundle] Empacotando suite de estilos em target\site\pkg\mta_shee
     type styles\compendium-navigation.css
 ) > target\site\pkg\mta_sheet.css
 
+echo   -^> [Standalone Embed] Vinculando assets estaticos diretamente no binario standalone...
+cargo build --bin mta_sheet_server --release --features ssr
+
 echo [4/4] Empacotando executavel standalone...
 set "SERVER_BIN="
 if exist "target\server\release\mta_sheet_server.exe" set "SERVER_BIN=target\server\release\mta_sheet_server.exe"
@@ -122,6 +124,14 @@ if "!SERVER_BIN!"=="" (
 )
 
 copy /Y "!SERVER_BIN!" ".\mta_sheet.exe" >nul
+
+:: Sincroniza assets para dentro de target\release\site caso o usuario execute mta_sheet_server.exe diretamente de la
+if not exist "target\release\site\pkg" mkdir "target\release\site\pkg" 2>nul
+copy /Y "target\site\pkg\*.*" "target\release\site\pkg\" >nul 2>nul
+if exist "target\site\fonts" (
+    if not exist "target\release\site\fonts" mkdir "target\release\site\fonts" 2>nul
+    copy /Y "target\site\fonts\*.*" "target\release\site\fonts\" >nul 2>nul
+)
 
 echo.
 echo ========================================================================

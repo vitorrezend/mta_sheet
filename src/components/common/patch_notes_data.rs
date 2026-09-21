@@ -19,6 +19,57 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.21.0",
+        date: "2026-09-21",
+        tag: "v0.21.0",
+        title: "Compêndio M20 de Habilidades & Qualidades e Defeitos, Seletor Interativo, Santuário Expandido, Editor Rico (WYSIWYG) e Alta Performance de Testes",
+        highlight: "Integração canônica e bilíngue completa das Habilidades M20 (Talentos, Perícias, Conhecimentos), Seletor dinâmico e Compêndio oficial de Qualidades & Defeitos (Merits & Flaws) na ficha, expansão integral do Antecedente Santuário, Editor de Texto Rico WYSIWYG, arquitetura de testes unificada com cargo-nextest (300+ testes em segundos) e blindagem visual de codificação.",
+        sections: &[
+            PatchSection {
+                category: "📖 Compêndio de Habilidades M20 (Talentos, Perícias & Conhecimentos)",
+                icon: "🧠",
+                items: &[
+                    "🌐 Tradução e Catálogo Canônico: Integração completa de todos os Talentos, Perícias e Conhecimentos do M20 com descrições detalhadas, especializações sugeridas e exemplos práticos.",
+                    "🔄 Suporte Bilíngue Fluido (PT-BR / EN-US): Alternância instantânea de idioma para todas as habilidades com termos oficiais da edição comemorativa de 20 anos.",
+                    "🧭 Navegação Rápida e Filtros: Interface organizada por categorias com busca instantânea no compêndio.",
+                ],
+            },
+            PatchSection {
+                category: "✨ Qualidades & Defeitos (Merits & Flaws) com Seletor Interativo",
+                icon: "🔮",
+                items: &[
+                    "📋 Catálogo Completo M20: Cobertura de Qualidades e Defeitos Físicos, Mentais, Sociais, Sobrenaturais e Mágikos com custos e descrições canônicas.",
+                    "🎯 Seletor Interativo na Ficha: Novo modal e catálogo integrado à Página 2, permitindo buscar e adicionar qualidades/defeitos diretamente à ficha com um clique (idêntico ao seletor de antecedentes).",
+                    "⚖️ Auditoria e Custos Automáticos: Inclusão imediata no balanço de pontos de criação/bônus do personagem.",
+                ],
+            },
+            PatchSection {
+                category: "🏛️ Antecedente Santuário (Sanctum) Expandido",
+                icon: "🏰",
+                items: &[
+                    "📜 Regras Canônicas Integrais: Adição do texto expandido completo do M20 em português e inglês para o antecedente Santuário.",
+                    "🔮 Criação de Nós e Dimensões: Detalhamento de pontuação de tamanho, nó de Quintessência, barreiras místicas, camuflagem mundana e defesas mágikas.",
+                ],
+            },
+            PatchSection {
+                category: "✍️ Editor de Texto Rico (WYSIWYG) & Grimório",
+                icon: "📜",
+                items: &[
+                    "✒️ Formatação Estilizada: Componente de texto rico integrado às descrições de rotinas na Página 5 e áreas narrativas, permitindo formatação elegante de efeitos mágikos.",
+                    "🛡️ Sanitização HTML Nativa: Proteção estrita contra injeção e XSS preservando tags de formatação segura.",
+                ],
+            },
+            PatchSection {
+                category: "⚡ Alta Performance de Testes & Blindagem Visual",
+                icon: "🚀",
+                items: &[
+                    "🧪 Arquitetura Unificada (cargo-nextest): Consolidação de todas as suítes de teste no executável canônico tests/all_tests.rs e paralelização maciça, executando 304 testes em menos de 10 segundos com isolamento por processo.",
+                    "🔤 Correção de Mojibake no Alerta de Autenticação: Substituição de caracteres corrompidos em styles/auth.css por sequências de escape Unicode nativas (\\26A0\\FE0F para ⚠️ e \\2705 para ✅).",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.20.0",
         date: "2026-09-20",
         tag: "v0.20.0",

@@ -312,3 +312,25 @@ fn test_unknown_query_returns_none() {
     assert!(find_background("   ").is_none());
     assert!(find_background("antecedente_inexistente_xyz_12345").is_none());
 }
+
+#[test]
+fn test_totem_unabridged_text_full_content() {
+    use mta_sheet::compendium::backgrounds::unabridged::find_unabridged_text;
+
+    let en_text = find_unabridged_text("totem", Language::EnUs)
+        .expect("Texto integral em inglês do Totem deve existir");
+    assert!(en_text.len() > 3000, "Texto EN do Totem deve ser o texto completo do M20");
+    assert!(en_text.contains("Coyote"), "Deve citar o Coiote");
+    assert!(en_text.contains("Cockroach"), "Deve citar a Barata");
+    assert!(en_text.contains("TWO points per dot"), "Deve conter o custo especial 2:1");
+    assert!(en_text.contains("Totem Mark"), "Deve detalhar a Marca Totêmica");
+
+    let pt_text = find_unabridged_text("totem", Language::PtBr)
+        .expect("Texto integral em português do Totem deve existir");
+    assert!(pt_text.len() > 3000, "Texto PT do Totem deve ser a tradução integral do M20");
+    assert!(pt_text.contains("Coiote"), "Deve citar o Coiote em PT");
+    assert!(pt_text.contains("Barata"), "Deve citar a Barata em PT");
+    assert!(pt_text.contains("DOIS pontos"), "Deve conter o custo especial 2:1 em PT");
+    assert!(pt_text.contains("Marca Totêmica"), "Deve detalhar a Marca Totêmica em PT");
+}
+

@@ -174,4 +174,17 @@ mod tests {
             assert!(res.is_ok(), "Valor válido '{}' deve ser aceito", val);
         }
     }
+
+    #[test]
+    fn test_embedded_site_assets_inventory() {
+        use rust_embed::RustEmbed;
+        let files: Vec<_> = mta_sheet::server::handlers::static_files::SiteAssets::iter().collect();
+        println!("SiteAssets count: {}", files.len());
+        for f in &files {
+            println!("  SiteAsset: {}", f);
+        }
+        assert!(!files.is_empty(), "SiteAssets não pode estar vazio");
+        assert!(files.iter().any(|f| f == "pkg/mta_sheet.js"), "mta_sheet.js deve estar embutido no SiteAssets");
+        assert!(files.iter().any(|f| f == "pkg/mta_sheet.wasm"), "mta_sheet.wasm deve estar embutido no SiteAssets");
+    }
 }

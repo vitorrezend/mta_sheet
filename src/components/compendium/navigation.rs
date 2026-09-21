@@ -13,6 +13,9 @@ use crate::compendium::weapons::{find_combat_entity, CombatEntity, CombatSubTab}
 use crate::components::compendium::CompendiumSection;
 use crate::i18n::Language;
 
+use crate::compendium::abilities::{find_ability, find_ability_theory_rule};
+use crate::compendium::merits_flaws::{find_derangement, find_merit_flaw};
+
 /// Destino de navegação dentro do Compêndio.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompendiumTarget {
@@ -24,6 +27,9 @@ pub enum CompendiumTarget {
     Instrument(String),
     Attribute(String),
     Archetype(String),
+    Ability(String),
+    MeritFlaw(String),
+    Derangement(String),
 }
 
 impl CompendiumTarget {
@@ -112,6 +118,18 @@ impl CompendiumTarget {
                 let id = parts.get(1)?;
                 Some(CompendiumTarget::Archetype(id.to_string()))
             }
+            "abilities" | "ability" | "habilidades" | "habilidade" => {
+                let id = parts.get(1)?;
+                Some(CompendiumTarget::Ability(id.to_string()))
+            }
+            "merits_flaws" | "merits" | "flaws" | "qualidades_defeitos" | "qualidades" | "defeitos" => {
+                let id = parts.get(1)?;
+                Some(CompendiumTarget::MeritFlaw(id.to_string()))
+            }
+            "derangements" | "derangement" | "perturbacoes" | "perturbacao" => {
+                let id = parts.get(1)?;
+                Some(CompendiumTarget::Derangement(id.to_string()))
+            }
             _ => None,
         }
     }
@@ -126,6 +144,8 @@ impl CompendiumTarget {
             CompendiumTarget::Instrument(_) => CompendiumSection::Instruments,
             CompendiumTarget::Attribute(_) => CompendiumSection::Attributes,
             CompendiumTarget::Archetype(_) => CompendiumSection::Archetypes,
+            CompendiumTarget::Ability(_) => CompendiumSection::Abilities,
+            CompendiumTarget::MeritFlaw(_) | CompendiumTarget::Derangement(_) => CompendiumSection::MeritsFlaws,
         }
     }
 
@@ -140,6 +160,9 @@ impl CompendiumTarget {
             CompendiumTarget::Instrument(id) => id,
             CompendiumTarget::Attribute(id) => id,
             CompendiumTarget::Archetype(id) => id,
+            CompendiumTarget::Ability(id) => id,
+            CompendiumTarget::MeritFlaw(id) => id,
+            CompendiumTarget::Derangement(id) => id,
         }
     }
 
@@ -235,6 +258,29 @@ impl CompendiumTarget {
                     }
                 } else if let Some(arch) = find_archetype(id) {
                     arch.name(lang).to_string()
+                } else {
+                    id.clone()
+                }
+            }
+            CompendiumTarget::Ability(id) => {
+                if let Some(art) = find_ability_theory_rule(id) {
+                    art.title(lang).to_string()
+                } else if let Some(ab) = find_ability(id) {
+                    ab.name(lang).to_string()
+                } else {
+                    id.clone()
+                }
+            }
+            CompendiumTarget::MeritFlaw(id) => {
+                if let Some(mf) = find_merit_flaw(id) {
+                    mf.name(lang).to_string()
+                } else {
+                    id.clone()
+                }
+            }
+            CompendiumTarget::Derangement(id) => {
+                if let Some(d) = find_derangement(id) {
+                    d.name(lang).to_string()
                 } else {
                     id.clone()
                 }

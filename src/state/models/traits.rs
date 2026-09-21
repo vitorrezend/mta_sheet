@@ -299,3 +299,99 @@ impl AttributeValue {
         (base, bonus, xp, temp)
     }
 }
+
+impl super::character::CharacterData {
+    /// Retorna a lista de IDs das 9 esferas ativas na ficha (para compêndio e visualização)
+    pub fn get_active_spheres(&self) -> Vec<String> {
+        let mut list = Vec::with_capacity(9);
+        // 1. Correspondência / Dados
+        let is_data = self.labels.get("sphere_slot_correspondence")
+            .map(|v| v.eq_ignore_ascii_case("Dados") || v.eq_ignore_ascii_case("Data") || v.eq_ignore_ascii_case("techno"))
+            .unwrap_or_else(|| {
+                self.attributes.contains_key("Dados") || self.attributes.contains_key("Data")
+            });
+        if is_data {
+            list.push("data".to_string());
+        } else {
+            list.push("correspondence".to_string());
+        }
+
+        list.push("entropy".to_string());
+        list.push("forces".to_string());
+        list.push("life".to_string());
+        list.push("matter".to_string());
+        list.push("mind".to_string());
+
+        // 2. Primórdio / Utilidade Primordial
+        let is_primal = self.labels.get("sphere_slot_prime")
+            .map(|v| v.eq_ignore_ascii_case("Utilidade Primordial") || v.eq_ignore_ascii_case("Primal Utility") || v.eq_ignore_ascii_case("techno"))
+            .unwrap_or_else(|| {
+                self.attributes.contains_key("Utilidade Primordial") || self.attributes.contains_key("Primal Utility")
+            });
+        if is_primal {
+            list.push("primal_utility".to_string());
+        } else {
+            list.push("prime".to_string());
+        }
+
+        // 3. Espírito / Ciência Dimensional
+        let is_dim_sci = self.labels.get("sphere_slot_spirit")
+            .map(|v| v.eq_ignore_ascii_case("Ciência Dimensional") || v.eq_ignore_ascii_case("Dimensional Science") || v.eq_ignore_ascii_case("techno"))
+            .unwrap_or_else(|| {
+                self.attributes.contains_key("Ciência Dimensional") || self.attributes.contains_key("Dimensional Science")
+            });
+        if is_dim_sci {
+            list.push("dimensional_science".to_string());
+        } else {
+            list.push("spirit".to_string());
+        }
+
+        list.push("time".to_string());
+        list
+    }
+
+    /// Altera a variante ativa de uma esfera (ex: Tradicional vs Tecnocrática)
+    /// migrando atomicamente pontos, modificadores, origens de pontos e esfera de afinidade.
+    pub fn swap_sphere_variant(&mut self, chosen_id: &str) -> bool {
+        let swap_info: Option<(&'static str, &'static str, &[&'static str])> = match chosen_id.to_lowercase().as_str() {
+            "correspondence" | "correspondência" => Some(("correspondence", "Correspondência", &["Dados", "Data"])),
+            "data" | "dados" => Some(("correspondence", "Dados", &["Correspondência", "Correspondence"])),
+            "spirit" | "espírito" => Some(("spirit", "Espírito", &["Ciência Dimensional", "Dimensional Science"])),
+            "dimensional_science" | "ciência dimensional" | "ciencia dimensional" => Some(("spirit", "Ciência Dimensional", &["Espírito", "Spirit"])),
+            "prime" | "primórdio" | "primordio" => Some(("prime", "Primórdio", &["Utilidade Primordial", "Primal Utility"])),
+            "primal_utility" | "utilidade primordial" => Some(("prime", "Utilidade Primordial", &["Primórdio", "Prime"])),
+            _ => None,
+        };
+
+        if let Some((slot, to_name, old_names)) = swap_info {
+            // 1. Procura e transfere pontos de qualquer chave anterior para o novo nome canônico
+            let mut found_attr = None;
+            for &old in old_names {
+                if let Some(attr) = self.attributes.remove(old) {
+                    found_attr = Some(attr);
+                    break;
+                }
+            }
+            if let Some(attr) = found_attr {
+                if !self.attributes.contains_key(to_name) || self.attributes.get(to_name).map(|a| a.level == 0).unwrap_or(true) {
+                    self.attributes.insert(to_name.to_string(), attr);
+                }
+            }
+
+            // 2. Se a Esfera de Afinidade estava associada a qualquer variante anterior, atualiza
+            if let Some(ref aff) = self.get_affinity_sphere() {
+                let is_old_aff = old_names.iter().any(|name| aff.eq_ignore_ascii_case(name));
+                if is_old_aff {
+                    self.set_affinity_sphere(Some(to_name.to_string()));
+                }
+            }
+
+            // 3. Atualiza o label do slot da esfera com o nome canônico em português
+            self.labels.insert(format!("sphere_slot_{}", slot), to_name.to_string());
+            true
+        } else {
+            false
+        }
+    }
+}
+

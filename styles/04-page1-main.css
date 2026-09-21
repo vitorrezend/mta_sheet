@@ -978,40 +978,6 @@
     font-weight: 700;
 }
 
-.spheres-header-bar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 0.45rem;
-    width: 100%;
-}
-
-.spheres-affinity-badge {
-    display: inline-flex;
-    align-items: center;
-    font-size: 0.68rem;
-    padding: 2px 10px;
-    border-radius: 12px;
-    background: rgba(245, 158, 11, 0.08);
-    border: 1px dashed rgba(245, 158, 11, 0.35);
-    color: #64748b;
-    transition: all 0.2s ease;
-}
-
-.affinity-badge-text.empty {
-    font-style: italic;
-    color: #94a3b8;
-}
-
-.affinity-badge-text.selected {
-    color: #475569;
-}
-
-.affinity-badge-text.selected strong {
-    color: #d97706;
-    font-weight: 800;
-}
-
 /* ─── Força de Vontade Summary & Pills ────────────────────────────────── */
 .willpower-origin-summary {
     display: flex;

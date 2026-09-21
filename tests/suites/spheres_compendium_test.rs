@@ -318,4 +318,72 @@ O mago agora estende seus sentidos através do espaço intermediário.
     }
 }
 
+#[test]
+fn test_technocratic_sphere_variant_swap_sheet_sync_and_costs() {
+    use mta_sheet::state::{CharacterData, DotOrigin};
+
+    let mut sheet = CharacterData::new("test_swap".to_string(), "Hermético".to_string());
+
+    // 1. Configura Correspondência com 2 pontos (1 Base, 1 Bônus) e marca como Esfera de Afinidade
+    sheet.set_attribute_with_origin("Correspondência", Some(2), Some("Teletransporte".to_string()), DotOrigin::Base);
+    sheet.set_attribute_dot_origin("Correspondência", 1, DotOrigin::Bonus);
+    sheet.set_affinity_sphere(Some("Correspondência".to_string()));
+
+    assert_eq!(sheet.get_attribute_level("Correspondência", 0), 2);
+    assert_eq!(sheet.get_affinity_sphere(), Some("Correspondência".to_string()));
+    assert_eq!(sheet.get_active_spheres()[0], "correspondence");
+
+    // 2. Alterna para a variante Tecnocrática "data" (Dados)
+    let swapped = sheet.swap_sphere_variant("data");
+    assert!(swapped, "swap_sphere_variant deve retornar true para 'data'");
+
+    // Atributo anterior deve ter sido removido e migrado para "Dados"
+    assert!(!sheet.attributes.contains_key("Correspondência"));
+    assert!(sheet.attributes.contains_key("Dados"));
+    assert_eq!(sheet.get_attribute_level("Dados", 0), 2);
+    assert_eq!(sheet.get_attribute_modifier("Dados"), "Teletransporte");
+    assert_eq!(sheet.labels.get("sphere_slot_correspondence").map(|s| s.as_str()), Some("Dados"));
+
+    // Afinidade deve ter sido atualizada para "Dados"
+    assert_eq!(sheet.get_affinity_sphere(), Some("Dados".to_string()));
+
+    // Active spheres deve listar "data"
+    assert_eq!(sheet.get_active_spheres()[0], "data");
+
+    // Summary deve refletir "Dados"
+    let summary = sheet.to_summary("now".to_string(), false, true);
+    let data_sph = summary.spheres.iter().find(|(s, _)| s == "Dados");
+    assert!(data_sph.is_some(), "Summary deve conter a esfera 'Dados'");
+    assert_eq!(data_sph.unwrap().1, 2);
+
+    // Custos devem calcular sobre "Dados" com afinidade (1 dot bônus = 7 pts)
+    let costs = sheet.calculate_costs();
+    assert_eq!(costs.total_bonus_spent, 7);
+    assert!(costs.items.iter().any(|item| item.name == "Dados"));
+
+    // 3. Alterna de volta para "correspondence"
+    let swapped_back = sheet.swap_sphere_variant("correspondence");
+    assert!(swapped_back, "swap_sphere_variant deve retornar true para 'correspondence'");
+
+    assert!(!sheet.attributes.contains_key("Dados"));
+    assert!(sheet.attributes.contains_key("Correspondência"));
+    assert_eq!(sheet.get_attribute_level("Correspondência", 0), 2);
+    assert_eq!(sheet.get_attribute_modifier("Correspondência"), "Teletransporte");
+    assert_eq!(sheet.labels.get("sphere_slot_correspondence").map(|s| s.as_str()), Some("Correspondência"));
+    assert_eq!(sheet.get_affinity_sphere(), Some("Correspondência".to_string()));
+    assert_eq!(sheet.get_active_spheres()[0], "correspondence");
+
+    // 4. Testa os outros dois pares (Primórdio <-> Utilidade Primordial, Espírito <-> Ciência Dimensional)
+    sheet.set_attribute("Primórdio", Some(3), None);
+    sheet.swap_sphere_variant("primal_utility");
+    assert_eq!(sheet.get_attribute_level("Utilidade Primordial", 0), 3);
+    assert_eq!(sheet.get_active_spheres()[6], "primal_utility");
+
+    sheet.set_attribute("Espírito", Some(4), None);
+    sheet.swap_sphere_variant("dimensional_science");
+    assert_eq!(sheet.get_attribute_level("Ciência Dimensional", 0), 4);
+    assert_eq!(sheet.get_active_spheres()[7], "dimensional_science");
+}
+
+
 

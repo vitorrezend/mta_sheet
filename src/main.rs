@@ -6,6 +6,22 @@ async fn main() {
     use leptos_axum::generate_route_list;
     use mta_sheet::{database, server};
 
+    // Garante que o diretório de trabalho seja a raiz do projeto caso o executável seja
+    // iniciado a partir de target/release, target/server/release ou qualquer subpasta.
+    if !std::path::Path::new("Cargo.toml").exists() && !std::path::Path::new("target/site").exists() {
+        if let Ok(exe_path) = std::env::current_exe() {
+            let mut cur = exe_path.parent();
+            while let Some(parent) = cur {
+                if parent.join("Cargo.toml").exists() || parent.join("target").join("site").exists() {
+                    let _ = std::env::set_current_dir(parent);
+                    eprintln!("[STARTUP] Diretório de trabalho ajustado para a raiz do projeto: {:?}", parent);
+                    break;
+                }
+                cur = parent.parent();
+            }
+        }
+    }
+
     let _ = dotenv();
 
     // Obtém configuração do Leptos: se existir Cargo.toml, lê o manifesto; caso contrário, monta fallback direto

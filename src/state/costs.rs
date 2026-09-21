@@ -311,21 +311,36 @@ impl CharacterData {
         for &sphere_name in &STANDARD_SPHERES {
             let active_name = match sphere_name {
                 "Correspondência" => {
-                    if self.attributes.contains_key("Dados") || self.labels.get("sphere_slot_correspondence").map(|v| v.eq_ignore_ascii_case("Dados")).unwrap_or(false) {
+                    let is_techno = self.attributes.contains_key("Dados")
+                        || self.attributes.contains_key("Data")
+                        || self.labels.get("sphere_slot_correspondence")
+                            .map(|v| v.eq_ignore_ascii_case("Dados") || v.eq_ignore_ascii_case("Data") || v.eq_ignore_ascii_case("techno"))
+                            .unwrap_or(false);
+                    if is_techno {
                         "Dados"
                     } else {
                         "Correspondência"
                     }
                 }
                 "Primórdio" => {
-                    if self.attributes.contains_key("Utilidade Primordial") || self.labels.get("sphere_slot_prime").map(|v| v.eq_ignore_ascii_case("Utilidade Primordial")).unwrap_or(false) {
+                    let is_techno = self.attributes.contains_key("Utilidade Primordial")
+                        || self.attributes.contains_key("Primal Utility")
+                        || self.labels.get("sphere_slot_prime")
+                            .map(|v| v.eq_ignore_ascii_case("Utilidade Primordial") || v.eq_ignore_ascii_case("Primal Utility") || v.eq_ignore_ascii_case("techno"))
+                            .unwrap_or(false);
+                    if is_techno {
                         "Utilidade Primordial"
                     } else {
                         "Primórdio"
                     }
                 }
                 "Espírito" => {
-                    if self.attributes.contains_key("Ciência Dimensional") || self.labels.get("sphere_slot_spirit").map(|v| v.eq_ignore_ascii_case("Ciência Dimensional")).unwrap_or(false) {
+                    let is_techno = self.attributes.contains_key("Ciência Dimensional")
+                        || self.attributes.contains_key("Dimensional Science")
+                        || self.labels.get("sphere_slot_spirit")
+                            .map(|v| v.eq_ignore_ascii_case("Ciência Dimensional") || v.eq_ignore_ascii_case("Dimensional Science") || v.eq_ignore_ascii_case("techno"))
+                            .unwrap_or(false);
+                    if is_techno {
                         "Ciência Dimensional"
                     } else {
                         "Espírito"

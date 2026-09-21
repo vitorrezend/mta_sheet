@@ -113,7 +113,7 @@ impl CharacterData {
             custom_lists: HashMap::new(),
             merits: vec![MeritItem::default(); 7],
             flaws: vec![FlawItem::default(); 7],
-            wonders: vec![WonderItem::default(); 3],
+            wonders: Vec::new(),
             rotes: String::new(),
             weapons: vec![WeaponItem::default(); 4],
             armor: ArmorItem::default(),
@@ -266,21 +266,39 @@ impl CharacterData {
         for sphere in STANDARD_SPHERES {
             let (name, lvl) = match sphere {
                 "Correspondência" => {
-                    if let Some(attr) = self.attributes.get("Dados").or_else(|| self.attributes.get("Data")) {
+                    let is_techno = self.labels.get("sphere_slot_correspondence")
+                        .map(|v| v.eq_ignore_ascii_case("Dados") || v.eq_ignore_ascii_case("Data") || v.eq_ignore_ascii_case("techno"))
+                        .unwrap_or(false);
+                    if is_techno {
+                        let lvl = self.attributes.get("Dados").or_else(|| self.attributes.get("Data")).map(|a| a.level).unwrap_or(0);
+                        ("Dados".to_string(), lvl)
+                    } else if let Some(attr) = self.attributes.get("Dados").or_else(|| self.attributes.get("Data")) {
                         ("Dados".to_string(), attr.level)
                     } else {
                         (sphere.to_string(), self.get_attribute_level(sphere, 0))
                     }
                 }
                 "Primórdio" => {
-                    if let Some(attr) = self.attributes.get("Utilidade Primordial").or_else(|| self.attributes.get("Primal Utility")) {
+                    let is_techno = self.labels.get("sphere_slot_prime")
+                        .map(|v| v.eq_ignore_ascii_case("Utilidade Primordial") || v.eq_ignore_ascii_case("Primal Utility") || v.eq_ignore_ascii_case("techno"))
+                        .unwrap_or(false);
+                    if is_techno {
+                        let lvl = self.attributes.get("Utilidade Primordial").or_else(|| self.attributes.get("Primal Utility")).map(|a| a.level).unwrap_or(0);
+                        ("Utilidade Primordial".to_string(), lvl)
+                    } else if let Some(attr) = self.attributes.get("Utilidade Primordial").or_else(|| self.attributes.get("Primal Utility")) {
                         ("Utilidade Primordial".to_string(), attr.level)
                     } else {
                         (sphere.to_string(), self.get_attribute_level(sphere, 0))
                     }
                 }
                 "Espírito" => {
-                    if let Some(attr) = self.attributes.get("Ciência Dimensional").or_else(|| self.attributes.get("Dimensional Science")) {
+                    let is_techno = self.labels.get("sphere_slot_spirit")
+                        .map(|v| v.eq_ignore_ascii_case("Ciência Dimensional") || v.eq_ignore_ascii_case("Dimensional Science") || v.eq_ignore_ascii_case("techno"))
+                        .unwrap_or(false);
+                    if is_techno {
+                        let lvl = self.attributes.get("Ciência Dimensional").or_else(|| self.attributes.get("Dimensional Science")).map(|a| a.level).unwrap_or(0);
+                        ("Ciência Dimensional".to_string(), lvl)
+                    } else if let Some(attr) = self.attributes.get("Ciência Dimensional").or_else(|| self.attributes.get("Dimensional Science")) {
                         ("Ciência Dimensional".to_string(), attr.level)
                     } else {
                         (sphere.to_string(), self.get_attribute_level(sphere, 0))

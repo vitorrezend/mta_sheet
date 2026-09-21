@@ -610,5 +610,30 @@ fn test_no_mojibake_encoding_artifacts() {
     );
 }
 
+/// Garante que classes de títulos de navegação da barra lateral do compêndio (.tab-name)
+/// não utilizem `word-break: break-word` (que quebra sílabas arbitrariamente), exigindo
+/// `word-break: normal` com contenção segura.
+#[test]
+fn test_compendium_sidebar_tab_name_no_unnatural_word_break() {
+    let css_content = fs::read_to_string("styles/12-compendium.css")
+        .expect("styles/12-compendium.css deve existir");
 
-
+    // Encontra o bloco de definição .tab-name { ... }
+    if let Some(pos) = css_content.find(".tab-name {") {
+        let snippet = &css_content[pos..pos + 250];
+        assert!(
+            !snippet.contains("word-break: break-word"),
+            ".tab-name não deve usar 'word-break: break-word' para evitar quebra de sílabas artificiais (ex: 'Bibliotec/a')."
+        );
+        assert!(
+            snippet.contains("word-break: normal"),
+            ".tab-name deve declarar explicitamente 'word-break: normal'."
+        );
+        assert!(
+            snippet.contains("hyphens: none"),
+            ".tab-name deve declarar 'hyphens: none'."
+        );
+    } else {
+        panic!(".tab-name não foi encontrada em styles/12-compendium.css");
+    }
+}

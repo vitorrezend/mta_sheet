@@ -1,0 +1,28 @@
+# Nextest Configuration for MTA Sheet
+# Documentação de referência: https://nexte.st/book/configuration.html
+
+[profile.default]
+# Concorrência: utiliza todos os núcleos lógicos de CPU disponíveis
+test-threads = "num-cpus"
+
+# Alerta de testes lentos: detecta possíveis travamentos e deadlocks
+slow-timeout = { period = "15s", terminate-after = 2 }
+
+# Retentativas desabilitadas localmente para feedback fiel
+retries = 0
+
+# Nível de status de saída
+status-level = "pass"
+final-status-level = "flaky"
+
+[profile.ci]
+# Perfil otimizado para esteiras de integração contínua (CI/CD)
+retries = 1
+slow-timeout = { period = "30s" }
+status-level = "all"
+final-status-level = "all"
+
+[profile.debug]
+# Perfil para depuração profunda com timeout estendido
+slow-timeout = { period = "60s" }
+retries = 0

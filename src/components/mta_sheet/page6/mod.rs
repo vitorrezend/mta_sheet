@@ -1,7 +1,7 @@
 use leptos::*;
 use wasm_bindgen::JsCast;
 use web_sys::{FileReader, HtmlInputElement, ProgressEvent};
-use crate::components::common::{Callback, StableTextArea};
+use crate::components::common::{Callback, StableTextArea, WysiwygEditor};
 use crate::components::page2::ImageModal;
 use crate::state::CharacterData;
 
@@ -88,14 +88,15 @@ pub fn PageNotes() -> impl IntoView {
                         crate::i18n::Language::EnUs => "Game table logs, contacts, investigation clues, bargains, and chronicle events",
                     }}</span>
                 </div>
-                <StableTextArea 
-                    class="notes-fullpage-textarea"
+                <WysiwygEditor 
+                    class="notes-fullpage-wysiwyg"
                     placeholder=Signal::derive(move || match lang() {
                         crate::i18n::Language::PtBr => "Escreva livremente sobre os acontecimentos da crônica, reuniões com a Cabala, encontros com NPCs, favores, débitos de Quintessência e pistas da investigação...".to_string(),
                         crate::i18n::Language::EnUs => "Write freely about chronicle events, cabal meetings, NPC interactions, favors, quintessence debts, and investigation leads...".to_string(),
                     })
                     value=session_notes
                     on_change=on_session_notes_change
+                    min_height="220px"
                 />
             </div>
 
@@ -111,14 +112,15 @@ pub fn PageNotes() -> impl IntoView {
                         crate::i18n::Language::EnUs => "Personal Mage diary, Avatar visions, philosophical reflections, Paradigm theories, and arcane memories",
                     }}</span>
                 </div>
-                <StableTextArea 
-                    class="notes-fullpage-textarea"
+                <WysiwygEditor 
+                    class="notes-fullpage-wysiwyg"
                     placeholder=Signal::derive(move || match lang() {
                         crate::i18n::Language::PtBr => "Diário íntimo do Mago, epifanias sobre o Paradigma, mensagens do Avatar, planos para o Despertar e estudos herméticos...".to_string(),
                         crate::i18n::Language::EnUs => "Intimate diary of the Mage, Paradigm epiphanies, Avatar messages, plans for Awakening, and hermetic research...".to_string(),
                     })
                     value=campaign_journal
                     on_change=on_campaign_journal_change
+                    min_height="220px"
                 />
             </div>
 

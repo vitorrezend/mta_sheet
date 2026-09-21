@@ -153,3 +153,630 @@
     background: var(--purple-bright, #9333ea);
     box-shadow: 0 1px 4px rgba(147, 51, 234, 0.25);
 }
+
+/* ─── Seletor de Categoria Unificado com Popover & Grade 3x3 ─────────────── */
+.compendium-selector-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(180deg, #1b150f 0%, #120d08 100%);
+    border-bottom: 2px solid var(--gold-primary, #b89347);
+    padding: 0.45rem 0.85rem;
+    position: relative;
+    z-index: 50;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+.compendium-selector-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.compendium-nav-arrow-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(202, 167, 93, 0.08);
+    border: 1px solid rgba(202, 167, 93, 0.35);
+    border-radius: var(--radius-sm, 4px);
+    color: var(--gold-light, #f7e6b5);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    user-select: none;
+}
+
+.compendium-nav-arrow-btn:hover {
+    background: linear-gradient(135deg, rgba(202, 167, 93, 0.25) 0%, rgba(147, 51, 234, 0.28) 100%);
+    border-color: var(--gold-bright, #ffd700);
+    color: #ffffff;
+    box-shadow: 0 0 8px rgba(202, 167, 93, 0.3);
+    transform: translateY(-1px);
+}
+
+.compendium-nav-arrow-btn:active {
+    transform: translateY(0);
+}
+
+.compendium-selector-dropdown-wrapper {
+    position: relative;
+}
+
+.compendium-selector-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.4rem 0.85rem;
+    background: linear-gradient(135deg, rgba(202, 167, 93, 0.12) 0%, rgba(20, 15, 10, 0.9) 100%);
+    border: 1px solid var(--gold-primary, #caa75d);
+    border-radius: var(--radius-md, 6px);
+    color: #f5e6c8;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.compendium-selector-btn:hover,
+.compendium-selector-btn.active {
+    background: linear-gradient(135deg, rgba(202, 167, 93, 0.25) 0%, rgba(147, 51, 234, 0.25) 100%);
+    border-color: var(--gold-bright, #ffd700);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(202, 167, 93, 0.35);
+}
+
+.compendium-selector-btn .selector-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+}
+
+.compendium-selector-btn .selector-title {
+    font-size: 0.86rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #f7edd8;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.compendium-selector-btn .selector-badge {
+    background: rgba(202, 167, 93, 0.2);
+    border: 1px solid rgba(202, 167, 93, 0.45);
+    border-radius: 10px;
+    padding: 1px 6px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--gold-bright, #ffd700);
+}
+
+.compendium-selector-btn .selector-chevron {
+    font-size: 0.8rem;
+    color: var(--gold-primary, #caa75d);
+    transition: transform 0.2s ease;
+    margin-left: 0.15rem;
+}
+
+.compendium-selector-indicator {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #8c7d6b;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 4px;
+}
+
+/* ─── Backdrop Transparente de Fechamento do Popover ────────────────────── */
+.compendium-popover-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+    background: transparent;
+    cursor: default;
+}
+
+/* ─── Popover Suspenso em Grade 3x3 ─────────────────────────────────────── */
+.compendium-category-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 630px;
+    max-width: 90vw;
+    z-index: 105;
+    background: #140f0a;
+    border: 2px solid var(--gold-primary, #caa75d);
+    border-radius: var(--radius-lg, 8px);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.88), 0 0 18px rgba(202, 167, 93, 0.22);
+    padding: 0.85rem;
+    animation: compendiumPopoverFadeIn 0.18s ease-out;
+}
+
+@keyframes compendiumPopoverFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.compendium-category-popover-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid rgba(202, 167, 93, 0.25);
+}
+
+.compendium-category-popover-header .popover-heading {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--gold-primary, #caa75d);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.compendium-category-popover-header .popover-counter {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #a89880;
+}
+
+.compendium-category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.55rem;
+}
+
+.compendium-category-card {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.7rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(202, 167, 93, 0.2);
+    border-radius: var(--radius-md, 6px);
+    color: #e2d9cc;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.16s ease;
+    text-align: left;
+    position: relative;
+    user-select: none;
+}
+
+.compendium-category-card:hover {
+    background: rgba(202, 167, 93, 0.12);
+    border-color: var(--gold-primary, #caa75d);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+.compendium-category-card.active {
+    background: linear-gradient(135deg, rgba(202, 167, 93, 0.22) 0%, rgba(147, 51, 234, 0.25) 100%);
+    border-color: var(--gold-bright, #ffd700);
+    box-shadow: 0 0 10px rgba(202, 167, 93, 0.35);
+}
+
+.compendium-category-card .category-card-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.compendium-category-card .category-card-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.compendium-category-card .category-card-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #f7edd8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compendium-category-card.active .category-card-name {
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.compendium-category-card .category-card-count {
+    font-size: 0.68rem;
+    color: #9c8e7d;
+    margin-top: 1px;
+}
+
+.compendium-category-card.active .category-card-count {
+    color: var(--gold-light, #f7e6b5);
+}
+
+.compendium-category-card .category-card-check {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--gold-bright, #ffd700);
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* ─── Responsividade para Telas Menores e Tablets ────────────────────────── */
+@media (max-width: 768px) {
+    .compendium-category-popover {
+        width: 95vw;
+        max-height: 65vh;
+        overflow-y: auto;
+        left: -10px;
+    }
+
+    .compendium-category-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.45rem;
+    }
+
+    .compendium-selector-btn .selector-title {
+        max-width: 170px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+@media (max-width: 520px) {
+    .compendium-category-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .compendium-selector-btn .selector-title {
+        max-width: 120px;
+    }
+}
+
+/* ==========================================================================
+   GRIMÓRIO ARCANO CANÔNICO (M20 STAT BLOCK & READING CODEX)
+   ========================================================================== */
+
+/* ─── Painel & Superfície de Leitura do Grimório ─────────────────────────── */
+.grimoire-reading-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    color: #2b2012;
+}
+
+/* ─── Hero Header Banner (Fundo Arcano Escuro com Dourado) ─────────────────── */
+.grimoire-hero-banner {
+    background: linear-gradient(135deg, #241c12 0%, #171209 100%);
+    border: 1.5px solid var(--gold-primary, #b89347);
+    border-radius: 10px;
+    padding: 1.1rem 1.4rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+}
+
+.grimoire-hero-banner::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 160px;
+    height: 100%;
+    background: radial-gradient(circle at top right, rgba(184, 147, 71, 0.18) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.grimoire-hero-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.1rem;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 2;
+}
+
+.grimoire-hero-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.grimoire-hero-icon-box {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.85rem;
+    background: linear-gradient(135deg, rgba(184, 147, 71, 0.25) 0%, rgba(36, 28, 18, 0.9) 100%);
+    border: 1.5px solid var(--gold-primary, #b89347);
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4), 0 0 12px rgba(184, 147, 71, 0.2) inset;
+    flex-shrink: 0;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.grimoire-hero-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.grimoire-hero-sup {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.grimoire-badge-cat {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: #e5c378;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.grimoire-badge-dots {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 4px;
+    background: rgba(147, 51, 234, 0.25);
+    border: 1px solid rgba(147, 51, 234, 0.5);
+    color: #d8b4fe;
+}
+
+.grimoire-badge-tec {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 4px;
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    color: #93c5fd;
+}
+
+.grimoire-hero-title {
+    margin: 0;
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    color: #f7e6b5;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+    line-height: 1.2;
+}
+
+.grimoire-hero-sub {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.76rem;
+    color: #c9b99a;
+    flex-wrap: wrap;
+}
+
+.grimoire-hero-secondary {
+    font-style: italic;
+    color: #e2d2b5;
+}
+
+.grimoire-hero-page {
+    color: #e5c378;
+    font-weight: 700;
+    background: rgba(184, 147, 71, 0.15);
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(184, 147, 71, 0.3);
+}
+
+/* ─── Trilha de Maestria (Escala de 1 a 5/10 Pontos) ─────────────────────── */
+.attribute-ratings-section.grimoire-track {
+    margin-top: 1.2rem;
+    background: rgba(246, 240, 227, 0.7);
+    border: 1px solid #dfd3bd;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.grimoire-track-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dashed #d5c8b0;
+}
+
+.grimoire-track-title {
+    margin: 0;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #5c4314;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.grimoire-track-hint {
+    font-size: 0.74rem;
+    color: #785a28;
+    font-weight: 600;
+}
+
+/* Redefinição Nobre dos Cards de Bolinhas */
+.attribute-rating-card,
+.compendium-rating-card {
+    background: linear-gradient(135deg, #ffffff 0%, #faf6ec 100%) !important;
+    border: 1px solid #dcd1be !important;
+    border-left: 4px solid #caa75d !important;
+    border-radius: 7px !important;
+    padding: 0.75rem 1rem !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03) !important;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.attribute-rating-card.rating-selectable:hover,
+.compendium-rating-card:hover {
+    border-color: var(--gold-primary, #b89347) !important;
+    border-left-color: #ffd700 !important;
+    box-shadow: 0 4px 12px rgba(184, 147, 71, 0.18) !important;
+    transform: translateX(4px) !important;
+}
+
+.attribute-rating-card.rating-selected {
+    background: linear-gradient(135deg, #fffdf8 0%, #f7eed9 100%) !important;
+    border-color: var(--gold-primary, #b89347) !important;
+    border-left: 6px solid var(--gold-primary, #b89347) !important;
+    box-shadow: 0 0 0 1px rgba(184, 147, 71, 0.4), 0 4px 14px rgba(184, 147, 71, 0.22) !important;
+}
+
+.attribute-rating-card .rating-dots-indicator,
+.compendium-rating-card .rating-dots {
+    font-size: 0.95rem !important;
+    font-weight: 800 !important;
+    color: #b89347 !important;
+    letter-spacing: 0.12em !important;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.attribute-rating-card.rating-selected .rating-dots-indicator {
+    color: #92400e !important;
+    text-shadow: 0 0 8px rgba(184, 147, 71, 0.4);
+}
+
+.attribute-rating-card .rating-label-title,
+.compendium-rating-card .rating-title {
+    font-size: 0.8rem !important;
+    font-weight: 800 !important;
+    color: #4a3819 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+}
+
+.attribute-rating-card .rating-desc-text,
+.compendium-rating-card .rating-card-desc {
+    font-size: 0.82rem !important;
+    color: #3b2c14 !important;
+    line-height: 1.5 !important;
+    margin-top: 0.25rem !important;
+}
+
+.attribute-rating-card .rating-chosen-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: linear-gradient(135deg, #2a2013 0%, #15110a 100%) !important;
+    color: #f7e6b5 !important;
+    border: 1px solid var(--gold-primary, #b89347) !important;
+    padding: 0.2rem 0.6rem !important;
+    border-radius: 4px !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3) !important;
+    letter-spacing: 0.04em !important;
+}
+
+.attribute-rating-card .rating-choose-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: rgba(184, 147, 71, 0.12);
+    color: #7a5e24;
+    border: 1px solid rgba(184, 147, 71, 0.35);
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    transition: all 0.15s ease;
+}
+
+.attribute-rating-card:hover .rating-choose-btn {
+    background: var(--gold-primary, #b89347);
+    color: #17120a;
+    border-color: var(--gold-primary, #b89347);
+}
+
+/* ─── Harmonização do Painel de Vinculação (Picker Bar) ───────────────────── */
+.compendium-background-picker-bar {
+    background: linear-gradient(135deg, #241c12 0%, #151009 100%) !important;
+    border: 1.5px solid var(--gold-primary, #b89347) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+    color: #ffffff;
+}
+
+.compendium-background-picker-bar .picker-label {
+    color: #f7e6b5 !important;
+}
+
+.compendium-background-picker-bar .picker-preview-text {
+    color: #fdfbf7 !important;
+}
+
+.compendium-background-picker-bar .picker-preview-dots {
+    color: var(--gold-bright, #ffd700) !important;
+}
+
+.compendium-background-picker-bar .picker-spec-input {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(184, 147, 71, 0.4) !important;
+    color: #ffffff !important;
+}
+
+.compendium-background-picker-bar .picker-spec-input:focus {
+    border-color: var(--gold-primary, #b89347) !important;
+    box-shadow: 0 0 8px rgba(184, 147, 71, 0.4) !important;
+    outline: none;
+}
+
+.compendium-background-picker-bar .picker-actions-row {
+    border-top: 1px dashed rgba(184, 147, 71, 0.25) !important;
+}
+
+.picker-dot-btn {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(184, 147, 71, 0.45);
+    color: #e5c378;
+}
+
+.picker-dot-btn:hover {
+    background: rgba(184, 147, 71, 0.25);
+    border-color: var(--gold-primary, #b89347);
+    color: #ffffff;
+}
+
+.picker-dot-btn.active {
+    background: linear-gradient(135deg, #caa75d 0%, #a27b32 100%) !important;
+    border-color: #ffd700 !important;
+    color: #17120a !important;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.4) !important;
+    font-weight: 800;
+}
+
+

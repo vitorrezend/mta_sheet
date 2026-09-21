@@ -131,15 +131,12 @@ impl CharacterData {
             }
         }
 
-        // Ensure minimum slots for Merits (7), Flaws (7), Wonders (4) and Weapons (4)
+        // Ensure minimum slots for Merits (7), Flaws (7) and Weapons (4)
         while self.merits.len() < 7 {
             self.merits.push(MeritItem::default());
         }
         while self.flaws.len() < 7 {
             self.flaws.push(FlawItem::default());
-        }
-        while self.wonders.len() < 4 {
-            self.wonders.push(WonderItem::default());
         }
         for wonder in &mut self.wonders {
             if wonder.id.is_empty() {

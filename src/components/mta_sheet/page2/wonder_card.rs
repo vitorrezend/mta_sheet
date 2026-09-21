@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::components::{Callback, ValueField, StableTextArea, StableTextInput};
+use crate::components::{Callback, ValueField, StableTextArea, StableTextInput, WysiwygEditor};
 use crate::state::{CharacterData, DotOrigin, WonderItem};
 #[allow(unused_imports)]
 use crate::state::save_uploaded_media;
@@ -19,12 +19,12 @@ pub fn WonderCard(
     let (show_image_field, set_show_image_field) = create_signal(false);
 
     let remove_wonder = move |idx: usize| {
-        set_data.update(|s| {
-            if s.wonders.len() > 1 {
-                s.wonders.remove(idx);
-            } else {
-                s.wonders[0] = WonderItem::default();
-            }
+        request_animation_frame(move || {
+            set_data.update(|s| {
+                if idx < s.wonders.len() {
+                    s.wonders.remove(idx);
+                }
+            });
         });
     };
 
@@ -407,8 +407,8 @@ pub fn WonderCard(
             // 5. Bloco de Descrição e Poderes da Maravilha
             <div class="wonder-desc-row">
                 <label class="wonder-label">{move || format!("{}:", crate::i18n::tr("wonder_powers", lang()))}</label>
-                <StableTextArea 
-                    class="wonder-desc-textarea"
+                <WysiwygEditor 
+                    class="wonder-desc-wysiwyg"
                     placeholder=Signal::derive(move || crate::i18n::tr("wonder_powers_placeholder", lang()).to_string())
                     value=Signal::derive(move || data.with(|d| d.wonders.get(idx).map(|w| w.description.clone()).unwrap_or_default()))
                     on_change=Callback::new(move |val| {
@@ -417,6 +417,8 @@ pub fn WonderCard(
                             s.wonders[idx].description = val;
                         });
                     })
+                    compact=true
+                    min_height="80px"
                 />
             </div>
         </div>

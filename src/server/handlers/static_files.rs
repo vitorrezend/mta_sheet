@@ -8,6 +8,10 @@ pub struct SiteAssets;
 #[folder = "styles/"]
 pub struct StyleAssets;
 
+#[derive(rust_embed::RustEmbed)]
+#[folder = "fonts/"]
+pub struct FontAssets;
+
 pub const EMBEDDED_STYLE_CSS: &str = include_str!("../../../style.css");
 
 pub fn is_local_request(req: &axum::extract::Request) -> bool {
@@ -99,15 +103,29 @@ pub async fn pkg_handler(
         alt_name.to_string(),
     ];
 
-    let candidate_paths = [
+    let mut candidate_paths = vec![
         format!("target/site/pkg/{}", clean_path),
         format!("target/site/pkg/{}", alt_name),
         format!("target/site/{}", clean_path),
+        format!("site/pkg/{}", clean_path),
+        format!("site/pkg/{}", alt_name),
+        format!("pkg/{}", clean_path),
         format!("target/front/wasm32-unknown-unknown/debug/{}", clean_path),
         format!("target/front/wasm32-unknown-unknown/debug/{}", alt_name),
         format!("target/wasm32-unknown-unknown/debug/{}", clean_path),
         format!("target/wasm32-unknown-unknown/release/{}", clean_path),
+        format!("../../target/site/pkg/{}", clean_path),
+        format!("../../target/site/pkg/{}", alt_name),
     ];
+
+    if let Ok(exe_path) = std::env::current_exe() {
+        if let Some(exe_dir) = exe_path.parent() {
+            candidate_paths.push(format!("{}/target/site/pkg/{}", exe_dir.display(), clean_path));
+            candidate_paths.push(format!("{}/../../target/site/pkg/{}", exe_dir.display(), clean_path));
+            candidate_paths.push(format!("{}/site/pkg/{}", exe_dir.display(), clean_path));
+            candidate_paths.push(format!("{}/pkg/{}", exe_dir.display(), clean_path));
+        }
+    }
 
     // Em modo RELEASE (ou se houver assets embutidos prioritários),
     // consultar PRIMEIRO o SiteAssets (embutido no binário) para blindar contra arquivos fantasmas do dev
@@ -469,6 +487,17 @@ pub async fn fonts_handler(
 
     #[cfg(not(debug_assertions))]
     {
+        if let Some(file) = FontAssets::get(&clean_path) {
+            return (
+                [
+                    (http::header::CONTENT_TYPE, mime.to_string()),
+                    (http::header::CACHE_CONTROL, cache_hdr),
+                ],
+                file.data.into_owned(),
+            )
+                .into_response();
+        }
+
         if let Some(file) = SiteAssets::get(&key) {
             return (
                 [

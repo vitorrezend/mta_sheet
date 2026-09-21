@@ -1,6 +1,6 @@
 use leptos::*;
 use crate::components::page1::advantages::Vitality;
-use crate::components::{ValueField, StableTextArea, StableTextInput, Callback};
+use crate::components::{ValueField, StableTextArea, StableTextInput, Callback, WysiwygEditor};
 use crate::state::{CharacterData, DotOrigin};
 use crate::components::character_sheet::ActiveDotOriginContext;
 
@@ -443,11 +443,12 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
 
                     <div class="gods-section-box">
                         <h3 class="column-title">{move || crate::i18n::tr("experience", lang())}</h3>
-                        <StableTextArea
-                            class="gods-xp-textarea"
+                        <WysiwygEditor
+                            class="gods-xp-wysiwyg"
                             placeholder=Signal::derive(move || crate::i18n::tr("xp_ph", lang()).to_string())
                             value=Signal::derive(move || data.with(|d| d.get_label("experience")))
                             on_change=Callback::new(move |v| set_data.update(|s| s.set_label("experience", v)))
+                            min_height="90px"
                         />
                     </div>
                 </div>

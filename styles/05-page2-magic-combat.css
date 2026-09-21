@@ -418,6 +418,20 @@
     border: 1px dashed #e2e8f0;
 }
 
+/* Customização de largura dos rótulos editáveis na Página 2 para acomodar nomes longos sem cortes */
+.merits-flaws-block .attribute-row > .tooltip-container:first-child,
+.other-traits-box .attribute-row > .tooltip-container:first-child,
+.trait-field-wrapper .attribute-row > .tooltip-container:first-child {
+    max-width: 68%;
+}
+
+.merits-flaws-block .label-edit-input,
+.other-traits-box .label-edit-input,
+.trait-field-wrapper .label-edit-input {
+    width: 175px;
+    max-width: 215px;
+}
+
 /* 2. Outras Características (Other Traits) */
 .other-traits-box {
     display: flex;
@@ -502,6 +516,18 @@
     justify-content: center;
     width: 100%;
     margin-top: 0.5rem;
+}
+
+.wonders-empty-state {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    color: #64748b;
+    font-style: italic;
+    font-size: 0.85rem;
+    text-align: center;
 }
 
 .wonder-card {
