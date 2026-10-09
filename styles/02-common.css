@@ -1165,6 +1165,7 @@
     width: 100vw;
     height: 100vh;
     background: rgba(15, 23, 42, 0.65);
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
     z-index: 10000;
     display: flex;
@@ -1930,6 +1931,7 @@
     width: 100vw;
     height: 100vh;
     background: rgba(0, 0, 0, 0.55);
+    -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
     z-index: 9998;
     opacity: 0;
@@ -3053,6 +3055,7 @@
     height: 32px;
     border-radius: 50%;
     background: rgba(15, 23, 42, 0.7);
+    -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
     border: 1px solid rgba(255, 255, 255, 0.25);
     color: #ffffff;

@@ -670,6 +670,7 @@
     bottom: 0;
     z-index: 99999;
     background: rgba(0, 0, 0, 0.45);
+    -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
     justify-content: center;
     align-items: flex-start;

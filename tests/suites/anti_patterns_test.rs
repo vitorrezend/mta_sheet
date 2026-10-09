@@ -637,3 +637,35 @@ fn test_compendium_sidebar_tab_name_no_unnatural_word_break() {
         panic!(".tab-name não foi encontrada em styles/12-compendium.css");
     }
 }
+
+/// Clean Architecture: Todos os arquivos de lógica e interface (.rs) fora de compêndios estáticos
+/// e diretórios de dados devem respeitar rigorosamente o teto de 1000 linhas por arquivo.
+#[test]
+fn test_all_source_files_under_1000_lines() {
+    let rs_files = get_all_rs_files(Path::new("src"));
+    let mut violations = Vec::new();
+
+    for file_path in &rs_files {
+        let path_str = file_path.to_string_lossy().replace('\\', "/");
+        // Compêndios de dados estáticos e arquivos de testes canonicamente isentos do teto de 1000 linhas
+        if path_str.contains("/compendium/") || path_str.contains("/data/") || path_str.ends_with("_test.rs") || path_str.ends_with("/tests.rs") {
+            continue;
+        }
+
+        let content = fs::read_to_string(file_path).expect("Failed to read file");
+        let line_count = content.lines().count();
+        if line_count > 1000 {
+            violations.push(format!(
+                "[{}] Excedeu o teto de 1000 linhas da Clean Architecture (atual: {} linhas).",
+                path_str, line_count
+            ));
+        }
+    }
+
+    assert!(
+        violations.is_empty(),
+        "Arquivos violando a Clean Architecture (> 1000 linhas):\n{}",
+        violations.join("\n")
+    );
+}
+
