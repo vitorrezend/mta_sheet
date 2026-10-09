@@ -3,6 +3,8 @@ use std::rc::Rc;
 use crate::state::DotOrigin;
 use super::callback::Callback;
 use super::specialty_picker::SpecialtyPicker;
+use super::dot_origin_popover::DotOriginPopover;
+use super::supernatural_modal::SupernaturalModal;
 
 #[component]
 pub fn ValueField(
@@ -110,17 +112,6 @@ pub fn ValueField(
         }
     });
 
-    // Focus-Lock para o campo de modificador dentro do painel sobrenatural
-    let is_sup_modifier_focused = create_rw_signal(false);
-    let last_sup_modifier_value = create_rw_signal(String::new());
-
-    create_effect(move |_| {
-        let val = modifier.get();
-        let is_open = show_supernatural_modal.get();
-        if is_open && !is_sup_modifier_focused.get_untracked() {
-            let _ = last_sup_modifier_value.try_set(val);
-        }
-    });
 
     // Focus-Lock para o campo de nome editável (evita perda de cursor ao digitar)
     let label_ref = create_node_ref::<html::Input>();
@@ -430,10 +421,7 @@ pub fn ValueField(
 
                     let on_click_level = on_level_change_click.clone();
 
-                    let set_origin_base = set_origin_to.clone();
-                    let set_origin_bonus = set_origin_to.clone();
-                    let set_origin_xp = set_origin_to.clone();
-                    let set_origin_temp = set_origin_to;
+                    let on_select_origin = Callback::new(set_origin_to);
 
                     view! {
                         <div class="dot-wrapper">
@@ -458,49 +446,11 @@ pub fn ValueField(
                                 title="Botão esquerdo: alterar nível | Botão direito: mudar origem (Base/Bônus/XP/Buff)"
                             ></span>
 
-                            {move || if is_popover_open() {
-                                let set_base = set_origin_base.clone();
-                                let set_bonus = set_origin_bonus.clone();
-                                let set_xp = set_origin_xp.clone();
-                                let set_temp = set_origin_temp.clone();
-                                view! {
-                                    <div class="dot-origin-popover" on:click=move |ev| ev.stop_propagation()>
-                                        <div class="popover-title">"Origem do Ponto:"</div>
-                                        <div class="popover-options">
-                                            <button 
-                                                class="popover-btn btn-base" 
-                                                on:click=move |_| set_base(DotOrigin::Base)
-                                                title="Criação Base"
-                                            >
-                                                <span class="popover-dot dot-base"></span> "Base"
-                                            </button>
-                                            <button 
-                                                class="popover-btn btn-bonus" 
-                                                on:click=move |_| set_bonus(DotOrigin::Bonus)
-                                                title="Pontos de Bônus (Freebies)"
-                                            >
-                                                <span class="popover-dot dot-bonus"></span> "Bônus"
-                                            </button>
-                                            <button 
-                                                class="popover-btn btn-xp" 
-                                                on:click=move |_| set_xp(DotOrigin::Experience)
-                                                title="Experiência (XP)"
-                                            >
-                                                <span class="popover-dot dot-xp"></span> "XP"
-                                            </button>
-                                            <button 
-                                                class="popover-btn btn-temp" 
-                                                on:click=move |_| set_temp(DotOrigin::Temporary)
-                                                title="Buff / Magia / Wonder"
-                                            >
-                                                <span class="popover-dot dot-temp"></span> "Buff"
-                                            </button>
-                                        </div>
-                                    </div>
-                                }.into_view()
-                            } else {
-                                view! {}.into_view()
-                            }}
+                            <DotOriginPopover 
+                                lvl=i 
+                                is_open=Signal::derive(is_popover_open) 
+                                on_select=on_select_origin 
+                            />
                         </div>
                     }
                 }).collect_view()}
@@ -542,7 +492,6 @@ pub fn ValueField(
                     };
 
                     let on_click_level_sup = on_level_change_click.clone();
-                    let on_dot_change_for_right_click = on_dot_origin_change.clone();
                     let on_dot_change_for_popover = on_dot_origin_change.clone();
 
                     view! {
@@ -556,7 +505,6 @@ pub fn ValueField(
                             }
 
                             let on_click_level_sup = on_click_level_sup.clone();
-                            let on_dot_change_for_right_click = on_dot_change_for_right_click.clone();
                             let on_dot_change_for_popover = on_dot_change_for_popover.clone();
 
                             view! {
@@ -602,440 +550,37 @@ pub fn ValueField(
                                     }}
 
                                     // 4. Painel Temporário Flutuante com os 5 Losangos (Níveis 6 a 10)
+                                    // 4. Painel Temporário Flutuante com os 5 Losangos (Níveis 6 a 10)
                                     {if is_modal_open {
                                         let on_click_level_sup = on_click_level_sup.clone();
-                                        let on_dot_change_for_right_click = on_dot_change_for_right_click.clone();
-                                        let on_dot_change_for_popover = on_dot_change_for_popover.clone();
                                         let on_modifier_input = on_modifier_input.clone();
-
-                                        let save_pending_modifier = std::rc::Rc::new({
-                                            let on_mod = on_modifier_input.clone();
-                                            move || {
-                                                let _ = is_sup_modifier_focused.try_set(false);
-                                                let val = last_sup_modifier_value.get_untracked();
-                                                on_mod(val);
-                                            }
-                                        });
-
+                                        let on_dot_change = on_dot_change_for_popover.clone();
+                                        let on_open_compendium = on_open_compendium.clone();
                                         view! {
-                                            <div class="supernatural-modal-wrapper" on:click=move |ev| ev.stop_propagation()>
-                                                <div 
-                                                    class="supernatural-backdrop"
-                                                    on:click={
-                                                        let save_mod = save_pending_modifier.clone();
-                                                        move |ev| {
-                                                            ev.stop_propagation();
-                                                            save_mod();
-                                                            set_show_supernatural_modal.set(false);
-                                                            set_open_popover_idx.set(None);
-                                                        }
-                                                    }
-                                                />
-                                                <div class="supernatural-floating-panel">
-                                                    <div class="supernatural-panel-header">
-                                                        <div class="panel-header-title">
-                                                            <span class="panel-sparkle">"✦"</span>
-                                                            <span class="panel-trait-name" title=move || label.get()>{move || label.get()}</span>
-                                                        </div>
-                                                        <div class="panel-header-actions">
-                                                            <span class="panel-level-pill">
-                                                                {move || {
-                                                                    let cur = level.get();
-                                                                    let extra = (cur - 5).max(0);
-                                                                    format!("Nível {} (+{})", cur, extra)
-                                                                }}
-                                                            </span>
-                                                            <button 
-                                                                type="button" 
-                                                                class="panel-close-btn"
-                                                                on:click={
-                                                                    let save_mod = save_pending_modifier.clone();
-                                                                    move |_| {
-                                                                        save_mod();
-                                                                        set_show_supernatural_modal.set(false);
-                                                                        set_open_popover_idx.set(None);
-                                                                    }
-                                                                }
-                                                                title="Fechar"
-                                                            >
-                                                                "✕"
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
-                                                    // Campo de escrita curto (Especialização / Modificador / Nota)
-                                                    <div class="supernatural-modifier-section">
-                                                        <span class="modifier-section-label">"Especialização / Modificador:"</span>
-                                                        <input 
-                                                            type="text" 
-                                                            class="supernatural-modifier-input"
-                                                            placeholder="Ex: Musculoso, Titânico..."
-                                                            maxlength="35"
-                                                            prop:value=move || {
-                                                                if is_sup_modifier_focused.get() {
-                                                                    last_sup_modifier_value.get()
-                                                                } else {
-                                                                    modifier.get()
-                                                                }
-                                                            }
-                                                            on:focus={
-                                                                let val = modifier.get_untracked();
-                                                                move |_| { 
-                                                                    let _ = is_sup_modifier_focused.try_set(true); 
-                                                                    let _ = last_sup_modifier_value.try_set(val.clone());
-                                                                }
-                                                            }
-                                                            on:input=move |ev| {
-                                                                let val = event_target_value(&ev);
-                                                                let _ = last_sup_modifier_value.try_set(val);
-                                                            }
-                                                            on:blur={
-                                                                let on_mod = on_modifier_input.clone();
-                                                                move |_| {
-                                                                    let _ = is_sup_modifier_focused.try_set(false);
-                                                                    let val = last_sup_modifier_value.get_untracked();
-                                                                    on_mod(val);
-                                                                }
-                                                            }
-                                                            on:keydown={
-                                                                let on_mod = on_modifier_input.clone();
-                                                                move |ev: ev::KeyboardEvent| {
-                                                                    if ev.key() == "Enter" {
-                                                                        let _ = is_sup_modifier_focused.try_set(false);
-                                                                        let val = last_sup_modifier_value.get_untracked();
-                                                                        on_mod(val);
-                                                                        if let Some(target) = ev.target() {
-                                                                            use wasm_bindgen::JsCast;
-                                                                            if let Ok(elem) = target.dyn_into::<web_sys::HtmlElement>() {
-                                                                                let _ = elem.blur();
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        />
-                                                        {if let Some(specs_signal) = suggested_specialties {
-                                                            let on_modifier_input_sup_spec = on_modifier_input.clone();
-                                                            let on_open_comp_sup = on_open_compendium.clone();
-                                                            let save_pending_modifier_comp = save_pending_modifier.clone();
-                                                            view! {
-                                                                <div class="supernatural-specialties-block">
-                                                                    <div class="specialty-pills-list">
-                                                                        {
-                                                                            let on_modifier_input_sup_spec = on_modifier_input_sup_spec.clone();
-                                                                            move || {
-                                                                                let specs = specs_signal.get();
-                                                                                let current_mod = if is_sup_modifier_focused.get() {
-                                                                                    last_sup_modifier_value.get()
-                                                                                } else {
-                                                                                    modifier.get()
-                                                                                };
-                                                                                let current_parts: Vec<&str> = current_mod
-                                                                                    .split(',')
-                                                                                    .map(|s| s.trim())
-                                                                                    .filter(|s| !s.is_empty())
-                                                                                    .collect();
-
-                                                                                specs.into_iter().map(|spec| {
-                                                                                    let is_selected = current_parts.iter().any(|part| part.eq_ignore_ascii_case(spec));
-                                                                                    let on_mod = on_modifier_input_sup_spec.clone();
-                                                                                    view! {
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            class="specialty-pill-btn"
-                                                                                            class:active=is_selected
-                                                                                            on:click={
-                                                                                                let on_mod = on_mod.clone();
-                                                                                                move |ev| {
-                                                                                                    ev.stop_propagation();
-                                                                                                    let cur = if is_sup_modifier_focused.get_untracked() {
-                                                                                                        last_sup_modifier_value.get_untracked()
-                                                                                                    } else {
-                                                                                                        modifier.get_untracked()
-                                                                                                    };
-                                                                                                    let mut parts: Vec<String> = cur
-                                                                                                        .split(',')
-                                                                                                        .map(|s| s.trim().to_string())
-                                                                                                        .filter(|s| !s.is_empty())
-                                                                                                        .collect();
-
-                                                                                                    if let Some(pos) = parts.iter().position(|p| p.eq_ignore_ascii_case(spec)) {
-                                                                                                        parts.remove(pos);
-                                                                                                    } else {
-                                                                                                        parts.push(spec.to_string());
-                                                                                                    }
-
-                                                                                                    let new_val = parts.join(", ");
-                                                                                                    let _ = last_sup_modifier_value.try_set(new_val.clone());
-                                                                                                    let _ = is_sup_modifier_focused.try_set(false);
-                                                                                                    if let Some(elem) = modifier_ref.get() {
-                                                                                                        elem.set_value(&new_val);
-                                                                                                    }
-                                                                                                    let _ = last_modifier_value.try_set(new_val.clone());
-                                                                                                    on_mod(new_val);
-                                                                                                }
-                                                                                            }
-                                                                                            title=if is_selected {
-                                                                                                "Clique para desmarcar"
-                                                                                            } else {
-                                                                                                "Clique para selecionar"
-                                                                                            }
-                                                                                        >
-                                                                                            {if is_selected { "✓ " } else { "+ " }}
-                                                                                            {spec}
-                                                                                        </button>
-                                                                                    }
-                                                                                }).collect_view()
-                                                                            }
-                                                                        }
-                                                                    </div>
-
-                                                                    <div class="supernatural-specialties-actions">
-                                                                        {
-                                                                            let on_mod_clear = on_modifier_input_sup_spec.clone();
-                                                                            view! {
-                                                                                <button
-                                                                                    type="button"
-                                                                                    class="specialty-clear-btn"
-                                                                                    class:hidden=move || modifier.get().trim().is_empty()
-                                                                                    on:click={
-                                                                                        let on_mod = on_mod_clear.clone();
-                                                                                        move |ev| {
-                                                                                            ev.stop_propagation();
-                                                                                            let _ = last_sup_modifier_value.try_set(String::new());
-                                                                                            let _ = is_sup_modifier_focused.try_set(false);
-                                                                                            if let Some(elem) = modifier_ref.get() {
-                                                                                                elem.set_value("");
-                                                                                            }
-                                                                                            let _ = last_modifier_value.try_set(String::new());
-                                                                                            on_mod(String::new());
-                                                                                        }
-                                                                                    }
-                                                                                    title="Limpar especialidades"
-                                                                                >
-                                                                                    "✕ " {move || match lang() {
-                                                                                        crate::i18n::Language::PtBr => "Limpar",
-                                                                                        crate::i18n::Language::EnUs => "Clear",
-                                                                                    }}
-                                                                                </button>
-                                                                            }
-                                                                        }
-
-                                                                        {
-                                                                            if let Some(on_open_comp) = on_open_comp_sup.clone() {
-                                                                                let save_mod = save_pending_modifier_comp.clone();
-                                                                                view! {
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        class="specialty-compendium-btn"
-                                                                                        on:click={
-                                                                                            let save_mod = save_mod.clone();
-                                                                                            let on_open_comp = on_open_comp.clone();
-                                                                                            move |ev| {
-                                                                                                ev.stop_propagation();
-                                                                                                save_mod();
-                                                                                                set_show_supernatural_modal.set(false);
-                                                                                                set_open_popover_idx.set(None);
-                                                                                                on_open_comp.call(());
-                                                                                            }
-                                                                                        }
-                                                                                        title=move || format!("Consultar {} no Compêndio M20 ({})", label.get(), page_ref_str.get())
-                                                                                    >
-                                                                                        <span class="compendium-btn-icon">"📖"</span>
-                                                                                        <span class="compendium-btn-text">
-                                                                                            {move || match lang() {
-                                                                                                crate::i18n::Language::PtBr => "Compêndio M20",
-                                                                                                crate::i18n::Language::EnUs => "M20 Compendium",
-                                                                                            }}
-                                                                                        </span>
-                                                                                        <span class="compendium-btn-page">{page_ref_str}</span>
-                                                                                    </button>
-                                                                                }.into_view()
-                                                                            } else {
-                                                                                view! {}.into_view()
-                                                                            }
-                                                                        }
-                                                                    </div>
-                                                                </div>
-                                                            }.into_view()
-                                                        } else {
-                                                            view! {}.into_view()
-                                                        }}
-                                                    </div>
-
-                                                    <div class="supernatural-slots-track">
-                                                        {(1..=5).map(|extra| {
-                                                            let lvl = 5 + extra;
-                                                            let dot_idx = (lvl - 1) as usize;
-                                                            let is_filled = move || level.get() >= lvl;
-                                                            let dot_color = move || {
-                                                                if level.get() >= lvl {
-                                                                    if let Some(sig) = origins {
-                                                                        let list = sig.get();
-                                                                        if dot_idx < list.len() {
-                                                                            list[dot_idx].color_class()
-                                                                        } else {
-                                                                            "dot-base"
-                                                                        }
-                                                                    } else {
-                                                                        "dot-base"
-                                                                    }
-                                                                } else {
-                                                                    ""
-                                                                }
-                                                            };
-
-                                                            let is_popover_open = move || open_popover_idx.get() == Some(dot_idx);
-
-                                                            let on_dot_change_for_right_click = on_dot_change_for_right_click.clone();
-                                                            let on_right_click = move |ev: ev::MouseEvent| {
-                                                                ev.prevent_default();
-                                                                ev.stop_propagation();
-                                                                if level.get() >= lvl && on_dot_change_for_right_click.is_some() {
-                                                                    set_open_popover_idx.update(|cur| {
-                                                                        *cur = if *cur == Some(dot_idx) { None } else { Some(dot_idx) };
-                                                                    });
-                                                                }
-                                                            };
-
-                                                            let on_dot_change_for_popover = on_dot_change_for_popover.clone();
-                                                            let set_origin_to = move |origin: DotOrigin| {
-                                                                if let Some(cb) = on_dot_change_for_popover.as_ref() {
-                                                                    cb.call((dot_idx, origin));
-                                                                }
-                                                                set_open_popover_idx.set(None);
-                                                            };
-
-                                                            let on_click_level_sup = on_click_level_sup.clone();
-                                                            let set_base = set_origin_to.clone();
-                                                            let set_bonus = set_origin_to.clone();
-                                                            let set_xp = set_origin_to.clone();
-                                                            let set_temp = set_origin_to;
-
-                                                            let save_pending_modifier = save_pending_modifier.clone();
-
-                                                            view! {
-                                                                <div class="supernatural-slot-column">
-                                                                    <span class="slot-extra-badge">{format!("+{}", extra)}</span>
-                                                                    <div class="dot-wrapper">
-                                                                        <span 
-                                                                            class="dot dot-supernatural"
-                                                                            class:filled=is_filled
-                                                                            class=("dot-base", move || is_filled() && dot_color() == "dot-base")
-                                                                            class=("dot-bonus", move || is_filled() && dot_color() == "dot-bonus")
-                                                                            class=("dot-xp", move || is_filled() && dot_color() == "dot-xp")
-                                                                            class=("dot-temp", move || is_filled() && dot_color() == "dot-temp")
-                                                                            on:click={
-                                                                                let on_click_sup = on_click_level_sup.clone();
-                                                                                let save_mod = save_pending_modifier.clone();
-                                                                                move |_| {
-                                                                                    save_mod();
-                                                                                    set_open_popover_idx.set(None);
-                                                                                    let current = level.get();
-                                                                                    let new_val = if current == lvl {
-                                                                                        lvl - 1
-                                                                                    } else {
-                                                                                        lvl
-                                                                                    };
-                                                                                    on_click_sup(new_val);
-                                                                                    set_show_supernatural_modal.set(false);
-                                                                                }
-                                                                            }
-                                                                            on:contextmenu=on_right_click
-                                                                            title=format!("Nível {} (+{} Sobrenatural) | Clique esquerdo: definir nível | Clique direito: mudar origem", lvl, extra)
-                                                                        ></span>
-
-                                                                        {
-                                                                            let set_base = set_base.clone();
-                                                                            let set_bonus = set_bonus.clone();
-                                                                            let set_xp = set_xp.clone();
-                                                                            let set_temp = set_temp.clone();
-                                                                            move || if is_popover_open() {
-                                                                                let set_base = set_base.clone();
-                                                                                let set_bonus = set_bonus.clone();
-                                                                                let set_xp = set_xp.clone();
-                                                                                let set_temp = set_temp.clone();
-                                                                                view! {
-                                                                                    <div class="dot-origin-popover" on:click=move |ev| ev.stop_propagation()>
-                                                                                        <div class="popover-title">{format!("Origem Ponto {}:", lvl)}</div>
-                                                                                        <div class="popover-options">
-                                                                                            <button 
-                                                                                                class="popover-btn btn-base" 
-                                                                                                on:click=move |_| set_base(DotOrigin::Base)
-                                                                                                title="Criação Base"
-                                                                                            >
-                                                                                                <span class="popover-dot dot-base"></span> "Base"
-                                                                                            </button>
-                                                                                            <button 
-                                                                                                class="popover-btn btn-bonus" 
-                                                                                                on:click=move |_| set_bonus(DotOrigin::Bonus)
-                                                                                                title="Pontos de Bônus (Freebies)"
-                                                                                            >
-                                                                                                <span class="popover-dot dot-bonus"></span> "Bônus"
-                                                                                            </button>
-                                                                                            <button 
-                                                                                                class="popover-btn btn-xp" 
-                                                                                                on:click=move |_| set_xp(DotOrigin::Experience)
-                                                                                                title="Experiência (XP)"
-                                                                                            >
-                                                                                                <span class="popover-dot dot-xp"></span> "XP"
-                                                                                            </button>
-                                                                                            <button 
-                                                                                                class="popover-btn btn-temp" 
-                                                                                                on:click=move |_| set_temp(DotOrigin::Temporary)
-                                                                                                title="Buff / Magia / Wonder"
-                                                                                            >
-                                                                                                <span class="popover-dot dot-temp"></span> "Buff"
-                                                                                            </button>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                }.into_view()
-                                                                            } else {
-                                                                                view! {}.into_view()
-                                                                            }
-                                                                        }
-                                                                    </div>
-                                                                    <span class="slot-lvl-number">{lvl}</span>
-                                                                </div>
-                                                            }
-                                                        }).collect_view()}
-                                                    </div>
-
-                                                    <div class="supernatural-panel-footer">
-                                                        <button 
-                                                            type="button" 
-                                                            class="panel-reset-btn"
-                                                            on:click={
-                                                                let on_reset = on_click_level_sup.clone();
-                                                                let save_mod = save_pending_modifier.clone();
-                                                                move |_| {
-                                                                    save_mod();
-                                                                    on_reset(5);
-                                                                    set_open_popover_idx.set(None);
-                                                                    set_show_supernatural_modal.set(false);
-                                                                }
-                                                            }
-                                                            title="Reduzir para o limite mortal (5 pontos)"
-                                                        >
-                                                            "↺ Resetar (5)"
-                                                        </button>
-                                                        <button 
-                                                            type="button" 
-                                                            class="panel-done-btn"
-                                                            on:click={
-                                                                let save_mod = save_pending_modifier.clone();
-                                                                move |_| {
-                                                                    save_mod();
-                                                                    set_open_popover_idx.set(None);
-                                                                    set_show_supernatural_modal.set(false);
-                                                                }
-                                                            }
-                                                        >
-                                                            "Concluir"
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <SupernaturalModal
+                                                label=label
+                                                level=level
+                                                origins=origins
+                                                modifier=modifier
+                                                suggested_specialties=suggested_specialties
+                                                page_ref_str=page_ref_str
+                                                lang=Signal::derive(lang)
+                                                modifier_ref=modifier_ref
+                                                last_modifier_value=last_modifier_value
+                                                open_popover_idx=open_popover_idx
+                                                set_open_popover_idx=set_open_popover_idx
+                                                on_close=Callback::new(move |_| {
+                                                    set_show_supernatural_modal.set(false);
+                                                })
+                                                on_level_change=Callback::new(move |val| {
+                                                    on_click_level_sup(val);
+                                                })
+                                                on_origin_change=on_dot_change
+                                                on_modifier_input=Callback::new(move |val| {
+                                                    on_modifier_input(val);
+                                                })
+                                                on_open_compendium=on_open_compendium
+                                            />
                                         }.into_view()
                                     } else {
                                         view! {}.into_view()

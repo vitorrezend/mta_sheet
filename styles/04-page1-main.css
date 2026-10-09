@@ -100,6 +100,8 @@
     background-color: transparent;
     box-sizing: border-box;
     flex-shrink: 0;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .dot:hover {
@@ -436,6 +438,7 @@
     padding: 4px;
     box-sizing: border-box;
     z-index: 5;
+    -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
 }
 

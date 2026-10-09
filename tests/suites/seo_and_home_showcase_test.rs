@@ -178,8 +178,12 @@ fn test_home_layout_and_tabs_architecture() {
     );
 
     // As traduções da aba devem estar registradas
-    let i18n_rs = Path::new("src/i18n.rs");
-    let i18n_content = fs::read_to_string(i18n_rs).expect("Falha ao ler i18n.rs");
+    let i18n_path = if Path::new("src/i18n/ui.rs").exists() {
+        Path::new("src/i18n/ui.rs")
+    } else {
+        Path::new("src/i18n.rs")
+    };
+    let i18n_content = fs::read_to_string(i18n_path).expect("Falha ao ler traduções de i18n");
     assert!(
         i18n_content.contains(r#""home_tab_showcase" => "✨ Apresentação & Recursos""#),
         "❌ A tradução pt-BR de home_tab_showcase deve estar presente!"

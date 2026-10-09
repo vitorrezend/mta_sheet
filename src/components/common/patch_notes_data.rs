@@ -19,6 +19,34 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.21.1",
+        date: "2026-10-09",
+        tag: "v0.21.1",
+        title: "Arquitetura Limpa, Decomposição Modular e Governança Automatizada",
+        highlight: "Refatoração arquitetural completa eliminando todos os monólitos (> 1.000 linhas) do projeto, desacoplamento do Grid Tático e Salas em repositórios e serviços dedicados, modularização do i18n por domínio, e adição de suíte automatizada de integridade estrutural.",
+        sections: &[
+            PatchSection {
+                category: "🏛️ Clean Architecture & Decomposição Modular",
+                icon: "🧩",
+                items: &[
+                    "📦 Modularização de Salas: Decomposição de src/rooms em modelos, eventos, RoomRepository e server functions dedicadas.",
+                    "⚔️ BattleGrid Modular: Separação de geometria, modais e barra de ferramentas tática.",
+                    "🌍 Internacionalização (i18n) por Domínio: Separação semântica em traits, dossiê, autenticação e UI.",
+                    "📂 Home View & Drive: Extração de renderizadores de pastas e unidades virtuais.",
+                    "⚡ ValueField & Supernatural Modals: Extração de DotOriginPopover e SupernaturalModal mantendo Focus-Lock estável.",
+                ],
+            },
+            PatchSection {
+                category: "🛡️ Governança de Código & Testes Automatizados",
+                icon: "🧪",
+                items: &[
+                    "📏 Teto Arquitetural Automatizado: Teste de integração permanente garantindo que nenhum arquivo de código-fonte exceda 1.000 linhas.",
+                    "✅ 100% de Aprovação nos Testes: 305 testes unitários e de integração validados via cargo-nextest.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.21.0",
         date: "2026-09-21",
         tag: "v0.21.0",

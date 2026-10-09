@@ -4,12 +4,10 @@
 //! Dividido em submódulos conforme a Clean Architecture (< 1.000 linhas por arquivo).
 
 pub mod callouts;
-pub mod catalog_part1;
-pub mod catalog_part2;
+pub mod data;
 
 pub use callouts::*;
-pub use catalog_part1::*;
-pub use catalog_part2::*;
+pub use data::*;
 
 use serde::Serialize;
 use crate::i18n::Language;
