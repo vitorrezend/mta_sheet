@@ -134,6 +134,41 @@ pub fn App() -> impl IntoView {
   ]
 }"#}
         </Script>
+
+        // Mobile DevTools (Eruda) ativado condicionalmente via ?debug=true, ?eruda=true ou sessionStorage
+        <Script>
+            {r#"
+(function() {
+    try {
+        if (typeof window !== 'undefined' && window.location) {
+            var params = new URLSearchParams(window.location.search);
+            var isDebug = params.has('debug') || params.has('eruda') || sessionStorage.getItem('mta_debug') === 'true';
+            if (isDebug) {
+                sessionStorage.setItem('mta_debug', 'true');
+                window.__mta_early_errors = [];
+                window.addEventListener('error', function(e) {
+                    if (window.__mta_early_errors) window.__mta_early_errors.push(e);
+                });
+                var s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/eruda';
+                s.onload = function() {
+                    if (window.eruda) {
+                        window.eruda.init();
+                        console.log('🔧 [Eruda] Mobile DevTools ativado com sucesso para diagnóstico no Safari/Mobile.');
+                        if (window.__mta_early_errors && window.__mta_early_errors.length > 0) {
+                            window.__mta_early_errors.forEach(function(err) {
+                                console.error('⚠️ [Early Error Capturado]:', err.message || err);
+                            });
+                        }
+                    }
+                };
+                document.head.appendChild(s);
+            }
+        }
+    } catch(e) {}
+})();
+"#}
+        </Script>
         <Router>
             <Routes>
                 <Route path="" view=AppLayout>

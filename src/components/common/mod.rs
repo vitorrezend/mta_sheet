@@ -9,6 +9,8 @@ pub mod sheet;
 pub mod sheet_frame;
 pub mod bound_trait_field;
 pub mod wysiwyg_editor;
+pub mod dot_origin_popover;
+pub mod supernatural_modal;
 
 pub use callback::{Callback, SafeCallback};
 pub use value_field::ValueField;
@@ -21,6 +23,8 @@ pub use navbar::Navbar;
 pub use sheet::Sheet;
 pub use sheet_frame::{SheetFrame, CornerOrnament};
 pub use bound_trait_field::BoundAttributeField;
+pub use dot_origin_popover::DotOriginPopover;
+pub use supernatural_modal::SupernaturalModal;
 
 pub mod json_export_import;
 pub use json_export_import::*;
