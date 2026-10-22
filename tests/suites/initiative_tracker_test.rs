@@ -149,6 +149,7 @@ fn test_room_broadcast_event_serialization() {
             ],
         },
         play_sound: true,
+        chat_message: None,
     };
 
     let json = serde_json::to_string(&event).expect("serialize RoomBroadcastEvent");

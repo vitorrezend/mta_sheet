@@ -1,5 +1,8 @@
 use leptos::*;
-use super::super::models::{RoomInitiativeData, RoomBroadcastEvent};
+use super::super::models::RoomInitiativeData;
+#[cfg(feature = "ssr")]
+use super::super::models::RoomBroadcastEvent;
+#[cfg(feature = "ssr")]
 use super::super::events::broadcast_to_room;
 
 #[server(endpoint = "update_room_initiative")]
@@ -39,6 +42,7 @@ pub async fn update_room_initiative(room_id: String, initiative: RoomInitiativeD
         event_type: if play_sound { "DICE_ROLLED".to_string() } else { "INITIATIVE_UPDATE".to_string() },
         initiative,
         play_sound,
+        chat_message: None,
     });
 
     Ok(())

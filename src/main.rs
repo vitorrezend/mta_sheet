@@ -122,7 +122,9 @@ async fn main() {
         println!("   -> Acesso local: http://localhost:{}", addr.port());
         println!("   -> Acesso via Wi-Fi / Rede Local: http://<SEU_IP_LOCAL>:{}", addr.port());
     }
-    if let Err(e) = axum::serve(listener, app).await {
+    // ConnectInfo fornece o IP do par TCP ao client_ip_middleware
+    let service = app.into_make_service_with_connect_info::<std::net::SocketAddr>();
+    if let Err(e) = axum::serve(listener, service).await {
         eprintln!("Erro na execução do servidor HTTP: {}", e);
     }
 }

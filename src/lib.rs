@@ -150,7 +150,10 @@ pub fn App() -> impl IntoView {
                     if (window.__mta_early_errors) window.__mta_early_errors.push(e);
                 });
                 var s = document.createElement('script');
-                s.src = 'https://cdn.jsdelivr.net/npm/eruda';
+                // Versão fixa + Subresource Integrity: o navegador recusa o script se o conteúdo da CDN mudar
+                s.src = 'https://cdn.jsdelivr.net/npm/eruda@3.4.3/eruda.js';
+                s.integrity = 'sha384-weDBY9jeIj4NqaiZF9f6PMAMMY4lIu+0CAI+TjBIE73RctCQOxDoEHltYnstRszI';
+                s.crossOrigin = 'anonymous';
                 s.onload = function() {
                     if (window.eruda) {
                         window.eruda.init();

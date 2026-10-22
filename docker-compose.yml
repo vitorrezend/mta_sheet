@@ -7,11 +7,15 @@ services:
     container_name: mta_sheet_app
     restart: unless-stopped
     ports:
-      # Porta 8080 liberada no host para acesso local direto via HTTP (http://localhost:8080)
-      - "8080:3000"
+      # Porta 8080 publicada SOMENTE no loopback do host (http://localhost:8080), para healthcheck
+      # e acesso local. Acesso externo passa obrigatoriamente pelo Caddy (HTTPS + IP real no X-Forwarded-For).
+      - "127.0.0.1:8080:3000"
     environment:
       - DATABASE_URL=sqlite:/app/data/mta_sheet.db?mode=rwc
       - LEPTOS_SITE_ADDR=0.0.0.0:3000
+      # O Caddy chega ao app pela rede interna do Docker (faixas privadas). Só esses pares
+      # podem informar o IP do cliente via X-Forwarded-For; conexões diretas usam o IP do socket.
+      - TRUSTED_PROXIES=127.0.0.1/8,::1/128,172.16.0.0/12,192.168.0.0/16,10.0.0.0/8
       - RUST_LOG=info
     volumes:
       - mta_data:/app/data

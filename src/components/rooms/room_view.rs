@@ -10,7 +10,7 @@ use crate::rooms::{
 use crate::state::get_sheets;
 use crate::components::Navbar;
 use crate::components::common::{Callback, WysiwygEditor};
-use crate::components::rooms::{InitiativeDrawer, BattleGrid, PartyCardDesktop, PartyCardMobile};
+use crate::components::rooms::{InitiativeDrawer, BattleGrid, PartyCardDesktop, PartyCardMobile, RoomChat};
 use crate::rooms::RoomMapData;
 
 #[component]
@@ -457,6 +457,13 @@ pub fn RoomView() -> impl IntoView {
                                     {move || if copied_link.get() { "✓ Link Copiado" } else { "🔗 Copiar Link" }}
                                 </button>
                                 <button
+                                    class="chat-top-bar-btn"
+                                    on:click=move |_| set_active_tab.set("chat")
+                                    title="Abrir Chat & Feed da Crônica"
+                                >
+                                    "💬 Chat"
+                                </button>
+                                <button
                                     class="initiative-top-bar-btn"
                                     on:click=move |_| set_show_initiative.update(|v| *v = !*v)
                                     title="Abrir Rastreador de Iniciativa de Combate"
@@ -473,6 +480,9 @@ pub fn RoomView() -> impl IntoView {
                         <nav class="room-tabs-nav">
                             <button class="room-tab-btn" class:active=move || active_tab.get() == "party" on:click=move |_| set_active_tab.set("party")>
                                 "👥 Personagens & HUD (" {move || room_sheets_sig.get().len()} ")"
+                            </button>
+                            <button class="room-tab-btn" class:active=move || active_tab.get() == "chat" on:click=move |_| set_active_tab.set("chat")>
+                                "💬 Chat & Feed"
                             </button>
                             {move || if is_map_enabled.get() {
                                 view! {
@@ -608,6 +618,14 @@ pub fn RoomView() -> impl IntoView {
                                             </div>
                                         </div>
                                     </section>
+                                }.into_view()
+                            } else if active_tab.get() == "chat" {
+                                view! {
+                                    <RoomChat 
+                                        room_id=room_id_sig
+                                        sheets=room_sheets_sig
+                                        is_gm=is_gm_sig
+                                    />
                                 }.into_view()
                             } else if active_tab.get() == "chronicle" {
                                 view! {

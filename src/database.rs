@@ -126,6 +126,21 @@ pub async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     ).execute(pool).await?;
 
     sqlx::query(
+        "CREATE TABLE IF NOT EXISTS room_messages (
+            id TEXT PRIMARY KEY,
+            room_id TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+            sender_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            sender_name TEXT NOT NULL,
+            sender_character TEXT,
+            sender_avatar TEXT,
+            content TEXT NOT NULL,
+            message_type TEXT NOT NULL DEFAULT 'ooc',
+            roll_data TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"
+    ).execute(pool).await?;
+
+    sqlx::query(
         "CREATE TABLE IF NOT EXISTS character_sheets (
             id TEXT PRIMARY KEY,
             user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
@@ -273,6 +288,7 @@ pub async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_rooms_code ON rooms (code)").execute(pool).await?;
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_rooms_public ON rooms (is_public)").execute(pool).await?;
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_room_members_user_id ON room_members (user_id)").execute(pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_room_messages_room_created ON room_messages (room_id, created_at)").execute(pool).await?;
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_quiz_questions_splat ON quiz_questions (splat, sort_order)").execute(pool).await?;
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_character_quiz_answers_char ON character_quiz_answers (character_id)").execute(pool).await?;
 

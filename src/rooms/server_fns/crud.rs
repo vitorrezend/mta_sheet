@@ -1,5 +1,7 @@
 use leptos::*;
-use super::super::models::{RoomSummary, RoomDetails, RoomMapData, ChantryPoolData, RoomInitiativeData, RoomMemberInfo, RoomSheetSummary, build_room_sheet_summary};
+use super::super::models::{RoomSummary, RoomDetails, RoomMapData, ChantryPoolData};
+#[cfg(feature = "ssr")]
+use super::super::models::{RoomInitiativeData, RoomMemberInfo, RoomSheetSummary, build_room_sheet_summary};
 
 #[server(endpoint = "get_user_rooms")]
 pub async fn get_user_rooms() -> Result<Vec<RoomSummary>, ServerFnError> {
@@ -390,7 +392,7 @@ pub async fn update_room_chantry(room_id: String, chantry: ChantryPoolData) -> R
     use sqlx::SqlitePool;
     use crate::auth::get_auth_user_id;
 
-    let _user_id = get_auth_user_id().await?.ok_or_else(|| {
+    let user_id = get_auth_user_id().await?.ok_or_else(|| {
         ServerFnError::new("Você precisa estar logado para atualizar os recursos da capela")
     })?;
 
@@ -398,6 +400,15 @@ pub async fn update_room_chantry(room_id: String, chantry: ChantryPoolData) -> R
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
 
+    let allowed = crate::repositories::RoomRepository::check_is_gm_or_member(&pool, &room_id, &user_id)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    if !allowed {
+        return Err(ServerFnError::new("Permissão negada: apenas o mestre e os membros da sala podem editar a capela"));
+    }
+
+    let mut chantry = chantry;
+    chantry.notes = crate::state::rich_text::sanitize_if_html(&chantry.notes).unwrap_or(chantry.notes);
     let json_data = serde_json::to_string(&chantry).unwrap_or_default();
 
     sqlx::query("UPDATE rooms SET chantry_data = ? WHERE id = ?")
@@ -415,13 +426,22 @@ pub async fn update_room_chronicle_notes(room_id: String, notes: String) -> Resu
     use sqlx::SqlitePool;
     use crate::auth::get_auth_user_id;
 
-    let _user_id = get_auth_user_id().await?.ok_or_else(|| {
+    let user_id = get_auth_user_id().await?.ok_or_else(|| {
         ServerFnError::new("Você precisa estar logado para editar o diário da crônica")
     })?;
 
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
+
+    let allowed = crate::repositories::RoomRepository::check_is_gm_or_member(&pool, &room_id, &user_id)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    if !allowed {
+        return Err(ServerFnError::new("Permissão negada: apenas o mestre e os membros da sala podem editar o diário da crônica"));
+    }
+
+    let notes = crate::state::rich_text::sanitize_if_html(&notes).unwrap_or(notes);
 
     sqlx::query("UPDATE rooms SET chronicle_notes = ? WHERE id = ?")
         .bind(&notes)

@@ -174,27 +174,9 @@ fn html_escape(s: &str) -> String {
 }
 
 /// Sanitizador seguro para o conteúdo HTML gerado pelo editor WYSIWYG.
+/// Usa lista branca (ammonia): só tags de formatação passam, sem nenhum atributo.
 pub fn sanitize_wysiwyg_html(html: &str) -> String {
-    let lower = html.to_lowercase();
-    if lower.contains("<script") 
-        || lower.contains("<iframe") 
-        || lower.contains("<object") 
-        || lower.contains("<embed") 
-        || lower.contains("javascript:") 
-        || lower.contains("onerror=") 
-        || lower.contains("onload=") 
-        || lower.contains("onclick=") 
-    {
-        html.replace("<script", "&lt;script")
-            .replace("</script>", "&lt;/script&gt;")
-            .replace("<iframe", "&lt;iframe")
-            .replace("javascript:", "blocked:")
-            .replace("onerror=", "data-err=")
-            .replace("onload=", "data-load=")
-            .replace("onclick=", "data-click=")
-    } else {
-        html.to_string()
-    }
+    crate::state::rich_text::sanitize_rich_html(html)
 }
 
 /// Executa um comando de edição nativo do navegador no documento ativo.

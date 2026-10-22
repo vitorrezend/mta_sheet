@@ -29,15 +29,10 @@ pub fn validate_password_strength(pwd: &str) -> Result<(), &'static str> {
 
 #[cfg(feature = "ssr")]
 pub async fn extract_client_ip_from_context() -> String {
-    let headers: Option<http::HeaderMap> = if let Ok(h) = leptos_axum::extract::<http::HeaderMap>().await {
-        Some(h)
-    } else {
-        use_context::<http::HeaderMap>()
-    };
-
-    match headers {
-        Some(h) => crate::server::extract_client_ip(&h),
-        None => "127.0.0.1".to_string(),
+    // IP resolvido pelo client_ip_middleware (considera apenas proxies confiáveis)
+    match leptos_axum::extract::<axum::Extension<crate::server::ClientIp>>().await {
+        Ok(axum::Extension(ip)) => ip.0.to_string(),
+        Err(_) => "unknown".to_string(),
     }
 }
 

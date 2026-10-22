@@ -1,7 +1,7 @@
 #[cfg(feature = "ssr")]
 use sqlx::{SqlitePool, Row};
 #[cfg(feature = "ssr")]
-use crate::rooms::models::{RoomSummary, RoomMemberInfo};
+use crate::rooms::models::{RoomSummary, RoomMemberInfo, RoomChatMessage, ChatRollData};
 
 pub struct RoomRepository;
 
@@ -174,4 +174,98 @@ impl RoomRepository {
             .is_some();
         Ok(is_gm)
     }
+
+    /// Mestre da sala ou membro registrado em `room_members`.
+    pub async fn check_is_gm_or_member(pool: &SqlitePool, room_id: &str, user_id: &str) -> Result<bool, sqlx::Error> {
+        let allowed: bool = sqlx::query_scalar::<_, i64>(
+            "SELECT 1 FROM rooms WHERE id = ? AND gm_id = ?
+             UNION
+             SELECT 1 FROM room_members WHERE room_id = ? AND user_id = ?"
+        )
+        .bind(room_id)
+        .bind(user_id)
+        .bind(room_id)
+        .bind(user_id)
+        .fetch_optional(pool)
+        .await?
+        .is_some();
+        Ok(allowed)
+    }
+    pub async fn save_room_message(pool: &SqlitePool, msg: &RoomChatMessage) -> Result<(), sqlx::Error> {
+        let roll_json = msg.roll_data.as_ref().map(|r| serde_json::to_string(r).unwrap_or_default());
+        sqlx::query(
+            "INSERT INTO room_messages (id, room_id, sender_id, sender_name, sender_character, sender_avatar, content, message_type, roll_data, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))"
+        )
+        .bind(&msg.id)
+        .bind(&msg.room_id)
+        .bind(&msg.sender_id)
+        .bind(&msg.sender_name)
+        .bind(&msg.sender_character)
+        .bind(&msg.sender_avatar)
+        .bind(&msg.content)
+        .bind(&msg.message_type)
+        .bind(roll_json)
+        .execute(pool)
+        .await?;
+
+        // Limpeza oportunística: mantém no máximo 200 mensagens por sala para economia de espaço
+        let _ = sqlx::query(
+            "DELETE FROM room_messages WHERE id NOT IN (
+                SELECT id FROM room_messages WHERE room_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 200
+            ) AND room_id = ?"
+        )
+        .bind(&msg.room_id)
+        .bind(&msg.room_id)
+        .execute(pool)
+        .await;
+
+        Ok(())
+    }
+
+    pub async fn get_room_messages(pool: &SqlitePool, room_id: &str, limit: i64) -> Result<Vec<RoomChatMessage>, sqlx::Error> {
+        let rows = sqlx::query(
+            "SELECT id, room_id, sender_id, sender_name, sender_character, sender_avatar, content, message_type, roll_data, created_at
+             FROM (
+                 SELECT id, room_id, sender_id, sender_name, sender_character, sender_avatar, content, message_type, roll_data, created_at
+                 FROM room_messages
+                 WHERE room_id = ?
+                 ORDER BY created_at DESC, rowid DESC
+                 LIMIT ?
+             )
+             ORDER BY created_at ASC, id ASC"
+        )
+        .bind(room_id)
+        .bind(limit)
+        .fetch_all(pool)
+        .await?;
+
+        let msgs = rows.into_iter().map(|r| {
+            let roll_str: Option<String> = r.get("roll_data");
+            let roll_data = roll_str.and_then(|s| serde_json::from_str::<ChatRollData>(&s).ok());
+            RoomChatMessage {
+                id: r.get("id"),
+                room_id: r.get("room_id"),
+                sender_id: r.get("sender_id"),
+                sender_name: r.get("sender_name"),
+                sender_character: r.get("sender_character"),
+                sender_avatar: r.get("sender_avatar"),
+                content: r.get("content"),
+                message_type: r.get("message_type"),
+                roll_data,
+                created_at: r.get("created_at"),
+            }
+        }).collect();
+
+        Ok(msgs)
+    }
+
+    pub async fn clear_room_messages(pool: &SqlitePool, room_id: &str) -> Result<(), sqlx::Error> {
+        sqlx::query("DELETE FROM room_messages WHERE room_id = ?")
+            .bind(room_id)
+            .execute(pool)
+            .await?;
+        Ok(())
+    }
 }
+

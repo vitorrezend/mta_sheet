@@ -131,10 +131,49 @@ pub struct RoomInitiativeData {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
+pub struct ChatRollData {
+    pub dice_count: i32,
+    pub difficulty: i32,
+    pub specialty: bool,
+    #[serde(default)]
+    pub specialty_text: Option<String>,
+    pub dice_results: Vec<i32>,
+    pub successes: i32,
+    pub is_botch: bool,
+    pub label: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
+pub struct RoomChatMessage {
+    pub id: String,
+    pub room_id: String,
+    pub sender_id: String,
+    pub sender_name: String,
+    #[serde(default)]
+    pub sender_character: Option<String>,
+    #[serde(default)]
+    pub sender_avatar: Option<String>,
+    pub content: String,
+    #[serde(default = "default_chat_msg_type")]
+    pub message_type: String, // "ooc" | "ic" | "roll" | "system"
+    #[serde(default)]
+    pub roll_data: Option<ChatRollData>,
+    pub created_at: String,
+}
+
+fn default_chat_msg_type() -> String {
+    "ooc".to_string()
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
 pub struct RoomBroadcastEvent {
-    pub event_type: String, // "INITIATIVE_UPDATE" | "DICE_ROLLED" | "DRAWER_TOGGLED"
+    pub event_type: String, // "INITIATIVE_UPDATE" | "DICE_ROLLED" | "DRAWER_TOGGLED" | "CHAT_MESSAGE"
+    #[serde(default)]
     pub initiative: RoomInitiativeData,
+    #[serde(default)]
     pub play_sound: bool,
+    #[serde(default)]
+    pub chat_message: Option<RoomChatMessage>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
