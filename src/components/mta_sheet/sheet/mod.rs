@@ -8,7 +8,7 @@ pub mod xp_ledger_modal;
 pub mod dice_roller;
 
 pub use cost_breakdown_modal::CostBreakdownModal;
-pub use sheet_top_bar::{SheetTopBar, SaveStatus};
+pub use sheet_top_bar::{SaveStatus, SheetTopBar, SheetTopBarActions, SheetTopBarState};
 pub use sheet_tabs::{SheetTabs, SheetPageTab};
 pub use quiz_modal::QuizModal;
 pub use pdf_export_modal::PdfExportModal;

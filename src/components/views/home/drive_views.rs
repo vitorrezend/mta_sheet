@@ -1,474 +1,122 @@
+//! Visões do "drive" de fichas: a raiz e o conteúdo de uma pasta.
+
 use leptos::*;
 use std::collections::HashMap;
+use crate::i18n::{tr, Language};
 use crate::state::{CharacterSummary, SheetFolder};
-use super::folder_card::render_single_folder_card;
-use super::sheet_card::render_character_grid;
+use super::folder_card::FolderCard;
+use super::sheet_card::{folders_info, CharacterGrid};
+use super::store::{allow_drop, use_home, FolderForm, ROOT_DROP};
 
-#[derive(Clone, Copy)]
-pub struct DriveState {
-    pub drag_over_folder_id: ReadSignal<Option<String>>,
-    pub dragged_sheet_id: ReadSignal<Option<String>>,
-    pub dragged_folder_id: ReadSignal<Option<String>>,
-    pub set_drag_over_folder_id: WriteSignal<Option<String>>,
-    pub set_dragged_sheet_id: WriteSignal<Option<String>>,
-    pub set_dragged_folder_id: WriteSignal<Option<String>>,
-    pub set_selected_folder_id: WriteSignal<Option<String>>,
-    pub set_create_folder_parent: WriteSignal<Option<String>>,
-    pub set_folder_input_name: WriteSignal<String>,
-    pub set_folder_input_icon: WriteSignal<String>,
-    pub set_is_create_folder_open: WriteSignal<bool>,
-    pub set_folder_edit_name: WriteSignal<String>,
-    pub set_folder_edit_icon: WriteSignal<String>,
-    pub set_folder_to_edit: WriteSignal<Option<SheetFolder>>,
-    pub set_folder_to_delete: WriteSignal<Option<SheetFolder>>,
-    pub set_sheet_to_delete: WriteSignal<Option<CharacterSummary>>,
-    pub set_sheet_to_move: WriteSignal<Option<CharacterSummary>>,
-}
-
-pub fn render_folder_view<FShare, FMoveSheet, FMoveFolder, FTogglePrivacy>(
-    current_fid: &str,
-    folder_list: &[SheetFolder],
-    all_sheets: Vec<CharacterSummary>,
-    folder_counts: &HashMap<String, usize>,
-    folders_info: HashMap<String, (String, String)>,
-    current_lang: crate::i18n::Language,
-    ds: &DriveState,
-    open_share_modal: FShare,
-    handle_move_sheet: FMoveSheet,
-    handle_move_folder: FMoveFolder,
-    toggle_privacy: FTogglePrivacy,
-) -> View
-where
-    FShare: Fn(SheetFolder) + Copy + 'static,
-    FMoveSheet: Fn(String, Option<String>) + Copy + 'static,
-    FMoveFolder: Fn(String, Option<String>) + Copy + 'static,
-    FTogglePrivacy: Fn(String, bool) + Copy + 'static,
-{
-    let current_folder = folder_list.iter().find(|f| f.id == current_fid).cloned();
-    let folder_sheets: Vec<CharacterSummary> = all_sheets
-        .into_iter()
-        .filter(|s| s.folder_id.as_deref() == Some(current_fid))
-        .collect();
-    let sheets_count = folder_sheets.len();
-
-    let current_folder = match current_folder {
-        Some(f) => f,
-        None => {
-            ds.set_selected_folder_id.set(None);
-            return view! { <div class="drive-container"></div> }.into_view();
-        }
-    };
-    let f_parent_id = current_folder.parent_id.clone();
-    let f_for_edit = current_folder.clone();
-    let f_for_del = current_folder.clone();
-    let f_for_share = current_folder.clone();
-
-    // Compute ancestry path for multi-level breadcrumbs
-    let mut ancestry = Vec::new();
-    let mut curr_id = Some(current_fid.to_string());
-    while let Some(cid) = curr_id {
-        if let Some(f) = folder_list.iter().find(|item| item.id == cid) {
-            ancestry.push(f.clone());
-            curr_id = f.parent_id.clone();
-        } else {
-            break;
-        }
+/// Quantas fichas há em cada pasta.
+fn folder_counts(sheets: &[CharacterSummary]) -> HashMap<String, usize> {
+    let mut counts = HashMap::new();
+    for fid in sheets.iter().filter_map(|s| s.folder_id.clone()) {
+        *counts.entry(fid).or_insert(0) += 1;
     }
-    ancestry.reverse();
-
-    // Subfolders
-    let subfolders: Vec<SheetFolder> = folder_list
-        .iter()
-        .filter(|f| f.parent_id.as_deref() == Some(current_fid))
-        .cloned()
-        .collect();
-    let has_subfolders = !subfolders.is_empty();
-
-    let drag_over_folder_id = ds.drag_over_folder_id;
-    let dragged_sheet_id = ds.dragged_sheet_id;
-    let dragged_folder_id = ds.dragged_folder_id;
-    let set_selected_folder_id = ds.set_selected_folder_id;
-    let set_drag_over_folder_id = ds.set_drag_over_folder_id;
-    let set_dragged_sheet_id = ds.set_dragged_sheet_id;
-    let set_dragged_folder_id = ds.set_dragged_folder_id;
-    let set_create_folder_parent = ds.set_create_folder_parent;
-    let set_folder_input_name = ds.set_folder_input_name;
-    let set_folder_input_icon = ds.set_folder_input_icon;
-    let set_is_create_folder_open = ds.set_is_create_folder_open;
-    let set_folder_edit_name = ds.set_folder_edit_name;
-    let set_folder_edit_icon = ds.set_folder_edit_icon;
-    let set_folder_to_edit = ds.set_folder_to_edit;
-    let set_folder_to_delete = ds.set_folder_to_delete;
-    let set_sheet_to_delete = ds.set_sheet_to_delete;
-    let set_sheet_to_move = ds.set_sheet_to_move;
-
-    let cur_fid_str = current_fid.to_string();
-
-    view! {
-        <div class="drive-container">
-            <div class="drive-nav-bar">
-                <div class="drive-breadcrumbs">
-                    <button
-                        type="button"
-                        class="drive-breadcrumb-item clickable"
-                        class:drag-over=move || drag_over_folder_id.get().as_deref() == Some("__root__")
-                        class:drag-targetable=move || dragged_sheet_id.get().is_some() || dragged_folder_id.get().is_some()
-                        on:click=move |_| set_selected_folder_id.set(None)
-                        on:dragover=move |ev: ev::DragEvent| {
-                            ev.prevent_default();
-                            if let Some(dt) = ev.data_transfer() {
-                                let _ = dt.set_drop_effect("move");
-                            }
-                        }
-                        on:dragenter=move |ev: ev::DragEvent| {
-                            ev.prevent_default();
-                            set_drag_over_folder_id.set(Some("__root__".to_string()));
-                        }
-                        on:dragleave=move |_| {
-                            if drag_over_folder_id.get_untracked().as_deref() == Some("__root__") {
-                                set_drag_over_folder_id.set(None);
-                            }
-                        }
-                        on:drop=move |ev: ev::DragEvent| {
-                            ev.prevent_default();
-                            set_drag_over_folder_id.set(None);
-                            if let Some(s_id) = dragged_sheet_id.get_untracked() {
-                                handle_move_sheet(s_id, None);
-                                set_dragged_sheet_id.set(None);
-                            } else if let Some(f_id) = dragged_folder_id.get_untracked() {
-                                handle_move_folder(f_id, None);
-                                set_dragged_folder_id.set(None);
-                            }
-                        }
-                        title=crate::i18n::tr("drive_move_to_root", current_lang)
-                    >
-                        <span class="drive-bc-icon">"📁"</span>
-                        <span>{crate::i18n::tr("drive_my_sheets", current_lang)}</span>
-                    </button>
-
-                    {
-                        let total_anc = ancestry.len();
-                        ancestry.into_iter().enumerate().map(|(idx, anc_f)| {
-                            let is_last = idx == total_anc - 1;
-                            let anc_id = anc_f.id.clone();
-                            let anc_id_drop = anc_f.id.clone();
-                            let anc_id_over = anc_f.id.clone();
-                            let anc_icon = anc_f.icon.clone();
-                            let anc_name = anc_f.name.clone();
-
-                            if is_last {
-                                view! {
-                                    <span class="drive-breadcrumb-sep">"/"</span>
-                                    <span class="drive-breadcrumb-item active">
-                                        <span class="drive-bc-icon">{anc_icon}</span>
-                                        <span>{anc_name}</span>
-                                    </span>
-                                }.into_view()
-                            } else {
-                                view! {
-                                    <span class="drive-breadcrumb-sep">"/"</span>
-                                    <button
-                                        type="button"
-                                        class="drive-breadcrumb-item clickable"
-                                        class:drag-over={
-                                            let chk = anc_id_over.clone();
-                                            move || drag_over_folder_id.get().as_deref() == Some(chk.as_str())
-                                        }
-                                        class:drag-targetable=move || dragged_sheet_id.get().is_some() || dragged_folder_id.get().is_some()
-                                        on:click={
-                                            let cid = anc_id.clone();
-                                            move |_| set_selected_folder_id.set(Some(cid.clone()))
-                                        }
-                                        on:dragover=move |ev: ev::DragEvent| {
-                                            ev.prevent_default();
-                                            if let Some(dt) = ev.data_transfer() {
-                                                let _ = dt.set_drop_effect("move");
-                                            }
-                                        }
-                                        on:dragenter={
-                                            let eid = anc_id_drop.clone();
-                                            move |ev: ev::DragEvent| {
-                                                ev.prevent_default();
-                                                set_drag_over_folder_id.set(Some(eid.clone()));
-                                            }
-                                        }
-                                        on:dragleave={
-                                            let lid = anc_id_drop.clone();
-                                            move |_| {
-                                                if drag_over_folder_id.get_untracked().as_deref() == Some(lid.as_str()) {
-                                                    set_drag_over_folder_id.set(None);
-                                                }
-                                            }
-                                        }
-                                        on:drop={
-                                            let did = anc_id_drop.clone();
-                                            move |ev: ev::DragEvent| {
-                                                ev.prevent_default();
-                                                set_drag_over_folder_id.set(None);
-                                                if let Some(s_id) = dragged_sheet_id.get_untracked() {
-                                                    handle_move_sheet(s_id, Some(did.clone()));
-                                                    set_dragged_sheet_id.set(None);
-                                                } else if let Some(f_id) = dragged_folder_id.get_untracked() {
-                                                    if f_id != did {
-                                                        handle_move_folder(f_id, Some(did.clone()));
-                                                    }
-                                                    set_dragged_folder_id.set(None);
-                                                }
-                                            }
-                                        }
-                                    >
-                                        <span class="drive-bc-icon">{anc_icon}</span>
-                                        <span>{anc_name}</span>
-                                    </button>
-                                }.into_view()
-                            }
-                        }).collect_view()
-                    }
-                </div>
-
-                <div class="drive-toolbar-actions">
-                    <button
-                        type="button"
-                        class="drive-primary-btn"
-                        on:click={
-                            let cf_id = cur_fid_str.clone();
-                            move |_| {
-                                set_create_folder_parent.set(Some(cf_id.clone()));
-                                set_folder_input_name.set(String::new());
-                                set_folder_input_icon.set("📁".to_string());
-                                set_is_create_folder_open.set(true);
-                            }
-                        }
-                    >
-                        <span class="btn-icon">"➕"</span>
-                        <span>{crate::i18n::tr("drive_btn_new_subfolder", current_lang)}</span>
-                    </button>
-                    <button
-                        type="button"
-                        class="drive-action-btn btn-folder-share"
-                        title=crate::i18n::tr("drive_share_folder", current_lang)
-                        on:click={
-                            let fs = f_for_share.clone();
-                            move |_| open_share_modal(fs.clone())
-                        }
-                    >
-                        <span class="btn-icon">"👥"</span>
-                        <span class="btn-label">{crate::i18n::tr("drive_share_folder", current_lang)}</span>
-                    </button>
-                    <button
-                        type="button"
-                        class="drive-action-btn btn-folder-rename"
-                        title=crate::i18n::tr("folder_modal_edit_title", current_lang)
-                        on:click={
-                            let fe = f_for_edit.clone();
-                            move |_| {
-                                set_folder_edit_name.set(fe.name.clone());
-                                set_folder_edit_icon.set(fe.icon.clone());
-                                set_folder_to_edit.set(Some(fe.clone()));
-                            }
-                        }
-                    >
-                        <span class="btn-icon">"✏️"</span>
-                        <span class="btn-label">{crate::i18n::tr("folder_modal_edit_title", current_lang)}</span>
-                    </button>
-                    <button
-                        type="button"
-                        class="drive-action-btn btn-folder-delete"
-                        title=crate::i18n::tr("folder_modal_delete_title", current_lang)
-                        on:click={
-                            let fd = f_for_del.clone();
-                            move |_| {
-                                set_folder_to_delete.set(Some(fd.clone()));
-                            }
-                        }
-                    >
-                        <span class="btn-icon">"🗑️"</span>
-                        <span class="btn-label">{crate::i18n::tr("folder_modal_delete_title", current_lang)}</span>
-                    </button>
-                    <button
-                        type="button"
-                        class="drive-action-btn btn-drive-back"
-                        on:click={
-                            let p_id = f_parent_id.clone();
-                            move |_| set_selected_folder_id.set(p_id.clone())
-                        }
-                    >
-                        <span>{crate::i18n::tr("drive_btn_back", current_lang)}</span>
-                    </button>
-                </div>
-            </div>
-
-            // Subfolders Section (if any subfolders exist)
-            {if has_subfolders {
-                let f_counts = folder_counts.clone();
-                view! {
-                    <div class="drive-section">
-                        <div class="drive-section-header">
-                            <h3 class="drive-section-title">
-                                <span>{crate::i18n::tr("drive_subfolders_title", current_lang)}</span>
-                                <span class="drive-count-badge">{subfolders.len()}</span>
-                            </h3>
-                        </div>
-                        <div class="drive-folders-grid">
-                            {subfolders.into_iter().map(|f| {
-                                let count = f_counts.get(&f.id).copied().unwrap_or(0);
-                                let item_label = if count == 1 {
-                                    crate::i18n::tr("drive_item_count_single", current_lang)
-                                } else {
-                                    crate::i18n::tr("drive_item_count_plural", current_lang)
-                                };
-                                render_single_folder_card(
-                                    f,
-                                    count,
-                                    item_label,
-                                    current_lang,
-                                    dragged_sheet_id,
-                                    dragged_folder_id,
-                                    drag_over_folder_id,
-                                    set_dragged_sheet_id,
-                                    set_dragged_folder_id,
-                                    set_drag_over_folder_id,
-                                    set_selected_folder_id,
-                                    set_folder_edit_name,
-                                    set_folder_edit_icon,
-                                    set_folder_to_edit,
-                                    set_folder_to_delete,
-                                    open_share_modal,
-                                    handle_move_sheet,
-                                    handle_move_folder,
-                                )
-                            }).collect_view()}
-                        </div>
-                    </div>
-                }.into_view()
-            } else {
-                ().into_view()
-            }}
-
-            {if folder_sheets.is_empty() && !has_subfolders {
-                view! {
-                    <div class="drive-empty-folder-box">
-                        <span class="drive-empty-icon">"📂"</span>
-                        <p class="drive-empty-title">{crate::i18n::tr("folder_empty_in_folder", current_lang)}</p>
-                        <p class="drive-empty-desc">{crate::i18n::tr("drive_folder_empty", current_lang)}</p>
-                    </div>
-                }.into_view()
-            } else if !folder_sheets.is_empty() {
-                view! {
-                    <div class="drive-section">
-                        <div class="drive-section-header">
-                            <h3 class="drive-section-title">
-                                <span>{crate::i18n::tr("drive_sheets_title", current_lang)}</span>
-                                <span class="drive-count-badge">{sheets_count}</span>
-                            </h3>
-                        </div>
-                        {render_character_grid(
-                            folder_sheets,
-                            set_sheet_to_delete,
-                            set_sheet_to_move,
-                            toggle_privacy,
-                            folders_info,
-                            current_lang,
-                            dragged_sheet_id,
-                            set_dragged_sheet_id,
-                            set_drag_over_folder_id,
-                        )}
-                    </div>
-                }.into_view()
-            } else {
-                ().into_view()
-            }}
-        </div>
-    }.into_view()
+    counts
 }
 
-pub fn render_root_drive_view<FShare, FMoveSheet, FMoveFolder, FTogglePrivacy>(
-    folder_list: &[SheetFolder],
-    all_sheets: Vec<CharacterSummary>,
-    root_view_mode: ReadSignal<&'static str>,
-    set_root_view_mode: WriteSignal<&'static str>,
-    total_count: usize,
-    unorganized_count: usize,
-    folder_counts: &HashMap<String, usize>,
-    folders_info: HashMap<String, (String, String)>,
-    current_lang: crate::i18n::Language,
-    ds: &DriveState,
-    open_share_modal: FShare,
-    handle_move_sheet: FMoveSheet,
-    handle_move_folder: FMoveFolder,
-    toggle_privacy: FTogglePrivacy,
-) -> View
-where
-    FShare: Fn(SheetFolder) + Copy + 'static,
-    FMoveSheet: Fn(String, Option<String>) + Copy + 'static,
-    FMoveFolder: Fn(String, Option<String>) + Copy + 'static,
-    FTogglePrivacy: Fn(String, bool) + Copy + 'static,
-{
-    let root_folders: Vec<SheetFolder> = folder_list.iter().filter(|f| f.parent_id.is_none()).cloned().collect();
-    let has_folders = !root_folders.is_empty();
-    let view_mode = root_view_mode.get();
+/// Caminho da raiz até a pasta `fid` (inclusive).
+fn ancestry(fid: &str, folders: &[SheetFolder]) -> Vec<SheetFolder> {
+    let mut path = Vec::new();
+    let mut current = Some(fid.to_string());
+    while let Some(id) = current {
+        let Some(folder) = folders.iter().find(|f| f.id == id) else { break };
+        path.push(folder.clone());
+        current = folder.parent_id.clone();
+    }
+    path.reverse();
+    path
+}
 
-    let root_sheets: Vec<CharacterSummary> = if view_mode == "all" {
-        all_sheets
-    } else {
-        all_sheets.into_iter().filter(|s| s.folder_id.is_none()).collect()
+#[component]
+fn DriveSectionTitle(title: &'static str, count: usize) -> impl IntoView {
+    view! {
+        <h3 class="drive-section-title">
+            <span>{title}</span>
+            <span class="drive-count-badge">{count}</span>
+        </h3>
+    }
+}
+
+/// Grade de pastas com o contador de fichas de cada uma.
+#[component]
+fn FolderGrid(title: &'static str, folders: Vec<SheetFolder>, counts: HashMap<String, usize>, lang: Language) -> impl IntoView {
+    view! {
+        <div class="drive-section">
+            <div class="drive-section-header">
+                <DriveSectionTitle title=title count=folders.len() />
+            </div>
+            <div class="drive-folders-grid">
+                {folders.into_iter().map(|f| {
+                    let count = counts.get(&f.id).copied().unwrap_or(0);
+                    view! { <FolderCard folder=f count=count lang=lang /> }
+                }).collect_view()}
+            </div>
+        </div>
+    }
+}
+
+/// Item da trilha de navegação que também aceita fichas e pastas soltas.
+#[component]
+fn BreadcrumbDrop(target: Option<String>, icon: String, name: String, title: Option<&'static str>) -> impl IntoView {
+    let home = use_home();
+    let drag = home.drag;
+    let key = store_value(target.clone().unwrap_or_else(|| ROOT_DROP.to_string()));
+    let target = store_value(target);
+    view! {
+        <button
+            type="button"
+            class="drive-breadcrumb-item clickable"
+            class:drag-over=move || key.with_value(|k| drag.is_over(k))
+            class:drag-targetable=move || drag.is_dragging()
+            on:click=move |_| home.selected_folder.set(target.get_value())
+            on:dragover=allow_drop
+            on:dragenter=move |ev: ev::DragEvent| key.with_value(|k| drag.enter(&ev, k))
+            on:dragleave=move |_| key.with_value(|k| drag.leave(k))
+            on:drop=move |ev: ev::DragEvent| home.drop_on(&ev, target.get_value())
+            title=title
+        >
+            <span class="drive-bc-icon">{icon}</span>
+            <span>{name}</span>
+        </button>
+    }
+}
+
+/// Conteúdo de uma pasta: trilha, ações da pasta, subpastas e fichas.
+#[component]
+pub fn FolderView(fid: String, folders: Vec<SheetFolder>, sheets: Vec<CharacterSummary>, lang: Language) -> impl IntoView {
+    let home = use_home();
+    let Some(current) = folders.iter().find(|f| f.id == fid).cloned() else {
+        // A pasta sumiu (excluída em outra aba): volta para a raiz
+        home.selected_folder.set(None);
+        return view! { <div class="drive-container"></div> }.into_view();
     };
-    let current_sheets_count = root_sheets.len();
+    let counts = folder_counts(&sheets);
+    let info = folders_info(&folders);
+    let folder_sheets: Vec<CharacterSummary> = sheets.into_iter().filter(|s| s.folder_id.as_deref() == Some(fid.as_str())).collect();
+    let subfolders: Vec<SheetFolder> = folders.iter().filter(|f| f.parent_id.as_deref() == Some(fid.as_str())).cloned().collect();
+    let mut path = ancestry(&fid, &folders);
+    path.pop();
 
-    let drag_over_folder_id = ds.drag_over_folder_id;
-    let dragged_sheet_id = ds.dragged_sheet_id;
-    let dragged_folder_id = ds.dragged_folder_id;
-    let set_drag_over_folder_id = ds.set_drag_over_folder_id;
-    let set_dragged_sheet_id = ds.set_dragged_sheet_id;
-    let set_dragged_folder_id = ds.set_dragged_folder_id;
-    let set_selected_folder_id = ds.set_selected_folder_id;
-    let set_create_folder_parent = ds.set_create_folder_parent;
-    let set_folder_input_name = ds.set_folder_input_name;
-    let set_folder_input_icon = ds.set_folder_input_icon;
-    let set_is_create_folder_open = ds.set_is_create_folder_open;
-    let set_folder_edit_name = ds.set_folder_edit_name;
-    let set_folder_edit_icon = ds.set_folder_edit_icon;
-    let set_folder_to_edit = ds.set_folder_to_edit;
-    let set_folder_to_delete = ds.set_folder_to_delete;
-    let set_sheet_to_delete = ds.set_sheet_to_delete;
-    let set_sheet_to_move = ds.set_sheet_to_move;
+    let folder = store_value(current.clone());
+    let parent_id = current.parent_id.clone();
+    let is_empty = folder_sheets.is_empty() && subfolders.is_empty();
 
     view! {
         <div class="drive-container">
             <div class="drive-nav-bar">
                 <div class="drive-breadcrumbs">
-                    <span
-                        class="drive-breadcrumb-item active"
-                        class:drag-over=move || drag_over_folder_id.get().as_deref() == Some("__root__")
-                        on:dragover=move |ev: ev::DragEvent| {
-                            ev.prevent_default();
-                            if let Some(dt) = ev.data_transfer() {
-                                let _ = dt.set_drop_effect("move");
-                            }
-                        }
-                        on:dragenter=move |ev: ev::DragEvent| {
-                            ev.prevent_default();
-                            set_drag_over_folder_id.set(Some("__root__".to_string()));
-                        }
-                        on:dragleave=move |_| {
-                            if drag_over_folder_id.get_untracked().as_deref() == Some("__root__") {
-                                set_drag_over_folder_id.set(None);
-                            }
-                        }
-                        on:drop=move |ev: ev::DragEvent| {
-                            ev.prevent_default();
-                            set_drag_over_folder_id.set(None);
-                            if let Some(sheet_id) = dragged_sheet_id.get_untracked() {
-                                handle_move_sheet(sheet_id, None);
-                                set_dragged_sheet_id.set(None);
-                            } else if let Some(folder_id) = dragged_folder_id.get_untracked() {
-                                handle_move_folder(folder_id, None);
-                                set_dragged_folder_id.set(None);
-                            }
-                        }
-                    >
-                        <span class="drive-bc-icon">"📁"</span>
-                        <span>{crate::i18n::tr("drive_my_sheets", current_lang)}</span>
+                    <BreadcrumbDrop target=None icon="📁".into() name=tr("drive_my_sheets", lang).into() title=Some(tr("drive_move_to_root", lang)) />
+                    {path.into_iter().map(|f| view! {
+                        <span class="drive-breadcrumb-sep">"/"</span>
+                        <BreadcrumbDrop target=Some(f.id.clone()) icon=f.icon name=f.name title=None />
+                    }).collect_view()}
+                    <span class="drive-breadcrumb-sep">"/"</span>
+                    <span class="drive-breadcrumb-item active">
+                        <span class="drive-bc-icon">{current.icon.clone()}</span>
+                        <span>{current.name.clone()}</span>
                     </span>
                 </div>
 
@@ -476,149 +124,179 @@ where
                     <button
                         type="button"
                         class="drive-primary-btn"
-                        on:click=move |_| {
-                            set_create_folder_parent.set(None);
-                            set_folder_input_name.set(String::new());
-                            set_folder_input_icon.set("📁".to_string());
-                            set_is_create_folder_open.set(true);
-                        }
+                        on:click=move |_| home.folder_form.set(Some(FolderForm::create_in(Some(folder.with_value(|f| f.id.clone())))))
                     >
                         <span class="btn-icon">"➕"</span>
-                        <span>{crate::i18n::tr("drive_btn_new_folder", current_lang)}</span>
+                        <span>{tr("drive_btn_new_subfolder", lang)}</span>
+                    </button>
+                    <button
+                        type="button"
+                        class="drive-action-btn btn-folder-share"
+                        title=tr("drive_share_folder", lang)
+                        on:click=move |_| home.folder_to_share.set(Some(folder.get_value()))
+                    >
+                        <span class="btn-icon">"👥"</span>
+                        <span class="btn-label">{tr("drive_share_folder", lang)}</span>
+                    </button>
+                    <button
+                        type="button"
+                        class="drive-action-btn btn-folder-rename"
+                        title=tr("folder_modal_edit_title", lang)
+                        on:click=move |_| home.folder_form.set(Some(folder.with_value(FolderForm::edit)))
+                    >
+                        <span class="btn-icon">"✏️"</span>
+                        <span class="btn-label">{tr("folder_modal_edit_title", lang)}</span>
+                    </button>
+                    <button
+                        type="button"
+                        class="drive-action-btn btn-folder-delete"
+                        title=tr("folder_modal_delete_title", lang)
+                        on:click=move |_| home.folder_to_delete.set(Some(folder.get_value()))
+                    >
+                        <span class="btn-icon">"🗑️"</span>
+                        <span class="btn-label">{tr("folder_modal_delete_title", lang)}</span>
+                    </button>
+                    <button type="button" class="drive-action-btn btn-drive-back" on:click=move |_| home.selected_folder.set(parent_id.clone())>
+                        <span>{tr("drive_btn_back", lang)}</span>
                     </button>
                 </div>
             </div>
 
-            // Folders Grid (if any root folders exist)
-            {if has_folders {
-                let f_counts = folder_counts.clone();
+            {(!subfolders.is_empty()).then(|| view! {
+                <FolderGrid title=tr("drive_subfolders_title", lang) folders=subfolders counts=counts lang=lang />
+            })}
+
+            {if is_empty {
+                view! {
+                    <div class="drive-empty-folder-box">
+                        <span class="drive-empty-icon">"📂"</span>
+                        <p class="drive-empty-title">{tr("folder_empty_in_folder", lang)}</p>
+                        <p class="drive-empty-desc">{tr("drive_folder_empty", lang)}</p>
+                    </div>
+                }.into_view()
+            } else if !folder_sheets.is_empty() {
                 view! {
                     <div class="drive-section">
                         <div class="drive-section-header">
-                            <h3 class="drive-section-title">
-                                <span>{crate::i18n::tr("drive_folders_title", current_lang)}</span>
-                                <span class="drive-count-badge">{root_folders.len()}</span>
-                            </h3>
+                            <DriveSectionTitle title=tr("drive_sheets_title", lang) count=folder_sheets.len() />
                         </div>
-                        <div class="drive-folders-grid">
-                            {root_folders.into_iter().map(|f| {
-                                let count = f_counts.get(&f.id).copied().unwrap_or(0);
-                                let item_label = if count == 1 {
-                                    crate::i18n::tr("drive_item_count_single", current_lang)
-                                } else {
-                                    crate::i18n::tr("drive_item_count_plural", current_lang)
-                                };
-                                render_single_folder_card(
-                                    f,
-                                    count,
-                                    item_label,
-                                    current_lang,
-                                    dragged_sheet_id,
-                                    dragged_folder_id,
-                                    drag_over_folder_id,
-                                    set_dragged_sheet_id,
-                                    set_dragged_folder_id,
-                                    set_drag_over_folder_id,
-                                    set_selected_folder_id,
-                                    set_folder_edit_name,
-                                    set_folder_edit_icon,
-                                    set_folder_to_edit,
-                                    set_folder_to_delete,
-                                    open_share_modal,
-                                    handle_move_sheet,
-                                    handle_move_folder,
-                                )
-                            }).collect_view()}
-                        </div>
+                        <CharacterGrid sheets=folder_sheets folders_info=info lang=lang />
                     </div>
                 }.into_view()
             } else {
                 ().into_view()
             }}
+        </div>
+    }
+    .into_view()
+}
 
-            // Sheets Section
+/// Raiz do drive: pastas de primeiro nível e as fichas fora de pastas (ou todas).
+#[component]
+pub fn RootDriveView(
+    folders: Vec<SheetFolder>,
+    sheets: Vec<CharacterSummary>,
+    /// Mostrar todas as fichas, não só as que estão fora de pastas
+    show_all: bool,
+    lang: Language,
+) -> impl IntoView {
+    let home = use_home();
+    let drag = home.drag;
+    let mode = home.root_view_mode;
+    let counts = folder_counts(&sheets);
+    let info = folders_info(&folders);
+    let total_count = sheets.len();
+    let unorganized_count = sheets.iter().filter(|s| s.folder_id.is_none()).count();
+    let root_folders: Vec<SheetFolder> = folders.into_iter().filter(|f| f.parent_id.is_none()).collect();
+    let has_folders = !root_folders.is_empty();
+    let root_sheets: Vec<CharacterSummary> = if show_all { sheets } else { sheets.into_iter().filter(|s| s.folder_id.is_none()).collect() };
+
+    // A raiz também é alvo de soltura: tira fichas e pastas de dentro de pastas
+    let root_over = move || drag.is_over(ROOT_DROP);
+    let root_enter = move |ev: ev::DragEvent| drag.enter(&ev, ROOT_DROP);
+    let root_leave = move |_| drag.leave(ROOT_DROP);
+    let root_drop = move |ev: ev::DragEvent| home.drop_on(&ev, None);
+
+    view! {
+        <div class="drive-container">
+            <div class="drive-nav-bar">
+                <div class="drive-breadcrumbs">
+                    <span
+                        class="drive-breadcrumb-item active"
+                        class:drag-over=root_over
+                        on:dragover=allow_drop
+                        on:dragenter=root_enter
+                        on:dragleave=root_leave
+                        on:drop=root_drop
+                    >
+                        <span class="drive-bc-icon">"📁"</span>
+                        <span>{tr("drive_my_sheets", lang)}</span>
+                    </span>
+                </div>
+
+                <div class="drive-toolbar-actions">
+                    <button type="button" class="drive-primary-btn" on:click=move |_| home.folder_form.set(Some(FolderForm::create_in(None)))>
+                        <span class="btn-icon">"➕"</span>
+                        <span>{tr("drive_btn_new_folder", lang)}</span>
+                    </button>
+                </div>
+            </div>
+
+            {has_folders.then(|| view! {
+                <FolderGrid title=tr("drive_folders_title", lang) folders=root_folders counts=counts lang=lang />
+            })}
+
             <div class="drive-section">
                 <div class="drive-section-header">
-                    <h3 class="drive-section-title">
-                        <span>{if view_mode == "all" {
-                            crate::i18n::tr("drive_all_sheets", current_lang)
-                        } else {
-                            crate::i18n::tr("drive_root_sheets", current_lang)
-                        }}</span>
-                        <span class="drive-count-badge">{current_sheets_count}</span>
-                    </h3>
-
-                    {if has_folders {
-                        view! {
-                            <div class="drive-view-mode-toggle">
-                                <button
-                                    type="button"
-                                    class="drive-toggle-btn"
-                                    class:active=move || root_view_mode.get() == "unorganized"
-                                    class:drag-over=move || drag_over_folder_id.get().as_deref() == Some("__root__")
-                                    on:click=move |_| set_root_view_mode.set("unorganized")
-                                    on:dragover=move |ev: ev::DragEvent| {
-                                        ev.prevent_default();
-                                        if let Some(dt) = ev.data_transfer() {
-                                            let _ = dt.set_drop_effect("move");
-                                        }
-                                    }
-                                    on:dragenter=move |ev: ev::DragEvent| {
-                                        ev.prevent_default();
-                                        set_drag_over_folder_id.set(Some("__root__".to_string()));
-                                    }
-                                    on:dragleave=move |_| {
-                                        if drag_over_folder_id.get_untracked().as_deref() == Some("__root__") {
-                                            set_drag_over_folder_id.set(None);
-                                        }
-                                    }
-                                    on:drop=move |ev: ev::DragEvent| {
-                                        ev.prevent_default();
-                                        set_drag_over_folder_id.set(None);
-                                        if let Some(sheet_id) = dragged_sheet_id.get_untracked() {
-                                            handle_move_sheet(sheet_id, None);
-                                            set_dragged_sheet_id.set(None);
-                                        } else if let Some(folder_id) = dragged_folder_id.get_untracked() {
-                                            handle_move_folder(folder_id, None);
-                                            set_dragged_folder_id.set(None);
-                                        }
-                                    }
-                                >
-                                    {format!("{} ({})", crate::i18n::tr("drive_root_sheets", current_lang), unorganized_count)}
-                                </button>
-                                <button
-                                    type="button"
-                                    class="drive-toggle-btn"
-                                    class:active=move || root_view_mode.get() == "all"
-                                    on:click=move |_| set_root_view_mode.set("all")
-                                >
-                                    {format!("{} ({})", crate::i18n::tr("drive_all_sheets", current_lang), total_count)}
-                                </button>
-                            </div>
-                        }.into_view()
-                    } else {
-                        ().into_view()
-                    }}
+                    <DriveSectionTitle
+                        title=tr(if show_all { "drive_all_sheets" } else { "drive_root_sheets" }, lang)
+                        count=root_sheets.len()
+                    />
+                    {has_folders.then(|| view! {
+                        <div class="drive-view-mode-toggle">
+                            <button
+                                type="button"
+                                class="drive-toggle-btn"
+                                class:active=move || mode.get() == "unorganized"
+                                class:drag-over=root_over
+                                on:click=move |_| mode.set("unorganized")
+                                on:dragover=allow_drop
+                                on:dragenter=root_enter
+                                on:dragleave=root_leave
+                                on:drop=root_drop
+                            >
+                                {format!("{} ({})", tr("drive_root_sheets", lang), unorganized_count)}
+                            </button>
+                            <button type="button" class="drive-toggle-btn" class:active=move || mode.get() == "all" on:click=move |_| mode.set("all")>
+                                {format!("{} ({})", tr("drive_all_sheets", lang), total_count)}
+                            </button>
+                        </div>
+                    })}
                 </div>
 
                 {if root_sheets.is_empty() {
-                    view! {
-                        <p class="empty-msg">{crate::i18n::tr("home_empty_my", current_lang)}</p>
-                    }.into_view()
+                    view! { <p class="empty-msg">{tr("home_empty_my", lang)}</p> }.into_view()
                 } else {
-                    render_character_grid(
-                        root_sheets,
-                        set_sheet_to_delete,
-                        set_sheet_to_move,
-                        toggle_privacy,
-                        folders_info,
-                        current_lang,
-                        dragged_sheet_id,
-                        set_dragged_sheet_id,
-                        set_drag_over_folder_id,
-                    )
+                    view! { <CharacterGrid sheets=root_sheets folders_info=info lang=lang /> }.into_view()
                 }}
             </div>
         </div>
-    }.into_view()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn folder(id: &str, parent: Option<&str>) -> SheetFolder {
+        SheetFolder { id: id.into(), name: id.to_uppercase(), parent_id: parent.map(Into::into), ..Default::default() }
+    }
+
+    #[test]
+    fn ancestry_walks_from_root_to_the_folder() {
+        let folders = vec![folder("a", None), folder("b", Some("a")), folder("c", Some("b"))];
+        let ids: Vec<String> = ancestry("c", &folders).into_iter().map(|f| f.id).collect();
+        assert_eq!(ids, ["a", "b", "c"]);
+        assert!(ancestry("missing", &folders).is_empty());
+    }
 }

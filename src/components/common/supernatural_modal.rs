@@ -2,30 +2,31 @@ use leptos::*;
 use crate::state::DotOrigin;
 use super::callback::Callback;
 use super::dot_origin_popover::DotOriginPopover;
+use super::value_field::TraitField;
 
+/// Painel da escala sobrenatural (níveis 6 a 10) de um campo de característica.
 #[component]
 pub fn SupernaturalModal(
-    label: Signal<String>,
-    level: Signal<i32>,
-    #[prop(default = None)]
-    origins: Option<Signal<Vec<DotOrigin>>>,
-    modifier: Signal<String>,
-    #[prop(default = None)]
-    suggested_specialties: Option<Signal<Vec<&'static str>>>,
-    page_ref_str: Signal<String>,
+    field: TraitField,
     lang: Signal<crate::i18n::Language>,
-    modifier_ref: NodeRef<html::Input>,
-    last_modifier_value: RwSignal<String>,
-    open_popover_idx: ReadSignal<Option<usize>>,
-    set_open_popover_idx: WriteSignal<Option<usize>>,
     on_close: Callback<()>,
-    on_level_change: Callback<i32>,
-    #[prop(default = None)]
-    on_origin_change: Option<Callback<(usize, DotOrigin)>>,
-    on_modifier_input: Callback<String>,
-    #[prop(default = None)]
-    on_open_compendium: Option<Callback<()>>,
 ) -> impl IntoView {
+    let TraitField {
+        label,
+        level,
+        origins,
+        modifier,
+        suggested_specialties,
+        page_ref_str,
+        modifier_ref,
+        last_modifier_value,
+        popover,
+        on_level_change,
+        on_origin_change,
+        on_modifier_change: on_modifier_input,
+        on_open_compendium,
+    } = field;
+    let (open_popover_idx, set_open_popover_idx) = (popover.read_only(), popover.write_only());
     let is_sup_modifier_focused = create_rw_signal(false);
     let last_sup_modifier_value = create_rw_signal(modifier.get_untracked());
 
