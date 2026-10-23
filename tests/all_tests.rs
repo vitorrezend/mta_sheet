@@ -125,3 +125,5 @@ mod room_chat_test;
 mod room_notes_acl_test;
 #[path = "suites/realtime_and_versioning_test.rs"]
 mod realtime_and_versioning_test;
+#[path = "suites/migrations_test.rs"]
+mod migrations_test;

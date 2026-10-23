@@ -80,13 +80,7 @@ pub fn CharacterSheet() -> impl IntoView {
     let (show_share_modal, set_show_share_modal) = create_signal(false);
     let (show_clone_login_modal, set_show_clone_login_modal) = create_signal(false);
     let navigate = use_navigate();
-    let saver = SheetSaver {
-        in_flight: std::rc::Rc::new(std::cell::Cell::new(false)),
-        version: std::rc::Rc::new(std::cell::Cell::new(0)),
-        data,
-        set_data,
-        conflict: create_rw_signal(false),
-    };
+    let saver = SheetSaver::new(data, set_data);
     let sheet_conflict = saver.conflict;
 
     // Provide the sheet data and active dot origin as context for all child components
@@ -129,7 +123,7 @@ pub fn CharacterSheet() -> impl IntoView {
     let saver_load = saver.clone();
     create_effect(move |_| {
         if let Some(Ok(fetched_data)) = sheet_resource.get() {
-            saver_load.version.set(fetched_data.version);
+            saver_load.loaded(&fetched_data);
             let _ = set_data.try_set(fetched_data);
             let _ = set_is_loaded.try_set(true);
             let _ = set_is_dirty.try_set(false);

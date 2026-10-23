@@ -115,3 +115,6 @@ Caddyfile.local
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# --- Testes de ponta a ponta (Playwright) ---
+node_modules/

@@ -6,6 +6,7 @@ pub mod party_card_desktop;
 pub mod party_card_mobile;
 pub mod room_chat;
 pub mod room_events;
+pub mod room_notes;
 
 pub use rooms_page::RoomsPage;
 pub use room_view::RoomView;

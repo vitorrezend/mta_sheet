@@ -55,15 +55,17 @@ pub fn broadcast_to_room(room_id: &str, event: RoomBroadcastEvent) {
     let _ = sender.send(event);
 }
 
+/// Código de convite da sala: `MTA-XXXX-XXXX` (32^8 ≈ 1 trilhão de combinações).
+/// O alfabeto tem 32 símbolos (sem 0/O/1/I), então `byte % 32` não tem viés.
 #[cfg(feature = "ssr")]
 pub fn generate_room_code() -> String {
-    let chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let bytes = uuid::Uuid::new_v4().into_bytes();
-    let c1 = (bytes[0] as usize) % chars.len();
-    let c2 = (bytes[1] as usize) % chars.len();
-    let c3 = (bytes[2] as usize) % chars.len();
-    let c4 = (bytes[3] as usize) % chars.len();
-    format!("MTA-{}{}{}{}", &chars[c1..c1+1], &chars[c2..c2+1], &chars[c3..c3+1], &chars[c4..c4+1])
+    const CHARS: &[u8; 32] = b"ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let mut bytes = [0u8; 8];
+    if getrandom::getrandom(&mut bytes).is_err() {
+        bytes.copy_from_slice(&uuid::Uuid::new_v4().as_bytes()[..8]);
+    }
+    let symbols: String = bytes.iter().map(|b| CHARS[(*b % 32) as usize] as char).collect();
+    format!("MTA-{}-{}", &symbols[..4], &symbols[4..])
 }
 
 // ----------------------------------------------------------------------------
@@ -185,7 +187,9 @@ mod tests {
     fn test_room_code_generation() {
         let code = generate_room_code();
         assert!(code.starts_with("MTA-"));
-        assert_eq!(code.len(), 8);
+        assert_eq!(code.len(), 13, "formato MTA-XXXX-XXXX: {code}");
+        assert_eq!(code.matches('-').count(), 2);
+        assert_ne!(code, generate_room_code(), "códigos devem ser aleatórios");
         assert!(code.chars().all(|c| c.is_ascii_alphanumeric() || c == '-'));
     }
 }

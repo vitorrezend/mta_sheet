@@ -11,6 +11,7 @@ pub mod rules;
 pub mod compendium;
 pub mod repositories;
 pub mod settings;
+pub mod errors;
 #[cfg(feature = "ssr")]
 pub mod server;
 

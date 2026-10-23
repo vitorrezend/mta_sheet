@@ -27,6 +27,27 @@ pub fn validate_password_strength(pwd: &str) -> Result<(), &'static str> {
     Ok(())
 }
 
+/// bcrypt é intencionalmente lento (~100–250 ms de CPU). Rodar direto numa tarefa async
+/// trava uma thread do runtime e atrasa todas as outras requisições; por isso vai para
+/// o pool de threads de bloqueio do tokio.
+#[cfg(feature = "ssr")]
+pub async fn hash_password(password: &str, cost: u32) -> Result<String, String> {
+    let password = password.to_string();
+    tokio::task::spawn_blocking(move || bcrypt::hash(password, cost))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(|e| e.to_string())
+}
+
+#[cfg(feature = "ssr")]
+pub async fn verify_password(password: &str, hash: &str) -> Result<bool, String> {
+    let (password, hash) = (password.to_string(), hash.to_string());
+    tokio::task::spawn_blocking(move || bcrypt::verify(password, &hash))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(|e| e.to_string())
+}
+
 #[cfg(feature = "ssr")]
 pub async fn extract_client_ip_from_context() -> String {
     // IP resolvido pelo client_ip_middleware (considera apenas proxies confiáveis)
@@ -57,19 +78,63 @@ pub async fn extract_session_token() -> Option<String> {
         return None;
     };
 
-    let cookie_header = headers.get(http::header::COOKIE)?.to_str().ok()?;
-    log::trace!("Cookie header present in request");
-    for pair in cookie_header.split(';') {
-        let mut parts = pair.trim().splitn(2, '=');
-        if let (Some(key), Some(value)) = (parts.next(), parts.next()) {
-            if key.trim() == "session_token" {
-                let token = value.trim().to_string();
-                log::debug!("Extracted session_token: {}", mask_token(&token));
-                return Some(token);
-            }
-        }
+    let token = session_token_from_headers(&headers)?;
+    log::debug!("Extracted session_token: {}", mask_token(&token));
+    Some(token)
+}
+
+/// Token do cookie `session_token`. Único lugar que interpreta o cabeçalho Cookie.
+#[cfg(feature = "ssr")]
+pub fn session_token_from_headers(headers: &http::HeaderMap) -> Option<String> {
+    headers
+        .get_all(http::header::COOKIE)
+        .iter()
+        .filter_map(|h| h.to_str().ok())
+        .flat_map(|h| h.split(';'))
+        .filter_map(|pair| pair.trim().split_once('='))
+        .find(|(key, _)| key.trim() == "session_token")
+        .map(|(_, value)| value.trim().to_string())
+        .filter(|token| !token.is_empty())
+}
+
+/// Usuário de uma sessão ainda válida.
+#[cfg(feature = "ssr")]
+pub async fn user_id_from_session(pool: &sqlx::SqlitePool, token: &str) -> Option<String> {
+    sqlx::query_scalar("SELECT user_id FROM sessions WHERE id = ? AND expires_at > CURRENT_TIMESTAMP")
+        .bind(token)
+        .fetch_optional(pool)
+        .await
+        .ok()
+        .flatten()
+}
+
+/// Usuário logado a partir dos cabeçalhos (para handlers Axum fora das server functions).
+#[cfg(feature = "ssr")]
+pub async fn user_id_from_headers(pool: &sqlx::SqlitePool, headers: &http::HeaderMap) -> Option<String> {
+    let token = session_token_from_headers(headers)?;
+    user_id_from_session(pool, &token).await
+}
+
+/// Extrator Axum do usuário logado. Responde 401 se não houver sessão válida.
+///
+/// ```ignore
+/// async fn handler(AuthUser(user_id): AuthUser) -> impl IntoResponse { ... }
+/// ```
+#[cfg(feature = "ssr")]
+pub struct AuthUser(pub String);
+
+#[cfg(feature = "ssr")]
+#[axum::async_trait]
+impl<S: Send + Sync> axum::extract::FromRequestParts<S> for AuthUser {
+    type Rejection = (http::StatusCode, &'static str);
+
+    async fn from_request_parts(parts: &mut http::request::Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let pool = crate::database::get_db().await;
+        user_id_from_headers(&pool, &parts.headers)
+            .await
+            .map(AuthUser)
+            .ok_or((http::StatusCode::UNAUTHORIZED, "Autenticação necessária"))
     }
-    None
 }
 
 #[cfg(feature = "ssr")]
@@ -277,7 +342,7 @@ pub async fn register(username: String, password: String) -> Result<UserInfo, Se
     let is_first_user = user_count == 0;
     let is_admin = is_first_user || is_username_in_admin_env(&clean_user);
 
-    let password_hash = bcrypt::hash(&password, bcrypt::DEFAULT_COST)
+    let password_hash = crate::auth::hash_password(&password, bcrypt::DEFAULT_COST).await
         .map_err(|e| ServerFnError::new(format!("Erro ao processar senha: {}", e)))?;
 
     let user_id = Uuid::new_v4().to_string();
@@ -346,7 +411,7 @@ pub async fn login(username: String, password: String) -> Result<UserInfo, Serve
     let is_admin_col: i64 = row.try_get("is_admin").unwrap_or(0);
     let is_admin = is_admin_col == 1 || is_username_in_admin_env(&actual_username);
 
-    let is_valid = bcrypt::verify(&password, &password_hash)
+    let is_valid = crate::auth::verify_password(&password, &password_hash).await
         .map_err(|_| ServerFnError::new("Erro ao verificar credenciais"))?;
 
     if !is_valid {
@@ -468,7 +533,7 @@ pub async fn change_password(
     }
 
     // 4. Verificação criptográfica da senha atual
-    let is_valid = bcrypt::verify(&current_password, &current_password_hash)
+    let is_valid = crate::auth::verify_password(&current_password, &current_password_hash).await
         .map_err(|_| ServerFnError::new("Erro ao verificar senha atual."))?;
 
     if !is_valid {
@@ -482,7 +547,7 @@ pub async fn change_password(
     }
 
     // 5. Criptografar nova senha com Bcrypt
-    let new_password_hash = bcrypt::hash(&new_password, bcrypt::DEFAULT_COST)
+    let new_password_hash = crate::auth::hash_password(&new_password, bcrypt::DEFAULT_COST).await
         .map_err(|e| ServerFnError::new(format!("Erro ao processar nova senha: {}", e)))?;
 
     // 6. Atualizar hash no banco de dados

@@ -2,7 +2,7 @@ use leptos::*;
 use leptos_router::*;
 use crate::rooms::{
     get_room_details, assign_sheet_to_room, remove_sheet_from_room,
-    toggle_sheet_room_visibility, update_room_chantry, update_room_chronicle_notes,
+    toggle_sheet_room_visibility,
     clone_and_assign_sheet_to_member, update_room_settings, update_room_sheet_stats,
     update_room_sheet_order,
     QuickStatAction, ChantryPoolData, RoomMemberInfo, RoomDetails,
@@ -10,6 +10,7 @@ use crate::rooms::{
 use crate::state::get_sheets;
 use crate::components::Navbar;
 use crate::components::common::{Callback, WysiwygEditor};
+use crate::components::rooms::room_notes::{ChantrySection, ChronicleSection, SyncedDoc};
 use crate::components::rooms::{InitiativeDrawer, BattleGrid, PartyCardDesktop, PartyCardMobile, RoomChat, provide_chat_store, provide_room_events, on_room_event, RoomSoundMuted, RoomStreamEvent};
 use crate::rooms::{RoomBroadcastEvent, RoomMapData};
 
@@ -73,16 +74,9 @@ pub fn RoomView() -> impl IntoView {
     let (feedback_msg, set_feedback_msg) = create_signal(Option::<String>::None);
     let (error_msg, set_error_msg) = create_signal(Option::<String>::None);
 
-    let (chantry_loc, set_chantry_loc) = create_signal(String::new());
-    let (chantry_node, set_chantry_node) = create_signal(1);
-    let (chantry_library, set_chantry_library) = create_signal(1);
-    let (chantry_quint, set_chantry_quint) = create_signal(0);
-    let (chantry_max_quint, set_chantry_max_quint) = create_signal(20);
-    let (chantry_notes, set_chantry_notes) = create_signal(String::new());
-    let (chantry_initialized, set_chantry_initialized) = create_signal(false);
-
-    let (chronicle_text, set_chronicle_text) = create_signal(String::new());
-    let (chronicle_initialized, set_chronicle_initialized) = create_signal(false);
+    // Capela e Diário: documentos compartilhados com versão (ver room_notes.rs)
+    let chantry_doc = SyncedDoc::<ChantryPoolData>::new();
+    let chronicle_doc = SyncedDoc::<String>::new();
 
     let (map_data, set_map_data) = create_signal(RoomMapData::default());
     let (map_initialized, set_map_initialized) = create_signal(false);
@@ -104,19 +98,8 @@ pub fn RoomView() -> impl IntoView {
         if let Some(res) = room_resource.get() {
             match res {
                 Ok(room) => {
-                    if !chantry_initialized.get_untracked() {
-                        set_chantry_loc.set(room.chantry.location_name.clone());
-                        set_chantry_node.set(room.chantry.node_rating);
-                        set_chantry_library.set(room.chantry.library_rating);
-                        set_chantry_quint.set(room.chantry.quintessence_pool);
-                        set_chantry_max_quint.set(if room.chantry.max_quintessence > 0 { room.chantry.max_quintessence } else { 20 });
-                        set_chantry_notes.set(room.chantry.notes.clone());
-                        set_chantry_initialized.set(true);
-                    }
-                    if !chronicle_initialized.get_untracked() {
-                        set_chronicle_text.set(room.chronicle_notes.clone());
-                        set_chronicle_initialized.set(true);
-                    }
+                    chantry_doc.receive(room.chantry.clone(), room.chantry_version);
+                    chronicle_doc.receive(room.chronicle_notes.clone(), room.chronicle_version);
                     if !map_initialized.get_untracked() {
                         set_map_data.set(room.map_data.clone());
                         set_map_initialized.set(true);
@@ -216,50 +199,6 @@ pub fn RoomView() -> impl IntoView {
                     } else {
                         "Ficha agora está VISÍVEL para toda a mesa!".to_string()
                     }));
-                    room_resource.refetch();
-                }
-                Err(e) => {
-                    set_error_msg.set(Some(e.to_string()));
-                }
-            }
-        });
-    };
-
-    let on_save_chantry = move |_| {
-        let r_id = room_id();
-        if r_id.is_empty() { return; }
-
-        let chantry_data = ChantryPoolData {
-            quintessence_pool: chantry_quint.get(),
-            max_quintessence: chantry_max_quint.get(),
-            node_rating: chantry_node.get(),
-            library_rating: chantry_library.get(),
-            location_name: chantry_loc.get(),
-            notes: chantry_notes.get(),
-        };
-
-        spawn_local(async move {
-            match update_room_chantry(r_id, chantry_data).await {
-                Ok(_) => {
-                    set_feedback_msg.set(Some("Recursos da Capela atualizados com sucesso!".to_string()));
-                    room_resource.refetch();
-                }
-                Err(e) => {
-                    set_error_msg.set(Some(e.to_string()));
-                }
-            }
-        });
-    };
-
-    let on_save_chronicle = move |_| {
-        let r_id = room_id();
-        if r_id.is_empty() { return; }
-
-        let text = chronicle_text.get();
-        spawn_local(async move {
-            match update_room_chronicle_notes(r_id, text).await {
-                Ok(_) => {
-                    set_feedback_msg.set(Some("Diário da Crônica salvo com sucesso!".to_string()));
                     room_resource.refetch();
                 }
                 Err(e) => {
@@ -419,6 +358,12 @@ pub fn RoomView() -> impl IntoView {
         }
         RoomStreamEvent::Event(RoomBroadcastEvent::PresenceChanged { online_user_ids }) => {
             set_online_ids.set(online_user_ids.clone());
+        }
+        RoomStreamEvent::Event(RoomBroadcastEvent::ChantryUpdated { chantry, version }) => {
+            chantry_doc.receive(chantry.clone(), *version);
+        }
+        RoomStreamEvent::Event(RoomBroadcastEvent::ChronicleUpdated { notes, version }) => {
+            chronicle_doc.receive(notes.clone(), *version);
         }
         RoomStreamEvent::Event(RoomBroadcastEvent::RoomUpdated | RoomBroadcastEvent::Resync) | RoomStreamEvent::Reconnected => {
             refetch_soon();
@@ -673,34 +618,7 @@ pub fn RoomView() -> impl IntoView {
                                     </section>
                                 }.into_view()
                             } else if active_tab.get() == "chantry" {
-                                view! {
-                                    <section class="room-chantry-section">
-                                        <div class="section-header"><h2>"Santuário da Cabala"</h2><button class="save-chantry-btn" on:click=on_save_chantry>"Salvar Capela"</button></div>
-                                        <div class="chantry-grid">
-                                            <div class="chantry-card">
-                                                <h3>"Quintessência"</h3>
-                                                <div class="pool-numbers">{move || chantry_quint.get()}"/"{move || chantry_max_quint.get()}</div>
-                                                <div class="pool-actions">
-                                                    <button on:click=move |_| set_chantry_quint.update(|q| *q = (*q - 1).max(0))>"-"</button>
-                                                    <button on:click=move |_| set_chantry_quint.update(|q| *q = (*q + 1).min(chantry_max_quint.get()))>"+"</button>
-                                                </div>
-                                            </div>
-                                            <div class="chantry-card">
-                                                <h3>"Localização / Nome"</h3>
-                                                <input type="text" prop:value=move || chantry_loc.get() on:input=move |e| set_chantry_loc.set(event_target_value(&e))/>
-                                            </div>
-                                            <div class="chantry-card chantry-card-full">
-                                                <h3>"Notas e Recursos Comuns"</h3>
-                                                <WysiwygEditor
-                                                    value=chantry_notes
-                                                    on_change=Callback::new(move |val| set_chantry_notes.set(val))
-                                                    placeholder="Notas, recursos, aliados, defesas e relíquias guardadas na Capela..."
-                                                    min_height="120px"
-                                                />
-                                            </div>
-                                        </div>
-                                    </section>
-                                }.into_view()
+                                view! { <ChantrySection doc=chantry_doc room_id=room_id_sig /> }.into_view()
                             } else if active_tab.get() == "chat" {
                                 view! {
                                     <RoomChat 
@@ -710,20 +628,7 @@ pub fn RoomView() -> impl IntoView {
                                     />
                                 }.into_view()
                             } else if active_tab.get() == "chronicle" {
-                                view! {
-                                    <section class="room-chronicle-section">
-                                        <div class="section-header">
-                                            <h2>"Diário da Crônica & Mural"</h2>
-                                            <button class="save-chantry-btn" on:click=on_save_chronicle>"Salvar Diário"</button>
-                                        </div>
-                                        <WysiwygEditor
-                                            value=chronicle_text
-                                            on_change=Callback::new(move |val| set_chronicle_text.set(val))
-                                            placeholder="Diário da crônica, resumo das sessões, pistas investigativas e avisos para a Cabala..."
-                                            min_height="320px"
-                                        />
-                                    </section>
-                                }.into_view()
+                                view! { <ChronicleSection doc=chronicle_doc room_id=room_id_sig /> }.into_view()
                             } else if active_tab.get() == "settings" && is_gm_sig.get() {
                                 let r_id = room_id();
                                 let on_save_settings = move |ev: ev::SubmitEvent| {
