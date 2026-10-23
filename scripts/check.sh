@@ -72,6 +72,8 @@ run_suite room_chat.js webkit
 sleep 61
 run_suite room_features.js
 sleep 61
+run_suite room_map.js
+sleep 61
 run_suite screens_sweep.js iphone
 sleep 61
 run_suite screens_sweep.js desktop
