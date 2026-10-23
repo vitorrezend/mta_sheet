@@ -3,6 +3,7 @@ use leptos_router::A;
 use wasm_bindgen::JsCast;
 use crate::components::Callback;
 use crate::state::{CharacterData, CostSummary, DotOrigin};
+use super::ActiveDotOriginContext;
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum SaveStatus {
@@ -13,26 +14,52 @@ pub enum SaveStatus {
     Error(String),
 }
 
+/// O que a barra mostra sobre a ficha.
+#[derive(Clone)]
+pub struct SheetTopBarState {
+    pub costs: Memo<CostSummary>,
+    pub save_status: Signal<SaveStatus>,
+    pub is_public: Signal<bool>,
+    pub can_edit: MaybeSignal<bool>,
+    pub author_username: MaybeSignal<Option<String>>,
+}
+
+/// O que os botões da barra fazem: ações e janelas que eles abrem.
+#[derive(Clone)]
+pub struct SheetTopBarActions {
+    pub on_back_click: Callback<ev::MouseEvent>,
+    pub do_manual_save: Callback<ev::MouseEvent>,
+    pub on_toggle_privacy: Callback<()>,
+    pub on_export_json: Callback<()>,
+    pub on_import_json: Callback<CharacterData>,
+    pub on_clone_sheet: Option<Callback<()>>,
+    pub set_show_breakdown: WriteSignal<bool>,
+    pub set_show_quiz: WriteSignal<bool>,
+    pub set_show_pdf_modal: Option<WriteSignal<bool>>,
+    pub set_show_share_modal: Option<WriteSignal<bool>>,
+}
+
 #[component]
 pub fn SheetTopBar(
-    active_origin: ReadSignal<DotOrigin>,
-    set_active_origin: WriteSignal<DotOrigin>,
-    costs: Memo<CostSummary>,
-    set_show_breakdown: WriteSignal<bool>,
-    set_show_quiz: WriteSignal<bool>,
-    save_status: ReadSignal<SaveStatus>,
-    is_public: Signal<bool>,
-    on_toggle_privacy: Callback<()>,
-    on_back_click: Callback<ev::MouseEvent>,
-    do_manual_save: Callback<ev::MouseEvent>,
-    on_export_json: Callback<()>,
-    on_import_json: Callback<CharacterData>,
-    #[prop(optional)] set_show_pdf_modal: Option<WriteSignal<bool>>,
-    #[prop(optional)] set_show_share_modal: Option<WriteSignal<bool>>,
-    #[prop(into, default = true.into())] can_edit: MaybeSignal<bool>,
-    #[prop(into, default = None.into())] author_username: MaybeSignal<Option<String>>,
-    #[prop(optional)] on_clone_sheet: Option<Callback<()>>,
+    /// Modo de pontos ativo (Base, Bônus, XP, Buff)
+    origin: ActiveDotOriginContext,
+    state: SheetTopBarState,
+    actions: SheetTopBarActions,
 ) -> impl IntoView {
+    let ActiveDotOriginContext { origin: active_origin, set_origin: set_active_origin } = origin;
+    let SheetTopBarState { costs, save_status, is_public, can_edit, author_username } = state;
+    let SheetTopBarActions {
+        on_back_click,
+        do_manual_save,
+        on_toggle_privacy,
+        on_export_json,
+        on_import_json,
+        on_clone_sheet,
+        set_show_breakdown,
+        set_show_quiz,
+        set_show_pdf_modal,
+        set_show_share_modal,
+    } = actions;
     let import_input_ref = create_node_ref::<html::Input>();
 
     let on_file_change = move |ev: ev::Event| {
@@ -90,7 +117,9 @@ pub fn SheetTopBar(
             // ── LINHA ÚNICA ULTRA-CLEAN: Navegação, Idioma, Pontos, Status, Salvar e Menu ──
             <div class="top-bar-primary-row">
                 <div class="top-bar-left">
-                    <a href="/" class="back-link" on:click=move |ev| on_back_click.call(ev) title="Voltar para o Início">
+                    // Sem delegação: o roteador também escuta cliques em links no window e navegaria
+                    // antes de a edição pendente ser salva
+                    <a href="/" class="back-link" on:click:undelegated=move |ev| on_back_click.call(ev) title="Voltar para o Início">
                         <span class="btn-text">{move || crate::i18n::tr("home", lang())}</span>
                     </a>
 
@@ -524,34 +553,31 @@ mod tests {
     fn test_sheet_top_bar_rendering_and_stable_root_structure() {
         let runtime = create_runtime();
 
-        let (active_origin, set_active_origin) = create_signal(DotOrigin::Base);
-        let costs = create_memo(|_| CostSummary::default());
+        let (origin, set_origin) = create_signal(DotOrigin::Base);
         let (_show_breakdown, set_show_breakdown) = create_signal(false);
         let (_show_quiz, set_show_quiz) = create_signal(false);
-        let (save_status, _set_save_status) = create_signal(SaveStatus::Idle);
-        let (is_public, _set_is_public) = create_signal(false);
-
-        let on_toggle_privacy = Callback::new(|_| ());
-        let on_back_click = Callback::new(|_| ());
-        let do_manual_save = Callback::new(|_| ());
-        let on_export_json = Callback::new(|_| ());
-        let on_import_json = Callback::new(|_| ());
+        let state = SheetTopBarState {
+            costs: create_memo(|_| CostSummary::default()),
+            save_status: Signal::derive(|| SaveStatus::Idle),
+            is_public: Signal::derive(|| false),
+            can_edit: true.into(),
+            author_username: None.into(),
+        };
+        let actions = SheetTopBarActions {
+            on_back_click: Callback::new(|_| ()),
+            do_manual_save: Callback::new(|_| ()),
+            on_toggle_privacy: Callback::new(|_| ()),
+            on_export_json: Callback::new(|_| ()),
+            on_import_json: Callback::new(|_| ()),
+            on_clone_sheet: None,
+            set_show_breakdown,
+            set_show_quiz,
+            set_show_pdf_modal: None,
+            set_show_share_modal: None,
+        };
 
         let view = view! {
-            <SheetTopBar
-                active_origin=active_origin
-                set_active_origin=set_active_origin
-                costs=costs
-                set_show_breakdown=set_show_breakdown
-                set_show_quiz=set_show_quiz
-                save_status=save_status
-                is_public=is_public.into()
-                on_toggle_privacy=on_toggle_privacy
-                on_back_click=on_back_click
-                do_manual_save=do_manual_save
-                on_export_json=on_export_json
-                on_import_json=on_import_json
-            />
+            <SheetTopBar origin=ActiveDotOriginContext { origin, set_origin } state=state actions=actions />
         };
 
         let html = view.into_view().render_to_string();

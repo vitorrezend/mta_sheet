@@ -1,30 +1,117 @@
 use leptos::*;
-use crate::state::{FolderAclEntry, SheetFolder};
+use crate::state::{get_folder_acls, grant_folder_acl, revoke_folder_acl, FolderAclEntry};
+use super::store::{use_home, use_lang};
 
-pub fn render_folder_acl_modal<FCancel, FGrant, FRevoke>(
-    folder_to_share: ReadSignal<Option<SheetFolder>>,
-    cancel_share_folder: FCancel,
-    acl_error_msg: ReadSignal<Option<String>>,
-    share_grantee_type: ReadSignal<String>,
-    set_share_grantee_type: WriteSignal<String>,
-    share_target_input: ReadSignal<String>,
-    set_share_target_input: WriteSignal<String>,
-    share_permission_level: ReadSignal<String>,
-    set_share_permission_level: WriteSignal<String>,
-    is_granting_acl: ReadSignal<bool>,
-    handle_grant_acl: FGrant,
-    is_loading_acls: ReadSignal<bool>,
-    folder_acls_list: ReadSignal<Vec<FolderAclEntry>>,
-    handle_revoke_acl: FRevoke,
-    current_lang: crate::i18n::Language,
-) -> impl IntoView
-where
-    FCancel: Fn(ev::MouseEvent) + Copy + 'static,
-    FGrant: Fn(ev::SubmitEvent) + Copy + 'static,
-    FRevoke: Fn(String) + Copy + 'static,
-{
+/// Estado da janela de compartilhamento: formulário de novo acesso e a lista de acessos da pasta.
+#[derive(Clone, Copy)]
+struct AclState {
+    entries: RwSignal<Vec<FolderAclEntry>>,
+    loading: RwSignal<bool>,
+    granting: RwSignal<bool>,
+    error: RwSignal<Option<String>>,
+    grantee_type: RwSignal<String>,
+    target: RwSignal<String>,
+    permission: RwSignal<String>,
+}
+
+impl AclState {
+    fn load(self, folder_id: String) {
+        self.loading.set(true);
+        self.error.set(None);
+        spawn_local(async move {
+            match get_folder_acls(folder_id).await {
+                Ok(entries) => self.entries.set(entries),
+                Err(e) => self.error.set(Some(format!("Erro ao carregar permissões: {}", e))),
+            }
+            self.loading.set(false);
+        });
+    }
+
+    fn grant(self, folder_id: String) {
+        if self.granting.get_untracked() {
+            return;
+        }
+        let grantee_type = self.grantee_type.get_untracked();
+        let target = self.target.get_untracked().trim().to_string();
+        if grantee_type != "public" && target.is_empty() {
+            self.error.set(Some("Por favor, preencha o destinatário.".to_string()));
+            return;
+        }
+        self.granting.set(true);
+        self.error.set(None);
+        let permission = self.permission.get_untracked();
+        spawn_local(async move {
+            match grant_folder_acl(folder_id.clone(), grantee_type, target, permission).await {
+                Ok(_) => {
+                    self.target.set(String::new());
+                    self.load(folder_id);
+                }
+                Err(e) => self.error.set(Some(format!("Erro ao conceder permissão: {}", e))),
+            }
+            self.granting.set(false);
+        });
+    }
+
+    fn revoke(self, folder_id: String, acl_id: String) {
+        spawn_local(async move {
+            match revoke_folder_acl(acl_id).await {
+                Ok(_) => self.load(folder_id),
+                Err(e) => self.error.set(Some(format!("Erro ao revogar permissão: {}", e))),
+            }
+        });
+    }
+}
+
+#[component]
+pub fn FolderAclModal() -> impl IntoView {
+    let home = use_home();
+    let lang = use_lang();
+    let folder_to_share = home.folder_to_share;
+    let acl = AclState {
+        entries: create_rw_signal(Vec::new()),
+        loading: create_rw_signal(false),
+        granting: create_rw_signal(false),
+        error: create_rw_signal(None),
+        grantee_type: create_rw_signal("user".to_string()),
+        target: create_rw_signal(String::new()),
+        permission: create_rw_signal("read".to_string()),
+    };
+    // Ao abrir para uma pasta: limpa o formulário e carrega os acessos dela
+    create_effect(move |_| {
+        if let Some(id) = folder_to_share.with(|f| f.as_ref().map(|f| f.id.clone())) {
+            acl.target.set(String::new());
+            acl.error.set(None);
+            acl.load(id);
+        }
+    });
+    let shared_id = move || folder_to_share.with_untracked(|f| f.as_ref().map(|f| f.id.clone()));
+    let cancel_share_folder = move |_| {
+        folder_to_share.set(None);
+        acl.error.set(None);
+    };
+    let handle_grant_acl = move |ev: ev::SubmitEvent| {
+        ev.prevent_default();
+        if let Some(id) = shared_id() {
+            acl.grant(id);
+        }
+    };
+    let handle_revoke_acl = move |acl_id: String| {
+        if let Some(id) = shared_id() {
+            acl.revoke(id, acl_id);
+        }
+    };
+    let AclState {
+        entries: folder_acls_list,
+        loading: is_loading_acls,
+        granting: is_granting_acl,
+        error: acl_error_msg,
+        grantee_type: share_grantee_type,
+        target: share_target_input,
+        permission: share_permission_level,
+    } = acl;
+
     view! {
-        {move || folder_to_share.get().map(|target_folder| {
+        {move || { let current_lang = lang.get(); folder_to_share.get().map(|target_folder| {
             let tf_name = target_folder.name.clone();
             let tf_icon = target_folder.icon.clone();
 
@@ -56,7 +143,7 @@ where
                                 type="button"
                                 class="share-type-tab-btn"
                                 class:active=move || share_grantee_type.get() == "user"
-                                on:click=move |_| set_share_grantee_type.set("user".to_string())
+                                on:click=move |_| share_grantee_type.set("user".to_string())
                             >
                                 <span>"👤"</span>
                                 <span>{crate::i18n::tr("drive_share_with_user", current_lang)}</span>
@@ -65,7 +152,7 @@ where
                                 type="button"
                                 class="share-type-tab-btn"
                                 class:active=move || share_grantee_type.get() == "room"
-                                on:click=move |_| set_share_grantee_type.set("room".to_string())
+                                on:click=move |_| share_grantee_type.set("room".to_string())
                             >
                                 <span>"🏰"</span>
                                 <span>{crate::i18n::tr("drive_share_with_room", current_lang)}</span>
@@ -74,7 +161,7 @@ where
                                 type="button"
                                 class="share-type-tab-btn"
                                 class:active=move || share_grantee_type.get() == "public"
-                                on:click=move |_| set_share_grantee_type.set("public".to_string())
+                                on:click=move |_| share_grantee_type.set("public".to_string())
                             >
                                 <span>"🌐"</span>
                                 <span>"Público"</span>
@@ -108,7 +195,7 @@ where
                                                 type="text"
                                                 placeholder=placeholder
                                                 prop:value=share_target_input
-                                                on:input=move |ev| set_share_target_input.set(event_target_value(&ev))
+                                                on:input=move |ev| share_target_input.set(event_target_value(&ev))
                                                 required
                                             />
                                         </div>
@@ -121,7 +208,7 @@ where
                                     <label class="share-field-label">"Nível de Permissão"</label>
                                     <select
                                         class="share-perm-select"
-                                        on:change=move |ev| set_share_permission_level.set(event_target_value(&ev))
+                                        on:change=move |ev| share_permission_level.set(event_target_value(&ev))
                                         prop:value=share_permission_level
                                     >
                                         <option value="read">{crate::i18n::tr("drive_share_permission_read", current_lang)}</option>
@@ -218,6 +305,6 @@ where
                     </div>
                 </div>
             }
-        })}
+        })}}
     }
 }

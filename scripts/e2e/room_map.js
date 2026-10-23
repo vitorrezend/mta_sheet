@@ -52,6 +52,18 @@ async function dragOnBoard(page, from, to, steps = 8) {
   await page.mouse.move(x2, y2, { steps });
   await page.mouse.up();
 }
+// Arraste com tremor vertical (como uma mão de verdade passando perto dos cantos)
+async function shakyDrag(page, from, to, wobble = 14, steps = 24) {
+  const [x1, y1] = await toScreen(page, ...from);
+  const [x2, y2] = await toScreen(page, ...to);
+  await page.mouse.move(x1, y1);
+  await page.mouse.down();
+  for (let i = 1; i <= steps; i++) {
+    const t = i / steps;
+    await page.mouse.move(x1 + (x2 - x1) * t, y1 + (y2 - y1) * t + (i % 2 ? wobble : -wobble) * (i < steps ? 1 : 0));
+  }
+  await page.mouse.up();
+}
 async function tapOnBoard(page, bx, by) {
   const [x, y] = await toScreen(page, bx, by);
   await page.mouse.click(x, y);
@@ -128,12 +140,37 @@ const near = (c, hex) => {
 
   await step('paredes', async () => {
     await gm.locator('.grid-tool-btn:has-text("Paredes")').click();
-    await gm.locator('.grid-swatch:has-text("Porta fechada")').click();
-    const [cx, cy] = cellCenter('square', cs, 4, 6);
-    await tapOnBoard(gm, cx, cy - cs / 2 + 3); // perto da borda norte
+    await gm.locator('.grid-swatch:has-text("Parede")').first().click();
+    // Linha horizontal no y = 2 células, do x = 1 ao x = 8, com o mouse tremendo
+    await shakyDrag(gm, [1 * cs + 4, 2 * cs + 6], [8 * cs - 3, 2 * cs - 5]);
     await gm.waitForTimeout(1200);
-    const map = (await getMap(plCtx, roomId)).map;
-    check('porta desenhada na borda da célula', map.walls.some(w => w.kind === 'door'), JSON.stringify(map.walls));
+    let map = (await getMap(plCtx, roomId)).map;
+    const walls = map.segments.filter(w => w.kind === 'wall');
+    const w = walls[0] || {};
+    const straight = walls.length === 1 && w.a.y === 2 && w.b.y === 2 && Math.abs(Math.abs(w.b.x - w.a.x) - 7) < 0.01;
+    check('arraste tremido vira UMA parede reta', straight, JSON.stringify(map.segments));
+
+    // Porta de uma célula e abrir/fechar no modo Mover
+    await gm.locator('.grid-swatch:has-text("Porta fechada")').click();
+    await dragOnBoard(gm, [4 * cs, 6 * cs], [5 * cs, 6 * cs]);
+    await gm.waitForTimeout(1000);
+    await gm.locator('.grid-tool-btn:has-text("Mover")').click();
+    await tapOnBoard(gm, 4.5 * cs, 6 * cs);
+    await gm.waitForTimeout(1200);
+    map = (await getMap(plCtx, roomId)).map;
+    check('porta desenhada e aberta no modo Mover', map.segments.some(s => s.kind === 'door_open'), JSON.stringify(map.segments.map(s => s.kind)));
+
+    // Borracha passando por cima da parede
+    await gm.locator('.grid-tool-btn:has-text("Paredes")').click();
+    await gm.locator('.grid-swatch:has-text("Apagar")').click();
+    await dragOnBoard(gm, [3 * cs, 2 * cs - 15], [3 * cs, 2 * cs + 15]);
+    await gm.waitForTimeout(1000);
+    map = (await getMap(plCtx, roomId)).map;
+    check('borracha apaga a parede inteira', !map.segments.some(s => s.kind === 'wall'), JSON.stringify(map.segments.map(s => s.kind)));
+    // Uma parede para continuar existindo no resto do teste
+    await gm.locator('.grid-swatch:has-text("Parede")').first().click();
+    await dragOnBoard(gm, [1 * cs, 10 * cs], [6 * cs, 10 * cs]);
+    await gm.waitForTimeout(800);
   });
 
   await step('objetos', async () => {
@@ -195,6 +232,19 @@ const near = (c, hex) => {
     check('toque no hexágono pinta a célula certa', map.terrain.some(t => t.kind === 'lava' && t.cell.col === 5 && t.cell.row === 7));
     const color = await canvasColor(pl, ...cellCenter('hex_pointy', cs, 5, 7));
     check('jogador vê o hexágono pintado (pixel)', near(color, '#d9480f'), `rgb(${color})`);
+    check('paredes continuam depois de trocar para hexagonal', map.segments.length >= 1);
+
+    // Linha reta no hexágono passando pelo centro das células
+    await gm.locator('.grid-tool-btn:has-text("Paredes")').click();
+    await gm.locator('.grid-swatch:has-text("Parede")').first().click();
+    const [ax, ay] = cellCenter('hex_pointy', cs, 2, 12);
+    const [bx, by] = cellCenter('hex_pointy', cs, 7, 12);
+    await shakyDrag(gm, [ax + 3, ay - 2], [bx - 2, by + 3], 6);
+    await gm.waitForTimeout(1200);
+    const hexMap = (await getMap(plCtx, roomId)).map;
+    const line = hexMap.segments[hexMap.segments.length - 1];
+    const ok = line && Math.abs(line.a.x * cs - ax) < 0.5 && Math.abs(line.a.y * cs - ay) < 0.5 && Math.abs(line.b.x * cs - bx) < 0.5 && Math.abs(line.b.y * cs - by) < 0.5;
+    check('no hexágono a linha reta encaixa nos centros', ok, JSON.stringify(line));
   });
 
   await gm.screenshot({ path: path.join(OUT, 'mapa_mestre.png') });

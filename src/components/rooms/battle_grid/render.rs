@@ -5,7 +5,7 @@
 //! cima, porque têm fotos e nomes.
 
 use crate::rooms::{GridShape, MapProp, RoomMapData, TerrainKind, WallKind};
-use crate::rules::map_grid::{self, Cell, Edge};
+use crate::rules::map_grid::{self, Cell};
 
 /// Maior área de canvas que o Safari do iPhone desenha (acima disso fica em branco).
 const MAX_CANVAS_AREA: f64 = 16_000_000.0;
@@ -15,7 +15,12 @@ const MAX_CANVAS_SIDE: f64 = 16_000.0;
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Overlay {
     pub hover_cell: Option<Cell>,
-    pub hover_edge: Option<Edge>,
+    /// Ponto onde a parede vai encaixar (ferramenta Paredes)
+    pub snap_point: Option<(f32, f32)>,
+    /// Parede sendo desenhada: início, fim (pixels) e tipo
+    pub wall_preview: Option<((f32, f32), (f32, f32), WallKind)>,
+    /// Paredes marcadas pela borracha
+    pub erasing_walls: Vec<String>,
     pub selected_prop: Option<String>,
     pub ruler: Option<(Cell, Cell)>,
     /// Objeto sendo arrastado: posição atual em pixels do tabuleiro
@@ -138,8 +143,8 @@ pub fn draw_base(
 
     // 4) Paredes, portas e janelas
     ctx.set_line_cap("round");
-    for w in &map.walls {
-        draw_wall(ctx, shape, cs, w.edge, w.kind, 1.0);
+    for w in &map.segments {
+        draw_wall(ctx, w.a.to_px(cs), w.b.to_px(cs), cs, w.kind, 1.0);
     }
 
     // 5) Objetos
@@ -192,8 +197,23 @@ pub fn draw_overlay(ctx: &web_sys::CanvasRenderingContext2d, map: &RoomMapData, 
         ctx.set_line_width(2.0);
         ctx.stroke();
     }
-    if let Some(edge) = overlay.hover_edge {
-        draw_wall(ctx, shape, cs, edge, WallKind::Wall, 0.45);
+    for w in map.segments.iter().filter(|w| overlay.erasing_walls.contains(&w.id)) {
+        let ((x1, y1), (x2, y2)) = (w.a.to_px(cs), w.b.to_px(cs));
+        stroke("rgba(239,68,68,0.85)");
+        ctx.set_line_width((cs as f64 * 0.2).max(5.0));
+        ctx.begin_path();
+        ctx.move_to(x1 as f64, y1 as f64);
+        ctx.line_to(x2 as f64, y2 as f64);
+        ctx.stroke();
+    }
+    if let Some((a, b, kind)) = overlay.wall_preview {
+        draw_wall(ctx, a, b, cs, kind, 0.75);
+    }
+    for (x, y) in overlay.wall_preview.map(|(a, b, _)| vec![a, b]).unwrap_or_default().into_iter().chain(overlay.snap_point) {
+        fill("#6366f1");
+        ctx.begin_path();
+        let _ = ctx.arc(x as f64, y as f64, 5.0, 0.0, std::f64::consts::TAU);
+        ctx.fill();
     }
     if let Some((a, b)) = overlay.ruler {
         let (x1, y1) = map_grid::cell_center(shape, cs, a);
@@ -216,9 +236,8 @@ pub fn draw_overlay(ctx: &web_sys::CanvasRenderingContext2d, map: &RoomMapData, 
 }
 
 #[cfg(target_arch = "wasm32")]
-fn draw_wall(ctx: &web_sys::CanvasRenderingContext2d, shape: GridShape, cs: f32, edge: Edge, kind: WallKind, alpha: f64) {
+fn draw_wall(ctx: &web_sys::CanvasRenderingContext2d, (x1, y1): (f32, f32), (x2, y2): (f32, f32), cs: f32, kind: WallKind, alpha: f64) {
     use wasm_bindgen::JsValue;
-    let ((x1, y1), (x2, y2)) = map_grid::edge_endpoints(shape, cs, edge);
     let (x1, y1, x2, y2) = (x1 as f64, y1 as f64, x2 as f64, y2 as f64);
     let thick = (cs as f64 * 0.12).max(3.0);
     ctx.set_global_alpha(alpha);

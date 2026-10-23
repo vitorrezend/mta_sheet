@@ -77,6 +77,9 @@ sleep 61
 run_suite screens_sweep.js iphone
 sleep 61
 run_suite screens_sweep.js desktop
+sleep 61
+run_suite home_drive.js iphone
+run_suite home_drive.js desktop
 
 echo
 if [ "$FAILED" = "0" ]; then

@@ -165,7 +165,7 @@ mod compliance_tests {
 
         for file in files {
             let file_str = file.to_string_lossy();
-            if file_str.contains("tests.rs") || file_str.contains("stable_textarea.rs") || file_str.contains("value_field.rs") {
+            if file_str.contains("tests.rs") || file_str.contains("stable_textarea.rs") || file_str.contains("value_field") {
                 continue;
             }
 
@@ -339,7 +339,7 @@ mod compliance_tests {
 
         for file in files {
             let file_str = file.to_string_lossy();
-            if file_str.contains("tests.rs") || file_str.contains("stable_textarea.rs") || file_str.contains("value_field.rs") {
+            if file_str.contains("tests.rs") || file_str.contains("stable_textarea.rs") || file_str.contains("value_field") {
                 continue;
             }
 
@@ -391,7 +391,7 @@ mod compliance_tests {
 
         for file in files {
             let file_str = file.to_string_lossy();
-            if file_str.contains("tests.rs") || file_str.contains("stable_textarea.rs") || file_str.contains("value_field.rs") {
+            if file_str.contains("tests.rs") || file_str.contains("stable_textarea.rs") || file_str.contains("value_field") {
                 continue;
             }
 

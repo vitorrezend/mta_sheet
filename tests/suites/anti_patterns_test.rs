@@ -467,13 +467,13 @@ fn test_ssr_render_app_and_home() {
 
 #[test]
 fn test_sheet_loading_guard_prevents_owner_disposed_panic() {
-    let sheet_view_rs = fs::read_to_string("src/components/views/character_sheet.rs")
-        .expect("character_sheet.rs deve existir");
+    let sheet_view_rs = fs::read_to_string("src/components/views/character_sheet/mod.rs")
+        .expect("character_sheet/mod.rs deve existir");
 
-    // Garante que o switch da ficha verifica `if !is_loaded.get()` antes de renderizar
+    // Garante que o switch da ficha verifica `is_loaded.get()` antes de renderizar as páginas
     assert!(
-        sheet_view_rs.contains("if !is_loaded.get()"),
-        "character_sheet.rs DEVE checar `if !is_loaded.get()` antes de instanciar a árvore de componentes da ficha \
+        sheet_view_rs.contains("if store.is_loaded.get()"),
+        "character_sheet/mod.rs DEVE checar `is_loaded.get()` antes de instanciar a árvore de componentes da ficha \
          para impedir que a ficha padrão de Mago seja criada e descartada imediatamente na resolução de Gods & Monsters, \
          o que causaria pânico de 'OwnerDisposed'."
     );

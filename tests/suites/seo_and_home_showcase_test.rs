@@ -157,7 +157,8 @@ fn test_home_showcase_component_and_styles() {
 #[test]
 fn test_home_layout_and_tabs_architecture() {
     let home_mod_rs = Path::new("src/components/views/home/mod.rs");
-    let content = fs::read_to_string(home_mod_rs).expect("Falha ao ler home/mod.rs");
+    let mut content = fs::read_to_string(home_mod_rs).expect("Falha ao ler home/mod.rs");
+    content.push_str(&fs::read_to_string("src/components/views/home/create_section.rs").expect("Falha ao ler home/create_section.rs"));
 
     // O showcase no topo da página deve ser exclusivo para visitantes não autenticados
     assert!(
@@ -211,8 +212,8 @@ fn test_html_lang_and_font_preload() {
 
 #[test]
 fn test_character_sheet_seo_and_robots() {
-    let cs_rs = Path::new("src/components/views/character_sheet.rs");
-    let content = fs::read_to_string(cs_rs).expect("Falha ao ler character_sheet.rs");
+    let cs_rs = Path::new("src/components/views/character_sheet/meta.rs");
+    let content = fs::read_to_string(cs_rs).expect("Falha ao ler character_sheet/meta.rs");
 
     assert!(
         content.contains(r#"name="description""#),
