@@ -123,3 +123,5 @@ mod xp_ledger_test;
 mod room_chat_test;
 #[path = "suites/room_notes_acl_test.rs"]
 mod room_notes_acl_test;
+#[path = "suites/realtime_and_versioning_test.rs"]
+mod realtime_and_versioning_test;

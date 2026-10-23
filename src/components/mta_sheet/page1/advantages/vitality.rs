@@ -143,7 +143,7 @@ pub fn Vitality() -> impl IntoView {
                                     class:damage-bashing=move || current() == DamageType::Bashing
                                     class:damage-lethal=move || current() == DamageType::Lethal
                                     class:damage-aggravated=move || current() == DamageType::Aggravated
-                                    on:click=move |_| {
+                                    on:click:undelegated=move |_| {
                                         set_data.update(|s| s.click_health_box(i));
                                     }
                                     on:contextmenu=move |ev: ev::MouseEvent| {

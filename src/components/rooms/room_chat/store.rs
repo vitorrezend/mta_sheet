@@ -84,7 +84,8 @@ impl ChatStore {
             }
             RoomStreamEvent::Event(RoomBroadcastEvent::ChatCleared) => self.messages.set(Vec::new()),
             RoomStreamEvent::Event(RoomBroadcastEvent::Resync) | RoomStreamEvent::Reconnected => self.reload(),
-            RoomStreamEvent::Event(RoomBroadcastEvent::InitiativeUpdated { .. }) => {}
+            // Iniciativa, fichas, mapa e presença são tratados por outros componentes
+            RoomStreamEvent::Event(_) => {}
         }
     }
 }

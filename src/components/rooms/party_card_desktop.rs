@@ -369,7 +369,7 @@ where
                                                         class="dot"
                                                         class:filled=is_filled
                                                         title=format!("Força de Vontade Total: {} (Clique para definir)", i)
-                                                        on:click=move |ev: ev::MouseEvent| {
+                                                        on:click:undelegated=move |ev: ev::MouseEvent| {
                                                             ev.stop_propagation();
                                                             let new_val = if wp_tot == i { (i - 1).max(1) } else { i };
                                                             on_quick_stat(s_id_dot.clone(), QuickStatAction::SetWillpowerTotal { value: new_val });
@@ -394,7 +394,7 @@ where
                                                         class:filled=is_filled
                                                         class:disabled=is_over
                                                         title=format!("Força de Vontade Atual: {}/{} (Clique para alterar)", i, wp_tot)
-                                                        on:click=move |ev: ev::MouseEvent| {
+                                                        on:click:undelegated=move |ev: ev::MouseEvent| {
                                                             ev.stop_propagation();
                                                             let new_val = if wp_cur == i { i - 1 } else { i };
                                                             on_quick_stat(s_id_sq.clone(), QuickStatAction::SetWillpowerCurrent { value: new_val });

@@ -66,6 +66,116 @@ pub fn generate_room_code() -> String {
     format!("MTA-{}{}{}{}", &chars[c1..c1+1], &chars[c2..c2+1], &chars[c3..c3+1], &chars[c4..c4+1])
 }
 
+// ----------------------------------------------------------------------------
+// Presença: quem está com a sala aberta agora (uma entrada por conexão SSE)
+// ----------------------------------------------------------------------------
+
+#[cfg(feature = "ssr")]
+static PRESENCE: LazyLock<Mutex<HashMap<String, HashMap<String, usize>>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
+
+/// Usuários conectados à sala, em ordem estável.
+#[cfg(feature = "ssr")]
+pub fn online_users(room_id: &str) -> Vec<String> {
+    let presence = PRESENCE.lock().unwrap_or_else(|p| p.into_inner());
+    let mut users: Vec<String> = presence.get(room_id).map(|m| m.keys().cloned().collect()).unwrap_or_default();
+    users.sort();
+    users
+}
+
+#[cfg(feature = "ssr")]
+fn broadcast_presence(room_id: &str) {
+    let online_user_ids = online_users(room_id);
+    broadcast_to_room(room_id, RoomBroadcastEvent::PresenceChanged { online_user_ids });
+}
+
+/// Mantém o usuário "online" na sala enquanto existir; ao ser descartado (conexão SSE
+/// encerrada), remove a presença e avisa os demais.
+#[cfg(feature = "ssr")]
+pub struct PresenceGuard {
+    room_id: String,
+    user_id: String,
+}
+
+/// Registra uma conexão do usuário na sala. Várias abas do mesmo usuário contam uma vez.
+#[cfg(feature = "ssr")]
+pub fn join_presence(room_id: &str, user_id: &str) -> PresenceGuard {
+    {
+        let mut presence = PRESENCE.lock().unwrap_or_else(|p| p.into_inner());
+        *presence.entry(room_id.to_string()).or_default().entry(user_id.to_string()).or_default() += 1;
+    }
+    broadcast_presence(room_id);
+    PresenceGuard { room_id: room_id.to_string(), user_id: user_id.to_string() }
+}
+
+#[cfg(feature = "ssr")]
+impl Drop for PresenceGuard {
+    fn drop(&mut self) {
+        let changed = {
+            let mut presence = PRESENCE.lock().unwrap_or_else(|p| p.into_inner());
+            let Some(room) = presence.get_mut(&self.room_id) else { return };
+            let gone = match room.get_mut(&self.user_id) {
+                Some(count) if *count > 1 => {
+                    *count -= 1;
+                    false
+                }
+                Some(_) => {
+                    room.remove(&self.user_id);
+                    true
+                }
+                None => false,
+            };
+            if room.is_empty() {
+                presence.remove(&self.room_id);
+            }
+            gone
+        };
+        if changed {
+            broadcast_presence(&self.room_id);
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
+// Notificações de mudança de ficha para quem está na sala
+// ----------------------------------------------------------------------------
+
+/// Avisa a sala da ficha (se houver) que ela mudou.
+///
+/// Ficha visível: envia o resumo novo pronto (os clientes atualizam sem recarregar nada).
+/// Ficha oculta: envia só `RoomUpdated`, para não vazar os dados a quem não pode vê-la;
+/// cada cliente recarrega os detalhes e o servidor filtra o que ele pode ver.
+#[cfg(feature = "ssr")]
+pub async fn notify_sheet_changed(pool: &sqlx::SqlitePool, sheet_id: &str) {
+    use sqlx::Row;
+    let Ok(Some(row)) = sqlx::query(
+        "SELECT room_id, name, data, updated_at, is_hidden_in_room FROM character_sheets WHERE id = ?",
+    )
+    .bind(sheet_id)
+    .fetch_optional(pool)
+    .await
+    else {
+        return;
+    };
+    let Some(room_id) = row.try_get::<Option<String>, _>("room_id").ok().flatten() else { return };
+    let is_hidden = row.try_get::<i64, _>("is_hidden_in_room").map(|v| v == 1).unwrap_or(false);
+    if is_hidden {
+        broadcast_to_room(&room_id, RoomBroadcastEvent::RoomUpdated);
+        return;
+    }
+    let name: String = row.try_get("name").unwrap_or_default();
+    let data: String = row.try_get("data").unwrap_or_default();
+    let updated_at: String = row.try_get("updated_at").unwrap_or_default();
+    let summary = super::models::build_room_sheet_summary(sheet_id.to_string(), name, &data, updated_at, false, false);
+    broadcast_to_room(&room_id, RoomBroadcastEvent::SheetUpdated(summary));
+}
+
+/// Pede a todos na sala que recarreguem os detalhes (membros, fichas, configurações).
+#[cfg(feature = "ssr")]
+pub fn notify_room_changed(room_id: &str) {
+    broadcast_to_room(room_id, RoomBroadcastEvent::RoomUpdated);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -98,7 +98,7 @@ pub fn QuintessenceParadox() -> impl IntoView {
                 class="qp-wheel-box"
                 class:qp-box-quintessence=is_quint
                 class:qp-box-paradox=is_paradox
-                on:click=move |_| {
+                on:click:undelegated=move |_| {
                     set_data.update(|s| s.cycle_quintessence_paradox_box(i));
                 }
                 on:contextmenu=move |ev: ev::MouseEvent| {

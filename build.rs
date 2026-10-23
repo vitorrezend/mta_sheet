@@ -3,7 +3,13 @@ fn main() {
     let _ = std::fs::create_dir_all("target/site/pkg");
     let _ = std::fs::create_dir_all("styles");
 
-    // Cria stubs de fallback caso o cargo leptos build ainda não tenha sido executado
+    // Stubs só em builds de desenvolvimento/teste, para os testes rodarem antes do
+    // `cargo leptos build`. Em release o servidor EMBUTE target/site no binário: um stub
+    // aqui seria publicado no lugar da WebAssembly real (o cargo-leptos compila front e
+    // servidor em paralelo), e o site abriria sem interatividade em qualquer navegador.
+    if std::env::var("PROFILE").as_deref() != Ok("debug") {
+        return;
+    }
     let js_path = std::path::Path::new("target/site/pkg/mta_sheet.js");
     if !js_path.exists() {
         let _ = std::fs::write(

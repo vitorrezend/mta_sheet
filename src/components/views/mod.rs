@@ -1,6 +1,8 @@
 pub mod home;
 pub mod auth_page;
 pub mod character_sheet;
+pub mod sheet_saver;
+pub mod sheet_conflict_banner;
 pub mod logs_page;
 pub mod feed;
 pub mod profile;

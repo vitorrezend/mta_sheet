@@ -68,6 +68,21 @@ async fn main() {
 
     let addr = leptos_options.site_addr;
     let routes = generate_route_list(mta_sheet::App);
+
+    // Em release os assets vêm embutidos no binário. Se o servidor foi compilado antes do
+    // front terminar, a WebAssembly embutida fica vazia/stub e o site abre sem interatividade.
+    #[cfg(not(debug_assertions))]
+    {
+        let wasm_len = mta_sheet::server::handlers::static_files::SiteAssets::get("pkg/mta_sheet.wasm")
+            .map(|f| f.data.len())
+            .unwrap_or(0);
+        if wasm_len < 100_000 {
+            eprintln!(
+                "[STARTUP][ERRO] WebAssembly embutida tem {} bytes: o binário foi compilado antes do front.                  Rode `cargo build --release --bin mta_sheet_server --features ssr` depois do `cargo leptos build --release`.",
+                wasm_len
+            );
+        }
+    }
     let db = database::get_db().await;
 
     // Garante que os diretórios existam, limpa logs antigos (>14 dias) e aplica limites de rotação

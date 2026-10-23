@@ -351,7 +351,7 @@ pub fn SupernaturalModal(
                                         class=("dot-bonus", move || is_filled() && dot_color() == "dot-bonus")
                                         class=("dot-xp", move || is_filled() && dot_color() == "dot-xp")
                                         class=("dot-temp", move || is_filled() && dot_color() == "dot-temp")
-                                        on:click={
+                                        on:click:undelegated={
                                             let on_click_sup = on_click_level_sup.clone();
                                             let save_mod = save_pending_modifier.clone();
                                             let on_close_cb = on_close_cb.clone();
