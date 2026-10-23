@@ -127,8 +127,12 @@ pub fn compress_image_file_to_webp(
             }
 
             let quality_js = wasm_bindgen::JsValue::from_f64(options.quality);
-            // Tenta exportar para image/webp
-            match canvas.to_data_url_with_type_and_encoder_options("image/webp", &quality_js) {
+            // Tenta exportar para image/webp. O Safari não codifica WebP no canvas e devolve
+            // um PNG sem compressão em vez de erro, então conferimos o formato retornado.
+            match canvas
+                .to_data_url_with_type_and_encoder_options("image/webp", &quality_js)
+                .and_then(|url| if url.starts_with("data:image/webp") { Ok(url) } else { Err(wasm_bindgen::JsValue::NULL) })
+            {
                 Ok(data_url) => {
                     log::info!("Imagem comprimida com sucesso para WebP ({}x{}px, {:.0}% qualidade)", target_w, target_h, options.quality * 100.0);
                     on_complete_success.call(Ok(data_url));

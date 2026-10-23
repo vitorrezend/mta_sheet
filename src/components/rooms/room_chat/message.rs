@@ -66,7 +66,7 @@ pub fn ChatMessageItem(msg: RoomChatMessage, #[prop(into)] is_mine: bool) -> imp
 }
 
 #[component]
-fn RollCard(roll: ChatRollData) -> impl IntoView {
+pub fn RollCard(roll: ChatRollData) -> impl IntoView {
     let difficulty = roll.difficulty;
     let dice = roll.dice_results.iter().map(|&die| {
         let class = if die == 10 {

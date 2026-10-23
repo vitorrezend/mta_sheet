@@ -143,6 +143,13 @@ pub struct ChatRollData {
     pub label: String,
 }
 
+/// Sala à qual uma ficha está vinculada (para rolar dados da ficha direto na mesa).
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct SheetRoomLink {
+    pub room_id: String,
+    pub room_name: String,
+}
+
 /// Tipo de mensagem do chat. Sempre definido pelo servidor (nunca confiado ao cliente).
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[serde(rename_all = "lowercase")]
@@ -199,7 +206,7 @@ pub struct RoomChatMessage {
 
 /// Eventos em tempo real de uma sala, enviados via SSE (`/api/room_events/:id`).
 /// O JSON é `{"type": "...", "data": ...}`, então cada consumidor trata só o que lhe interessa.
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(tag = "type", content = "data", rename_all = "snake_case")]
 pub enum RoomBroadcastEvent {
     /// Estado completo da iniciativa; `play_sound` quando o mestre rolou a iniciativa
@@ -210,6 +217,16 @@ pub enum RoomBroadcastEvent {
     ChatCleared,
     /// O cliente perdeu eventos (fila cheia ou reconexão) e deve recarregar o estado
     Resync,
+    /// Algo estrutural mudou (configurações, membros, fichas vinculadas ou ocultas):
+    /// o cliente recarrega os detalhes da sala
+    RoomUpdated,
+    /// Resumo novo de uma ficha visível na sala (vida, força de vontade, nome...).
+    /// `is_owner` vem sempre `false`: cada cliente mantém o seu valor local.
+    SheetUpdated(RoomSheetSummary),
+    /// Mapa tático alterado por alguém da sala
+    MapUpdated(RoomMapData),
+    /// Usuários com a sala aberta neste momento
+    PresenceChanged { online_user_ids: Vec<String> },
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]

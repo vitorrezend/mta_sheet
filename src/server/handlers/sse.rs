@@ -67,7 +67,11 @@ pub async fn room_events_sse_handler(
     let sender = crate::rooms::get_or_create_room_channel(&room_id);
     let rx = sender.subscribe();
 
-    let stream = BroadcastStream::new(rx).map(|msg| {
+    // Inscreve antes de marcar presença: assim este cliente também recebe a lista de online.
+    // O guard vive dentro do stream; quando a conexão cai, ele sai da presença da sala.
+    let presence = crate::rooms::events::join_presence(&room_id, &user_id);
+    let stream = BroadcastStream::new(rx).map(move |msg| {
+        let _keep_online = &presence;
         // Cliente lento perdeu eventos da fila: pede para ele recarregar o estado
         let event = msg.unwrap_or(RoomBroadcastEvent::Resync);
         let json = serde_json::to_string(&event).unwrap_or_default();

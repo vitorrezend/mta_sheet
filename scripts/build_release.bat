@@ -108,6 +108,14 @@ echo   -^> [CSS Bundle] Empacotando suite de estilos em target\site\pkg\mta_shee
     type styles\compendium-navigation.css
 ) > target\site\pkg\mta_sheet.css
 
+:: O servidor embute target\site no binario: confere se o front gerou a WebAssembly real
+for %%A in ("target\site\pkg\mta_sheet.wasm") do set "WASM_SIZE=%%~zA"
+if !WASM_SIZE! LSS 100000 (
+    echo [ERRO CRITICO] mta_sheet.wasm tem so !WASM_SIZE! bytes: build do front incompleto.
+    pause
+    exit /b 1
+)
+
 echo   -^> [Standalone Embed] Vinculando assets estaticos diretamente no binario standalone...
 cargo build --bin mta_sheet_server --release --features ssr
 

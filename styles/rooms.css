@@ -2738,3 +2738,22 @@ body {
     min-width: 0;
     flex-wrap: wrap;
 }
+
+/* Quem está com a sala aberta agora (presença em tempo real) */
+.room-online-strip {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0.25rem 0 0;
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.room-online-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+    flex-shrink: 0;
+}

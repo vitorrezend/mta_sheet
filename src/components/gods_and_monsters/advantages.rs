@@ -298,7 +298,7 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                                         <div
                                             class="gods-square"
                                             class:box-active=is_box_active
-                                            on:click=move |_| set_data.update(|s| s.cycle_gnosis_box(i))
+                                            on:click:undelegated=move |_| set_data.update(|s| s.cycle_gnosis_box(i))
                                         >
                                             {move || if is_box_active() { "✕" } else { "" }}
                                         </div>
@@ -350,7 +350,7 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                                         <div
                                             class="gods-square"
                                             class:box-active=active
-                                            on:click=move |_| {
+                                            on:click:undelegated=move |_| {
                                                 let cur = wp_current();
                                                 let next = if dot_idx == cur { cur - 1 } else { dot_idx };
                                                 set_data.update(|s| {
@@ -378,7 +378,7 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                                     <div
                                         class="gods-square"
                                         class:paradox-active=is_active
-                                        on:click=move |_| set_data.update(|s| s.cycle_paradox_box(box_i))
+                                        on:click:undelegated=move |_| set_data.update(|s| s.cycle_paradox_box(box_i))
                                     >
                                         {move || if is_active() { "✕" } else { "" }}
                                     </div>
@@ -412,7 +412,7 @@ pub fn GodsAndMonstersAdvantages() -> impl IntoView {
                                     <div
                                         class="gods-square"
                                         class:essence-active=is_active
-                                        on:click=move |_| set_data.update(|s| s.click_essence_box(box_i))
+                                        on:click:undelegated=move |_| set_data.update(|s| s.click_essence_box(box_i))
                                     >
                                         {move || if is_active() { "✕" } else { "" }}
                                     </div>

@@ -139,6 +139,7 @@ pub async fn join_room_by_code(code: String, password: Option<String>) -> Result
         .map_err(|e| ServerFnError::new(format!("Erro ao entrar na sala: {}", e)))?;
 
     log::info!("User joined room '{}' ({})", room_name, room_id);
+    crate::rooms::events::notify_room_changed(&room_id);
     Ok(room_id)
 }
 
@@ -182,6 +183,7 @@ pub async fn join_public_room(room_id: String, password: Option<String>) -> Resu
         .map_err(|e| ServerFnError::new(format!("Erro ao entrar na sala: {}", e)))?;
 
     log::info!("User joined public room '{}' ({})", room_name, room_id);
+    crate::rooms::events::notify_room_changed(&room_id);
     Ok(room_id)
 }
 
@@ -248,6 +250,7 @@ pub async fn update_room_settings(
             .map_err(|e| ServerFnError::new(e.to_string()))?;
     }
 
+    crate::rooms::events::notify_room_changed(&room_id);
     Ok(())
 }
 
@@ -418,6 +421,7 @@ pub async fn update_room_chantry(room_id: String, chantry: ChantryPoolData) -> R
         .await
         .map_err(|e| ServerFnError::new(format!("Erro ao atualizar capela: {}", e)))?;
 
+    crate::rooms::events::notify_room_changed(&room_id);
     Ok(())
 }
 
@@ -450,6 +454,7 @@ pub async fn update_room_chronicle_notes(room_id: String, notes: String) -> Resu
         .await
         .map_err(|e| ServerFnError::new(format!("Erro ao atualizar diário da crônica: {}", e)))?;
 
+    crate::rooms::events::notify_room_changed(&room_id);
     Ok(())
 }
 
@@ -504,5 +509,6 @@ pub async fn update_room_map(room_id: String, map_data: RoomMapData) -> Result<(
         .await
         .map_err(|e| ServerFnError::new(format!("Erro ao salvar mapa: {}", e)))?;
 
+    crate::rooms::events::broadcast_to_room(&room_id, crate::rooms::RoomBroadcastEvent::MapUpdated(map_data));
     Ok(())
 }

@@ -73,7 +73,7 @@ pub fn Arete() -> impl IntoView {
                                 class=("dot-bonus", move || is_filled() && dot_color() == "dot-bonus")
                                 class=("dot-xp", move || is_filled() && dot_color() == "dot-xp")
                                 class=("dot-temp", move || is_filled() && dot_color() == "dot-temp")
-                                on:click=move |_| {
+                                on:click:undelegated=move |_| {
                                     set_open_popover_idx.set(None);
                                     let current = level.get();
                                     let new_val = if i == current {

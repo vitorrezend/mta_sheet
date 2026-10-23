@@ -256,6 +256,8 @@ pub async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     ensure_column(pool, "character_sheets", "user_id", "TEXT REFERENCES users(id) ON DELETE SET NULL").await?;
     ensure_column(pool, "character_sheets", "room_id", "TEXT REFERENCES rooms(id) ON DELETE SET NULL").await?;
     ensure_column(pool, "character_sheets", "folder_id", "TEXT REFERENCES sheet_folders(id) ON DELETE SET NULL").await?;
+    // Controle de concorrência otimista: cada gravação do conteúdo da ficha incrementa a versão
+    ensure_column(pool, "character_sheets", "version", "INTEGER NOT NULL DEFAULT 0").await?;
     ensure_column(pool, "character_sheets", "sheet_type", "TEXT NOT NULL DEFAULT 'mage'").await?;
     ensure_column(pool, "character_sheets", "is_public", "INTEGER NOT NULL DEFAULT 0").await?;
     ensure_column(pool, "character_sheets", "is_hidden_in_room", "INTEGER NOT NULL DEFAULT 0").await?;

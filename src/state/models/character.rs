@@ -87,6 +87,10 @@ pub struct CharacterData {
     pub can_edit: bool,
     #[serde(default)]
     pub author_username: Option<String>,
+    /// Versão da ficha no banco, para detectar edições simultâneas (mestre e jogador,
+    /// ou duas abas). O servidor sempre sobrescreve com o valor da coluna `version`.
+    #[serde(default)]
+    pub version: i64,
 }
 
 pub fn default_true() -> bool {
@@ -134,6 +138,7 @@ impl CharacterData {
             xp_ledger: Vec::new(),
             can_edit: true,
             author_username: None,
+            version: 0,
         };
         sheet.labels.insert(keys::HEADER_NOME.to_string(), initial_name.to_string());
         sheet.sanitize();
@@ -169,6 +174,7 @@ impl CharacterData {
             xp_ledger: Vec::new(),
             can_edit: true,
             author_username: None,
+            version: 0,
         };
         sheet.labels.insert(keys::HEADER_NOME.to_string(), initial_name.to_string());
         sheet.labels.insert("Type".to_string(), "Familiar".to_string());

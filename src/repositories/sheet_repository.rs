@@ -302,27 +302,42 @@ impl SheetRepository {
         Ok(())
     }
 
+    /// Grava a ficha só se ninguém a alterou desde `expected_version` (concorrência otimista).
+    /// Retorna a nova versão, ou `None` se a ficha mudou nesse meio-tempo ou não existe.
+    #[allow(clippy::too_many_arguments)]
     pub async fn update(
         pool: &SqlitePool,
         id: &str,
+        expected_version: i64,
         name: &str,
         data_json: &str,
         sheet_type: &str,
         is_public: bool,
         summary_json: &str,
-    ) -> Result<u64, sqlx::Error> {
+    ) -> Result<Option<i64>, sqlx::Error> {
         let is_public_int = if is_public { 1 } else { 0 };
-        let res = sqlx::query("UPDATE character_sheets SET name = ?, data = ?, sheet_type = ?, is_public = ?, summary_json = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+        let new_version: Option<i64> = sqlx::query_scalar(
+            "UPDATE character_sheets SET name = ?, data = ?, sheet_type = ?, is_public = ?, summary_json = ?,              updated_at = CURRENT_TIMESTAMP, version = version + 1              WHERE id = ? AND version = ? RETURNING version",
+        )
             .bind(name)
             .bind(data_json)
             .bind(sheet_type)
             .bind(is_public_int)
             .bind(summary_json)
             .bind(id)
-            .execute(pool)
+            .bind(expected_version)
+            .fetch_optional(pool)
             .await?;
 
-        Ok(res.rows_affected())
+        Ok(new_version)
+    }
+
+    /// Versão atual da ficha (`None` se não existir).
+    pub async fn find_version(pool: &SqlitePool, id: &str) -> Result<Option<i64>, sqlx::Error> {
+        sqlx::query_scalar("SELECT version FROM character_sheets WHERE id = ?")
+            .bind(id)
+            .fetch_optional(pool)
+            .await
     }
 
     pub async fn sync_quiz_answers(pool: &SqlitePool, sheet_id: &str, entries: &[QuizQuestionEntry]) -> Result<(), sqlx::Error> {
