@@ -262,7 +262,7 @@ pub async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     ).execute(pool).await?;
 
     sqlx::query(
-        "INSERT OR IGNORE INTO system_settings (key, value) VALUES ('feature_tactical_grid', 'admin_only')"
+        "INSERT OR IGNORE INTO system_settings (key, value) VALUES ('feature_tactical_grid', 'enabled')"
     ).execute(pool).await?;
 
     // 2. Colunas evolutivas checadas via PRAGMA (sem erros descartados com let _ =)

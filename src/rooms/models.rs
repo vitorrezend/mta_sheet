@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use super::map::RoomMapData;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
 pub struct RoomSummary {
@@ -223,8 +224,9 @@ pub enum RoomBroadcastEvent {
     /// Resumo novo de uma ficha visível na sala (vida, força de vontade, nome...).
     /// `is_owner` vem sempre `false`: cada cliente mantém o seu valor local.
     SheetUpdated(RoomSheetSummary),
-    /// Mapa tático alterado por alguém da sala
-    MapUpdated(RoomMapData),
+    /// Mapa tático alterado. Com `ops`, cada cliente aplica as mesmas operações localmente;
+    /// sem `ops` (ex.: envolveu token oculto), o cliente busca o mapa de novo no servidor.
+    MapChanged { version: i64, ops: Option<Vec<super::map::MapOp>> },
     /// Usuários com a sala aberta neste momento
     PresenceChanged { online_user_ids: Vec<String> },
     /// Capela salva por alguém da sala
@@ -233,125 +235,6 @@ pub enum RoomBroadcastEvent {
     ChronicleUpdated { notes: String, version: i64 },
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum GridShape {
-    #[default]
-    #[serde(rename = "square")]
-    Square,
-    #[serde(rename = "hex_pointy")]
-    HexPointy,
-    #[serde(rename = "hex_flat")]
-    HexFlat,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-pub struct MapToken {
-    pub id: String,
-    #[serde(default)]
-    pub sheet_id: Option<String>,
-    pub name: String,
-    #[serde(default)]
-    pub avatar_url: String,
-    #[serde(default)]
-    pub grid_col: f32,
-    #[serde(default)]
-    pub grid_row: f32,
-    #[serde(default = "default_token_size")]
-    pub size_cells: f32,
-    #[serde(default)]
-    pub is_npc: bool,
-    #[serde(default)]
-    pub is_hidden: bool,
-    #[serde(default = "default_token_color")]
-    pub color: String,
-    #[serde(default)]
-    pub health_status: Option<String>,
-}
-
-pub fn default_token_size() -> f32 { 1.0 }
-pub fn default_token_color() -> String { "#6366f1".to_string() }
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-pub struct MapStructure {
-    pub id: String,
-    #[serde(default = "default_structure_type")]
-    pub structure_type: String, // "wall", "door", "cover", "water", "fire", "ward"
-    #[serde(default = "default_structure_name")]
-    pub name: String,
-    #[serde(default = "default_structure_color")]
-    pub color: String,
-    #[serde(default = "default_structure_icon")]
-    pub icon: String,
-    #[serde(default)]
-    pub grid_col: f32,
-    #[serde(default)]
-    pub grid_row: f32,
-    #[serde(default = "default_structure_blocks_move")]
-    pub blocks_movement: bool,
-    #[serde(default)]
-    pub blocks_sight: bool,
-    #[serde(default = "default_structure_opacity")]
-    pub opacity: f32,
-}
-
-pub fn default_structure_type() -> String { "wall".to_string() }
-pub fn default_structure_name() -> String { "Muro".to_string() }
-pub fn default_structure_color() -> String { "#334155".to_string() }
-pub fn default_structure_icon() -> String { "🧱".to_string() }
-pub fn default_structure_blocks_move() -> bool { true }
-pub fn default_structure_opacity() -> f32 { 0.85 }
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-pub struct RoomMapData {
-    #[serde(default = "default_map_enabled")]
-    pub enabled: bool,
-    #[serde(default)]
-    pub grid_shape: GridShape,
-    #[serde(default = "default_map_cols")]
-    pub cols: u32,
-    #[serde(default = "default_map_rows")]
-    pub rows: u32,
-    #[serde(default = "default_map_cell_size")]
-    pub cell_size: u32,
-    #[serde(default = "default_map_grid_color")]
-    pub grid_color: String,
-    #[serde(default)]
-    pub bg_image_url: String,
-    #[serde(default = "default_map_bg_opacity")]
-    pub bg_opacity: f32,
-    #[serde(default = "default_map_meters_per_cell")]
-    pub meters_per_cell: f32,
-    #[serde(default)]
-    pub tokens: Vec<MapToken>,
-    #[serde(default)]
-    pub structures: Vec<MapStructure>,
-}
-
-pub fn default_map_enabled() -> bool { true }
-pub fn default_map_cols() -> u32 { 20 }
-pub fn default_map_rows() -> u32 { 20 }
-pub fn default_map_cell_size() -> u32 { 50 }
-pub fn default_map_grid_color() -> String { "rgba(99, 102, 241, 0.4)".to_string() }
-pub fn default_map_bg_opacity() -> f32 { 0.85 }
-pub fn default_map_meters_per_cell() -> f32 { 1.5 }
-
-impl Default for RoomMapData {
-    fn default() -> Self {
-        Self {
-            enabled: true,
-            grid_shape: GridShape::Square,
-            cols: default_map_cols(),
-            rows: default_map_rows(),
-            cell_size: default_map_cell_size(),
-            grid_color: default_map_grid_color(),
-            bg_image_url: String::new(),
-            bg_opacity: default_map_bg_opacity(),
-            meters_per_cell: default_map_meters_per_cell(),
-            tokens: Vec::new(),
-            structures: Vec::new(),
-        }
-    }
-}
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct RoomDetails {
@@ -553,7 +436,11 @@ mod tests {
 
     #[test]
     fn test_room_map_data_serialization() {
-        let token = MapToken {
+        use crate::rooms::map::{GridShape, MapProp, MapToken, PropKind, TerrainCell, TerrainKind, WallEdge, WallKind};
+        use crate::rules::map_grid::{Cell, Edge};
+
+        let mut map = RoomMapData { grid_shape: GridShape::HexPointy, cols: 25, rows: 25, cell_size: 48, ..Default::default() };
+        map.tokens.push(MapToken {
             id: "token-1".to_string(),
             sheet_id: Some("sheet-123".to_string()),
             name: "John Mage".to_string(),
@@ -565,43 +452,17 @@ mod tests {
             is_hidden: false,
             color: "#6366f1".to_string(),
             health_status: Some("Saudável".to_string()),
-        };
-
-        let structure = MapStructure {
-            id: "struct-1".to_string(),
-            structure_type: "wall".to_string(),
-            name: "Muro de Concreto".to_string(),
-            color: "#334155".to_string(),
-            icon: "🧱".to_string(),
-            grid_col: 2.0,
-            grid_row: 3.0,
-            blocks_movement: true,
-            blocks_sight: true,
-            opacity: 0.85,
-        };
-
-        let map = RoomMapData {
-            enabled: true,
-            grid_shape: GridShape::HexPointy,
-            cols: 25,
-            rows: 25,
-            cell_size: 48,
-            grid_color: "rgba(99, 102, 241, 0.3)".to_string(),
-            bg_image_url: "/uploads/map.png".to_string(),
-            bg_opacity: 0.9,
-            meters_per_cell: 1.5,
-            tokens: vec![token],
-            structures: vec![structure],
-        };
+        });
+        map.terrain.push(TerrainCell { cell: Cell::new(2, 3), kind: TerrainKind::Water });
+        map.walls.push(WallEdge { edge: Edge { cell: Cell::new(2, 3), side: 0 }, kind: WallKind::Door });
+        map.props.push(MapProp { id: "p1".to_string(), kind: PropKind::Altar, cell: Cell::new(4, 4), rotation: 60, scale: 1.0 });
 
         let json = serde_json::to_string(&map).expect("serialize map");
         let deserialized: RoomMapData = serde_json::from_str(&json).expect("deserialize map");
         assert_eq!(map, deserialized);
         assert_eq!(deserialized.grid_shape, GridShape::HexPointy);
-        assert_eq!(deserialized.tokens.len(), 1);
         assert_eq!(deserialized.tokens[0].grid_col, 5.0);
-        assert_eq!(deserialized.structures.len(), 1);
-        assert_eq!(deserialized.structures[0].icon, "🧱");
+        assert_eq!(deserialized.terrain_at(Cell::new(2, 3)), Some(TerrainKind::Water));
     }
 
     #[test]

@@ -1,5 +1,7 @@
 use leptos::*;
-use super::super::models::{RoomSummary, RoomDetails, RoomMapData, ChantryPoolData};
+use super::super::models::{RoomSummary, RoomDetails, ChantryPoolData};
+#[allow(unused_imports)]
+use super::super::map::RoomMapData;
 #[cfg(feature = "ssr")]
 use super::super::models::{RoomInitiativeData, RoomMemberInfo, RoomSheetSummary, build_room_sheet_summary};
 
@@ -306,11 +308,14 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         RoomInitiativeData::default()
     };
     let map_raw: String = room_row.try_get("map_data").unwrap_or_default();
-    let map_data: RoomMapData = if !map_raw.is_empty() {
+    let mut map_data: RoomMapData = if !map_raw.is_empty() {
         serde_json::from_str(&map_raw).unwrap_or_default()
     } else {
         RoomMapData::default()
     };
+    map_data.normalize();
+    // Tokens ocultos pelo mestre não saem do servidor para os jogadores
+    let map_data = if is_gm { map_data } else { map_data.visible_to_players() };
     let sheet_order_raw: String = room_row.try_get("sheet_order").unwrap_or_default();
     let sheet_order: Vec<String> = if !sheet_order_raw.is_empty() {
         serde_json::from_str(&sheet_order_raw).unwrap_or_default()
@@ -481,57 +486,3 @@ pub async fn update_room_chronicle_notes(room_id: String, notes: String, expecte
     Ok(version)
 }
 
-#[server(endpoint = "update_room_map")]
-pub async fn update_room_map(room_id: String, map_data: RoomMapData) -> Result<(), ServerFnError> {
-    if room_id.trim().is_empty() {
-        return Err(ServerFnError::new("ID da sala não fornecido"));
-    }
-
-    use sqlx::{SqlitePool, Row};
-    use crate::auth::get_auth_user_id;
-
-    let user_id = get_auth_user_id().await?.ok_or_else(|| {
-        ServerFnError::new("Você precisa estar logado para alterar o mapa da sala")
-    })?;
-
-    let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        ServerFnError::new("Conexão com o banco de dados indisponível")
-    })?;
-
-    // Feature Flag Guard: Verifica se o mapa tático está liberado para o chamador
-    let is_feature_allowed = crate::settings::is_feature_enabled_for_caller(&pool, "feature_tactical_grid").await?;
-    if !is_feature_allowed {
-        return Err(ServerFnError::new(
-            "O recurso de Mapa & Grid Tático está temporariamente em manutenção ou restrito a administradores."
-        ));
-    }
-
-    let member_check = sqlx::query("SELECT rm.role, r.gm_id FROM rooms r LEFT JOIN room_members rm ON rm.room_id = r.id AND rm.user_id = ? WHERE r.id = ?")
-        .bind(&user_id)
-        .bind(&room_id)
-        .fetch_optional(&pool)
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .ok_or_else(|| ServerFnError::new("Sala não encontrada"))?;
-
-    let gm_id: String = member_check.try_get("gm_id").unwrap_or_default();
-    let is_gm = gm_id == user_id;
-    let has_role: bool = member_check.try_get::<Option<String>, _>("role").ok().flatten().is_some();
-
-    if !is_gm && !has_role {
-        return Err(ServerFnError::new("Você não tem permissão para alterar o mapa desta sala"));
-    }
-
-    let map_json = serde_json::to_string(&map_data)
-        .map_err(|e| ServerFnError::new(format!("Erro ao serializar dados do mapa: {}", e)))?;
-
-    sqlx::query("UPDATE rooms SET map_data = ? WHERE id = ?")
-        .bind(&map_json)
-        .bind(&room_id)
-        .execute(&pool)
-        .await
-        .map_err(|e| ServerFnError::new(format!("Erro ao salvar mapa: {}", e)))?;
-
-    crate::rooms::events::broadcast_to_room(&room_id, crate::rooms::RoomBroadcastEvent::MapUpdated(map_data));
-    Ok(())
-}

@@ -2798,3 +2798,434 @@ body {
     padding: 0.3rem 0.7rem;
     cursor: pointer;
 }
+
+/* ==========================================================================
+   Mapa tático montável (battle_grid)
+   ========================================================================== */
+.battle-grid-wrapper button,
+.battle-grid-wrapper input,
+.battle-grid-wrapper select,
+.grid-modal-content button,
+.grid-modal-content input,
+.grid-modal-content select {
+    font-family: inherit;
+}
+
+.grid-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    padding: 0.6rem 0.75rem;
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+}
+
+.grid-toolbar-group,
+.grid-toolbar-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.grid-tool-btn,
+.grid-action-btn,
+.grid-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-height: 36px;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+}
+
+.grid-tool-btn.active {
+    background: #4f46e5;
+    border-color: #6366f1;
+    color: #ffffff;
+}
+
+.grid-icon-btn {
+    min-width: 36px;
+    justify-content: center;
+}
+
+.grid-zoom-value {
+    min-width: 3.2rem;
+    text-align: center;
+    color: #cbd5e1;
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.grid-status {
+    color: #94a3b8;
+    font-size: 0.78rem;
+}
+
+.grid-status.is-error {
+    color: #fca5a5;
+}
+
+.grid-clear-menu {
+    position: relative;
+}
+
+.grid-clear-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.grid-clear-options {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    min-width: 170px;
+    padding: 0.3rem;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    background: #0f172a;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.grid-clear-options button {
+    padding: 0.5rem 0.6rem;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #fca5a5;
+    text-align: left;
+    cursor: pointer;
+}
+
+.grid-palette {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.75rem;
+    background: #111827;
+    border-bottom: 1px solid #334155;
+}
+
+.grid-swatch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 34px;
+    padding: 0.25rem 0.55rem;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    background: #1e293b;
+    color: #e2e8f0;
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+
+.grid-swatch.active {
+    border-color: #a5b4fc;
+    box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.45);
+}
+
+.grid-swatch-color {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    flex-shrink: 0;
+}
+
+.grid-eraser {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    background: transparent;
+}
+
+.grid-prop-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+}
+
+.grid-brush-size {
+    display: inline-flex;
+    gap: 0.25rem;
+    margin-left: 0.5rem;
+}
+
+.grid-brush-size button {
+    padding: 0.3rem 0.55rem;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    background: #0f172a;
+    color: #cbd5e1;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.grid-brush-size button.active {
+    background: #4f46e5;
+    color: #ffffff;
+}
+
+.grid-palette-hint {
+    flex-basis: 100%;
+    margin: 0.15rem 0 0;
+    color: #94a3b8;
+    font-size: 0.75rem;
+}
+
+.grid-ruler-banner {
+    padding: 0.45rem 0.75rem;
+    background: rgba(245, 158, 11, 0.12);
+    border-bottom: 1px solid rgba(245, 158, 11, 0.35);
+    color: #fcd34d;
+    font-size: 0.85rem;
+}
+
+/* Área rolável do tabuleiro: o zoom muda o tamanho do espaçador para a rolagem funcionar */
+.grid-scroll {
+    position: relative;
+    height: min(70vh, 760px);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    background: #0b1120;
+}
+
+@supports (height: 100dvh) {
+    .grid-scroll {
+        height: min(70dvh, 760px);
+    }
+}
+
+.grid-spacer {
+    position: relative;
+}
+
+.grid-board {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+}
+
+.grid-canvas,
+.grid-tokens,
+.grid-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.grid-tokens {
+    pointer-events: none;
+}
+
+/* Recebe todo toque e mouse; touch-action impede o navegador de rolar a página no lugar */
+.grid-input {
+    touch-action: none;
+    cursor: crosshair;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+.grid-input.tool-move {
+    cursor: grab;
+}
+
+.grid-token {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #6366f1;
+    border-radius: 50%;
+    background: #1e293b;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    transition: left 0.18s ease, top 0.18s ease;
+}
+
+.grid-token.dragging {
+    transition: none;
+    opacity: 0.85;
+    z-index: 5;
+}
+
+.grid-token.selected {
+    box-shadow: 0 0 0 3px #fbbf24, 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.grid-token.hidden-token {
+    opacity: 0.45;
+    border-style: dashed;
+}
+
+.grid-token-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.grid-token-initial {
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.grid-token-name {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+    margin-top: 2px;
+    padding: 0 0.3rem;
+    border-radius: 4px;
+    background: rgba(15, 23, 42, 0.85);
+    color: #f8fafc;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.grid-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+}
+
+.grid-selection-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    padding: 0.6rem 0.75rem;
+    background: #1e293b;
+    border-top: 1px solid #334155;
+    color: #f1f5f9;
+}
+
+.grid-selection-hint {
+    color: #94a3b8;
+    font-size: 0.8rem;
+}
+
+.grid-selection-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.grid-selection-actions button {
+    min-height: 34px;
+    padding: 0.3rem 0.65rem;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    background: #0f172a;
+    color: #e2e8f0;
+    cursor: pointer;
+}
+
+.grid-selection-actions button.danger {
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.45);
+}
+
+.grid-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.grid-modal-content .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-bottom: 0.75rem;
+}
+
+.grid-modal-content .form-label {
+    color: #cbd5e1;
+    font-size: 0.8rem;
+}
+
+.grid-modal-content input[type="number"],
+.grid-modal-content input[type="text"],
+.grid-modal-content select {
+    height: 38px;
+    padding: 0 0.6rem;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    background: #1e293b;
+    color: #f1f5f9;
+    /* 16px evita o zoom automático do iPhone ao focar */
+    font-size: 16px;
+}
+
+.grid-modal-content .modal-body {
+    padding: 1rem;
+    color: #e2e8f0;
+}
+
+.grid-form-warning,
+.grid-form-hint {
+    margin: 0.4rem 0 0;
+    font-size: 0.8rem;
+}
+
+.grid-form-warning {
+    color: #fcd34d;
+}
+
+.grid-form-hint {
+    color: #a5b4fc;
+}
+
+.grid-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #e2e8f0;
+}
+
+.grid-slider input[type="range"] {
+    width: 100%;
+}
+
+.grid-bg-controls {
+    margin-top: 0.75rem;
+}
+
+.grid-modal-content .btn-secondary {
+    padding: 0.45rem 0.9rem;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    background: transparent;
+    color: #e2e8f0;
+    cursor: pointer;
+}
+
+@media (max-width: 640px) {
+    .grid-tool-label {
+        display: none;
+    }
+    .grid-form-row {
+        grid-template-columns: 1fr;
+    }
+}
