@@ -75,6 +75,8 @@ fn test_room_summary_and_details_public_and_password_serialization() {
         has_password: true,
         chantry: ChantryPoolData::default(),
         chronicle_notes: "Notas de abertura".to_string(),
+        chantry_version: 0,
+        chronicle_version: 0,
         initiative: RoomInitiativeData::default(),
         map_data: RoomMapData::default(),
         members: vec![],

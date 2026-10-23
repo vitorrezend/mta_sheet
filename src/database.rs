@@ -46,9 +46,12 @@ pub async fn get_db() -> SqlitePool {
             .await
             .expect("Failed to connect to SQLite");
 
-        // Initialize schema and migrations
+        // Base do esquema (atualiza bancos antigos) e depois as migrações versionadas
         if let Err(e) = ensure_schema(&pool).await {
             log::error!("Falha crítica ao inicializar schema do banco de dados: {}", e);
+        }
+        if let Err(e) = run_migrations(&pool).await {
+            log::error!("Falha crítica ao aplicar migrações do banco de dados: {}", e);
         }
 
         // Automatic extraction of legacy base64 images from JSON to static uploads and media_assets
@@ -63,6 +66,17 @@ pub async fn get_db() -> SqlitePool {
 
         pool
     }).await.clone()
+}
+
+/// Migrações versionadas em `migrations/`, embutidas no binário em tempo de compilação.
+#[cfg(feature = "ssr")]
+pub static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations");
+
+/// Aplica as migrações pendentes. Deve rodar depois de [`ensure_schema`], que monta a
+/// base do esquema para bancos criados antes do histórico de migrações existir.
+#[cfg(feature = "ssr")]
+pub async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::migrate::MigrateError> {
+    MIGRATOR.run(pool).await
 }
 
 #[cfg(feature = "ssr")]
@@ -82,6 +96,7 @@ async fn ensure_column(pool: &SqlitePool, table: &str, column: &str, definition:
     Ok(())
 }
 
+/// Esquema base (legado). Está congelado: mudanças novas vão para `migrations/`.
 #[cfg(feature = "ssr")]
 pub async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     // 1. Core Tables
@@ -253,6 +268,9 @@ pub async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     // 2. Colunas evolutivas checadas via PRAGMA (sem erros descartados com let _ =)
     ensure_column(pool, "users", "is_admin", "INTEGER NOT NULL DEFAULT 0").await?;
     ensure_column(pool, "sheet_folders", "parent_id", "TEXT REFERENCES sheet_folders(id) ON DELETE CASCADE").await?;
+    // Bancos muito antigos podem não ter `updated_at` (usada pelo índice abaixo).
+    // ALTER TABLE não aceita padrão dinâmico como CURRENT_TIMESTAMP, então fica sem padrão.
+    ensure_column(pool, "character_sheets", "updated_at", "DATETIME").await?;
     ensure_column(pool, "character_sheets", "user_id", "TEXT REFERENCES users(id) ON DELETE SET NULL").await?;
     ensure_column(pool, "character_sheets", "room_id", "TEXT REFERENCES rooms(id) ON DELETE SET NULL").await?;
     ensure_column(pool, "character_sheets", "folder_id", "TEXT REFERENCES sheet_folders(id) ON DELETE SET NULL").await?;
@@ -266,6 +284,9 @@ pub async fn ensure_schema(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     ensure_column(pool, "character_sheets", "share_permission", "TEXT NOT NULL DEFAULT 'none'").await?;
     ensure_column(pool, "rooms", "chantry_data", "TEXT DEFAULT ''").await?;
     ensure_column(pool, "rooms", "chronicle_notes", "TEXT DEFAULT ''").await?;
+    // Controle de concorrência otimista da Capela e do Diário (cada gravação incrementa)
+    ensure_column(pool, "rooms", "chantry_version", "INTEGER NOT NULL DEFAULT 0").await?;
+    ensure_column(pool, "rooms", "chronicle_version", "INTEGER NOT NULL DEFAULT 0").await?;
     ensure_column(pool, "rooms", "initiative_data", "TEXT DEFAULT ''").await?;
     ensure_column(pool, "rooms", "map_data", "TEXT DEFAULT ''").await?;
     ensure_column(pool, "rooms", "is_public", "INTEGER NOT NULL DEFAULT 0").await?;

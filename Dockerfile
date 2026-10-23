@@ -25,6 +25,8 @@ COPY styles ./styles
 COPY fonts ./fonts
 COPY data ./data
 COPY src ./src
+COPY migrations ./migrations
+COPY build.rs ./
 COPY tests ./tests
 
 # 1. Compila Frontend WASM Release

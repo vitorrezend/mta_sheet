@@ -112,7 +112,7 @@ pub async fn form_login_handler(
     let user_id: String = row.get("id");
     let password_hash: String = row.get("password_hash");
 
-    if bcrypt::verify(&payload.password, &password_hash).unwrap_or(false) {
+    if crate::auth::verify_password(&payload.password, &password_hash).await.unwrap_or(false) {
         let session_token = match crate::auth::create_session_with_fifo(&pool, &user_id).await {
             Ok(t) => t,
             Err(e) => {
@@ -199,7 +199,7 @@ pub async fn form_register_handler(
 
     let is_admin = user_count == 0 || crate::auth::is_username_in_admin_env(&clean_user);
 
-    let password_hash = match bcrypt::hash(&payload.password, bcrypt::DEFAULT_COST) {
+    let password_hash = match crate::auth::hash_password(&payload.password, bcrypt::DEFAULT_COST).await {
         Ok(h) => h,
         Err(_) => {
             return (

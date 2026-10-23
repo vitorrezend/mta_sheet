@@ -256,3 +256,94 @@ where
         })}
     }
 }
+
+/// Pedido de "mover pasta", fornecido por contexto aos cards de pasta.
+/// Alternativa ao arrastar-e-soltar, que não funciona bem em telas de toque (iPhone).
+#[derive(Clone, Copy)]
+pub struct FolderMoveRequest(pub WriteSignal<Option<SheetFolder>>);
+
+/// A pasta `candidate` é `folder_id` ou está dentro dela (mover para lá criaria um ciclo).
+fn is_same_or_descendant(candidate: &str, folder_id: &str, all: &[SheetFolder]) -> bool {
+    let mut current = Some(candidate.to_string());
+    while let Some(id) = current {
+        if id == folder_id {
+            return true;
+        }
+        current = all.iter().find(|f| f.id == id).and_then(|f| f.parent_id.clone());
+    }
+    false
+}
+
+pub fn render_move_folder_modal<FCancel, FMove>(
+    folder_to_move: ReadSignal<Option<SheetFolder>>,
+    folder_list: Vec<SheetFolder>,
+    cancel_move_folder: FCancel,
+    handle_move_folder: FMove,
+    current_lang: crate::i18n::Language,
+) -> impl IntoView
+where
+    FCancel: Fn(ev::MouseEvent) + Copy + 'static,
+    FMove: Fn(String, Option<String>) + Copy + 'static,
+{
+    view! {
+        {move || folder_to_move.get().map(|target| {
+            let folder_id = target.id.clone();
+            let current_parent = target.parent_id.clone();
+            let destinations: Vec<SheetFolder> = folder_list
+                .iter()
+                .filter(|f| !is_same_or_descendant(&f.id, &folder_id, &folder_list))
+                .cloned()
+                .collect();
+            let all = folder_list.clone();
+            let root_id = folder_id.clone();
+            let is_root_current = current_parent.is_none();
+
+            view! {
+                <div class="modal-overlay" on:click=cancel_move_folder>
+                    <div class="modal-card folder-modal-card" on:click=move |ev| ev.stop_propagation()>
+                        <h3 class="modal-title">"Mover pasta"</h3>
+                        <p class="modal-text">"Mover "<strong>{target.name.clone()}</strong>" para:"</p>
+                        <div class="move-folder-options-list">
+                            <button
+                                type="button"
+                                class="move-folder-opt-btn"
+                                class:active=is_root_current
+                                on:click=move |_| handle_move_folder(root_id.clone(), None)
+                            >
+                                <span class="move-opt-icon">"📁"</span>
+                                <span class="move-opt-name">{crate::i18n::tr("drive_move_to_root", current_lang)}</span>
+                                {is_root_current.then(|| view! { <span class="move-opt-curr">"✓ Atual"</span> })}
+                            </button>
+                            <For
+                                each=move || destinations.clone()
+                                key=|f| f.id.clone()
+                                children=move |f: SheetFolder| {
+                                    let (fid, dest) = (folder_id.clone(), f.id.clone());
+                                    let is_curr = current_parent.as_deref() == Some(dest.as_str());
+                                    let path = get_folder_path(&dest, &all);
+                                    view! {
+                                        <button
+                                            type="button"
+                                            class="move-folder-opt-btn"
+                                            class:active=is_curr
+                                            on:click=move |_| handle_move_folder(fid.clone(), Some(dest.clone()))
+                                        >
+                                            <span class="move-opt-icon">{f.icon.clone()}</span>
+                                            <span class="move-opt-name">{path}</span>
+                                            {is_curr.then(|| view! { <span class="move-opt-curr">"✓ Atual"</span> })}
+                                        </button>
+                                    }
+                                }
+                            />
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="modal-btn btn-cancel" on:click=cancel_move_folder>
+                                {crate::i18n::tr("home_btn_cancel", current_lang)}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        })}
+    }
+}

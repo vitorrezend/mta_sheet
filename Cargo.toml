@@ -34,7 +34,7 @@ axum = { version = "0.7", optional = true, features = ["macros"] }
 tower = { version = "0.4", optional = true, features = ["util"] }
 tower-http = { version = "0.5", optional = true, features = ["fs"] }
 tokio = { version = "1", features = ["full"], optional = true }
-sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-rustls", "macros"], optional = true }
+sqlx = { version = "0.8", default-features = false, features = ["sqlite", "runtime-tokio", "macros", "migrate"], optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 uuid = { version = "1.0", features = ["v4", "serde", "js"] }

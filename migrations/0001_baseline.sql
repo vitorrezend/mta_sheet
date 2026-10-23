@@ -1,0 +1,13 @@
+-- ============================================================================
+-- Migração base (ponto de partida do histórico)
+--
+-- Todo o esquema anterior a esta migração é criado por `ensure_schema` em
+-- src/database.rs (CREATE TABLE IF NOT EXISTS + colunas adicionadas sob demanda).
+-- Ele continua rodando primeiro para atualizar bancos antigos de produção.
+--
+-- A partir daqui, toda mudança de esquema é uma migração nova e numerada:
+--   migrations/0002_descricao_curta.sql, 0003_..., etc.
+-- O sqlx registra o que já foi aplicado na tabela `_sqlx_migrations`.
+-- Nunca altere uma migração já publicada: crie outra.
+-- ============================================================================
+SELECT 1;

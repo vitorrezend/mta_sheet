@@ -62,6 +62,8 @@ pub fn Home() -> impl IntoView {
     let (folder_to_edit, set_folder_to_edit) = create_signal(Option::<SheetFolder>::None);
     let (folder_to_delete, set_folder_to_delete) = create_signal(Option::<SheetFolder>::None);
     let (sheet_to_move, set_sheet_to_move) = create_signal(Option::<CharacterSummary>::None);
+    let (folder_to_move, set_folder_to_move) = create_signal(Option::<SheetFolder>::None);
+    provide_context(FolderMoveRequest(set_folder_to_move));
     let (folder_input_name, set_folder_input_name) = create_signal(String::new());
     let (folder_input_icon, set_folder_input_icon) = create_signal("📁".to_string());
     let (folder_edit_name, set_folder_edit_name) = create_signal(String::new());
@@ -321,7 +323,9 @@ pub fn Home() -> impl IntoView {
         });
     };
 
+    let cancel_move_folder = move |_| set_folder_to_move.set(None);
     let handle_move_folder = move |folder_id: String, target_parent: Option<String>| {
+        set_folder_to_move.set(None);
         spawn_local(async move {
             match move_folder(folder_id, target_parent).await {
                 Ok(_) => {
@@ -747,7 +751,8 @@ pub fn Home() -> impl IntoView {
                         current_lang,
                     )}
                     {render_delete_folder_modal(folder_to_delete, cancel_delete_folder, handle_delete_folder, current_lang)}
-                    {render_move_sheet_modal(sheet_to_move, folder_list, cancel_move_sheet, handle_move_sheet, current_lang)}
+                    {render_move_sheet_modal(sheet_to_move, folder_list.clone(), cancel_move_sheet, handle_move_sheet, current_lang)}
+                    {render_move_folder_modal(folder_to_move, folder_list, cancel_move_folder, handle_move_folder, current_lang)}
                     {render_folder_acl_modal(
                         folder_to_share,
                         cancel_share_folder,
