@@ -33,8 +33,8 @@ pub mod patch_notes_data;
 pub mod patch_notes_modal;
 pub use patch_notes_modal::PatchNotesModal;
 
-pub mod dice_sound;
-pub use dice_sound::*;
+pub mod sound;
+pub use sound::*;
 
 pub mod image_compressor;
 pub use image_compressor::*;

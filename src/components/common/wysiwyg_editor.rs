@@ -174,38 +174,23 @@ fn html_escape(s: &str) -> String {
 }
 
 /// Sanitizador seguro para o conteúdo HTML gerado pelo editor WYSIWYG.
+/// Usa lista branca (ammonia): só tags de formatação passam, sem nenhum atributo.
 pub fn sanitize_wysiwyg_html(html: &str) -> String {
-    let lower = html.to_lowercase();
-    if lower.contains("<script") 
-        || lower.contains("<iframe") 
-        || lower.contains("<object") 
-        || lower.contains("<embed") 
-        || lower.contains("javascript:") 
-        || lower.contains("onerror=") 
-        || lower.contains("onload=") 
-        || lower.contains("onclick=") 
-    {
-        html.replace("<script", "&lt;script")
-            .replace("</script>", "&lt;/script&gt;")
-            .replace("<iframe", "&lt;iframe")
-            .replace("javascript:", "blocked:")
-            .replace("onerror=", "data-err=")
-            .replace("onload=", "data-load=")
-            .replace("onclick=", "data-click=")
-    } else {
-        html.to_string()
-    }
+    crate::state::rich_text::sanitize_rich_html(html)
 }
 
 /// Executa um comando de edição nativo do navegador no documento ativo.
 pub fn exec_browser_command(cmd: &str, val: Option<&str>) {
+    // Chama `document.execCommand` diretamente: `eval` é bloqueado pelo CSP do servidor
+    // (sem 'unsafe-eval'), o que deixava a barra de ferramentas sem efeito.
     #[cfg(target_arch = "wasm32")]
     {
-        let js = match val {
-            Some(v) => format!("document.execCommand('{}', false, '{}')", cmd, v.replace('\'', "\\'")),
-            None => format!("document.execCommand('{}', false, null)", cmd),
-        };
-        let _ = js_sys::eval(&js);
+        use wasm_bindgen::JsValue;
+        let Some(document) = web_sys::window().and_then(|w| w.document()) else { return };
+        let Ok(exec) = js_sys::Reflect::get(&document, &JsValue::from_str("execCommand")) else { return };
+        let Ok(exec) = exec.dyn_into::<js_sys::Function>() else { return };
+        let value = val.map(JsValue::from_str).unwrap_or(JsValue::NULL);
+        let _ = exec.call3(&document, &JsValue::from_str(cmd), &JsValue::FALSE, &value);
     }
     #[cfg(not(target_arch = "wasm32"))]
     {

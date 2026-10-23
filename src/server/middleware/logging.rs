@@ -57,16 +57,7 @@ pub async fn access_log_middleware(
         .and_then(|h| h.to_str().ok())
         .map(|s| s.to_string());
 
-    let ip = request.headers().get("x-forwarded-for")
-        .and_then(|h| h.to_str().ok())
-        .and_then(|s| s.split(',').next())
-        .or_else(|| {
-            request.headers().get("x-real-ip")
-                .and_then(|h| h.to_str().ok())
-        })
-        .unwrap_or("127.0.0.1")
-        .trim()
-        .to_string();
+    let ip = super::client_ip::client_ip_from_extensions(request.extensions());
 
     let start_time = std::time::Instant::now();
     let response = next.run(request).await;

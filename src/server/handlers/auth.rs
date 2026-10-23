@@ -20,6 +20,7 @@ pub fn check_auth_rate_limit(client_ip: &str, max_attempts: usize, window: Durat
         Err(poisoned) => poisoned.into_inner(),
     };
     let now = Instant::now();
+    crate::server::middleware::security::prune_stale_entries(&mut limiter.attempts, now, window);
     let entry = limiter.attempts.entry(client_ip.to_string()).or_default();
     entry.retain(|&time| now.duration_since(time) < window);
     if entry.len() >= max_attempts {
@@ -38,7 +39,7 @@ pub fn reset_auth_rate_limit_for_test() {
     limiter.attempts.clear();
 }
 
-use crate::server::middleware::security::extract_client_ip;
+use crate::server::middleware::client_ip::ClientIp;
 
 fn is_secure_connection(headers: &http::HeaderMap) -> bool {
     let is_prod = std::env::var("LEPTOS_ENV").map(|e| e.to_lowercase() == "production" || e.to_lowercase() == "prod").unwrap_or(false)
@@ -70,9 +71,10 @@ pub struct FormAuthPayload {
 
 pub async fn form_login_handler(
     headers: http::HeaderMap,
+    client_ip: Option<axum::Extension<ClientIp>>,
     axum::extract::Form(payload): axum::extract::Form<FormAuthPayload>,
 ) -> impl IntoResponse {
-    let client_ip = extract_client_ip(&headers);
+    let client_ip = client_ip.map(|axum::Extension(ip)| ip.0.to_string()).unwrap_or_else(|| "unknown".to_string());
     if !check_auth_rate_limit(&client_ip, 10, Duration::from_secs(60)) {
         return (
             [(http::header::LOCATION, "/login?error=Muitas+tentativas+de+login.+Aguarde+1+minuto+antes+de+tentar+novamente.".to_string())],
@@ -142,9 +144,10 @@ pub async fn form_login_handler(
 
 pub async fn form_register_handler(
     headers: http::HeaderMap,
+    client_ip: Option<axum::Extension<ClientIp>>,
     axum::extract::Form(payload): axum::extract::Form<FormAuthPayload>,
 ) -> impl IntoResponse {
-    let client_ip = extract_client_ip(&headers);
+    let client_ip = client_ip.map(|axum::Extension(ip)| ip.0.to_string()).unwrap_or_else(|| "unknown".to_string());
     if !check_auth_rate_limit(&client_ip, 5, Duration::from_secs(60)) {
         return (
             [(http::header::LOCATION, "/login?tab=register&error=Muitas+tentativas+de+cadastro.+Aguarde+1+minuto+antes+de+tentar+novamente.".to_string())],

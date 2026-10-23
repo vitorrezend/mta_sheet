@@ -10,7 +10,7 @@ use crate::rooms::{
 use crate::state::get_sheets;
 use crate::components::Navbar;
 use crate::components::common::{Callback, WysiwygEditor};
-use crate::components::rooms::{InitiativeDrawer, BattleGrid, PartyCardDesktop, PartyCardMobile};
+use crate::components::rooms::{InitiativeDrawer, BattleGrid, PartyCardDesktop, PartyCardMobile, RoomChat, provide_chat_store, provide_room_events, RoomSoundMuted};
 use crate::rooms::RoomMapData;
 
 #[component]
@@ -372,6 +372,17 @@ pub fn RoomView() -> impl IntoView {
     let initiative_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.initiative.clone()).unwrap_or_default()));
     let room_id_sig = Signal::derive(move || room_id());
 
+    // Tempo real da sala: uma conexão SSE compartilhada, sons e chat vivos em qualquer aba
+    crate::components::common::install_audio_unlock();
+    provide_room_events(room_id_sig);
+    let sound_muted = create_rw_signal(crate::components::common::load_sound_muted());
+    provide_context(RoomSoundMuted(sound_muted));
+    let auth = use_context::<crate::AuthContext>();
+    let my_user_id = Signal::derive(move || auth.and_then(|a| a.user.get()).map(|u| u.id));
+    let chat_store = provide_chat_store(room_id_sig, my_user_id, sound_muted);
+    let chat_unread = move || chat_store.unread.get();
+    let has_unread = move || chat_unread() != 0;
+
     let on_copy = move |_| {
         #[cfg(target_arch = "wasm32")]
         {
@@ -457,6 +468,16 @@ pub fn RoomView() -> impl IntoView {
                                     {move || if copied_link.get() { "✓ Link Copiado" } else { "🔗 Copiar Link" }}
                                 </button>
                                 <button
+                                    class="chat-top-bar-btn"
+                                    on:click=move |_| set_active_tab.set("chat")
+                                    title="Abrir Chat & Feed da Crônica"
+                                >
+                                    "💬 Chat"
+                                    <Show when=has_unread>
+                                        <span class="chat-unread-badge">{chat_unread}</span>
+                                    </Show>
+                                </button>
+                                <button
                                     class="initiative-top-bar-btn"
                                     on:click=move |_| set_show_initiative.update(|v| *v = !*v)
                                     title="Abrir Rastreador de Iniciativa de Combate"
@@ -473,6 +494,12 @@ pub fn RoomView() -> impl IntoView {
                         <nav class="room-tabs-nav">
                             <button class="room-tab-btn" class:active=move || active_tab.get() == "party" on:click=move |_| set_active_tab.set("party")>
                                 "👥 Personagens & HUD (" {move || room_sheets_sig.get().len()} ")"
+                            </button>
+                            <button class="room-tab-btn" class:active=move || active_tab.get() == "chat" on:click=move |_| set_active_tab.set("chat")>
+                                "💬 Chat & Feed"
+                                <Show when=has_unread>
+                                    <span class="chat-unread-badge">{chat_unread}</span>
+                                </Show>
                             </button>
                             {move || if is_map_enabled.get() {
                                 view! {
@@ -608,6 +635,14 @@ pub fn RoomView() -> impl IntoView {
                                             </div>
                                         </div>
                                     </section>
+                                }.into_view()
+                            } else if active_tab.get() == "chat" {
+                                view! {
+                                    <RoomChat 
+                                        room_id=room_id_sig
+                                        sheets=room_sheets_sig
+                                        is_gm=is_gm_sig
+                                    />
                                 }.into_view()
                             } else if active_tab.get() == "chronicle" {
                                 view! {

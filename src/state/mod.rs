@@ -1,6 +1,7 @@
 pub mod models;
 pub mod costs;
 pub mod sanitization;
+pub mod rich_text;
 pub mod server_fns;
 pub mod server_fns_folders;
 pub mod server_fns_share;

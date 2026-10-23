@@ -131,10 +131,85 @@ pub struct RoomInitiativeData {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
-pub struct RoomBroadcastEvent {
-    pub event_type: String, // "INITIATIVE_UPDATE" | "DICE_ROLLED" | "DRAWER_TOGGLED"
-    pub initiative: RoomInitiativeData,
-    pub play_sound: bool,
+pub struct ChatRollData {
+    pub dice_count: i32,
+    pub difficulty: i32,
+    pub specialty: bool,
+    #[serde(default)]
+    pub specialty_text: Option<String>,
+    pub dice_results: Vec<i32>,
+    pub successes: i32,
+    pub is_botch: bool,
+    pub label: String,
+}
+
+/// Tipo de mensagem do chat. Sempre definido pelo servidor (nunca confiado ao cliente).
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[serde(rename_all = "lowercase")]
+pub enum ChatMessageKind {
+    /// Fala do jogador, fora de cena
+    #[default]
+    Ooc,
+    /// Fala em cena, como um personagem da sala
+    Ic,
+    /// Resultado de rolagem de dados
+    Roll,
+    /// Aviso gerado pelo sistema
+    System,
+}
+
+impl ChatMessageKind {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Ooc => "ooc",
+            Self::Ic => "ic",
+            Self::Roll => "roll",
+            Self::System => "system",
+        }
+    }
+
+    pub fn from_db(value: &str) -> Self {
+        match value {
+            "ic" => Self::Ic,
+            "roll" => Self::Roll,
+            "system" => Self::System,
+            _ => Self::Ooc,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq)]
+pub struct RoomChatMessage {
+    pub id: String,
+    pub room_id: String,
+    pub sender_id: String,
+    pub sender_name: String,
+    #[serde(default)]
+    pub sender_character: Option<String>,
+    #[serde(default)]
+    pub sender_avatar: Option<String>,
+    pub content: String,
+    #[serde(default)]
+    pub message_type: ChatMessageKind,
+    #[serde(default)]
+    pub roll_data: Option<ChatRollData>,
+    /// UTC no formato do SQLite (`YYYY-MM-DD HH:MM:SS`)
+    pub created_at: String,
+}
+
+/// Eventos em tempo real de uma sala, enviados via SSE (`/api/room_events/:id`).
+/// O JSON é `{"type": "...", "data": ...}`, então cada consumidor trata só o que lhe interessa.
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[serde(tag = "type", content = "data", rename_all = "snake_case")]
+pub enum RoomBroadcastEvent {
+    /// Estado completo da iniciativa; `play_sound` quando o mestre rolou a iniciativa
+    InitiativeUpdated { initiative: RoomInitiativeData, play_sound: bool },
+    /// Nova mensagem ou rolagem no chat
+    ChatMessage(RoomChatMessage),
+    /// O mestre limpou o histórico do chat
+    ChatCleared,
+    /// O cliente perdeu eventos (fila cheia ou reconexão) e deve recarregar o estado
+    Resync,
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]

@@ -1,5 +1,8 @@
 use leptos::*;
-use super::super::models::{QuickStatAction, RoomSheetSummary, RoomBroadcastEvent, RoomInitiativeData, build_room_sheet_summary};
+use super::super::models::{QuickStatAction, RoomSheetSummary};
+#[cfg(feature = "ssr")]
+use super::super::models::{RoomBroadcastEvent, RoomInitiativeData, build_room_sheet_summary};
+#[cfg(feature = "ssr")]
 use super::super::events::broadcast_to_room;
 
 #[server(endpoint = "update_room_sheet_order")]
@@ -107,11 +110,7 @@ pub async fn remove_sheet_from_room(sheet_id: String) -> Result<(), ServerFnErro
                                 .execute(&pool)
                                 .await;
 
-                            broadcast_to_room(&r_id, RoomBroadcastEvent {
-                                event_type: "INITIATIVE_UPDATE".to_string(),
-                                initiative: init,
-                                play_sound: false,
-                            });
+                            broadcast_to_room(&r_id, RoomBroadcastEvent::InitiativeUpdated { initiative: init, play_sound: false });
                         }
                     }
                 }

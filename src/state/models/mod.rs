@@ -8,6 +8,7 @@ pub mod character;
 pub mod pools;
 pub mod stats;
 pub mod share;
+pub mod xp_ledger;
 
 pub use keys::*;
 pub use traits::*;
@@ -18,4 +19,4 @@ pub use summary::*;
 pub use character::*;
 pub use stats::*;
 pub use share::*;
-
+pub use xp_ledger::*;

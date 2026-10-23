@@ -101,5 +101,7 @@ pub fn create_app(
         .layer(axum::middleware::from_fn(csrf_protection_middleware))
         .layer(axum::middleware::from_fn(security_headers_middleware))
         .layer(axum::middleware::from_fn(access_log_middleware))
+        // Camada mais externa: resolve o IP real antes de logs e rate limit
+        .layer(axum::middleware::from_fn(client_ip_middleware))
         .with_state(leptos_options)
 }
