@@ -181,13 +181,16 @@ pub fn sanitize_wysiwyg_html(html: &str) -> String {
 
 /// Executa um comando de edição nativo do navegador no documento ativo.
 pub fn exec_browser_command(cmd: &str, val: Option<&str>) {
+    // Chama `document.execCommand` diretamente: `eval` é bloqueado pelo CSP do servidor
+    // (sem 'unsafe-eval'), o que deixava a barra de ferramentas sem efeito.
     #[cfg(target_arch = "wasm32")]
     {
-        let js = match val {
-            Some(v) => format!("document.execCommand('{}', false, '{}')", cmd, v.replace('\'', "\\'")),
-            None => format!("document.execCommand('{}', false, null)", cmd),
-        };
-        let _ = js_sys::eval(&js);
+        use wasm_bindgen::JsValue;
+        let Some(document) = web_sys::window().and_then(|w| w.document()) else { return };
+        let Ok(exec) = js_sys::Reflect::get(&document, &JsValue::from_str("execCommand")) else { return };
+        let Ok(exec) = exec.dyn_into::<js_sys::Function>() else { return };
+        let value = val.map(JsValue::from_str).unwrap_or(JsValue::NULL);
+        let _ = exec.call3(&document, &JsValue::from_str(cmd), &JsValue::FALSE, &value);
     }
     #[cfg(not(target_arch = "wasm32"))]
     {

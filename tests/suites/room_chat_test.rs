@@ -1,4 +1,4 @@
-use mta_sheet::rooms::models::{RoomChatMessage, ChatRollData, RoomBroadcastEvent};
+use mta_sheet::rooms::models::{RoomChatMessage, ChatRollData, ChatMessageKind, RoomBroadcastEvent};
 use mta_sheet::rules::specialties::evaluate_roll;
 
 #[test]
@@ -22,7 +22,7 @@ fn test_room_chat_message_and_roll_data_serialization() {
         sender_character: Some("Victor Crowley".to_string()),
         sender_avatar: Some("/uploads/avatar.png".to_string()),
         content: "3 sucesso(s)".to_string(),
-        message_type: "roll".to_string(),
+        message_type: ChatMessageKind::Roll,
         roll_data: Some(roll),
         created_at: "2026-10-22 17:00:00".to_string(),
     };
@@ -48,26 +48,27 @@ fn test_room_broadcast_event_chat_integration() {
         sender_character: None,
         sender_avatar: None,
         content: "A sessão foi iniciada!".to_string(),
-        message_type: "ooc".to_string(),
+        message_type: ChatMessageKind::Ooc,
         roll_data: None,
         created_at: "2026-10-22 17:05:00".to_string(),
     };
 
-    let event = RoomBroadcastEvent {
-        event_type: "CHAT_MESSAGE".to_string(),
-        initiative: Default::default(),
-        play_sound: false,
-        chat_message: Some(msg),
-    };
+    let event = RoomBroadcastEvent::ChatMessage(msg);
 
     let json = serde_json::to_string(&event).expect("Falha ao serializar evento");
-    assert!(json.contains("CHAT_MESSAGE"));
+    assert!(json.contains(r#""type":"chat_message""#));
+    assert!(json.contains(r#""message_type":"ooc""#));
     assert!(json.contains("A sessão foi iniciada!"));
 
     let deserialized: RoomBroadcastEvent = serde_json::from_str(&json).expect("Falha ao deserializar evento");
-    assert_eq!(deserialized.event_type, "CHAT_MESSAGE");
-    assert!(!deserialized.play_sound);
-    assert_eq!(deserialized.chat_message.unwrap().content, "A sessão foi iniciada!");
+    match deserialized {
+        RoomBroadcastEvent::ChatMessage(m) => assert_eq!(m.content, "A sessão foi iniciada!"),
+        other => panic!("evento inesperado: {other:?}"),
+    }
+
+    // Eventos sem dados (ex.: limpeza do chat) também fazem o round-trip
+    let cleared = serde_json::to_string(&RoomBroadcastEvent::ChatCleared).expect("serializar ChatCleared");
+    assert_eq!(serde_json::from_str::<RoomBroadcastEvent>(&cleared).expect("deserializar"), RoomBroadcastEvent::ChatCleared);
 }
 
 #[test]
@@ -135,7 +136,7 @@ async fn test_room_chat_database_persistence_and_order() {
         sender_character: None,
         sender_avatar: None,
         content: "Primeira mensagem".to_string(),
-        message_type: "ooc".to_string(),
+        message_type: ChatMessageKind::Ooc,
         roll_data: None,
         created_at: String::new(),
     };
@@ -148,7 +149,7 @@ async fn test_room_chat_database_persistence_and_order() {
         sender_character: Some("Hermes".to_string()),
         sender_avatar: None,
         content: "Em cena: Eu entro na capela".to_string(),
-        message_type: "ic".to_string(),
+        message_type: ChatMessageKind::Ic,
         roll_data: None,
         created_at: String::new(),
     };
@@ -174,4 +175,36 @@ async fn test_room_chat_database_persistence_and_order() {
         .await
         .expect("Falha ao buscar mensagens após limpar");
     assert!(history_empty.is_empty());
+}
+
+#[tokio::test]
+async fn test_room_chat_keeps_send_order_within_same_second() {
+    use mta_sheet::repositories::room_repository::RoomRepository;
+
+    let pool = sqlx::SqlitePool::connect("sqlite::memory:").await.expect("sqlite em memória");
+    mta_sheet::database::ensure_schema(&pool).await.expect("schema");
+    sqlx::query("INSERT INTO users (id, username, password_hash) VALUES ('u1', 'mestre', 'hash')")
+        .execute(&pool).await.expect("usuário");
+    sqlx::query("INSERT INTO rooms (id, name, code, gm_id) VALUES ('r1', 'Sala', 'MTA-ORD1', 'u1')")
+        .execute(&pool).await.expect("sala");
+
+    // IDs fora de ordem alfabética, todos no mesmo segundo: a ordem deve ser a de envio
+    for id in ["zeta", "alfa", "meio"] {
+        let msg = RoomChatMessage {
+            id: id.to_string(),
+            room_id: "r1".to_string(),
+            sender_id: "u1".to_string(),
+            sender_name: "mestre".to_string(),
+            content: format!("mensagem {id}"),
+            message_type: ChatMessageKind::Ooc,
+            created_at: "2026-10-22 17:00:00".to_string(),
+            ..Default::default()
+        };
+        RoomRepository::save_room_message(&pool, &msg).await.expect("salvar");
+    }
+
+    let history = RoomRepository::get_room_messages(&pool, "r1", 50).await.expect("histórico");
+    let ids: Vec<&str> = history.iter().map(|m| m.id.as_str()).collect();
+    assert_eq!(ids, ["zeta", "alfa", "meio"]);
+    assert!(history.iter().all(|m| m.created_at == "2026-10-22 17:00:00"), "horário enviado deve ser gravado");
 }

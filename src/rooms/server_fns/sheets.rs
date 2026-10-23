@@ -110,12 +110,7 @@ pub async fn remove_sheet_from_room(sheet_id: String) -> Result<(), ServerFnErro
                                 .execute(&pool)
                                 .await;
 
-                            broadcast_to_room(&r_id, RoomBroadcastEvent {
-                                event_type: "INITIATIVE_UPDATE".to_string(),
-                                initiative: init,
-                                play_sound: false,
-                                chat_message: None,
-                            });
+                            broadcast_to_room(&r_id, RoomBroadcastEvent::InitiativeUpdated { initiative: init, play_sound: false });
                         }
                     }
                 }

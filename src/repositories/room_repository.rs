@@ -1,7 +1,7 @@
 #[cfg(feature = "ssr")]
 use sqlx::{SqlitePool, Row};
 #[cfg(feature = "ssr")]
-use crate::rooms::models::{RoomSummary, RoomMemberInfo, RoomChatMessage, ChatRollData};
+use crate::rooms::models::{RoomSummary, RoomMemberInfo, RoomChatMessage, ChatRollData, ChatMessageKind};
 
 pub struct RoomRepository;
 
@@ -195,7 +195,7 @@ impl RoomRepository {
         let roll_json = msg.roll_data.as_ref().map(|r| serde_json::to_string(r).unwrap_or_default());
         sqlx::query(
             "INSERT INTO room_messages (id, room_id, sender_id, sender_name, sender_character, sender_avatar, content, message_type, roll_data, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))"
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(NULLIF(?, ''), datetime('now')))"
         )
         .bind(&msg.id)
         .bind(&msg.room_id)
@@ -204,8 +204,9 @@ impl RoomRepository {
         .bind(&msg.sender_character)
         .bind(&msg.sender_avatar)
         .bind(&msg.content)
-        .bind(&msg.message_type)
+        .bind(msg.message_type.as_str())
         .bind(roll_json)
+        .bind(&msg.created_at)
         .execute(pool)
         .await?;
 
@@ -227,13 +228,13 @@ impl RoomRepository {
         let rows = sqlx::query(
             "SELECT id, room_id, sender_id, sender_name, sender_character, sender_avatar, content, message_type, roll_data, created_at
              FROM (
-                 SELECT id, room_id, sender_id, sender_name, sender_character, sender_avatar, content, message_type, roll_data, created_at
+                 SELECT rowid AS seq, id, room_id, sender_id, sender_name, sender_character, sender_avatar, content, message_type, roll_data, created_at
                  FROM room_messages
                  WHERE room_id = ?
                  ORDER BY created_at DESC, rowid DESC
                  LIMIT ?
              )
-             ORDER BY created_at ASC, id ASC"
+             ORDER BY created_at ASC, seq ASC"
         )
         .bind(room_id)
         .bind(limit)
@@ -251,7 +252,7 @@ impl RoomRepository {
                 sender_character: r.get("sender_character"),
                 sender_avatar: r.get("sender_avatar"),
                 content: r.get("content"),
-                message_type: r.get("message_type"),
+                message_type: ChatMessageKind::from_db(r.get::<String, _>("message_type").as_str()),
                 roll_data,
                 created_at: r.get("created_at"),
             }

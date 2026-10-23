@@ -5,6 +5,7 @@ pub mod battle_grid;
 pub mod party_card_desktop;
 pub mod party_card_mobile;
 pub mod room_chat;
+pub mod room_events;
 
 pub use rooms_page::RoomsPage;
 pub use room_view::RoomView;
@@ -12,4 +13,5 @@ pub use initiative_tracker::*;
 pub use battle_grid::*;
 pub use party_card_desktop::PartyCardDesktop;
 pub use party_card_mobile::PartyCardMobile;
-pub use room_chat::RoomChat;
+pub use room_chat::{RoomChat, ChatStore, provide_chat_store};
+pub use room_events::{provide_room_events, on_room_event, RoomEvents, RoomSoundMuted, RoomStreamEvent};

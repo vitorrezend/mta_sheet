@@ -38,12 +38,7 @@ pub async fn update_room_initiative(room_id: String, initiative: RoomInitiativeD
         .await
         .map_err(|e| ServerFnError::new(format!("Erro ao atualizar iniciativa: {}", e)))?;
 
-    broadcast_to_room(&room_id, RoomBroadcastEvent {
-        event_type: if play_sound { "DICE_ROLLED".to_string() } else { "INITIATIVE_UPDATE".to_string() },
-        initiative,
-        play_sound,
-        chat_message: None,
-    });
+    broadcast_to_room(&room_id, RoomBroadcastEvent::InitiativeUpdated { initiative, play_sound });
 
     Ok(())
 }
