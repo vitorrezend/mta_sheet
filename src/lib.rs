@@ -187,6 +187,7 @@ pub fn App() -> impl IntoView {
 "#}
         </Script>
         <Router>
+            <crate::components::VersionUpdateToast />
             <Routes>
                 <Route path="" view=AppLayout>
                     <Route path="" view=crate::components::Home />

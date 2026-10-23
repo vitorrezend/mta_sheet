@@ -4083,3 +4083,156 @@
         display: none !important;
     }
 }
+
+/* ==========================================================================
+   MTA VERSION UPDATE TOAST (HOT-UPDATE NOTIFICATION)
+   Sleek Dark Gothic / Hermetic Gold / Responsive Floating Notification
+   ========================================================================== */
+
+.mta-version-update-toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 99999;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    max-width: 380px;
+    padding: 1rem 1.15rem;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 27, 75, 0.95));
+    border: 1px solid var(--gold-line);
+    border-radius: var(--radius-md, 8px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 15px var(--gold-glow);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--surface-paper);
+    font-family: var(--font-sans);
+    animation: mtaVersionToastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes mtaVersionToastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.mta-version-update-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+    filter: drop-shadow(0 0 8px var(--purple-glow));
+    animation: mtaPulseGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes mtaPulseGlow {
+    from { transform: scale(1); filter: drop-shadow(0 0 4px var(--purple-glow)); }
+    to { transform: scale(1.1); filter: drop-shadow(0 0 10px var(--gold-glow)); }
+}
+
+.mta-version-update-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.mta-version-update-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.mta-version-update-title {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--gold-bright);
+    letter-spacing: 0.03em;
+}
+
+.mta-version-badge {
+    display: inline-block;
+    padding: 0.15rem 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: monospace;
+    background: var(--purple-badge-bg);
+    border: 1px solid var(--purple-bright);
+    color: var(--purple-light);
+    border-radius: 999px;
+}
+
+.mta-version-update-desc {
+    margin: 0 0 0.85rem 0;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: var(--gold-light);
+    opacity: 0.9;
+}
+
+.mta-version-update-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.mta-version-btn-update {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.42rem 0.85rem;
+    font-family: var(--font-serif);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--surface-dark-slate);
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold-primary));
+    border: 1px solid var(--gold-light);
+    border-radius: var(--radius-sm, 4px);
+    cursor: pointer;
+    box-shadow: 0 2px 8px var(--gold-glow);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mta-version-btn-update:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--gold-glow);
+}
+
+.mta-version-btn-update:active {
+    transform: translateY(1px);
+}
+
+.mta-version-btn-dismiss {
+    padding: 0.42rem 0.75rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid var(--surface-dark-border);
+    border-radius: var(--radius-sm, 4px);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.mta-version-btn-dismiss:hover {
+    color: var(--surface-paper);
+    border-color: var(--gold-line);
+}
+
+@media (max-width: 480px) {
+    .mta-version-update-toast {
+        left: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+        max-width: none;
+    }
+}
+
+@media print {
+    .mta-version-update-toast {
+        display: none !important;
+    }
+}

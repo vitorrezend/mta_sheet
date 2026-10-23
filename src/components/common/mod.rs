@@ -45,3 +45,6 @@ pub use modal::{Modal, ModalSize};
 pub mod stat_box;
 pub use stat_box::StatBox;
 
+
+pub mod version_update_toast;
+pub use version_update_toast::*;

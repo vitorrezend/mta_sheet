@@ -102,3 +102,19 @@ async fn test_embedded_style_assets_integrity() {
         );
     }
 }
+
+#[cfg(feature = "ssr")]
+#[tokio::test]
+async fn test_version_api_returns_current_version_json() {
+    use axum::response::IntoResponse;
+    use mta_sheet::server::handlers::version_handler;
+
+    let response = version_handler().await.into_response();
+    assert_eq!(response.status(), axum::http::StatusCode::OK);
+
+    let body_bytes = axum::body::to_bytes(response.into_body(), 1024 * 1024).await.unwrap();
+    let json: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
+
+    assert_eq!(json.get("version").unwrap().as_str().unwrap(), env!("CARGO_PKG_VERSION"));
+    assert_eq!(json.get("semver").unwrap().as_str().unwrap(), concat!("v", env!("CARGO_PKG_VERSION")));
+}

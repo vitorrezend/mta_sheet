@@ -28,6 +28,10 @@ if [ "$HEALTHY" -eq 1 ]; then
     echo ""
     echo "=============================================================================="
     echo "✅ [SUCESSO] MTA Sheet atualizado e operacional com Near-Zero Downtime!"
+    VERSION_INFO=$(curl -s -f -m 3 http://localhost:8080/api/version 2>/dev/null || true)
+    if [ -n "$VERSION_INFO" ]; then
+        echo "📦 Versão ativa em produção: $VERSION_INFO"
+    fi
     echo "=============================================================================="
     exit 0
 else

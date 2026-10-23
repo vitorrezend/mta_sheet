@@ -60,7 +60,8 @@ pub fn create_app(
         .route("/api/upload_image", axum::routing::post(upload_image_handler))
         .route("/api/export_json/:id", axum::routing::get(export_json_handler))
         .route("/api/room_events/:id", axum::routing::get(room_events_sse_handler))
-        .route("/api/compendium/:section", axum::routing::get(compendium_api_handler));
+        .route("/api/compendium/:section", axum::routing::get(compendium_api_handler))
+        .route("/api/version", axum::routing::get(version_handler));
 
     #[cfg(debug_assertions)]
     let app = app
