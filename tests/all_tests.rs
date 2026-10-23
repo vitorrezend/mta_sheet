@@ -117,3 +117,9 @@ mod wonders_lifecycle_test;
 
 #[path = "suites/wysiwyg_editor_test.rs"]
 mod wysiwyg_editor_test;
+#[path = "suites/xp_ledger_test.rs"]
+mod xp_ledger_test;
+#[path = "suites/room_chat_test.rs"]
+mod room_chat_test;
+#[path = "suites/room_notes_acl_test.rs"]
+mod room_notes_acl_test;

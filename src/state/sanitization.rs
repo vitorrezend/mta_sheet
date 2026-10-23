@@ -237,6 +237,11 @@ impl CharacterData {
         while self.grimoire.instruments.len() < 3 {
             self.grimoire.instruments.push(String::new());
         }
+
+        // Remove HTML perigoso de qualquer campo rico (WYSIWYG) antes de persistir
+        if let Err(e) = super::rich_text::sanitize_rich_text_in(self) {
+            log::error!("Falha ao sanitizar HTML rico da ficha {}: {}", self.id, e);
+        }
     }
 
     /// Resilient JSON recovery for backwards compatibility and damaged data

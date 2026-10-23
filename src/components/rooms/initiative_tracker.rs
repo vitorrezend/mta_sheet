@@ -1,6 +1,7 @@
 use leptos::*;
 use crate::rooms::{RoomSheetSummary, RoomInitiativeData, InitiativeEntry, RoomBroadcastEvent, update_room_initiative};
-use crate::components::common::play_dice_roll_sound;
+use crate::components::common::{load_sound_muted, play_dice_roll_sound, save_sound_muted};
+use crate::components::rooms::room_events::{on_room_event, RoomSoundMuted, RoomStreamEvent};
 
 #[component]
 pub fn InitiativeDrawer(
@@ -16,17 +17,10 @@ pub fn InitiativeDrawer(
     let (new_npc_name, set_new_npc_name) = create_signal(String::new());
     let (new_npc_base, set_new_npc_base) = create_signal(6i32);
     let (is_rolling, set_is_rolling) = create_signal(false);
-    let (is_sound_muted, set_is_sound_muted) = create_signal(false);
-
-    // Carrega preferência de som do localStorage no navegador
-    #[cfg(target_arch = "wasm32")]
-    {
-        if let Some(storage) = web_sys::window().and_then(|w| w.local_storage().ok()).flatten() {
-            if let Ok(Some(val)) = storage.get_item("mta_mute_dice_sound") {
-                set_is_sound_muted.set(val == "true");
-            }
-        }
-    }
+    // Preferência de som compartilhada com o chat da sala (fallback local fora da sala)
+    let is_sound_muted = use_context::<RoomSoundMuted>()
+        .map(|m| m.0)
+        .unwrap_or_else(|| create_rw_signal(load_sound_muted()));
 
     // 1. Sincronização inicial via dados da sala (caso chegue via SSR / Resource)
     create_effect(move |_| {
@@ -73,44 +67,16 @@ pub fn InitiativeDrawer(
         });
     });
 
-    // 2. Conexão Server-Sent Events (SSE) em tempo real para sincronização instantânea (< 30ms)
-    #[cfg(target_arch = "wasm32")]
-    {
-        use wasm_bindgen::closure::Closure;
-        use wasm_bindgen::JsCast;
-
-        create_effect(move |_| {
-            let r_id = room_id.get();
-            if r_id.is_empty() {
-                return;
+    // 2. Atualizações em tempo real pela conexão única da sala (ignora eventos do chat)
+    on_room_event(move |event| {
+        if let RoomStreamEvent::Event(RoomBroadcastEvent::InitiativeUpdated { initiative, play_sound }) = event {
+            round.set(initiative.round);
+            entries.set(initiative.entries.clone());
+            if *play_sound && !is_sound_muted.get_untracked() {
+                play_dice_roll_sound();
             }
-
-            if let Ok(es) = web_sys::EventSource::new(&format!("/api/room_events/{}", r_id)) {
-                let entries_sig = entries;
-                let round_sig = round;
-
-                let onmessage_cb = Closure::<dyn FnMut(web_sys::MessageEvent)>::new(move |e: web_sys::MessageEvent| {
-                    if let Some(text) = e.data().as_string() {
-                        if let Ok(event) = serde_json::from_str::<RoomBroadcastEvent>(&text) {
-                            round_sig.set(event.initiative.round);
-                            entries_sig.set(event.initiative.entries);
-                            if event.play_sound && !is_sound_muted.get_untracked() {
-                                play_dice_roll_sound();
-                            }
-                        }
-                    }
-                });
-
-                es.set_onmessage(Some(onmessage_cb.as_ref().unchecked_ref()));
-                onmessage_cb.forget(); // Mantém viva a closure durante a vida útil do EventSource
-
-                let es_clone = es.clone();
-                on_cleanup(move || {
-                    es_clone.close();
-                });
-            }
-        });
-    }
+        }
+    });
 
     // Função auxiliar para persistir o estado de iniciativa no servidor quando o GM age
     let sync_to_server = move |play_sound: bool| {
@@ -289,13 +255,8 @@ pub fn InitiativeDrawer(
                         class="initiative-mute-btn"
                         class:muted=is_sound_muted
                         on:click=move |_| {
-                            set_is_sound_muted.update(|m| {
-                                *m = !*m;
-                                #[cfg(target_arch = "wasm32")]
-                                if let Some(storage) = web_sys::window().and_then(|w| w.local_storage().ok()).flatten() {
-                                    let _ = storage.set_item("mta_mute_dice_sound", if *m { "true" } else { "false" });
-                                }
-                            });
+                            is_sound_muted.update(|m| *m = !*m);
+                            save_sound_muted(is_sound_muted.get_untracked());
                         }
                         title=move || if is_sound_muted.get() { "Som de dados silenciado (Clique para ativar)" } else { "Som de dados ativado (Clique para silenciar)" }
                     >

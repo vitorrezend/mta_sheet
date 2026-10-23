@@ -9,6 +9,7 @@ pub mod initiative;
 pub mod costs;
 pub mod combat;
 pub mod specialties;
+pub mod dice;
 
 pub use health::*;
 pub use quintessence::*;
@@ -16,3 +17,4 @@ pub use initiative::*;
 pub use costs::*;
 pub use combat::*;
 pub use specialties::*;
+pub use dice::*;

@@ -10,7 +10,11 @@ pub fn CostBreakdownModal(
 ) -> impl IntoView {
     let lang_ctx = use_context::<crate::i18n::LanguageContext>();
     let lang = move || lang_ctx.map(|c| c.lang.get()).unwrap_or_default();
-    let (active_tab, set_active_tab) = create_signal(0); // 0 = Criação Base, 1 = Bônus & XP
+    let data = use_context::<ReadSignal<CharacterData>>().expect("CharacterData context not found");
+    let (active_tab, set_active_tab) = create_signal(0); // 0 = Criação Base, 1 = Bônus & XP, 2 = Extrato de XP
+    let (ledger_desc, set_ledger_desc) = create_signal(String::new());
+    let (ledger_amount, set_ledger_amount) = create_signal(3i32);
+    let (ledger_date, set_ledger_date) = create_signal(String::new());
 
     view! {
         {move || if show_breakdown.get() {
@@ -54,7 +58,7 @@ pub fn CostBreakdownModal(
                                         crate::i18n::Language::PtBr => "⚠️ Limite",
                                         crate::i18n::Language::EnUs => "⚠️ Overflow",
                                     }}</span> }.into_view()
-                                } else {
+                        } else {
                                     view! { <span class="tab-badge-ok">"✓ OK"</span> }.into_view()
                                 }}
                             </button>
@@ -72,6 +76,17 @@ pub fn CostBreakdownModal(
                                     view! { <span class="tab-badge-alert">"⚠️ " {current_costs.total_bonus_spent} "/15"</span> }.into_view()
                                 } else {
                                     view! { <span class="tab-badge-neutral">{current_costs.total_bonus_spent} "/15 pts"</span> }.into_view()
+                                }}
+                            </button>
+                            <button 
+                                type="button"
+                                class="cost-tab-btn"
+                                class:active=move || tab == 2
+                                on:click=move |_| set_active_tab.set(2)
+                            >
+                                {match current_lang {
+                                    crate::i18n::Language::PtBr => "📜 Extrato de XP",
+                                    crate::i18n::Language::EnUs => "📜 XP Ledger",
                                 }}
                             </button>
                         </div>
@@ -343,7 +358,7 @@ pub fn CostBreakdownModal(
                                     </div>
                                 </div>
                             }.into_view()
-                        } else {
+                        } else if tab == 1 {
                             // ==========================================
                             // ABA 1: PONTOS DE BÔNUS (FREEBIES) & XP
                             // ==========================================
@@ -509,6 +524,172 @@ pub fn CostBreakdownModal(
                                                 </tr>
                                             </tfoot>
                                         </table>
+                                    </div>
+                                </div>
+                            }.into_view()
+                        } else {
+                            // ==========================================
+                            // ABA 2: EXTRATO & HISTÓRICO DE XP (LEDGER)
+                            // ==========================================
+                            let total_awarded = data.with(|d| d.total_xp_awarded());
+                            let total_spent = current_costs.total_xp_spent;
+                            let balance = total_awarded - total_spent;
+                            let can_edit = data.with(|d| d.can_edit);
+                            let entries = data.with(|d| d.xp_ledger.clone());
+
+                            let on_add_ledger = move |_| {
+                                let desc = ledger_desc.get().trim().to_string();
+                                if desc.is_empty() { return; }
+                                let amount = ledger_amount.get().max(1);
+                                let date_val = if ledger_date.get().trim().is_empty() { None } else { Some(ledger_date.get().trim().to_string()) };
+                                set_data.update(|d| {
+                                    d.add_xp_entry(desc, amount, date_val);
+                                });
+                                set_ledger_desc.set(String::new());
+                                set_ledger_amount.set(3);
+                                set_ledger_date.set(String::new());
+                            };
+
+                            view! {
+                                <div class="xp-ledger-tab-content">
+                                    <div class="xp-metrics-grid">
+                                        <div class="xp-metric-card awarded-card">
+                                            <span class="metric-icon">"🟢"</span>
+                                            <div class="metric-info">
+                                                <span class="metric-label">{if current_lang == crate::i18n::Language::PtBr { "Total Concedido" } else { "Total Awarded" }}</span>
+                                                <span class="metric-value">{total_awarded} <span class="metric-unit">"XP"</span></span>
+                                            </div>
+                                        </div>
+                                        <div class="xp-metric-card spent-card">
+                                            <span class="metric-icon">"🟣"</span>
+                                            <div class="metric-info">
+                                                <span class="metric-label">{if current_lang == crate::i18n::Language::PtBr { "Gasto na Ficha" } else { "Spent on Sheet" }}</span>
+                                                <span class="metric-value">{total_spent} <span class="metric-unit">"XP"</span></span>
+                                            </div>
+                                        </div>
+                                        <div class="xp-metric-card balance-card" class:negative=move || balance < 0>
+                                            <span class="metric-icon">"🪙"</span>
+                                            <div class="metric-info">
+                                                <span class="metric-label">{if current_lang == crate::i18n::Language::PtBr { "Saldo Disponível" } else { "Available Balance" }}</span>
+                                                <span class="metric-value">{balance} <span class="metric-unit">"XP"</span></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {if can_edit {
+                                        view! {
+                                            <div class="xp-award-form">
+                                                <h4 class="form-title">{if current_lang == crate::i18n::Language::PtBr { "➕ Lançar Concessão de XP" } else { "➕ Award Experience Points" }}</h4>
+                                                <div class="form-fields-row">
+                                                    <div class="form-field date-field">
+                                                        <label>{if current_lang == crate::i18n::Language::PtBr { "Data / Sessão" } else { "Date / Session" }}</label>
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder={if current_lang == crate::i18n::Language::PtBr { "Ex: Sessão 3" } else { "Ex: Session 3" }}
+                                                            prop:value=move || ledger_date.get()
+                                                            on:input=move |ev| set_ledger_date.set(event_target_value(&ev))
+                                                        />
+                                                    </div>
+                                                    <div class="form-field desc-field">
+                                                        <label>{if current_lang == crate::i18n::Language::PtBr { "Motivo / Descrição" } else { "Description" }}</label>
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder={if current_lang == crate::i18n::Language::PtBr { "Ex: Conclusão do Arco" } else { "Ex: Story Arc" }}
+                                                            prop:value=move || ledger_desc.get()
+                                                            on:input=move |ev| set_ledger_desc.set(event_target_value(&ev))
+                                                        />
+                                                    </div>
+                                                    <div class="form-field amount-field">
+                                                        <label>{if current_lang == crate::i18n::Language::PtBr { "Pontos" } else { "Points" }}</label>
+                                                        <input 
+                                                            type="number" 
+                                                            min="1" 
+                                                            max="100"
+                                                            prop:value=move || ledger_amount.get().to_string()
+                                                            on:input=move |ev| {
+                                                                if let Ok(v) = event_target_value(&ev).parse::<i32>() {
+                                                                    set_ledger_amount.set(v);
+                                                                }
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <button 
+                                                        type="button" 
+                                                        class="add-xp-btn"
+                                                        on:click=on_add_ledger
+                                                        disabled=move || ledger_desc.get().trim().is_empty()
+                                                    >
+                                                        {if current_lang == crate::i18n::Language::PtBr { "+ Adicionar" } else { "+ Add" }}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        }.into_view()
+                                    } else {
+                                        view! {}.into_view()
+                                    }}
+
+                                    <div class="xp-ledger-table-container">
+                                        <div class="xp-table-wrapper">
+                                            <table class="breakdown-table xp-ledger-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{if current_lang == crate::i18n::Language::PtBr { "Data / Sessão" } else { "Date / Session" }}</th>
+                                                        <th>{if current_lang == crate::i18n::Language::PtBr { "Descrição / Motivo" } else { "Description" }}</th>
+                                                        <th class="text-center">{if current_lang == crate::i18n::Language::PtBr { "Pontos" } else { "Points" }}</th>
+                                                        {if can_edit {
+                                                            view! { <th class="text-right">{if current_lang == crate::i18n::Language::PtBr { "Ações" } else { "Actions" }}</th> }.into_view()
+                                                        } else {
+                                                            view! {}.into_view()
+                                                        }}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {if entries.is_empty() {
+                                                        view! {
+                                                            <tr>
+                                                                <td colspan="4" class="empty-table-msg">
+                                                                    {if current_lang == crate::i18n::Language::PtBr {
+                                                                        "Nenhum registro de concessão de XP ainda. Registre o progresso das sessões acima!"
+                                                                    } else {
+                                                                        "No awarded XP entries recorded yet. Record session progress above!"
+                                                                    }}
+                                                                </td>
+                                                            </tr>
+                                                        }.into_view()
+                                                    } else {
+                                                        entries.into_iter().map(|entry| {
+                                                            let entry_id = entry.id.clone();
+                                                            view! {
+                                                                <tr>
+                                                                    <td class="xp-date-col">{entry.date}</td>
+                                                                    <td class="xp-desc-col">{entry.description}</td>
+                                                                    <td class="text-center"><span class="xp-amount-pill">{format!("+{} XP", entry.amount)}</span></td>
+                                                                    {if can_edit {
+                                                                        let id_del = entry_id.clone();
+                                                                        view! {
+                                                                            <td class="text-right">
+                                                                                <button 
+                                                                                    type="button" 
+                                                                                    class="delete-xp-entry-btn"
+                                                                                    on:click=move |_| {
+                                                                                        let target_id = id_del.clone();
+                                                                                        set_data.update(|d| d.remove_xp_entry(&target_id));
+                                                                                    }
+                                                                                >
+                                                                                    "🗑️"
+                                                                                </button>
+                                                                            </td>
+                                                                        }.into_view()
+                                                                    } else {
+                                                                        view! {}.into_view()
+                                                                    }}
+                                                                </tr>
+                                                            }
+                                                        }).collect_view()
+                                                    }}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             }.into_view()

@@ -43,9 +43,10 @@ fn test_sanitize_security_xss_protection() {
     let malicious = "<p>Normal</p><script>alert('hack')</script><img src='x' onerror='alert(1)'><a href='javascript:evil()'>Link</a>";
     let sanitized = sanitize_wysiwyg_html(malicious);
     assert!(!sanitized.contains("<script"));
-    assert!(sanitized.contains("&lt;script"));
+    assert!(!sanitized.contains("alert('hack')"), "conteúdo do <script> deve ser descartado");
     assert!(!sanitized.contains("onerror="));
     assert!(!sanitized.contains("javascript:"));
+    assert!(sanitized.contains("<p>Normal</p>"));
 }
 
 #[test]

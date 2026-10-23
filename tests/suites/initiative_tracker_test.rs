@@ -128,8 +128,7 @@ fn test_inactive_participants_placed_at_end() {
 fn test_room_broadcast_event_serialization() {
     use mta_sheet::rooms::{RoomBroadcastEvent, RoomInitiativeData, InitiativeEntry};
 
-    let event = RoomBroadcastEvent {
-        event_type: "DICE_ROLLED".to_string(),
+    let event = RoomBroadcastEvent::InitiativeUpdated {
         initiative: RoomInitiativeData {
             round: 2,
             is_open: true,
@@ -152,10 +151,16 @@ fn test_room_broadcast_event_serialization() {
     };
 
     let json = serde_json::to_string(&event).expect("serialize RoomBroadcastEvent");
+    assert!(json.contains(r#""type":"initiative_updated""#), "evento deve ter tag de tipo: {json}");
     let deserialized: RoomBroadcastEvent = serde_json::from_str(&json).expect("deserialize RoomBroadcastEvent");
     assert_eq!(event, deserialized);
-    assert!(deserialized.play_sound);
-    assert_eq!(deserialized.initiative.round, 2);
+    match deserialized {
+        RoomBroadcastEvent::InitiativeUpdated { initiative, play_sound } => {
+            assert!(play_sound);
+            assert_eq!(initiative.round, 2);
+        }
+        other => panic!("evento inesperado: {other:?}"),
+    }
 }
 
 #[test]

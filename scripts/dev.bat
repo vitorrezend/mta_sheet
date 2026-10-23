@@ -27,8 +27,8 @@ echo [CONFIG] Endereco:       http://%LEPTOS_SITE_ADDR%
 echo [CONFIG] Logs:           %RUST_LOG%
 echo.
 
-:: 2.1 Limpa eventuais processos zumbis que ficaram travados na porta 3000
-for /f "tokens=5" %%p in ('netstat -aon 2^>nul ^| findstr ":3000" ^| findstr "LISTENING"') do (
+:: 2.1 Limpa eventuais processos zumbis que ficaram travados na porta 3001
+for /f "tokens=5" %%p in ('netstat -aon 2^>nul ^| findstr ":3001" ^| findstr "LISTENING"') do (
     taskkill /F /PID %%p >nul 2>nul
 )
 

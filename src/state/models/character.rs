@@ -20,6 +20,7 @@ use super::pages::{
 };
 use super::dossier::{is_default_quiz, CharacterQuizData};
 use super::summary::{default_sheet_type, CharacterSummary};
+use super::xp_ledger::XpLedgerEntry;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
 pub struct CharacterData {
@@ -77,6 +78,10 @@ pub struct CharacterData {
     #[serde(default, skip_serializing_if = "is_default_quiz")]
     pub quiz_data: CharacterQuizData,
 
+    // XP Ledger
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub xp_ledger: Vec<XpLedgerEntry>,
+
     // Permissions & Authorship (View-Only vs Editable mode)
     #[serde(default = "default_true")]
     pub can_edit: bool,
@@ -126,6 +131,7 @@ impl CharacterData {
             grimoire: GrimoireData::default(),
             notes_data: CharacterNotesData::default(),
             quiz_data: CharacterQuizData::default(),
+            xp_ledger: Vec::new(),
             can_edit: true,
             author_username: None,
         };
@@ -160,6 +166,7 @@ impl CharacterData {
             grimoire: GrimoireData::default(),
             notes_data: CharacterNotesData::default(),
             quiz_data: CharacterQuizData::default(),
+            xp_ledger: Vec::new(),
             can_edit: true,
             author_username: None,
         };

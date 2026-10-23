@@ -12,30 +12,13 @@ static API_RATE_LIMITER: LazyLock<Arc<Mutex<ApiRateLimiter>>> = LazyLock::new(||
     }))
 });
 
-pub fn extract_client_ip(headers: &http::HeaderMap) -> String {
-    if let Some(forwarded) = headers.get("x-forwarded-for").and_then(|h| h.to_str().ok()) {
-        if let Some(first_ip) = forwarded.split(',').next() {
-            let trimmed = first_ip.trim();
-            if !trimmed.is_empty() {
-                return trimmed.to_string();
-            }
-        }
-    }
-    if let Some(real_ip) = headers.get("x-real-ip").and_then(|h| h.to_str().ok()) {
-        let trimmed = real_ip.trim();
-        if !trimmed.is_empty() {
-            return trimmed.to_string();
-        }
-    }
-    "127.0.0.1".to_string()
-}
-
 pub fn check_api_rate_limit(client_ip: &str, max_requests: usize, window: Duration) -> bool {
     let mut limiter = match API_RATE_LIMITER.lock() {
         Ok(g) => g,
         Err(poisoned) => poisoned.into_inner(),
     };
     let now = Instant::now();
+    prune_stale_entries(&mut limiter.attempts, now, window);
     let entry = limiter.attempts.entry(client_ip.to_string()).or_default();
     entry.retain(|&time| now.duration_since(time) < window);
     if entry.len() >= max_requests {
@@ -43,6 +26,16 @@ pub fn check_api_rate_limit(client_ip: &str, max_requests: usize, window: Durati
     } else {
         entry.push(now);
         true
+    }
+}
+
+/// Limite de chaves (IPs) acima do qual entradas sem tentativas recentes são descartadas,
+/// evitando que o mapa do rate limiter cresça indefinidamente.
+const RATE_LIMIT_PRUNE_THRESHOLD: usize = 1024;
+
+pub fn prune_stale_entries(attempts: &mut HashMap<String, Vec<Instant>>, now: Instant, window: Duration) {
+    if attempts.len() > RATE_LIMIT_PRUNE_THRESHOLD {
+        attempts.retain(|_, times| times.iter().any(|&t| now.duration_since(t) < window));
     }
 }
 
@@ -175,9 +168,13 @@ pub async fn api_rate_limit_middleware(
     use axum::response::IntoResponse;
     let path = request.uri().path().to_string();
     if path.starts_with("/api/") {
-        let is_local = crate::server::is_local_request(&request);
-        if !is_local && !cfg!(debug_assertions) {
-            let client_ip = extract_client_ip(request.headers());
+        // Isenção só para loopback REAL (IP resolvido pelo client_ip_middleware), nunca pelo cabeçalho Host
+        let is_loopback = request
+            .extensions()
+            .get::<super::client_ip::ClientIp>()
+            .is_some_and(|c| c.0.is_loopback());
+        if !is_loopback && !cfg!(debug_assertions) {
+            let client_ip = super::client_ip::client_ip_from_extensions(request.extensions());
             if !check_api_rate_limit(&client_ip, 120, Duration::from_secs(60)) {
                 log::warn!("🛡️ [RATE LIMIT] IP {} excedeu o limite global de requisições na API: {}", client_ip, path);
                 return (

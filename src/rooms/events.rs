@@ -1,3 +1,4 @@
+#[cfg(feature = "ssr")]
 use super::models::RoomBroadcastEvent;
 
 #[cfg(feature = "ssr")]
