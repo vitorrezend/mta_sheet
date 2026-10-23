@@ -1,6 +1,8 @@
 use leptos::*;
 use leptos_router::*;
-use crate::state::{clone_sheet, get_sheet, update_sheet, CharacterData, DotOrigin, keys};
+use crate::state::{clone_sheet, get_sheet, CharacterData, DotOrigin, keys};
+use super::sheet_conflict_banner::SheetConflictBanner;
+use super::sheet_saver::SheetSaver;
 use crate::components::{Callback, Sheet};
 use crate::components::mta_sheet::page1::{Abilities, AdvantagesMta, Attributes, InfoHeader, Spheres};
 use crate::components::mta_sheet::page2::PageMagicCombat;
@@ -12,7 +14,7 @@ use crate::components::mta_sheet::page5::{
 use crate::components::mta_sheet::page6::PageNotes;
 use crate::components::mta_sheet::sheet::{
     ActiveDotOriginContext, CostBreakdownModal, QuizModal, SaveStatus, SheetPageTab, SheetTabs, SheetTopBar,
-    SheetShareModal,
+    SheetShareModal, SheetDiceRoller,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -78,6 +80,14 @@ pub fn CharacterSheet() -> impl IntoView {
     let (show_share_modal, set_show_share_modal) = create_signal(false);
     let (show_clone_login_modal, set_show_clone_login_modal) = create_signal(false);
     let navigate = use_navigate();
+    let saver = SheetSaver {
+        in_flight: std::rc::Rc::new(std::cell::Cell::new(false)),
+        version: std::rc::Rc::new(std::cell::Cell::new(0)),
+        data,
+        set_data,
+        conflict: create_rw_signal(false),
+    };
+    let sheet_conflict = saver.conflict;
 
     // Provide the sheet data and active dot origin as context for all child components
     provide_context(set_data);
@@ -92,6 +102,7 @@ pub fn CharacterSheet() -> impl IntoView {
     let change_seq = std::rc::Rc::new(std::cell::Cell::new(0u64));
 
     // Salva automaticamente no unmount (ao navegar para qualquer outro lugar da aplicação)
+    let saver_cleanup = saver.clone();
     on_cleanup(move || {
         is_mounted_cleanup.set(false);
         if is_dirty.try_get_untracked().unwrap_or(false) {
@@ -102,7 +113,7 @@ pub fn CharacterSheet() -> impl IntoView {
                 }
                 if !current_id.is_empty() {
                     spawn_local(async move {
-                        let _ = update_sheet(current_id.clone(), current_data).await;
+                        let _ = saver_cleanup.save_snapshot(current_id.clone(), current_data).await;
                         crate::logging::log_client(
                             "user_actions",
                             "INFO",
@@ -115,8 +126,10 @@ pub fn CharacterSheet() -> impl IntoView {
         }
     });
 
+    let saver_load = saver.clone();
     create_effect(move |_| {
         if let Some(Ok(fetched_data)) = sheet_resource.get() {
+            saver_load.version.set(fetched_data.version);
             let _ = set_data.try_set(fetched_data);
             let _ = set_is_loaded.try_set(true);
             let _ = set_is_dirty.try_set(false);
@@ -133,6 +146,7 @@ pub fn CharacterSheet() -> impl IntoView {
     // Marca o formulário como alterado (dirty) e dispara auto-save inteligente (Debounce de 1.2s)
     let change_seq_dirty = change_seq.clone();
     let is_mounted_dirty = is_mounted.clone();
+    let saver_debounce = saver.clone();
     create_effect(move |_| {
         data.track();
         if is_loaded.try_get_untracked().unwrap_or(false) {
@@ -149,6 +163,7 @@ pub fn CharacterSheet() -> impl IntoView {
 
             let seq_check = change_seq_dirty.clone();
             let is_mounted_task = is_mounted_dirty.clone();
+            let saver = saver_debounce.clone();
 
             spawn_local(async move {
                 gloo_timers::future::TimeoutFuture::new(1_200).await;
@@ -162,7 +177,7 @@ pub fn CharacterSheet() -> impl IntoView {
                             if is_mounted_task.get() {
                                 let _ = set_save_status.try_set(SaveStatus::Saving);
                             }
-                            match update_sheet(current_id.clone(), current_data).await {
+                            match saver.save(current_id.clone()).await {
                                 Ok(_) => {
                                     if seq_check.get() == next_seq {
                                         let _ = set_is_dirty.try_set(false);
@@ -192,9 +207,11 @@ pub fn CharacterSheet() -> impl IntoView {
 
     // Salvamento Periódico como redundância de segurança a cada 30 segundos
     let is_mounted_loop = is_mounted.clone();
+    let saver_loop = saver.clone();
     create_effect(move |_| {
         if is_loaded.get() {
             let is_mounted_task = is_mounted_loop.clone();
+            let saver = saver_loop.clone();
             spawn_local(async move {
                 loop {
                     gloo_timers::future::TimeoutFuture::new(30_000).await;
@@ -215,7 +232,7 @@ pub fn CharacterSheet() -> impl IntoView {
                         let current_id = get_id_untracked();
                         if !current_id.is_empty() && is_mounted_task.get() {
                             let _ = set_save_status.try_set(SaveStatus::Saving);
-                            match update_sheet(current_id.clone(), current_data).await {
+                            match saver.save(current_id.clone()).await {
                                 Ok(_) => {
                                     if !is_mounted_task.get() { break; }
                                     let _ = set_is_dirty.try_set(false);
@@ -234,6 +251,7 @@ pub fn CharacterSheet() -> impl IntoView {
     });
 
     // Salvamento manual
+    let saver_manual = saver.clone();
     let do_manual_save = Callback::new(move |_: ev::MouseEvent| {
         let current_id = get_id_untracked();
         if let Some(current_data) = data.try_get_untracked() {
@@ -242,8 +260,9 @@ pub fn CharacterSheet() -> impl IntoView {
             }
             if !current_id.is_empty() {
                 let _ = set_save_status.try_set(SaveStatus::Saving);
+                let saver = saver_manual.clone();
                 spawn_local(async move {
-                    match update_sheet(current_id.clone(), current_data).await {
+                    match saver.save(current_id.clone()).await {
                         Ok(_) => {
                             let _ = set_is_dirty.try_set(false);
                             crate::logging::log_client(
@@ -271,6 +290,7 @@ pub fn CharacterSheet() -> impl IntoView {
 
     // Navegação ao clicar em "← Início" garantindo salvamento antes de sair
     let nav_for_back = navigate.clone();
+    let saver_back = saver.clone();
     let on_back_click = Callback::new(move |ev: ev::MouseEvent| {
         ev.prevent_default();
         if is_dirty.try_get_untracked().unwrap_or(false) {
@@ -282,9 +302,10 @@ pub fn CharacterSheet() -> impl IntoView {
                 }
                 let nav = nav_for_back.clone();
                 let _ = set_save_status.try_set(SaveStatus::Saving);
+                let saver = saver_back.clone();
                 spawn_local(async move {
                     if !current_id.is_empty() {
-                        let _ = update_sheet(current_id.clone(), current_data).await;
+                        let _ = saver.save_snapshot(current_id.clone(), current_data).await;
                         crate::logging::log_client(
                             "user_actions",
                             "INFO",
@@ -342,6 +363,29 @@ pub fn CharacterSheet() -> impl IntoView {
         });
     });
 
+    // Conflito de versão: recarregar a ficha do servidor ou gravar por cima mantendo as minhas alterações
+    let saver_stored = store_value(saver.clone());
+    let reload_latest = move |_| {
+        sheet_conflict.set(false);
+        sheet_resource.refetch();
+    };
+    let keep_mine = move |_| {
+        let saver = saver_stored.get_value();
+        let (current_id, token) = (get_id_untracked(), get_token_untracked());
+        let _ = set_save_status.try_set(SaveStatus::Saving);
+        spawn_local(async move {
+            match saver.overwrite_with_mine(current_id, token).await {
+                Ok(_) => {
+                    let _ = set_is_dirty.try_set(false);
+                    let _ = set_save_status.try_set(SaveStatus::Saved(get_current_time_str()));
+                }
+                Err(e) => {
+                    let _ = set_save_status.try_set(SaveStatus::Error(e));
+                }
+            }
+        });
+    };
+
     let can_edit = Signal::derive(move || data.with(|d| d.can_edit));
     let author_username = Signal::derive(move || data.with(|d| d.author_username.clone()));
 
@@ -354,15 +398,17 @@ pub fn CharacterSheet() -> impl IntoView {
         }
     });
 
+    let saver_import = saver.clone();
     let on_import_json = Callback::new(move |mut imported_data: CharacterData| {
         let current_id = get_id_untracked();
         imported_data.id = current_id.clone();
-        set_data.set(imported_data.clone());
+        set_data.set(imported_data);
+        let saver = saver_import.clone();
         let _ = set_is_dirty.try_set(true);
         let _ = set_save_status.try_set(SaveStatus::Saving);
         spawn_local(async move {
             if !current_id.is_empty() {
-                match update_sheet(current_id.clone(), imported_data).await {
+                match saver.save(current_id.clone()).await {
                     Ok(_) => {
                         let _ = set_is_dirty.try_set(false);
                         let _ = set_save_status.try_set(SaveStatus::Saved(get_current_time_str()));
@@ -731,6 +777,8 @@ pub fn CharacterSheet() -> impl IntoView {
                 }
             />
             // Barra Superior e Seletor de Modos
+            <SheetDiceRoller sheet_id=Signal::derive(id) data=data can_edit=can_edit />
+            <SheetConflictBanner conflict=sheet_conflict on_reload=reload_latest on_keep=keep_mine />
             <SheetTopBar 
                 active_origin=active_origin
                 set_active_origin=set_active_origin

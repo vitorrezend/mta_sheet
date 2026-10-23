@@ -35,6 +35,16 @@ fi
 echo "  -> [CSS Bundle] Concatenando suite de estilos em target/site/pkg/mta_sheet.css..."
 cat styles/00-tokens.css styles/01-variables.css styles/02-common.css styles/03-sheet-layout.css styles/04-page1-main.css styles/05-page2-magic-combat.css styles/06-page3-expanded.css styles/07-page4-history-visuals.css styles/08-print-pdf.css styles/09-gods-and-monsters.css styles/10-page5-grimoire.css styles/11-page6-notes.css styles/12-compendium.css styles/patch_notes.css styles/home.css styles/auth.css styles/rooms.css styles/logs.css styles/feed.css styles/profile.css styles/share.css styles/about.css styles/compendium-navigation.css > target/site/pkg/mta_sheet.css
 
+# O servidor embute target/site no binario. O cargo-leptos compila front e servidor em
+# paralelo, entao recompilamos o servidor agora que WASM, JS e CSS finais existem.
+echo "  -> [Embed] Recompilando o servidor com os assets finais embutidos..."
+cargo build --release --bin mta_sheet_server --no-default-features --features ssr
+WASM_SIZE=$(wc -c < target/site/pkg/mta_sheet.wasm)
+if [ "$WASM_SIZE" -lt 100000 ]; then
+    echo "[ERRO CRITICO] target/site/pkg/mta_sheet.wasm tem so $WASM_SIZE bytes (build do front incompleto)."
+    exit 1
+fi
+
 echo "[3/3] Empacotando executavel standalone..."
 SERVER_BIN=""
 if [ -f "target/server/release/mta_sheet_server" ]; then

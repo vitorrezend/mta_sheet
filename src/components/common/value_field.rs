@@ -432,7 +432,7 @@ pub fn ValueField(
                                 class=("dot-bonus", move || is_filled() && dot_color() == "dot-bonus")
                                 class=("dot-xp", move || is_filled() && dot_color() == "dot-xp")
                                 class=("dot-temp", move || is_filled() && dot_color() == "dot-temp")
-                                on:click=move |_| {
+                                on:click:undelegated=move |_| {
                                     set_open_popover_idx.set(None);
                                     let current = level.get();
                                     let new_val = if i == current {
@@ -537,7 +537,7 @@ pub fn ValueField(
                                             <span class="supernatural-separator">"|"</span>
                                             <span 
                                                 class="dot dot-supernatural"
-                                                on:click=move |ev| {
+                                                on:click:undelegated=move |ev| {
                                                     ev.stop_propagation();
                                                     on_click_sup(6);
                                                     set_show_supernatural_modal.set(true);

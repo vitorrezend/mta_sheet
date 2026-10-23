@@ -395,7 +395,7 @@ pub fn WonderCard(
                                 <span 
                                     class="square wonder-square"
                                     class:filled=is_filled
-                                    on:click=move |_| update_wonder_quint_current(idx, sq_i)
+                                    on:click:undelegated=move |_| update_wonder_quint_current(idx, sq_i)
                                     title=format!("Quintessence {}", sq_i)
                                 ></span>
                             }

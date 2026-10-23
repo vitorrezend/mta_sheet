@@ -133,6 +133,7 @@ pub async fn get_sheet(id: String, token: Option<String>) -> Result<CharacterDat
         data.sheet_type = sheet_type_db;
     }
     data.is_public = is_public;
+    data.version = SheetRepository::find_version(&pool, &id).await.ok().flatten().unwrap_or(0);
     data.can_edit = is_owner || is_gm || has_acl_write || sheet_user_id.is_none();
     data.author_username = if let Some(ref uid) = sheet_user_id {
         SheetRepository::find_username_by_id(&pool, uid).await.ok().flatten()
@@ -386,8 +387,14 @@ pub async fn create_sheet(
     Ok(id)
 }
 
+/// Mensagem de erro usada quando a ficha foi alterada por outra pessoa desde que foi aberta.
+/// O cliente reconhece este prefixo para oferecer "recarregar" ou "manter minhas alterações".
+pub const SHEET_CONFLICT_ERROR: &str = "CONFLITO_DE_VERSAO";
+
+/// Salva a ficha e retorna a nova versão. Falha com [`SHEET_CONFLICT_ERROR`] se a ficha
+/// mudou desde a versão que o cliente carregou (`data.version`).
 #[server(endpoint = "update_sheet")]
-pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerFnError> {
+pub async fn update_sheet(id: String, data: CharacterData) -> Result<i64, ServerFnError> {
     if id.trim().is_empty() {
         return Err(ServerFnError::new("ID da ficha não pode ser vazio"));
     }
@@ -422,9 +429,10 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
     let summary = data.to_summary(String::new(), data.is_public, true);
     let summary_json = serde_json::to_string(&summary).unwrap_or_default();
 
-    let rows_affected = SheetRepository::update(
+    let new_version = SheetRepository::update(
         &pool,
         &id,
+        data.version,
         &display_name,
         &data_json,
         &data.sheet_type,
@@ -437,10 +445,15 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
         ServerFnError::new("Falha ao atualizar dados da ficha no banco de dados.")
     })?;
 
-    if rows_affected == 0 {
+    let Some(new_version) = new_version else {
+        let exists = SheetRepository::find_version(&pool, &id).await.ok().flatten().is_some();
+        if exists {
+            crate::logging::server::write_log(crate::logging::LogCategory::Requests, "WARN", &format!("Conflito de versão ao salvar ficha '{}' (cliente na versão {})", id, data.version), None);
+            return Err(ServerFnError::new(format!("{}: esta ficha foi alterada em outro lugar desde que você a abriu", SHEET_CONFLICT_ERROR)));
+        }
         crate::logging::server::write_log(crate::logging::LogCategory::Requests, "WARN", &format!("Ficha com ID '{}' não encontrada para atualização", id), None);
         return Err(ServerFnError::new(format!("Ficha com ID '{}' não encontrada para atualização", id)));
-    }
+    };
 
     // Sincroniza respostas relacionais na tabela character_quiz_answers
     let _ = SheetRepository::sync_quiz_answers(&pool, &id, &data.quiz_data.entries).await;
@@ -452,7 +465,8 @@ pub async fn update_sheet(id: String, data: CharacterData) -> Result<(), ServerF
         None,
     );
 
-    Ok(())
+    crate::rooms::events::notify_sheet_changed(&pool, &id).await;
+    Ok(new_version)
 }
 
 #[server(endpoint = "get_quiz_questions")]

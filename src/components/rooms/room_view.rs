@@ -10,8 +10,8 @@ use crate::rooms::{
 use crate::state::get_sheets;
 use crate::components::Navbar;
 use crate::components::common::{Callback, WysiwygEditor};
-use crate::components::rooms::{InitiativeDrawer, BattleGrid, PartyCardDesktop, PartyCardMobile, RoomChat, provide_chat_store, provide_room_events, RoomSoundMuted};
-use crate::rooms::RoomMapData;
+use crate::components::rooms::{InitiativeDrawer, BattleGrid, PartyCardDesktop, PartyCardMobile, RoomChat, provide_chat_store, provide_room_events, on_room_event, RoomSoundMuted, RoomStreamEvent};
+use crate::rooms::{RoomBroadcastEvent, RoomMapData};
 
 #[component]
 pub fn RoomView() -> impl IntoView {
@@ -33,7 +33,9 @@ pub fn RoomView() -> impl IntoView {
         let is_active = std::rc::Rc::new(std::cell::Cell::new(true));
         let is_active_cleanup = is_active.clone();
 
-        let interval = gloo_timers::callback::Interval::new(4_000, move || {
+        // Rede de segurança: as atualizações chegam por eventos em tempo real (abaixo);
+        // este recarregamento lento só cobre algum evento perdido.
+        let interval = gloo_timers::callback::Interval::new(60_000, move || {
             if is_active.get() {
                 room_resource.refetch();
             }
@@ -383,6 +385,63 @@ pub fn RoomView() -> impl IntoView {
     let chat_unread = move || chat_store.unread.get();
     let has_unread = move || chat_unread() != 0;
 
+    // Atualizações em tempo real da sala (antes: recarregar tudo a cada 4 segundos)
+    let (online_ids, set_online_ids) = create_signal(Vec::<String>::new());
+    #[cfg(target_arch = "wasm32")]
+    let refetch_timer = store_value(None::<gloo_timers::callback::Timeout>);
+    // Agrupa vários avisos seguidos num único recarregamento
+    let refetch_soon = move || {
+        #[cfg(target_arch = "wasm32")]
+        refetch_timer.set_value(Some(gloo_timers::callback::Timeout::new(300, move || room_resource.refetch())));
+    };
+    on_room_event(move |event| match event {
+        RoomStreamEvent::Event(RoomBroadcastEvent::SheetUpdated(summary)) => {
+            // Resumo pronto: atualiza só a ficha alterada, sem ir ao servidor
+            let mut patched = false;
+            if dragged_sheet_id.get_untracked().is_none() {
+                set_room_data.update(|room| {
+                    if let Some(sheet) = room.as_mut().and_then(|r| r.sheets.iter_mut().find(|s| s.id == summary.id)) {
+                        let is_owner = sheet.is_owner;
+                        *sheet = summary.clone();
+                        sheet.is_owner = is_owner;
+                        patched = true;
+                    }
+                });
+            }
+            if !patched {
+                refetch_soon();
+            }
+        }
+        RoomStreamEvent::Event(RoomBroadcastEvent::MapUpdated(map)) => {
+            if map_initialized.get_untracked() {
+                set_map_data.set(map.clone());
+            }
+        }
+        RoomStreamEvent::Event(RoomBroadcastEvent::PresenceChanged { online_user_ids }) => {
+            set_online_ids.set(online_user_ids.clone());
+        }
+        RoomStreamEvent::Event(RoomBroadcastEvent::RoomUpdated | RoomBroadcastEvent::Resync) | RoomStreamEvent::Reconnected => {
+            refetch_soon();
+        }
+        RoomStreamEvent::Event(_) => {}
+    });
+    // Nomes de quem está com a sala aberta agora
+    let online_names = Signal::derive(move || {
+        let ids = online_ids.get();
+        room_data.with(|room| {
+            let Some(room) = room else { return Vec::new() };
+            ids.iter()
+                .filter_map(|id| {
+                    if *id == room.gm_id {
+                        Some(format!("{} (Narrador)", room.gm_username))
+                    } else {
+                        room.members.iter().find(|m| &m.user_id == id).map(|m| m.username.clone())
+                    }
+                })
+                .collect::<Vec<_>>()
+        })
+    });
+
     let on_copy = move |_| {
         #[cfg(target_arch = "wasm32")]
         {
@@ -441,6 +500,12 @@ pub fn RoomView() -> impl IntoView {
                                         }}
                                     </div>
                                 </div>
+                                <Show when=move || !online_names.with(Vec::is_empty)>
+                                    <p class="room-online-strip" aria-live="polite">
+                                        <span class="room-online-dot" aria-hidden="true"></span>
+                                        {move || format!("{} online: {}", online_names.with(Vec::len), online_names.get().join(", "))}
+                                    </p>
+                                </Show>
                                 <p class="room-subtitle">
                                     "Narrador: " <strong>{move || gm_username_sig.get()}</strong>
                                     {move || {

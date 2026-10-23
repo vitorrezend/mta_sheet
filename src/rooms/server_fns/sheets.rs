@@ -1,5 +1,5 @@
 use leptos::*;
-use super::super::models::{QuickStatAction, RoomSheetSummary};
+use super::super::models::{QuickStatAction, RoomSheetSummary, SheetRoomLink};
 #[cfg(feature = "ssr")]
 use super::super::models::{RoomBroadcastEvent, RoomInitiativeData, build_room_sheet_summary};
 #[cfg(feature = "ssr")]
@@ -49,15 +49,39 @@ pub async fn update_room_sheet_order(room_id: String, ordered_sheet_ids: Vec<Str
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
+    crate::rooms::events::notify_room_changed(&room_id);
     Ok(())
 }
 
 #[server(endpoint = "assign_sheet_to_room")]
 pub async fn assign_sheet_to_room(sheet_id: String, room_id: String) -> Result<(), ServerFnError> {
     use sqlx::SqlitePool;
+    use crate::auth::get_auth_user_id;
+    use crate::repositories::RoomRepository;
+
+    let user_id = get_auth_user_id().await?.ok_or_else(|| {
+        ServerFnError::new("Você precisa estar logado para vincular fichas a uma sala")
+    })?;
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
+
+    // Só o dono da ficha pode vinculá-la, e só a uma sala da qual participa.
+    // Sem isso, qualquer um poderia levar a ficha alheia para a própria sala e editá-la como mestre.
+    let owner: Option<Option<String>> = sqlx::query_scalar("SELECT user_id FROM character_sheets WHERE id = ?")
+        .bind(&sheet_id)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    if owner.flatten().as_deref() != Some(user_id.as_str()) {
+        return Err(ServerFnError::new("Você só pode vincular as suas próprias fichas"));
+    }
+    let is_member = RoomRepository::check_is_gm_or_member(&pool, &room_id, &user_id)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    if !is_member {
+        return Err(ServerFnError::new("Você não participa desta sala"));
+    }
 
     sqlx::query("UPDATE character_sheets SET room_id = ? WHERE id = ?")
         .bind(&room_id)
@@ -66,22 +90,37 @@ pub async fn assign_sheet_to_room(sheet_id: String, room_id: String) -> Result<(
         .await
         .map_err(|e| ServerFnError::new(format!("Erro ao associar ficha à sala: {}", e)))?;
 
+    crate::rooms::events::notify_room_changed(&room_id);
     Ok(())
 }
 
 #[server(endpoint = "remove_sheet_from_room")]
 pub async fn remove_sheet_from_room(sheet_id: String) -> Result<(), ServerFnError> {
     use sqlx::{SqlitePool, Row};
+    use crate::auth::get_auth_user_id;
+
+    let user_id = get_auth_user_id().await?.ok_or_else(|| {
+        ServerFnError::new("Você precisa estar logado para desvincular fichas")
+    })?;
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
 
-    // 1. Descobre a sala a que a ficha pertencia antes de desvincular
-    let room_id: Option<String> = sqlx::query_scalar("SELECT room_id FROM character_sheets WHERE id = ?")
-        .bind(&sheet_id)
-        .fetch_optional(&pool)
-        .await
-        .unwrap_or_default();
+    // 1. Descobre a sala a que a ficha pertencia e confere a permissão (dono da ficha ou mestre da sala)
+    let row = sqlx::query(
+        "SELECT cs.user_id, cs.room_id, r.gm_id FROM character_sheets cs LEFT JOIN rooms r ON r.id = cs.room_id WHERE cs.id = ?"
+    )
+    .bind(&sheet_id)
+    .fetch_optional(&pool)
+    .await
+    .map_err(|e| ServerFnError::new(e.to_string()))?
+    .ok_or_else(|| ServerFnError::new("Ficha não encontrada"))?;
+    let owner: Option<String> = row.try_get("user_id").unwrap_or_default();
+    let gm_id: Option<String> = row.try_get("gm_id").unwrap_or_default();
+    let room_id: Option<String> = row.try_get("room_id").unwrap_or_default();
+    if owner.as_deref() != Some(user_id.as_str()) && gm_id.as_deref() != Some(user_id.as_str()) {
+        return Err(ServerFnError::new("Apenas o dono da ficha ou o mestre da sala podem desvinculá-la"));
+    }
 
     // 2. Desvincula a ficha
     sqlx::query("UPDATE character_sheets SET room_id = NULL WHERE id = ?")
@@ -91,7 +130,7 @@ pub async fn remove_sheet_from_room(sheet_id: String) -> Result<(), ServerFnErro
         .map_err(|e| ServerFnError::new(format!("Erro ao desvincular ficha: {}", e)))?;
 
     // 3. Se estava vinculada a uma sala, limpa a iniciativa e a ordem de fichas dessa sala
-    if let Some(r_id) = room_id {
+    if let Some(r_id) = room_id.clone() {
         if let Ok(Some(row)) = sqlx::query("SELECT initiative_data, sheet_order FROM rooms WHERE id = ?")
             .bind(&r_id)
             .fetch_optional(&pool)
@@ -135,6 +174,9 @@ pub async fn remove_sheet_from_room(sheet_id: String) -> Result<(), ServerFnErro
         }
     }
 
+    if let Some(r_id) = &room_id {
+        crate::rooms::events::notify_room_changed(r_id);
+    }
     Ok(())
 }
 
@@ -177,6 +219,18 @@ pub async fn toggle_sheet_room_visibility(sheet_id: String, is_hidden: bool) -> 
         .execute(&pool)
         .await
         .map_err(|e| ServerFnError::new(format!("Erro ao alterar visibilidade: {}", e)))?;
+
+    // Visibilidade muda quem pode ver a ficha: todos recarregam os detalhes filtrados pelo servidor
+    let room_id: Option<String> = sqlx::query_scalar("SELECT room_id FROM character_sheets WHERE id = ?")
+        .bind(&sheet_id)
+        .fetch_optional(&pool)
+        .await
+        .ok()
+        .flatten()
+        .flatten();
+    if let Some(r_id) = room_id {
+        crate::rooms::events::notify_room_changed(&r_id);
+    }
 
     Ok(())
 }
@@ -303,6 +357,7 @@ pub async fn clone_and_assign_sheet_to_member(
         None,
     );
 
+    crate::rooms::events::notify_room_changed(&room_id);
     Ok(new_sheet_id)
 }
 
@@ -415,7 +470,8 @@ pub async fn update_room_sheet_stats(
     let summary_json = serde_json::to_string(&summary).unwrap_or_default();
 
     // 4. Salva no banco de dados SQLite
-    sqlx::query("UPDATE character_sheets SET data = ?, summary_json = ?, updated_at = datetime('now') WHERE id = ?")
+    // Incrementa a versão: o dono com a ficha aberta será avisado em vez de sobrescrever este ajuste
+    sqlx::query("UPDATE character_sheets SET data = ?, summary_json = ?, updated_at = datetime('now'), version = version + 1 WHERE id = ?")
         .bind(&updated_json)
         .bind(&summary_json)
         .bind(&sheet_id)
@@ -428,6 +484,8 @@ pub async fn update_room_sheet_stats(
         .fetch_one(&pool)
         .await
         .unwrap_or_default();
+
+    crate::rooms::events::notify_sheet_changed(&pool, &sheet_id).await;
 
     let summary = build_room_sheet_summary(
         sheet_id,
@@ -446,4 +504,34 @@ pub async fn update_room_sheet_stats(
     );
 
     Ok(summary)
+}
+
+/// Sala da ficha, se ela estiver vinculada a uma e o usuário participar dela.
+/// Usado pela ficha para enviar rolagens direto para o chat da mesa.
+#[server(endpoint = "get_sheet_room")]
+pub async fn get_sheet_room(sheet_id: String) -> Result<Option<SheetRoomLink>, ServerFnError> {
+    use sqlx::{Row, SqlitePool};
+    use crate::auth::get_auth_user_id;
+    use crate::repositories::RoomRepository;
+
+    let Some(user_id) = get_auth_user_id().await? else { return Ok(None) };
+    let pool = use_context::<SqlitePool>().ok_or_else(|| {
+        ServerFnError::new("Conexão com o banco de dados indisponível")
+    })?;
+
+    let row = sqlx::query("SELECT r.id, r.name FROM character_sheets cs JOIN rooms r ON r.id = cs.room_id WHERE cs.id = ?")
+        .bind(&sheet_id)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let Some(row) = row else { return Ok(None) };
+    let room_id: String = row.get("id");
+
+    let is_member = RoomRepository::check_is_gm_or_member(&pool, &room_id, &user_id)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    if !is_member {
+        return Ok(None);
+    }
+    Ok(Some(SheetRoomLink { room_id, room_name: row.get("name") }))
 }
