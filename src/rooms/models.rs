@@ -227,6 +227,10 @@ pub enum RoomBroadcastEvent {
     MapUpdated(RoomMapData),
     /// Usuários com a sala aberta neste momento
     PresenceChanged { online_user_ids: Vec<String> },
+    /// Capela salva por alguém da sala
+    ChantryUpdated { chantry: ChantryPoolData, version: i64 },
+    /// Diário da crônica salvo por alguém da sala
+    ChronicleUpdated { notes: String, version: i64 },
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -362,6 +366,11 @@ pub struct RoomDetails {
     pub has_password: bool,
     pub chantry: ChantryPoolData,
     pub chronicle_notes: String,
+    /// Versões da Capela e do Diário, para detectar edições simultâneas
+    #[serde(default)]
+    pub chantry_version: i64,
+    #[serde(default)]
+    pub chronicle_version: i64,
     pub initiative: RoomInitiativeData,
     pub map_data: RoomMapData,
     pub members: Vec<RoomMemberInfo>,
@@ -528,6 +537,8 @@ mod tests {
             has_password: true,
             chantry: chantry.clone(),
             chronicle_notes: "Sessão 1: Encontro na Avenida Paulista".to_string(),
+            chantry_version: 0,
+            chronicle_version: 0,
             initiative: RoomInitiativeData::default(),
             map_data: RoomMapData::default(),
             members: vec![],

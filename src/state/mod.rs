@@ -2,9 +2,11 @@ pub mod models;
 pub mod costs;
 pub mod sanitization;
 pub mod rich_text;
+pub mod json_patch;
 pub mod server_fns;
 pub mod server_fns_folders;
 pub mod server_fns_share;
+pub mod server_fns_save;
 
 #[cfg(test)]
 mod tests;
@@ -16,3 +18,4 @@ pub use server_fns::*;
 pub use server_fns_folders::*;
 #[allow(unused_imports)]
 pub use server_fns_share::*;
+pub use server_fns_save::*;

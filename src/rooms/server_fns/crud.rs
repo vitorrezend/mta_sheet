@@ -67,7 +67,7 @@ pub async fn create_room(
     let password_hash = if let Some(ref p) = password {
         let p_trimmed = p.trim();
         if !p_trimmed.is_empty() {
-            bcrypt::hash(p_trimmed, 8).map_err(|e| ServerFnError::new(format!("Erro ao processar senha: {}", e)))?
+            crate::auth::hash_password(p_trimmed, 8).await.map_err(|e| ServerFnError::new(format!("Erro ao processar senha: {}", e)))?
         } else {
             String::new()
         }
@@ -110,6 +110,11 @@ pub async fn join_room_by_code(code: String, password: Option<String>) -> Result
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
 
+    // Limita tentativas por usuário: impede varrer códigos ou senhas de sala por tentativa e erro
+    if !crate::server::middleware::security::check_action_rate_limit(&format!("join:{}", user_id), 10, std::time::Duration::from_secs(60)) {
+        return Err(ServerFnError::new("Muitas tentativas de entrar em salas. Aguarde 1 minuto."));
+    }
+
     let room_row = sqlx::query("SELECT id, name, gm_id, password_hash FROM rooms WHERE code = ?")
         .bind(&clean_code)
         .fetch_optional(&pool)
@@ -127,7 +132,7 @@ pub async fn join_room_by_code(code: String, password: Option<String>) -> Result
         if pwd_input.is_empty() {
             return Err(ServerFnError::new("Esta sala é protegida por senha. Digite a senha para entrar."));
         }
-        let valid = bcrypt::verify(pwd_input, &password_hash).unwrap_or(false);
+        let valid = crate::auth::verify_password(pwd_input, &password_hash).await.unwrap_or(false);
         if !valid {
             return Err(ServerFnError::new("Senha incorreta para esta sala."));
         }
@@ -172,7 +177,7 @@ pub async fn join_public_room(room_id: String, password: Option<String>) -> Resu
         if pwd_input.is_empty() {
             return Err(ServerFnError::new("Esta sala é protegida por senha. Digite a senha para entrar."));
         }
-        let valid = bcrypt::verify(pwd_input, &password_hash).unwrap_or(false);
+        let valid = crate::auth::verify_password(pwd_input, &password_hash).await.unwrap_or(false);
         if !valid {
             return Err(ServerFnError::new("Senha incorreta para esta sala."));
         }
@@ -225,7 +230,7 @@ pub async fn update_room_settings(
     } else if let Some(ref p) = new_password {
         let p_trimmed = p.trim();
         if !p_trimmed.is_empty() {
-            let hash = bcrypt::hash(p_trimmed, 8).map_err(|e| ServerFnError::new(e.to_string()))?;
+            let hash = crate::auth::hash_password(p_trimmed, 8).await.map_err(|e| ServerFnError::new(e.to_string()))?;
             sqlx::query("UPDATE rooms SET is_public = ?, password_hash = ? WHERE id = ?")
                 .bind(is_pub_val)
                 .bind(&hash)
@@ -271,7 +276,7 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
 
     // 1. Get room info including chantry, chronicle notes, initiative, map, and sheet_order
     let room_row = sqlx::query(
-        "SELECT r.id, r.name, r.code, r.description, r.gm_id, r.chantry_data, r.chronicle_notes, r.initiative_data, r.map_data, r.sheet_order, r.is_public,
+        "SELECT r.id, r.name, r.code, r.description, r.gm_id, r.chantry_data, r.chronicle_notes, r.chantry_version, r.chronicle_version, r.initiative_data, r.map_data, r.sheet_order, r.is_public,
                 (r.password_hash IS NOT NULL AND r.password_hash != '') as has_password,
                 u.username as gm_username 
          FROM rooms r 
@@ -292,6 +297,8 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
     let chantry_raw: String = room_row.try_get("chantry_data").unwrap_or_default();
     let chantry: ChantryPoolData = serde_json::from_str(&chantry_raw).unwrap_or_default();
     let chronicle_notes: String = room_row.try_get("chronicle_notes").unwrap_or_default();
+    let chantry_version: i64 = room_row.try_get("chantry_version").unwrap_or(0);
+    let chronicle_version: i64 = room_row.try_get("chronicle_version").unwrap_or(0);
     let initiative_raw: String = room_row.try_get("initiative_data").unwrap_or_default();
     let mut initiative: RoomInitiativeData = if !initiative_raw.is_empty() {
         serde_json::from_str(&initiative_raw).unwrap_or_default()
@@ -382,6 +389,8 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         has_password,
         chantry,
         chronicle_notes,
+        chantry_version,
+        chronicle_version,
         initiative,
         map_data,
         members,
@@ -391,7 +400,8 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
 }
 
 #[server(endpoint = "update_room_chantry")]
-pub async fn update_room_chantry(room_id: String, chantry: ChantryPoolData) -> Result<(), ServerFnError> {
+/// Salva a Capela se ninguém a alterou desde `expected_version`; retorna a nova versão.
+pub async fn update_room_chantry(room_id: String, chantry: ChantryPoolData, expected_version: i64) -> Result<i64, ServerFnError> {
     use sqlx::SqlitePool;
     use crate::auth::get_auth_user_id;
 
@@ -414,19 +424,26 @@ pub async fn update_room_chantry(room_id: String, chantry: ChantryPoolData) -> R
     chantry.notes = crate::state::rich_text::sanitize_if_html(&chantry.notes).unwrap_or(chantry.notes);
     let json_data = serde_json::to_string(&chantry).unwrap_or_default();
 
-    sqlx::query("UPDATE rooms SET chantry_data = ? WHERE id = ?")
-        .bind(&json_data)
-        .bind(&room_id)
-        .execute(&pool)
-        .await
-        .map_err(|e| ServerFnError::new(format!("Erro ao atualizar capela: {}", e)))?;
+    let new_version: Option<i64> = sqlx::query_scalar(
+        "UPDATE rooms SET chantry_data = ?, chantry_version = chantry_version + 1 WHERE id = ? AND chantry_version = ? RETURNING chantry_version",
+    )
+    .bind(&json_data)
+    .bind(&room_id)
+    .bind(expected_version)
+    .fetch_optional(&pool)
+    .await
+    .map_err(|e| ServerFnError::new(format!("Erro ao atualizar capela: {}", e)))?;
+    let version = new_version.ok_or_else(|| ServerFnError::new(format!(
+        "{}: outra pessoa salvou a capela antes de você", crate::errors::VERSION_CONFLICT_PREFIX
+    )))?;
 
-    crate::rooms::events::notify_room_changed(&room_id);
-    Ok(())
+    crate::rooms::events::broadcast_to_room(&room_id, crate::rooms::RoomBroadcastEvent::ChantryUpdated { chantry, version });
+    Ok(version)
 }
 
 #[server(endpoint = "update_room_chronicle_notes")]
-pub async fn update_room_chronicle_notes(room_id: String, notes: String) -> Result<(), ServerFnError> {
+/// Salva o Diário se ninguém o alterou desde `expected_version`; retorna a nova versão.
+pub async fn update_room_chronicle_notes(room_id: String, notes: String, expected_version: i64) -> Result<i64, ServerFnError> {
     use sqlx::SqlitePool;
     use crate::auth::get_auth_user_id;
 
@@ -447,15 +464,21 @@ pub async fn update_room_chronicle_notes(room_id: String, notes: String) -> Resu
 
     let notes = crate::state::rich_text::sanitize_if_html(&notes).unwrap_or(notes);
 
-    sqlx::query("UPDATE rooms SET chronicle_notes = ? WHERE id = ?")
-        .bind(&notes)
-        .bind(&room_id)
-        .execute(&pool)
-        .await
-        .map_err(|e| ServerFnError::new(format!("Erro ao atualizar diário da crônica: {}", e)))?;
+    let new_version: Option<i64> = sqlx::query_scalar(
+        "UPDATE rooms SET chronicle_notes = ?, chronicle_version = chronicle_version + 1 WHERE id = ? AND chronicle_version = ? RETURNING chronicle_version",
+    )
+    .bind(&notes)
+    .bind(&room_id)
+    .bind(expected_version)
+    .fetch_optional(&pool)
+    .await
+    .map_err(|e| ServerFnError::new(format!("Erro ao atualizar diário da crônica: {}", e)))?;
+    let version = new_version.ok_or_else(|| ServerFnError::new(format!(
+        "{}: outra pessoa salvou o diário antes de você", crate::errors::VERSION_CONFLICT_PREFIX
+    )))?;
 
-    crate::rooms::events::notify_room_changed(&room_id);
-    Ok(())
+    crate::rooms::events::broadcast_to_room(&room_id, crate::rooms::RoomBroadcastEvent::ChronicleUpdated { notes, version });
+    Ok(version)
 }
 
 #[server(endpoint = "update_room_map")]

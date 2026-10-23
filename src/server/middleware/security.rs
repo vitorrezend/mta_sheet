@@ -29,6 +29,24 @@ pub fn check_api_rate_limit(client_ip: &str, max_requests: usize, window: Durati
     }
 }
 
+static ACTION_RATE_LIMITER: LazyLock<Mutex<HashMap<String, Vec<Instant>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+
+/// Limite por ação de um usuário (ex.: `"chat:<user_id>"`). Separado dos limites de
+/// login e da API por IP, para que cada um tenha a sua janela de tempo.
+pub fn check_action_rate_limit(key: &str, max_actions: usize, window: Duration) -> bool {
+    let mut attempts = ACTION_RATE_LIMITER.lock().unwrap_or_else(|p| p.into_inner());
+    let now = Instant::now();
+    prune_stale_entries(&mut attempts, now, window);
+    let entry = attempts.entry(key.to_string()).or_default();
+    entry.retain(|&time| now.duration_since(time) < window);
+    if entry.len() >= max_actions {
+        false
+    } else {
+        entry.push(now);
+        true
+    }
+}
+
 /// Limite de chaves (IPs) acima do qual entradas sem tentativas recentes são descartadas,
 /// evitando que o mapa do rate limiter cresça indefinidamente.
 const RATE_LIMIT_PRUNE_THRESHOLD: usize = 1024;

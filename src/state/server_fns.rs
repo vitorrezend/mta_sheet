@@ -209,7 +209,7 @@ pub fn validate_image_magic_bytes(bytes: &[u8]) -> Result<(&'static str, &'stati
 }
 
 #[cfg(feature = "ssr")]
-async fn verify_sheet_write_permission(pool: &sqlx::SqlitePool, sheet_id: &str) -> Result<(), ServerFnError> {
+pub(crate) async fn verify_sheet_write_permission(pool: &sqlx::SqlitePool, sheet_id: &str) -> Result<(), ServerFnError> {
     let auth_user_id = crate::auth::get_auth_user_id().await.map_err(|e| ServerFnError::new(e.to_string()))?;
     match SheetRepository::verify_write_permission(pool, sheet_id, auth_user_id.as_deref()).await {
         Ok(Ok(())) => Ok(()),
@@ -385,88 +385,6 @@ pub async fn create_sheet(
     );
 
     Ok(id)
-}
-
-/// Mensagem de erro usada quando a ficha foi alterada por outra pessoa desde que foi aberta.
-/// O cliente reconhece este prefixo para oferecer "recarregar" ou "manter minhas alterações".
-pub const SHEET_CONFLICT_ERROR: &str = "CONFLITO_DE_VERSAO";
-
-/// Salva a ficha e retorna a nova versão. Falha com [`SHEET_CONFLICT_ERROR`] se a ficha
-/// mudou desde a versão que o cliente carregou (`data.version`).
-#[server(endpoint = "update_sheet")]
-pub async fn update_sheet(id: String, data: CharacterData) -> Result<i64, ServerFnError> {
-    if id.trim().is_empty() {
-        return Err(ServerFnError::new("ID da ficha não pode ser vazio"));
-    }
-
-    let mut data = data;
-    data.sanitize();
-    let display_name = data.get_display_name();
-    data.name = display_name.clone();
-    data.labels.insert(crate::state::keys::HEADER_NOME.to_string(), display_name.clone());
-
-    use sqlx::SqlitePool;
-    let pool = use_context::<SqlitePool>().ok_or_else(|| {
-        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", "Database pool not found in update_sheet", Some(&format!("id={}", id)));
-        ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
-    })?;
-
-    // Check ownership / GM permission
-    verify_sheet_write_permission(&pool, &id).await?;
-
-    let start = std::time::Instant::now();
-    let data_json = serde_json::to_string(&data).map_err(|e: serde_json::Error| {
-        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Serialization error updating sheet {}", id), Some(&e.to_string()));
-        ServerFnError::new("Falha ao serializar dados da ficha.")
-    })?;
-
-    // Limite máximo de 5MB por ficha no banco
-    if data_json.len() > 5 * 1024 * 1024 {
-        return Err(ServerFnError::new("O tamanho dos dados da ficha excede o limite máximo permitido de 5 MB"));
-    }
-
-    let payload_kb = (data_json.len() as f64) / 1024.0;
-    let summary = data.to_summary(String::new(), data.is_public, true);
-    let summary_json = serde_json::to_string(&summary).unwrap_or_default();
-
-    let new_version = SheetRepository::update(
-        &pool,
-        &id,
-        data.version,
-        &display_name,
-        &data_json,
-        &data.sheet_type,
-        data.is_public,
-        &summary_json,
-    )
-    .await
-    .map_err(|e| {
-        crate::logging::server::write_log(crate::logging::LogCategory::Errors, "ERROR", &format!("Failed to update sheet {}", id), Some(&e.to_string()));
-        ServerFnError::new("Falha ao atualizar dados da ficha no banco de dados.")
-    })?;
-
-    let Some(new_version) = new_version else {
-        let exists = SheetRepository::find_version(&pool, &id).await.ok().flatten().is_some();
-        if exists {
-            crate::logging::server::write_log(crate::logging::LogCategory::Requests, "WARN", &format!("Conflito de versão ao salvar ficha '{}' (cliente na versão {})", id, data.version), None);
-            return Err(ServerFnError::new(format!("{}: esta ficha foi alterada em outro lugar desde que você a abriu", SHEET_CONFLICT_ERROR)));
-        }
-        crate::logging::server::write_log(crate::logging::LogCategory::Requests, "WARN", &format!("Ficha com ID '{}' não encontrada para atualização", id), None);
-        return Err(ServerFnError::new(format!("Ficha com ID '{}' não encontrada para atualização", id)));
-    };
-
-    // Sincroniza respostas relacionais na tabela character_quiz_answers
-    let _ = SheetRepository::sync_quiz_answers(&pool, &id, &data.quiz_data.entries).await;
-
-    crate::logging::server::write_log(
-        crate::logging::LogCategory::Database,
-        "INFO",
-        &format!("UPDATE character_sheets id='{}' (nome='{}', public={}) salva com sucesso em {}ms ({:.1} KB)", id, data.name, data.is_public, start.elapsed().as_millis(), payload_kb),
-        None,
-    );
-
-    crate::rooms::events::notify_sheet_changed(&pool, &id).await;
-    Ok(new_version)
 }
 
 #[server(endpoint = "get_quiz_questions")]

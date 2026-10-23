@@ -2,11 +2,10 @@ use axum::response::IntoResponse;
 use axum::response::sse::{Event, KeepAlive, Sse};
 use futures_util::stream::StreamExt;
 use tokio_stream::wrappers::BroadcastStream;
-use sqlx::Row;
 use crate::rooms::models::RoomBroadcastEvent;
 
 pub async fn room_events_sse_handler(
-    headers: http::HeaderMap,
+    crate::auth::AuthUser(user_id): crate::auth::AuthUser,
     axum::extract::Path(room_id): axum::extract::Path<String>,
 ) -> impl IntoResponse {
     let pool = crate::database::get_db().await;
@@ -22,39 +21,6 @@ pub async fn room_events_sse_handler(
     if !room_exists {
         return (http::StatusCode::NOT_FOUND, "Sala não encontrada").into_response();
     }
-
-    let auth_user_id = {
-        if let Some(cookie_hdr) = headers.get(http::header::COOKIE).and_then(|h| h.to_str().ok()) {
-            let mut found_token = None;
-            for pair in cookie_hdr.split(';') {
-                let mut parts = pair.trim().splitn(2, '=');
-                if let (Some(k), Some(v)) = (parts.next(), parts.next()) {
-                    if k == "session_token" {
-                        found_token = Some(v.trim().to_string());
-                        break;
-                    }
-                }
-            }
-            if let Some(token) = found_token {
-                sqlx::query("SELECT user_id FROM sessions WHERE id = ? AND expires_at > CURRENT_TIMESTAMP")
-                    .bind(token)
-                    .fetch_optional(&pool)
-                    .await
-                    .ok()
-                    .flatten()
-                    .map(|r| r.get::<String, _>("user_id"))
-            } else {
-                None
-            }
-        } else {
-            None
-        }
-    };
-
-    let user_id = match auth_user_id {
-        Some(u) => u,
-        None => return (http::StatusCode::UNAUTHORIZED, "Autenticação necessária para ouvir eventos da sala").into_response(),
-    };
 
     let is_authorized = crate::repositories::RoomRepository::check_is_gm_or_member(&pool, &room_id, &user_id)
         .await

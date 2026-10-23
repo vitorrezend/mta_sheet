@@ -113,6 +113,23 @@ where
                 <span class="drive-folder-count">{format!("{} {}", count, item_label)}</span>
             </div>
             <div class="drive-folder-menu-actions">
+                {use_context::<super::folder_modals::FolderMoveRequest>().map(|request| {
+                    let f_for_move = f.clone();
+                    view! {
+                        <button
+                            type="button"
+                            class="drive-folder-menu-btn"
+                            title="Mover pasta"
+                            aria-label="Mover pasta"
+                            on:click=move |ev: ev::MouseEvent| {
+                                ev.stop_propagation();
+                                request.0.set(Some(f_for_move.clone()));
+                            }
+                        >
+                            "📂"
+                        </button>
+                    }
+                })}
                 <button
                     type="button"
                     class="drive-folder-menu-btn"

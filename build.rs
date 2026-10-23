@@ -1,4 +1,11 @@
 fn main() {
+    // Migrações são embutidas por `sqlx::migrate!`: recompila quando mudarem
+    println!("cargo:rerun-if-changed=migrations");
+    println!("cargo:rerun-if-changed=build.rs");
+    // Reexecuta se os assets do front sumirem (para recriar os stubs de teste em debug)
+    println!("cargo:rerun-if-changed=target/site/pkg/mta_sheet.js");
+    println!("cargo:rerun-if-changed=target/site/pkg/mta_sheet.wasm");
+
     // Garante a existência dos diretórios de assets esperados pelo rust-embed
     let _ = std::fs::create_dir_all("target/site/pkg");
     let _ = std::fs::create_dir_all("styles");

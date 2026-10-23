@@ -1,28 +1,6 @@
 use axum::response::IntoResponse;
 use sqlx::Row;
 
-async fn extract_auth_user_from_headers(headers: &http::HeaderMap, pool: &sqlx::SqlitePool) -> Option<String> {
-    let cookie_hdr = headers.get(http::header::COOKIE)?.to_str().ok()?;
-    let mut found_token = None;
-    for pair in cookie_hdr.split(';') {
-        let mut parts = pair.trim().splitn(2, '=');
-        if let (Some(k), Some(v)) = (parts.next(), parts.next()) {
-            if k == "session_token" {
-                found_token = Some(v.trim().to_string());
-                break;
-            }
-        }
-    }
-    let token = found_token?;
-    let row = sqlx::query("SELECT user_id FROM sessions WHERE id = ? AND expires_at > CURRENT_TIMESTAMP")
-        .bind(token)
-        .fetch_optional(pool)
-        .await
-        .ok()
-        .flatten()?;
-    Some(row.get("user_id"))
-}
-
 pub async fn export_json_handler(
     headers: http::HeaderMap,
     axum::extract::Path(id): axum::extract::Path<String>,
@@ -42,7 +20,7 @@ pub async fn export_json_handler(
     let room_id: Option<String> = row.get("room_id");
     let is_public: bool = row.get::<i64, _>("is_public") == 1;
 
-    let auth_user_id = extract_auth_user_from_headers(&headers, &pool).await;
+    let auth_user_id = crate::auth::user_id_from_headers(&pool, &headers).await;
     let is_owner = auth_user_id.is_some() && auth_user_id == sheet_user_id;
     let mut is_gm = false;
     if let (Some(u_id), Some(r_id)) = (&auth_user_id, &room_id) {
@@ -101,7 +79,7 @@ pub async fn upload_image_handler(
     mut multipart: axum::extract::Multipart,
 ) -> impl IntoResponse {
     let pool = crate::database::get_db().await;
-    let auth_user = extract_auth_user_from_headers(&headers, &pool).await;
+    let auth_user = crate::auth::user_id_from_headers(&pool, &headers).await;
     if auth_user.is_none() {
         return (
             http::StatusCode::UNAUTHORIZED,

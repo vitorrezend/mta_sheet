@@ -10,6 +10,7 @@ pub const CHAT_MAX_CHARS: usize = 1000;
 mod helpers {
     use leptos::*;
     use sqlx::{Row, SqlitePool};
+    use crate::errors::{AppError, AppResult};
     use crate::repositories::RoomRepository;
     use crate::rooms::models::{ChatMessageKind, ChatRollData, RoomBroadcastEvent, RoomChatMessage};
     use crate::rules::RollRequest;
@@ -23,19 +24,31 @@ mod helpers {
     }
 
     /// Exige usuário logado que seja mestre ou membro da sala.
-    pub async fn require_room_member(room_id: &str) -> Result<ChatContext, ServerFnError> {
+    pub async fn require_room_member(room_id: &str) -> AppResult<ChatContext> {
         let user_id = crate::auth::get_auth_user_id()
-            .await?
-            .ok_or_else(|| ServerFnError::new("Você precisa estar logado para usar o chat da sala"))?;
-        let pool = use_context::<SqlitePool>()
-            .ok_or_else(|| ServerFnError::new("Conexão com o banco de dados indisponível"))?;
-        let allowed = RoomRepository::check_is_gm_or_member(&pool, room_id, &user_id)
             .await
-            .map_err(|e| ServerFnError::new(e.to_string()))?;
-        if !allowed {
-            return Err(ServerFnError::new("Você não é membro desta sala"));
+            .map_err(|e| AppError::internal("Falha ao ler a sessão", e))?
+            .ok_or(AppError::NotLoggedIn)?;
+        let pool = use_context::<SqlitePool>()
+            .ok_or_else(|| AppError::internal("Pool do banco ausente no contexto", "chat"))?;
+        if !RoomRepository::check_is_gm_or_member(&pool, room_id, &user_id).await? {
+            return Err(AppError::forbidden("Você não é membro desta sala"));
         }
         Ok(ChatContext { pool, user_id })
+    }
+
+    /// Mensagens e rolagens por usuário: até 15 a cada 10 segundos (contra spam e scripts).
+    pub fn check_chat_rate_limit(ctx: &ChatContext) -> AppResult<()> {
+        let allowed = crate::server::middleware::security::check_action_rate_limit(
+            &format!("chat:{}", ctx.user_id),
+            15,
+            std::time::Duration::from_secs(10),
+        );
+        if allowed {
+            Ok(())
+        } else {
+            Err(AppError::RateLimited("Muitas mensagens em sequência. Aguarde alguns segundos.".into()))
+        }
     }
 
     /// Quem está falando: o jogador (fora de cena) ou um personagem da sala.
@@ -47,12 +60,11 @@ mod helpers {
 
     /// Resolve nome e avatar no servidor. Só é possível falar como um personagem
     /// vinculado à sala que pertença ao usuário (o mestre pode usar qualquer um).
-    pub async fn resolve_speaker(ctx: &ChatContext, room_id: &str, sheet_id: Option<String>) -> Result<Speaker, ServerFnError> {
+    pub async fn resolve_speaker(ctx: &ChatContext, room_id: &str, sheet_id: Option<String>) -> AppResult<Speaker> {
         let sender_name: String = sqlx::query_scalar("SELECT username FROM users WHERE id = ?")
             .bind(&ctx.user_id)
             .fetch_optional(&ctx.pool)
-            .await
-            .map_err(|e| ServerFnError::new(e.to_string()))?
+            .await?
             .unwrap_or_else(|| "Jogador".to_string());
 
         let Some(sheet_id) = sheet_id.filter(|s| !s.trim().is_empty()) else {
@@ -67,14 +79,13 @@ mod helpers {
         .bind(&sheet_id)
         .bind(room_id)
         .fetch_optional(&ctx.pool)
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .ok_or_else(|| ServerFnError::new("Personagem não encontrado nesta sala"))?;
+        .await?
+        .ok_or_else(|| AppError::not_found("Personagem não encontrado nesta sala"))?;
 
         let owner: Option<String> = row.get("user_id");
         let gm_id: String = row.get("gm_id");
         if owner.as_deref() != Some(ctx.user_id.as_str()) && gm_id != ctx.user_id {
-            return Err(ServerFnError::new("Você só pode falar como os seus próprios personagens"));
+            return Err(AppError::forbidden("Você só pode falar como os seus próprios personagens"));
         }
 
         let name: String = row.get("name");
@@ -130,15 +141,15 @@ mod helpers {
     }
 
     /// Persiste e transmite a mensagem para todos conectados à sala.
-    pub async fn publish(ctx: &ChatContext, msg: RoomChatMessage) -> Result<RoomChatMessage, ServerFnError> {
+    pub async fn publish(ctx: &ChatContext, msg: RoomChatMessage) -> AppResult<RoomChatMessage> {
         RoomRepository::save_room_message(&ctx.pool, &msg)
             .await
-            .map_err(|e| ServerFnError::new(format!("Erro ao salvar mensagem: {}", e)))?;
+            .map_err(|e| AppError::internal("Erro ao salvar mensagem do chat", e))?;
         crate::rooms::events::broadcast_to_room(&msg.room_id, RoomBroadcastEvent::ChatMessage(msg.clone()));
         Ok(msg)
     }
 
-    pub async fn publish_roll(room_id: &str, ctx: &ChatContext, speaker: Speaker, request: &RollRequest) -> Result<RoomChatMessage, ServerFnError> {
+    pub async fn publish_roll(room_id: &str, ctx: &ChatContext, speaker: Speaker, request: &RollRequest) -> AppResult<RoomChatMessage> {
         let roll = roll_dice(request);
         let msg = build_message(room_id, ctx, speaker, ChatMessageKind::Roll, roll_summary(&roll), Some(roll));
         publish(ctx, msg).await
@@ -148,9 +159,10 @@ mod helpers {
 #[server(endpoint = "get_room_chat_messages")]
 pub async fn get_room_chat_messages(room_id: String) -> Result<Vec<RoomChatMessage>, ServerFnError> {
     let ctx = helpers::require_room_member(&room_id).await?;
-    crate::repositories::RoomRepository::get_room_messages(&ctx.pool, &room_id, CHAT_HISTORY_LIMIT)
+    let history = crate::repositories::RoomRepository::get_room_messages(&ctx.pool, &room_id, CHAT_HISTORY_LIMIT)
         .await
-        .map_err(|e| ServerFnError::new(format!("Erro ao buscar histórico do chat: {}", e)))
+        .map_err(|e| crate::errors::AppError::internal("Erro ao buscar histórico do chat", e))?;
+    Ok(history)
 }
 
 /// Envia uma mensagem. `sheet_id` escolhe falar como um personagem (em cena);
@@ -172,15 +184,16 @@ pub async fn send_room_chat_message(
     }
 
     let ctx = helpers::require_room_member(&room_id).await?;
+    helpers::check_chat_rate_limit(&ctx)?;
     let speaker = helpers::resolve_speaker(&ctx, &room_id, sheet_id).await?;
 
     if let Some(request) = crate::rules::parse_roll_command(&content) {
-        return helpers::publish_roll(&room_id, &ctx, speaker, &request).await;
+        return Ok(helpers::publish_roll(&room_id, &ctx, speaker, &request).await?);
     }
 
     let kind = if speaker.character.is_some() { ChatMessageKind::Ic } else { ChatMessageKind::Ooc };
     let msg = helpers::build_message(&room_id, &ctx, speaker, kind, content, None);
-    helpers::publish(&ctx, msg).await
+    Ok(helpers::publish(&ctx, msg).await?)
 }
 
 #[server(endpoint = "roll_room_dice")]
@@ -193,9 +206,10 @@ pub async fn roll_room_dice(
     sheet_id: Option<String>,
 ) -> Result<RoomChatMessage, ServerFnError> {
     let ctx = helpers::require_room_member(&room_id).await?;
+    helpers::check_chat_rate_limit(&ctx)?;
     let speaker = helpers::resolve_speaker(&ctx, &room_id, sheet_id).await?;
     let request = crate::rules::RollRequest::new(dice_count, difficulty, specialty, &label);
-    helpers::publish_roll(&room_id, &ctx, speaker, &request).await
+    Ok(helpers::publish_roll(&room_id, &ctx, speaker, &request).await?)
 }
 
 #[server(endpoint = "clear_room_chat")]
@@ -206,14 +220,14 @@ pub async fn clear_room_chat(room_id: String) -> Result<(), ServerFnError> {
     let ctx = helpers::require_room_member(&room_id).await?;
     let is_gm = RoomRepository::check_is_gm(&ctx.pool, &room_id, &ctx.user_id)
         .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+        .map_err(crate::errors::AppError::from)?;
     if !is_gm {
-        return Err(ServerFnError::new("Apenas o Narrador pode limpar o histórico do chat."));
+        return Err(crate::errors::AppError::forbidden("Apenas o Narrador pode limpar o histórico do chat.").into());
     }
 
     RoomRepository::clear_room_messages(&ctx.pool, &room_id)
         .await
-        .map_err(|e| ServerFnError::new(format!("Erro ao limpar chat: {}", e)))?;
+        .map_err(|e| crate::errors::AppError::internal("Erro ao limpar chat", e))?;
 
     crate::rooms::events::broadcast_to_room(&room_id, RoomBroadcastEvent::ChatCleared);
     Ok(())

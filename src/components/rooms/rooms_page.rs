@@ -303,8 +303,8 @@ pub fn RoomsPage() -> impl IntoView {
                                     <input
                                         type="text"
                                         placeholder=move || match lang() {
-                                            crate::i18n::Language::PtBr => "Código da Sala (ex: MTA-74A)",
-                                            crate::i18n::Language::EnUs => "Room Code (e.g. MTA-74A)",
+                                            crate::i18n::Language::PtBr => "Código da Sala (ex: MTA-7K4A-Q2PX)",
+                                            crate::i18n::Language::EnUs => "Room Code (e.g. MTA-7K4A-Q2PX)",
                                         }
                                         class="room-input code-input"
                                         prop:value=join_code

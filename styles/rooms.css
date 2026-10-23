@@ -2757,3 +2757,44 @@ body {
     box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
     flex-shrink: 0;
 }
+
+/* Capela e Diário: status de salvamento e aviso de versão nova */
+.room-notes-savebar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.room-notes-status {
+    color: #16a34a;
+    font-size: 0.8rem;
+}
+
+.room-notes-status.is-error {
+    color: #dc2626;
+}
+
+.room-notes-conflict {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.75rem;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    background: #fffbeb;
+    color: #78350f;
+    font-size: 0.85rem;
+}
+
+.room-notes-conflict button {
+    font-family: inherit;
+    font-weight: 700;
+    border: 1px solid #b45309;
+    border-radius: 6px;
+    background: transparent;
+    color: #78350f;
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+}
