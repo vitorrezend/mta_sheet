@@ -10,6 +10,7 @@ pub mod costs;
 pub mod combat;
 pub mod specialties;
 pub mod dice;
+pub mod map_grid;
 
 pub use health::*;
 pub use quintessence::*;

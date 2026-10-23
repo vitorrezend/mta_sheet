@@ -1,106 +1,78 @@
-use crate::rooms::GridShape;
+//! Auxiliares do mapa usados pela interface (régua e posicionamento de tokens).
 
-/// Calcula as dimensões totais (largura, altura) em pixels do tabuleiro baseado no shape e tamanho das células.
-pub fn calculate_board_dimensions(cols: u32, rows: u32, cs: f32, shape: GridShape) -> (f32, f32) {
-    let cols = cols as f32;
-    let rows = rows as f32;
+use crate::rooms::RoomMapData;
+use crate::rules::map_grid::{self, Cell};
 
-    match shape {
-        GridShape::Square => {
-            let w = cols * cs;
-            let h = rows * cs;
-            (w, h)
-        }
-        GridShape::HexPointy => {
-            let r = cs / 2.0;
-            let w_hex = 1.7320508 * r; // sqrt(3) * R
-            let total_w = cols * w_hex + (w_hex / 2.0);
-            let total_h = rows * (1.5 * r) + (r * 0.5);
-            (total_w, total_h)
-        }
-        GridShape::HexFlat => {
-            let r = cs / 2.0;
-            let h_hex = 1.7320508 * r;
-            let total_w = cols * (1.5 * r) + (r * 0.5);
-            let total_h = rows * h_hex + (h_hex / 2.0);
-            (total_w, total_h)
-        }
-    }
-}
-
-/// Cálculo do centro de uma célula (col, row) em pixels -> (px_x, px_y)
-pub fn calculate_cell_center(col: f32, row: f32, cs: f32, shape: GridShape) -> (f32, f32) {
-    match shape {
-        GridShape::Square => {
-            let cx = col * cs + (cs / 2.0);
-            let cy = row * cs + (cs / 2.0);
-            (cx, cy)
-        }
-        GridShape::HexPointy => {
-            let r = cs / 2.0;
-            let w_hex = 1.7320508 * r;
-            let offset_x = if (row as i32) % 2 != 0 { w_hex / 2.0 } else { 0.0 };
-            let cx = col * w_hex + offset_x + (w_hex / 2.0);
-            let cy = row * (1.5 * r) + r;
-            (cx, cy)
-        }
-        GridShape::HexFlat => {
-            let r = cs / 2.0;
-            let h_hex = 1.7320508 * r;
-            let offset_y = if (col as i32) % 2 != 0 { h_hex / 2.0 } else { 0.0 };
-            let cx = col * (1.5 * r) + r;
-            let cy = row * h_hex + offset_y + (h_hex / 2.0);
-            (cx, cy)
-        }
-    }
-}
-
-/// Gera string de pontos para polígono SVG de hexágono
-pub fn generate_hex_points(cx: f32, cy: f32, r: f32, shape: GridShape) -> String {
-    let mut pts = String::new();
-    for i in 0..6 {
-        let angle_deg = match shape {
-            GridShape::HexPointy => 60.0 * (i as f32) - 30.0,
-            _ => 60.0 * (i as f32),
-        };
-        let angle_rad = angle_deg.to_radians();
-        let px = cx + r * angle_rad.cos();
-        let py = cy + r * angle_rad.sin();
-        if i > 0 {
-            pts.push(' ');
-        }
-        pts.push_str(&format!("{:.1},{:.1}", px, py));
-    }
-    pts
-}
-
-/// Medição da Régua Tática: calcula distância em células, metros e faixa canônica de M20
-pub fn calculate_ruler_info(
-    start: (f32, f32),
-    end: (f32, f32),
-    cs: f32,
-    shape: GridShape,
-    meters_per_cell: f32,
-) -> (f32, f32, &'static str, &'static str) {
-    let (x1, y1) = calculate_cell_center(start.0, start.1, cs, shape);
-    let (x2, y2) = calculate_cell_center(end.0, end.1, cs, shape);
-    let dx = x2 - x1;
-    let dy = y2 - y1;
-    let dist_px = (dx * dx + dy * dy).sqrt();
-    let cells = dist_px / cs;
-    let meters = cells * meters_per_cell;
-
-    let (range_name, m20_sphere) = if meters <= 1.5 {
-        ("Toque", "Toque Corporal / Corpo a Corpo")
+/// Medição da régua: (células, metros, faixa de distância, referência em M20).
+pub fn ruler_info(map: &RoomMapData, a: Cell, b: Cell) -> (f32, f32, &'static str, &'static str) {
+    let cells = map_grid::cell_distance(map.grid_shape, a, b);
+    let meters = cells * map.meters_per_cell;
+    let (range, m20) = if meters <= 1.5 {
+        ("Toque", "Toque corporal / corpo a corpo")
     } else if meters <= 5.0 {
-        ("Curto (1-3 Passos)", "Proximidade Imediata")
+        ("Curto (1-3 passos)", "Proximidade imediata")
     } else if meters <= 20.0 {
-        ("Médio (Arremesso)", "Linha Direta de Visão")
+        ("Médio (arremesso)", "Linha direta de visão")
     } else if meters <= 50.0 {
-        ("Longo (Armas de Fogo)", "Alcance Balístico")
+        ("Longo (armas de fogo)", "Alcance balístico")
     } else {
-        ("Extremo (Além de 50m)", "Requer Correspondência 2+")
+        ("Extremo (além de 50 m)", "Requer Correspondência 2+")
     };
+    (cells, meters, range, m20)
+}
 
-    (cells, meters, range_name, m20_sphere)
+/// Primeira célula livre (sem token e sem terreno bloqueante), varrendo a partir de `start`.
+pub fn free_cell_near(map: &RoomMapData, start: Cell) -> Cell {
+    let occupied = |c: Cell| {
+        map.tokens.iter().any(|t| t.cell() == c) || map.terrain_at(c).is_some_and(|k| k.blocks_movement())
+    };
+    let total = (map.cols * map.rows) as i32;
+    let cols = map.cols as i32;
+    let start_index = start.row * cols + start.col;
+    (0..total)
+        .map(|i| (start_index + i).rem_euclid(total))
+        .map(|i| Cell::new(i % cols, i / cols))
+        .find(|c| !occupied(*c))
+        .unwrap_or(start)
+}
+
+/// Células de um pincel de `size` (1 = só a célula; 2 = com as vizinhas; ...).
+pub fn brush_cells(map: &RoomMapData, center: Cell, size: u8) -> Vec<Cell> {
+    let radius = size.saturating_sub(1) as f32;
+    let reach = size as i32;
+    let mut cells = Vec::new();
+    for row in center.row - reach..=center.row + reach {
+        for col in center.col - reach..=center.col + reach {
+            let cell = Cell::new(col, row);
+            if map_grid::in_bounds(cell, map.cols, map.rows) && map_grid::cell_distance(map.grid_shape, center, cell) <= radius + 0.01 {
+                cells.push(cell);
+            }
+        }
+    }
+    cells
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::rooms::{MapToken, TerrainCell, TerrainKind};
+
+    #[test]
+    fn free_cell_skips_tokens_and_rock() {
+        let mut map = RoomMapData { cols: 5, rows: 5, ..Default::default() };
+        map.terrain.push(TerrainCell { cell: Cell::new(0, 0), kind: TerrainKind::Rock });
+        map.tokens.push(MapToken {
+            id: "t".into(), sheet_id: None, name: "A".into(), avatar_url: String::new(), grid_col: 1.0, grid_row: 0.0,
+            size_cells: 1.0, is_npc: false, is_hidden: false, color: "#fff".into(), health_status: None,
+        });
+        assert_eq!(free_cell_near(&map, Cell::new(0, 0)), Cell::new(2, 0));
+    }
+
+    #[test]
+    fn brush_sizes() {
+        let map = RoomMapData { cols: 10, rows: 10, ..Default::default() };
+        assert_eq!(brush_cells(&map, Cell::new(5, 5), 1).len(), 1);
+        assert_eq!(brush_cells(&map, Cell::new(5, 5), 2).len(), 5, "cruz no quadrado (distância reta ≤ 1)");
+        assert_eq!(brush_cells(&map, Cell::new(0, 0), 2).len(), 3, "corta na borda");
+    }
 }

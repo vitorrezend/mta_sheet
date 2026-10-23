@@ -1,248 +1,185 @@
+//! Barra de ferramentas do mapa e paletas de montagem.
+
 use leptos::*;
-use crate::rooms::GridShape;
+use crate::components::common::Callback;
+use crate::rooms::{MapLayer, PropKind, TerrainKind, WallKind};
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Tool {
+    /// Mover tokens e objetos, abrir portas, arrastar o mapa
+    Move,
+    Terrain,
+    Walls,
+    Props,
+    Ruler,
+}
+
+/// Ferramenta atual e o que cada pincel aplica.
+#[derive(Clone, Copy)]
+pub struct ToolState {
+    pub tool: RwSignal<Tool>,
+    /// `None` = borracha
+    pub terrain: RwSignal<Option<TerrainKind>>,
+    pub brush_size: RwSignal<u8>,
+    /// `None` = borracha
+    pub wall: RwSignal<Option<WallKind>>,
+    pub prop: RwSignal<PropKind>,
+    pub zoom: RwSignal<f32>,
+}
+
+impl ToolState {
+    pub fn new() -> Self {
+        Self {
+            tool: create_rw_signal(Tool::Move),
+            terrain: create_rw_signal(Some(TerrainKind::Floor)),
+            brush_size: create_rw_signal(1),
+            wall: create_rw_signal(Some(WallKind::Wall)),
+            prop: create_rw_signal(PropKind::Table),
+            zoom: create_rw_signal(1.0),
+        }
+    }
+}
 
 #[component]
-pub fn BattleGridToolbar(
-    active_tool: ReadSignal<&'static str>,
-    set_active_tool: WriteSignal<&'static str>,
-    selected_build_type: ReadSignal<String>,
-    set_selected_build_type: WriteSignal<String>,
-    selected_token_id: ReadSignal<Option<String>>,
-    selected_token_name: Signal<Option<String>>,
-    zoom_scale: ReadSignal<f32>,
-    set_zoom_scale: WriteSignal<f32>,
-    save_msg: ReadSignal<Option<String>>,
-    is_gm: Signal<bool>,
-    grid_shape: Signal<GridShape>,
-    cols: Signal<u32>,
-    rows: Signal<u32>,
-    on_spawn_party: Callback<()>,
-    on_open_npc_modal: Callback<()>,
-    on_open_gm_modal: Callback<()>,
-    on_fit_to_screen: Callback<()>,
-    on_remove_token: Callback<String>,
-    on_reset_ruler: Callback<()>,
-) -> impl IntoView {
+fn ToolButton(tools: ToolState, tool: Tool, icon: &'static str, label: &'static str) -> impl IntoView {
     view! {
-        <div class="battle-grid-toolbar">
-            <div class="toolbar-left">
-                <button 
-                    class="tool-btn" 
-                    class:active=move || active_tool.get() == "select"
-                    on:click=move |_| {
-                        set_active_tool.set("select");
-                        on_reset_ruler.call(());
-                    }
-                    title="Modo Seleção & Movimento (Arraste ou clique)"
-                >
-                    "👆 Mover"
-                </button>
+        <button
+            type="button"
+            class="grid-tool-btn"
+            class:active=move || tools.tool.get() == tool
+            title=label
+            on:click=move |_| tools.tool.set(tool)
+        >
+            <span class="grid-tool-icon" aria-hidden="true">{icon}</span>
+            <span class="grid-tool-label">{label}</span>
+        </button>
+    }
+}
 
-                <button 
-                    class="tool-btn" 
-                    class:active=move || active_tool.get() == "build"
-                    on:click=move |_| {
-                        set_active_tool.set("build");
-                        on_reset_ruler.call(());
-                    }
-                    title="Construir Muros, Portas, Terreno e Selos Arcanos"
-                >
-                    "🧱 Construir"
-                </button>
+#[component]
+pub fn GridToolbar(
+    tools: ToolState,
+    #[prop(into)] is_gm: Signal<bool>,
+    #[prop(into)] status: Signal<Option<(bool, String)>>,
+    on_fit: Callback<()>,
+    on_spawn_party: Callback<()>,
+    on_open_npc: Callback<()>,
+    on_open_background: Callback<()>,
+    on_open_config: Callback<()>,
+    on_clear: Callback<MapLayer>,
+) -> impl IntoView {
+    let zoom_by = move |factor: f32| tools.zoom.update(|z| *z = (*z * factor).clamp(0.2, 3.0));
+    let on_clear = store_value(on_clear);
+    let clear = move |layer: MapLayer, what: &'static str| {
+        #[cfg(target_arch = "wasm32")]
+        {
+            let ok = web_sys::window()
+                .and_then(|w| w.confirm_with_message(&format!("Apagar {} do mapa inteiro?", what)).ok())
+                .unwrap_or(false);
+            if !ok {
+                return;
+            }
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        let _ = what;
+        on_clear.with_value(|c| c.call(layer));
+    };
 
-                <button 
-                    class="tool-btn" 
-                    class:active=move || active_tool.get() == "ruler"
-                    on:click=move |_| {
-                        set_active_tool.set("ruler");
-                        on_reset_ruler.call(());
-                    }
-                    title="Medir Distância & Alcance de Esferas"
-                >
-                    "📏 Régua"
-                </button>
-
-                <button 
-                    class="tool-btn action-spawn-btn" 
-                    on:click=move |_| on_spawn_party.call(())
-                    title="Importar todos os personagens da sala para o mapa"
-                >
-                    "👥 Cabala"
-                </button>
-
-                <button 
-                    class="tool-btn action-npc-btn" 
-                    on:click=move |_| on_open_npc_modal.call(())
-                    title="Criar Token de NPC ou Inimigo"
-                >
-                    "👾 + NPC"
-                </button>
-            </div>
-
-            // Ação de Remover Token Selecionado Direto na Barra
-            {move || if let Some(t_name) = selected_token_name.get() {
-                let sel_id_btn = selected_token_id.get().unwrap_or_default();
-                view! {
-                    <div class="toolbar-selected-action">
-                        <span class="selected-token-info">"🎯 " {t_name}</span>
-                        <button
-                            class="tool-btn token-toolbar-del-btn"
-                            on:click=move |_| on_remove_token.call(sel_id_btn.clone())
-                            title="Excluir este token do mapa"
-                        >
-                            "🗑️ Remover"
-                        </button>
+    view! {
+        <div class="grid-toolbar">
+            <div class="grid-toolbar-group">
+                <ToolButton tools=tools tool=Tool::Move icon="✋" label="Mover" />
+                <Show when=move || is_gm.get()>
+                    <div class="grid-toolbar-inline">
+                        <ToolButton tools=tools tool=Tool::Terrain icon="🎨" label="Terreno" />
+                        <ToolButton tools=tools tool=Tool::Walls icon="🧱" label="Paredes" />
+                        <ToolButton tools=tools tool=Tool::Props icon="🪑" label="Objetos" />
                     </div>
-                }.into_view()
-            } else {
-                view! {}.into_view()
-            }}
-
-            // Controles de Zoom & Auto-Ajuste
-            <div class="toolbar-zoom-group">
-                <button 
-                    class="zoom-btn" 
-                    on:click=move |_| set_zoom_scale.update(|z| *z = (*z - 0.15).max(0.35))
-                    title="Afastar Zoom (-)"
-                >
-                    "−"
-                </button>
-                <button 
-                    class="zoom-btn zoom-val-btn" 
-                    on:click=move |_| set_zoom_scale.set(1.0)
-                    title="Resetar Zoom para 100%"
-                >
-                    {move || format!("{:.0}%", zoom_scale.get() * 100.0)}
-                </button>
-                <button 
-                    class="zoom-btn" 
-                    on:click=move |_| set_zoom_scale.update(|z| *z = (*z + 0.15).min(2.5))
-                    title="Aproximar Zoom (+)"
-                >
-                    "+"
-                </button>
-                <button 
-                    class="zoom-btn fit-btn" 
-                    on:click=move |_| on_fit_to_screen.call(())
-                    title="Ajustar Tabuleiro à Tela (Auto-Fit)"
-                >
-                    "⛶ Ajustar"
-                </button>
+                </Show>
+                <ToolButton tools=tools tool=Tool::Ruler icon="📏" label="Régua" />
             </div>
 
-            <div class="toolbar-center">
-                <span class="grid-shape-indicator">
-                    {move || match grid_shape.get() {
-                        GridShape::Square => "🔲 Quadrada",
-                        GridShape::HexPointy => "⬡ Hexagonal",
-                        GridShape::HexFlat => "⬡ Hex (Flat)",
-                    }}
-                </span>
-                <span class="grid-dimensions-badge">
-                    {move || format!("{}x{}", cols.get(), rows.get())}
-                </span>
-            </div>
+            <Show when=move || is_gm.get()>
+                <div class="grid-toolbar-group">
+                    <button type="button" class="grid-action-btn" title="Colocar no mapa os personagens da sala" on:click={let c = on_spawn_party.clone(); move |_| c.call(())}>"👥 Personagens"</button>
+                    <button type="button" class="grid-action-btn" on:click={let c = on_open_npc.clone(); move |_| c.call(())}>"👹 NPC"</button>
+                    <button type="button" class="grid-action-btn" on:click={let c = on_open_background.clone(); move |_| c.call(())}>"🖼️ Fundo"</button>
+                    <button type="button" class="grid-action-btn" on:click={let c = on_open_config.clone(); move |_| c.call(())}>"⚙️ Grade"</button>
+                    <details class="grid-clear-menu">
+                        <summary class="grid-action-btn">"🧹 Limpar"</summary>
+                        <div class="grid-clear-options">
+                            <button type="button" on:click=move |_| clear(MapLayer::Terrain, "todo o terreno")>"Terreno"</button>
+                            <button type="button" on:click=move |_| clear(MapLayer::Walls, "todas as paredes e portas")>"Paredes e portas"</button>
+                            <button type="button" on:click=move |_| clear(MapLayer::Props, "todos os objetos")>"Objetos"</button>
+                            <button type="button" on:click=move |_| clear(MapLayer::Npcs, "todos os NPCs")>"NPCs"</button>
+                        </div>
+                    </details>
+                </div>
+            </Show>
 
-            <div class="toolbar-right">
-                {move || save_msg.get().map(|msg| view! { <span class="save-status-badge">{msg}</span> })}
-
-                {move || if is_gm.get() {
-                    view! {
-                        <button 
-                            class="tool-btn gm-settings-btn" 
-                            on:click=move |_| on_open_gm_modal.call(())
-                            title="Configurar Tabuleiro, Grade e Fundo"
-                        >
-                            "⚙️ Tabuleiro"
-                        </button>
-                    }.into_view()
-                } else {
-                    view! {}.into_view()
-                }}
+            <div class="grid-toolbar-group grid-zoom">
+                <button type="button" class="grid-icon-btn" aria-label="Diminuir zoom" on:click=move |_| zoom_by(1.0 / 1.25)>"−"</button>
+                <span class="grid-zoom-value">{move || format!("{:.0}%", tools.zoom.get() * 100.0)}</span>
+                <button type="button" class="grid-icon-btn" aria-label="Aumentar zoom" on:click=move |_| zoom_by(1.25)>"+"</button>
+                <button type="button" class="grid-icon-btn" title="Ajustar à tela" on:click=move |_| on_fit.call(())>"⤢"</button>
+                <span class="grid-status" class:is-error=move || status.get().is_some_and(|(e, _)| e)>
+                    {move || status.get().map(|(_, m)| m).unwrap_or_default()}
+                </span>
             </div>
         </div>
 
-        // Sub-Barra da Paleta de Construção (Quando active_tool == "build")
-        {move || if active_tool.get() == "build" {
-            view! {
-                <div class="build-palette-bar">
-                    <span class="palette-title">"Construção:"</span>
-                    
+        <Show when=move || is_gm.get() && tools.tool.get() == Tool::Terrain>
+            <div class="grid-palette">
+                {TerrainKind::ALL.iter().map(|&kind| view! {
                     <button
-                        class="palette-item-btn"
-                        class:active=move || selected_build_type.get() == "wall"
-                        on:click=move |_| set_selected_build_type.set("wall".to_string())
-                        title="Muro / Parede de Alvenaria (Bloqueia movimento e visão)"
+                        type="button"
+                        class="grid-swatch"
+                        class:active=move || tools.terrain.get() == Some(kind)
+                        title=kind.label()
+                        on:click=move |_| tools.terrain.set(Some(kind))
                     >
-                        <span class="palette-icon">"🧱"</span>
-                        <span class="palette-label">"Muro"</span>
+                        <span class="grid-swatch-color" style=format!("background:{}", kind.color())></span>
+                        <span class="grid-swatch-label">{kind.label()}</span>
                     </button>
-
-                    <button
-                        class="palette-item-btn"
-                        class:active=move || selected_build_type.get() == "door"
-                        on:click=move |_| set_selected_build_type.set("door".to_string())
-                        title="Porta / Passagem (Bloqueia visão, permite passagem)"
-                    >
-                        <span class="palette-icon">"🚪"</span>
-                        <span class="palette-label">"Porta"</span>
-                    </button>
-
-                    <button
-                        class="palette-item-btn"
-                        class:active=move || selected_build_type.get() == "cover"
-                        on:click=move |_| set_selected_build_type.set("cover".to_string())
-                        title="Barricada / Cobertura Tática (+2 Dificuldade para tiros)"
-                    >
-                        <span class="palette-icon">"🛡️"</span>
-                        <span class="palette-label">"Cobertura"</span>
-                    </button>
-
-                    <button
-                        class="palette-item-btn"
-                        class:active=move || selected_build_type.get() == "water"
-                        on:click=move |_| set_selected_build_type.set("water".to_string())
-                        title="Água Profunda / Terreno Difícil (Custo dobrado de movimento)"
-                    >
-                        <span class="palette-icon">"🌊"</span>
-                        <span class="palette-label">"Água"</span>
-                    </button>
-
-                    <button
-                        class="palette-item-btn"
-                        class:active=move || selected_build_type.get() == "fire"
-                        on:click=move |_| set_selected_build_type.set("fire".to_string())
-                        title="Fogo Mágico / Campo de Chamas (Dano por turno)"
-                    >
-                        <span class="palette-icon">"🔥"</span>
-                        <span class="palette-label">"Fogo"</span>
-                    </button>
-
-                    <button
-                        class="palette-item-btn"
-                        class:active=move || selected_build_type.get() == "ward"
-                        on:click=move |_| set_selected_build_type.set("ward".to_string())
-                        title="Selo Arcano / Círculo de Proteção (Barreira mágica)"
-                    >
-                        <span class="palette-icon">"🔯"</span>
-                        <span class="palette-label">"Selo Arcano"</span>
-                    </button>
-
-                    <button
-                        class="palette-item-btn palette-eraser"
-                        class:active=move || selected_build_type.get() == "eraser"
-                        on:click=move |_| set_selected_build_type.set("eraser".to_string())
-                        title="Demolir / Borracha (Clique ou arraste na célula para apagar)"
-                    >
-                        <span class="palette-icon">"🧹"</span>
-                        <span class="palette-label">"Demolir"</span>
-                    </button>
-
-                    <span class="palette-hint">"💡 Clique para construir/toggle • Botão direito para demolir • Segure e arraste para desenhar"</span>
+                }).collect_view()}
+                <button type="button" class="grid-swatch" class:active=move || tools.terrain.get().is_none() on:click=move |_| tools.terrain.set(None)>
+                    <span class="grid-swatch-color grid-eraser">"🧽"</span>
+                    <span class="grid-swatch-label">"Apagar"</span>
+                </button>
+                <div class="grid-brush-size" role="group" aria-label="Tamanho do pincel">
+                    {[1u8, 2, 3].into_iter().map(|size| view! {
+                        <button type="button" class:active=move || tools.brush_size.get() == size on:click=move |_| tools.brush_size.set(size)>
+                            {format!("Pincel {}", size)}
+                        </button>
+                    }).collect_view()}
                 </div>
-            }.into_view()
-        } else {
-            view! {}.into_view()
-        }}
+            </div>
+        </Show>
+
+        <Show when=move || is_gm.get() && tools.tool.get() == Tool::Walls>
+            <div class="grid-palette">
+                {WallKind::ALL.iter().map(|&kind| view! {
+                    <button type="button" class="grid-swatch" class:active=move || tools.wall.get() == Some(kind) on:click=move |_| tools.wall.set(Some(kind))>
+                        <span class="grid-swatch-label">{kind.label()}</span>
+                    </button>
+                }).collect_view()}
+                <button type="button" class="grid-swatch" class:active=move || tools.wall.get().is_none() on:click=move |_| tools.wall.set(None)>
+                    <span class="grid-swatch-label">"🧽 Apagar"</span>
+                </button>
+                <p class="grid-palette-hint">"Toque ou arraste perto da borda das células. No modo Mover, toque numa porta para abrir ou fechar."</p>
+            </div>
+        </Show>
+
+        <Show when=move || is_gm.get() && tools.tool.get() == Tool::Props>
+            <div class="grid-palette">
+                {PropKind::ALL.iter().map(|&kind| view! {
+                    <button type="button" class="grid-swatch grid-prop-swatch" class:active=move || tools.prop.get() == kind title=kind.label() on:click=move |_| tools.prop.set(kind)>
+                        <span class="grid-prop-icon">{kind.icon()}</span>
+                        <span class="grid-swatch-label">{kind.label()}</span>
+                    </button>
+                }).collect_view()}
+                <p class="grid-palette-hint">"Toque numa célula para colocar. Use Mover para arrastar, girar ou remover."</p>
+            </div>
+        </Show>
     }
 }

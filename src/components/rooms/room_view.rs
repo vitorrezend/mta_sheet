@@ -12,7 +12,7 @@ use crate::components::Navbar;
 use crate::components::common::{Callback, WysiwygEditor};
 use crate::components::rooms::room_notes::{ChantrySection, ChronicleSection, SyncedDoc};
 use crate::components::rooms::{InitiativeDrawer, BattleGrid, PartyCardDesktop, PartyCardMobile, RoomChat, provide_chat_store, provide_room_events, on_room_event, RoomSoundMuted, RoomStreamEvent};
-use crate::rooms::{RoomBroadcastEvent, RoomMapData};
+use crate::rooms::RoomBroadcastEvent;
 
 #[component]
 pub fn RoomView() -> impl IntoView {
@@ -78,8 +78,6 @@ pub fn RoomView() -> impl IntoView {
     let chantry_doc = SyncedDoc::<ChantryPoolData>::new();
     let chronicle_doc = SyncedDoc::<String>::new();
 
-    let (map_data, set_map_data) = create_signal(RoomMapData::default());
-    let (map_initialized, set_map_initialized) = create_signal(false);
 
     let features_resource = create_local_resource(|| (), |_| async move { crate::settings::get_system_feature_flags().await });
     let is_map_enabled = Signal::derive(move || {
@@ -100,10 +98,6 @@ pub fn RoomView() -> impl IntoView {
                 Ok(room) => {
                     chantry_doc.receive(room.chantry.clone(), room.chantry_version);
                     chronicle_doc.receive(room.chronicle_notes.clone(), room.chronicle_version);
-                    if !map_initialized.get_untracked() {
-                        set_map_data.set(room.map_data.clone());
-                        set_map_initialized.set(true);
-                    }
                     if !settings_initialized.get_untracked() {
                         set_settings_is_public.set(room.is_public);
                         set_settings_initialized.set(true);
@@ -349,11 +343,6 @@ pub fn RoomView() -> impl IntoView {
             }
             if !patched {
                 refetch_soon();
-            }
-        }
-        RoomStreamEvent::Event(RoomBroadcastEvent::MapUpdated(map)) => {
-            if map_initialized.get_untracked() {
-                set_map_data.set(map.clone());
             }
         }
         RoomStreamEvent::Event(RoomBroadcastEvent::PresenceChanged { online_user_ids }) => {
@@ -608,13 +597,7 @@ pub fn RoomView() -> impl IntoView {
                             } else if active_tab.get() == "map" && is_map_enabled.get() {
                                 view! {
                                     <section class="room-map-tab-section">
-                                        <BattleGrid
-                                            room_id=room_id_sig
-                                            is_gm=is_gm_sig
-                                            map_data=map_data.into()
-                                            set_map_data=set_map_data
-                                            room_sheets=room_sheets_sig
-                                        />
+                                        <BattleGrid room_id=room_id_sig room_sheets=room_sheets_sig />
                                     </section>
                                 }.into_view()
                             } else if active_tab.get() == "chantry" {
