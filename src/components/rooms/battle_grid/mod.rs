@@ -19,8 +19,8 @@ use leptos::*;
 use leptos::html::{Canvas, Div};
 use crate::components::common::Callback;
 use crate::components::rooms::room_events::{on_room_event, RoomStreamEvent};
-use crate::rooms::{MapLayer, MapOp, MapProp, MapToken, RoomBroadcastEvent, RoomSheetSummary, WallKind};
-use crate::rules::map_grid::{self, Cell, Edge};
+use crate::rooms::{MapLayer, MapOp, MapProp, MapToken, RoomBroadcastEvent, RoomSheetSummary, WallKind, WallPoint, WallSegment};
+use crate::rules::map_grid::{self, Cell};
 use modals::{BackgroundModal, GridConfigModal, NpcModal};
 use render::Overlay;
 use store::MapStore;
@@ -40,10 +40,13 @@ enum GridModal {
 enum Drag {
     None,
     Paint(Vec<Cell>),
-    Walls(Vec<Edge>),
+    /// Parede sendo desenhada: início e fim já encaixados (pixels)
+    WallLine { start: (f32, f32), end: (f32, f32) },
+    /// Borracha de paredes: ids marcados até agora
+    EraseWalls(Vec<String>),
     Token { id: String, start: Cell, movable: bool, moved: bool },
     Prop { id: String, start: Cell, moved: bool },
-    Door(Edge),
+    Door(String),
     PlaceProp(Cell),
     Pan { x0: f32, y0: f32, left: i32, top: i32, moved: bool },
     Ruler(Cell),
@@ -193,18 +196,37 @@ pub fn BattleGrid(room_id: Signal<String>, room_sheets: Signal<Vec<RoomSheetSumm
             ((ev.client_x() as f32 - rect.left() as f32) / zoom, (ev.client_y() as f32 - rect.top() as f32) / zoom)
         })
     };
-    let near_edge = move |x: f32, y: f32| -> Option<Edge> {
-        store.view.with_untracked(|m| {
-            let cs = m.cell_size as f32;
-            let cell = map_grid::pixel_to_cell(m.grid_shape, cs, x, y);
-            let side = map_grid::nearest_side(m.grid_shape, cs, cell, x, y);
-            let edge = map_grid::canonical_edge(m.grid_shape, cell, side);
-            (map_grid::distance_to_side(m.grid_shape, cs, Edge { cell, side }, x, y) < cs * 0.3).then_some(edge)
-        })
+    // Ponta da parede: cantos da grade (e centros no hexágono)
+    let snap = move |x: f32, y: f32| store.view.with_untracked(|m| map_grid::snap_point(m.grid_shape, m.cell_size as f32, x, y));
+    // Na grade quadrada, um arraste quase horizontal/vertical trava no eixo: a linha fica reta
+    let straighten = move |start: (f32, f32), end: (f32, f32)| -> (f32, f32) {
+        if !store.view.with_untracked(|m| m.grid_shape == crate::rooms::GridShape::Square) {
+            return end;
+        }
+        let (dx, dy) = ((end.0 - start.0).abs(), (end.1 - start.1).abs());
+        if dy <= dx * 0.3 {
+            (end.0, start.1)
+        } else if dx <= dy * 0.3 {
+            (start.0, end.1)
+        } else {
+            end
+        }
     };
+    let wall_at = move |x: f32, y: f32| store.view.with_untracked(|m| m.wall_near(x, y, m.cell_size as f32 * 0.3).cloned());
     let preview_drag = move |d: &Drag| match d {
         Drag::Paint(cells) => store.preview(&[MapOp::PaintTerrain { cells: cells.clone(), kind: tools.terrain.get_untracked() }]),
-        Drag::Walls(edges) => store.preview(&[MapOp::SetWalls { edges: edges.clone(), kind: tools.wall.get_untracked() }]),
+        Drag::WallLine { start, end } => {
+            let (start, end) = (*start, *end);
+            let kind = tools.wall.get_untracked().unwrap_or(WallKind::Wall);
+            overlay.update(|o| {
+                o.wall_preview = Some((start, end, kind));
+                o.snap_point = None;
+            });
+        }
+        Drag::EraseWalls(ids) => {
+            let ids = ids.clone();
+            overlay.update(|o| o.erasing_walls = ids);
+        }
         _ => {}
     };
 
@@ -236,21 +258,27 @@ pub fn BattleGrid(room_id: Signal<String>, room_sheets: Signal<Vec<RoomSheetSumm
                         (px - x).hypot(py - y) <= cs * 0.45 * p.scale
                     }).map(|p| (p.id.clone(), p.cell))
                 });
-                let door = || near_edge(x, y).filter(|e| matches!(store.view.with_untracked(|m| m.wall_at(*e)), Some(WallKind::Door | WallKind::DoorOpen)));
+                let door = || wall_at(x, y).filter(|w| matches!(w.kind, WallKind::Door | WallKind::DoorOpen)).map(|w| w.id);
                 if let Some(t) = token {
                     let (movable, start) = (store.can_move_token(&t), t.cell());
                     Drag::Token { movable, id: t.id, start, moved: false }
                 } else if let Some((id, start)) = prop().filter(|_| gm) {
                     Drag::Prop { id, start, moved: false }
-                } else if let Some(edge) = door() {
-                    Drag::Door(edge)
+                } else if let Some(id) = door() {
+                    Drag::Door(id)
                 } else {
                     let (left, top) = scroll_ref.get_untracked().map_or((0, 0), |s| (s.scroll_left(), s.scroll_top()));
                     Drag::Pan { x0: ev.client_x() as f32, y0: ev.client_y() as f32, left, top, moved: false }
                 }
             }
             Tool::Terrain if gm => Drag::Paint(store.view.with_untracked(|m| geometry::brush_cells(m, cell, tools.brush_size.get_untracked()))),
-            Tool::Walls if gm => near_edge(x, y).map_or(Drag::Walls(Vec::new()), |e| Drag::Walls(vec![e])),
+            Tool::Walls if gm => match tools.wall.get_untracked() {
+                Some(_) => {
+                    let start = snap(x, y);
+                    Drag::WallLine { start, end: start }
+                }
+                None => Drag::EraseWalls(wall_at(x, y).map(|w| vec![w.id]).unwrap_or_default()),
+            },
             Tool::Props if gm => Drag::PlaceProp(cell),
             Tool::Ruler => {
                 overlay.update(|o| o.ruler = Some((cell, cell)));
@@ -275,11 +303,12 @@ pub fn BattleGrid(room_id: Signal<String>, room_sheets: Signal<Vec<RoomSheetSumm
         let tool = tools.tool.get_untracked();
         let gm = store.is_gm.get_untracked();
         let hover_cell = (in_bounds && gm && matches!(tool, Tool::Terrain | Tool::Props)).then_some(cell);
-        let hover_edge = if gm && tool == Tool::Walls { near_edge(x, y) } else { None };
-        if overlay.with_untracked(|o| o.hover_cell != hover_cell || o.hover_edge != hover_edge) {
+        let idle = matches!(drag.get_value(), Drag::None);
+        let snap_point = (gm && idle && tool == Tool::Walls && tools.wall.get_untracked().is_some()).then(|| snap(x, y));
+        if overlay.with_untracked(|o| o.hover_cell != hover_cell || o.snap_point != snap_point) {
             overlay.update(|o| {
                 o.hover_cell = hover_cell;
-                o.hover_edge = hover_edge;
+                o.snap_point = snap_point;
             });
         }
 
@@ -295,8 +324,15 @@ pub fn BattleGrid(room_id: Signal<String>, room_sheets: Signal<Vec<RoomSheetSumm
                 }
                 cells.extend(fresh);
             }
-            Drag::Walls(edges) => match near_edge(x, y) {
-                Some(edge) if !edges.contains(&edge) => edges.push(edge),
+            Drag::WallLine { start, end } => {
+                let next = straighten(*start, snap(x, y));
+                if next == *end {
+                    return;
+                }
+                *end = next;
+            }
+            Drag::EraseWalls(ids) => match wall_at(x, y) {
+                Some(w) if !ids.contains(&w.id) => ids.push(w.id),
                 _ => return,
             },
             Drag::Token { id, moved, movable, .. } => {
@@ -343,7 +379,24 @@ pub fn BattleGrid(room_id: Signal<String>, room_sheets: Signal<Vec<RoomSheetSumm
         });
         match drag.get_value() {
             Drag::Paint(cells) => store.send(vec![MapOp::PaintTerrain { cells, kind: tools.terrain.get_untracked() }]),
-            Drag::Walls(edges) if !edges.is_empty() => store.send(vec![MapOp::SetWalls { edges, kind: tools.wall.get_untracked() }]),
+            Drag::WallLine { start, end } => {
+                overlay.update(|o| o.wall_preview = None);
+                let cs = store.view.with_untracked(|m| m.cell_size as f32);
+                if (start.0 - end.0).hypot(start.1 - end.1) > cs * 0.2 {
+                    store.send(vec![MapOp::AddWall(WallSegment {
+                        id: format!("wall-{}", uuid::Uuid::new_v4()),
+                        a: WallPoint::from_px(start.0, start.1, cs),
+                        b: WallPoint::from_px(end.0, end.1, cs),
+                        kind: tools.wall.get_untracked().unwrap_or(WallKind::Wall),
+                    })]);
+                }
+            }
+            Drag::EraseWalls(ids) => {
+                overlay.update(|o| o.erasing_walls.clear());
+                if !ids.is_empty() {
+                    store.send(vec![MapOp::RemoveWalls { ids }]);
+                }
+            }
             Drag::Token { id, start, moved, .. } => {
                 token_drag.set(None);
                 if moved {
@@ -366,7 +419,7 @@ pub fn BattleGrid(room_id: Signal<String>, room_sheets: Signal<Vec<RoomSheetSumm
                     overlay.update(|o| o.selected_prop = if o.selected_prop.as_deref() == Some(id.as_str()) { None } else { Some(id) });
                 }
             }
-            Drag::Door(edge) => store.send(vec![MapOp::ToggleDoor { edge }]),
+            Drag::Door(id) => store.send(vec![MapOp::ToggleDoor { id }]),
             Drag::PlaceProp(at) if at == cell && in_bounds => {
                 let id = format!("prop-{}", uuid::Uuid::new_v4());
                 let rotation = 0;
@@ -384,7 +437,11 @@ pub fn BattleGrid(room_id: Signal<String>, room_sheets: Signal<Vec<RoomSheetSumm
     let on_cancel = move |_: ev::PointerEvent| {
         drag.set_value(Drag::None);
         token_drag.set(None);
-        overlay.update(|o| o.dragging_prop = None);
+        overlay.update(|o| {
+            o.dragging_prop = None;
+            o.wall_preview = None;
+            o.erasing_walls.clear();
+        });
         store.preview(&[]);
     };
 
@@ -506,7 +563,7 @@ pub fn BattleGrid(room_id: Signal<String>, room_sheets: Signal<Vec<RoomSheetSumm
                             on:pointermove=on_move
                             on:pointerup=on_up
                             on:pointercancel=on_cancel
-                            on:pointerleave=move |_| overlay.update(|o| { o.hover_cell = None; o.hover_edge = None; })
+                            on:pointerleave=move |_| overlay.update(|o| { o.hover_cell = None; o.snap_point = None; })
                             on:contextmenu=move |ev: ev::MouseEvent| ev.prevent_default()
                         ></div>
                     </div>

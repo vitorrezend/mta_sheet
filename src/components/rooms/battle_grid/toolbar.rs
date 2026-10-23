@@ -166,7 +166,7 @@ pub fn GridToolbar(
                 <button type="button" class="grid-swatch" class:active=move || tools.wall.get().is_none() on:click=move |_| tools.wall.set(None)>
                     <span class="grid-swatch-label">"🧽 Apagar"</span>
                 </button>
-                <p class="grid-palette-hint">"Toque ou arraste perto da borda das células. No modo Mover, toque numa porta para abrir ou fechar."</p>
+                <p class="grid-palette-hint">"Arraste para desenhar uma linha reta: as pontas encaixam nos cantos da grade (e no centro dos hexágonos). Com a borracha, passe por cima das paredes. No modo Mover, toque numa porta para abrir ou fechar."</p>
             </div>
         </Show>
 

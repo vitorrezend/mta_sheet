@@ -241,6 +241,41 @@ pub fn cell_distance(shape: GridShape, a: Cell, b: Cell) -> f32 {
     }
 }
 
+/// Ponto de encaixe mais próximo para as pontas de uma parede, em pixels.
+///
+/// Quadrado: cantos da grade (as paredes seguem as linhas). Hexágono: cantos **e** centros
+/// dos hexágonos, o que permite linhas retas que atravessam o meio das células.
+pub fn snap_point(shape: GridShape, cell_size: f32, x: f32, y: f32) -> (f32, f32) {
+    match shape {
+        GridShape::Square => ((x / cell_size).round() * cell_size, (y / cell_size).round() * cell_size),
+        GridShape::HexPointy | GridShape::HexFlat => {
+            let here = pixel_to_cell(shape, cell_size, x, y);
+            let mut best = cell_center(shape, cell_size, here);
+            let mut best_d = (best.0 - x).hypot(best.1 - y);
+            let cells = std::iter::once(here).chain((0..6).map(|side| neighbor(shape, here, side)));
+            for cell in cells {
+                let candidates = std::iter::once(cell_center(shape, cell_size, cell)).chain(cell_corners(shape, cell_size, cell));
+                for (px, py) in candidates {
+                    let d = (px - x).hypot(py - y);
+                    if d < best_d {
+                        best = (px, py);
+                        best_d = d;
+                    }
+                }
+            }
+            best
+        }
+    }
+}
+
+/// Distância de um ponto a um segmento de reta.
+pub fn point_segment_distance(p: (f32, f32), a: (f32, f32), b: (f32, f32)) -> f32 {
+    let (dx, dy) = (b.0 - a.0, b.1 - a.1);
+    let len2 = dx * dx + dy * dy;
+    let t = if len2 > 0.0 { (((p.0 - a.0) * dx + (p.1 - a.1) * dy) / len2).clamp(0.0, 1.0) } else { 0.0 };
+    (p.0 - (a.0 + t * dx)).hypot(p.1 - (a.1 + t * dy))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -292,6 +327,24 @@ mod tests {
         assert_eq!(nearest_side(GridShape::Square, 50.0, cell, cx - 20.0, cy + 2.0), 3);
         let (hx, hy) = cell_center(GridShape::HexPointy, 50.0, cell);
         assert_eq!(nearest_side(GridShape::HexPointy, 50.0, cell, hx + 20.0, hy), 0, "leste do hexágono pontudo");
+    }
+
+    #[test]
+    fn walls_snap_to_corners_and_hex_centers() {
+        // Quadrado: sempre no canto mais próximo da grade
+        assert_eq!(snap_point(GridShape::Square, 50.0, 123.0, 76.0), (100.0, 100.0));
+        assert_eq!(snap_point(GridShape::Square, 50.0, 137.0, 24.0), (150.0, 0.0));
+        // Hexágono: perto do centro, encaixa no centro; perto de um canto, no canto
+        for shape in [GridShape::HexPointy, GridShape::HexFlat] {
+            let cell = Cell::new(4, 3);
+            let (cx, cy) = cell_center(shape, 50.0, cell);
+            assert_eq!(snap_point(shape, 50.0, cx + 3.0, cy - 2.0), (cx, cy), "{shape:?} centro");
+            let corner = cell_corners(shape, 50.0, cell)[2];
+            let snapped = snap_point(shape, 50.0, corner.0 + 1.5, corner.1 - 1.0);
+            assert!((snapped.0 - corner.0).abs() < 0.01 && (snapped.1 - corner.1).abs() < 0.01, "{shape:?} canto");
+        }
+        assert_eq!(point_segment_distance((5.0, 3.0), (0.0, 0.0), (10.0, 0.0)), 3.0);
+        assert_eq!(point_segment_distance((14.0, 0.0), (0.0, 0.0), (10.0, 0.0)), 4.0);
     }
 
     #[test]

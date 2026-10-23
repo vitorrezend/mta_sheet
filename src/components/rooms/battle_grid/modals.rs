@@ -28,7 +28,6 @@ fn ModalFrame(title: &'static str, on_close: Callback<()>, children: Children) -
 #[component]
 pub fn GridConfigModal(store: MapStore, on_close: Callback<()>) -> impl IntoView {
     let cfg = create_rw_signal(store.view.with_untracked(|m| m.config()));
-    let original_shape = cfg.with_untracked(|c| c.grid_shape);
     let save = {
         let on_close = on_close.clone();
         move |_| {
@@ -51,9 +50,6 @@ pub fn GridConfigModal(store: MapStore, on_close: Callback<()>) -> impl IntoView
                     {shape_button(GridShape::HexPointy, "⬢ Hex (pontas em cima)")}
                     {shape_button(GridShape::HexFlat, "⬣ Hex (lados em cima)")}
                 </div>
-                <Show when=move || cfg.with(|c| c.grid_shape != original_shape)>
-                    <p class="grid-form-warning">"Trocar o formato apaga as paredes e portas (os lados das células mudam)."</p>
-                </Show>
             </div>
             <div class="grid-form-row">
                 <label class="form-group">

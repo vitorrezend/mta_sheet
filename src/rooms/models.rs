@@ -436,8 +436,8 @@ mod tests {
 
     #[test]
     fn test_room_map_data_serialization() {
-        use crate::rooms::map::{GridShape, MapProp, MapToken, PropKind, TerrainCell, TerrainKind, WallEdge, WallKind};
-        use crate::rules::map_grid::{Cell, Edge};
+        use crate::rooms::map::{GridShape, MapProp, MapToken, PropKind, TerrainCell, TerrainKind, WallKind, WallPoint, WallSegment};
+        use crate::rules::map_grid::Cell;
 
         let mut map = RoomMapData { grid_shape: GridShape::HexPointy, cols: 25, rows: 25, cell_size: 48, ..Default::default() };
         map.tokens.push(MapToken {
@@ -454,7 +454,7 @@ mod tests {
             health_status: Some("Saudável".to_string()),
         });
         map.terrain.push(TerrainCell { cell: Cell::new(2, 3), kind: TerrainKind::Water });
-        map.walls.push(WallEdge { edge: Edge { cell: Cell::new(2, 3), side: 0 }, kind: WallKind::Door });
+        map.segments.push(WallSegment { id: "w".into(), a: WallPoint { x: 1.0, y: 2.0 }, b: WallPoint { x: 4.0, y: 2.0 }, kind: WallKind::Door });
         map.props.push(MapProp { id: "p1".to_string(), kind: PropKind::Altar, cell: Cell::new(4, 4), rotation: 60, scale: 1.0 });
 
         let json = serde_json::to_string(&map).expect("serialize map");

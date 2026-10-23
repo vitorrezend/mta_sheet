@@ -158,11 +158,42 @@ impl WallKind {
     }
 }
 
+/// Parede do formato anterior (um lado de célula). Só é lida para conversão; ver
+/// [`RoomMapData::normalize`].
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct WallEdge {
     pub edge: Edge,
     pub kind: WallKind,
 }
+
+/// Ponto de uma parede em **unidades de célula** (pixels ÷ tamanho da célula). Assim a
+/// parede continua no lugar quando o tamanho da célula muda.
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
+pub struct WallPoint {
+    pub x: f32,
+    pub y: f32,
+}
+
+impl WallPoint {
+    pub fn from_px(x: f32, y: f32, cell_size: f32) -> Self {
+        Self { x: x / cell_size, y: y / cell_size }
+    }
+    pub fn to_px(self, cell_size: f32) -> (f32, f32) {
+        (self.x * cell_size, self.y * cell_size)
+    }
+}
+
+/// Parede, porta ou janela: um segmento reto entre dois pontos.
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub struct WallSegment {
+    pub id: String,
+    pub a: WallPoint,
+    pub b: WallPoint,
+    pub kind: WallKind,
+}
+
+/// Limite de segmentos de parede por mapa
+pub const MAX_WALL_SEGMENTS: usize = 4000;
 
 // ---------------------------------------------------------------------------
 // Objetos
@@ -386,6 +417,9 @@ pub struct RoomMapData {
     #[serde(default)]
     pub terrain: Vec<TerrainCell>,
     #[serde(default)]
+    pub segments: Vec<WallSegment>,
+    /// Somente leitura do formato anterior (lados de célula); convertido por `normalize`
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub walls: Vec<WallEdge>,
     #[serde(default)]
     pub props: Vec<MapProp>,
@@ -438,6 +472,7 @@ impl Default for RoomMapData {
             bg_offset_y: 0.0,
             bg_scale: 1.0,
             terrain: Vec::new(),
+            segments: Vec::new(),
             walls: Vec::new(),
             props: Vec::new(),
             tokens: Vec::new(),
@@ -462,10 +497,12 @@ pub enum MapLayer {
 pub enum MapOp {
     /// `kind: None` apaga o terreno das células
     PaintTerrain { cells: Vec<Cell>, kind: Option<TerrainKind> },
-    /// `kind: None` remove paredes/portas dos lados
-    SetWalls { edges: Vec<Edge>, kind: Option<WallKind> },
+    /// Desenha uma parede/porta/janela reta
+    AddWall(WallSegment),
+    /// Apaga paredes pelo id
+    RemoveWalls { ids: Vec<String> },
     /// Abre/fecha uma porta
-    ToggleDoor { edge: Edge },
+    ToggleDoor { id: String },
     PlaceProp(MapProp),
     MoveProp { id: String, cell: Cell },
     RotateProp { id: String, rotation: u16 },
@@ -524,8 +561,15 @@ impl RoomMapData {
         map_grid::in_bounds(cell, self.cols, self.rows)
     }
 
-    pub fn wall_at(&self, edge: Edge) -> Option<WallKind> {
-        self.walls.iter().find(|w| w.edge == edge).map(|w| w.kind)
+    /// Parede mais próxima de um ponto (em pixels), se estiver a menos de `max_px`.
+    pub fn wall_near(&self, x: f32, y: f32, max_px: f32) -> Option<&WallSegment> {
+        let cs = self.cell_size as f32;
+        self.segments
+            .iter()
+            .map(|w| (w, map_grid::point_segment_distance((x, y), w.a.to_px(cs), w.b.to_px(cs))))
+            .filter(|(_, d)| *d <= max_px)
+            .min_by(|a, b| a.1.total_cmp(&b.1))
+            .map(|(w, _)| w)
     }
 
     pub fn terrain_at(&self, cell: Cell) -> Option<TerrainKind> {
@@ -549,25 +593,24 @@ impl RoomMapData {
                     }
                 }
             }
-            MapOp::SetWalls { edges, kind } => {
-                if edges.len() > MAX_CELLS_PER_OP {
-                    return Err("Traço de parede grande demais".into());
+            MapOp::AddWall(wall) => {
+                if self.segments.len() >= MAX_WALL_SEGMENTS {
+                    return Err("Limite de paredes do mapa atingido".into());
                 }
-                for edge in edges {
-                    let edge = map_grid::canonical_edge(shape, edge.cell, edge.side);
-                    // A parede precisa tocar o tabuleiro (inclusive as bordas externas)
-                    if !self.cell_ok(edge.cell) && !self.cell_ok(map_grid::neighbor(shape, edge.cell, edge.side)) {
-                        continue;
-                    }
-                    self.walls.retain(|w| w.edge != edge);
-                    if let Some(kind) = kind {
-                        self.walls.push(WallEdge { edge, kind: *kind });
-                    }
+                let (bw, bh) = map_grid::board_size(shape, self.cols, self.rows, 1.0);
+                let inside = |p: WallPoint| p.x.is_finite() && p.y.is_finite() && (-0.01..=bw + 0.01).contains(&p.x) && (-0.01..=bh + 0.01).contains(&p.y);
+                if !inside(wall.a) || !inside(wall.b) {
+                    return Err("Parede fora do mapa".into());
                 }
+                if (wall.a.x - wall.b.x).hypot(wall.a.y - wall.b.y) < 0.05 {
+                    return Err("Parede curta demais".into());
+                }
+                self.segments.retain(|w| w.id != wall.id);
+                self.segments.push(wall.clone());
             }
-            MapOp::ToggleDoor { edge } => {
-                let edge = map_grid::canonical_edge(shape, edge.cell, edge.side);
-                if let Some(w) = self.walls.iter_mut().find(|w| w.edge == edge) {
+            MapOp::RemoveWalls { ids } => self.segments.retain(|w| !ids.contains(&w.id)),
+            MapOp::ToggleDoor { id } => {
+                if let Some(w) = self.segments.iter_mut().find(|w| &w.id == id) {
                     w.kind = match w.kind {
                         WallKind::Door => WallKind::DoorOpen,
                         WallKind::DoorOpen => WallKind::Door,
@@ -638,10 +681,8 @@ impl RoomMapData {
                 self.meters_per_cell = cfg.meters_per_cell.clamp(0.1, 100.0);
                 self.grid_color = cfg.grid_color.chars().take(64).collect();
                 self.show_grid = cfg.show_grid;
-                if shape_changed {
-                    // Lados de quadrado e de hexágono não se correspondem
-                    self.walls.clear();
-                }
+                // Paredes são segmentos livres: continuam no lugar mesmo trocando o formato
+                let _ = shape_changed;
                 self.normalize();
             }
             MapOp::SetBackground(bg) => {
@@ -658,7 +699,7 @@ impl RoomMapData {
             }
             MapOp::ClearLayer { layer } => match layer {
                 MapLayer::Terrain => self.terrain.clear(),
-                MapLayer::Walls => self.walls.clear(),
+                MapLayer::Walls => self.segments.clear(),
                 MapLayer::Props => self.props.clear(),
                 MapLayer::Npcs => self.tokens.retain(|t| !t.is_npc),
             },
@@ -690,16 +731,24 @@ impl RoomMapData {
 
         self.terrain.retain(|t| map_grid::in_bounds(t.cell, cols, rows));
         self.props.retain(|p| map_grid::in_bounds(p.cell, cols, rows));
+        // Paredes do formato anterior (lados de célula) viram segmentos
         let mut seen = std::collections::HashSet::new();
-        self.walls = std::mem::take(&mut self.walls)
-            .into_iter()
-            .map(|w| WallEdge { edge: map_grid::canonical_edge(shape, w.edge.cell, w.edge.side), kind: w.kind })
-            .filter(|w| {
-                let inside = map_grid::in_bounds(w.edge.cell, cols, rows)
-                    || map_grid::in_bounds(map_grid::neighbor(shape, w.edge.cell, w.edge.side), cols, rows);
-                inside && seen.insert(w.edge)
-            })
-            .collect();
+        for w in std::mem::take(&mut self.walls) {
+            let edge = map_grid::canonical_edge(shape, w.edge.cell, w.edge.side);
+            if !seen.insert(edge) {
+                continue;
+            }
+            let ((x1, y1), (x2, y2)) = map_grid::edge_endpoints(shape, 1.0, edge);
+            self.segments.push(WallSegment {
+                id: format!("edge-{}-{}-{}", edge.cell.col, edge.cell.row, edge.side),
+                a: WallPoint { x: x1, y: y1 },
+                b: WallPoint { x: x2, y: y2 },
+                kind: w.kind,
+            });
+        }
+        let (bw, bh) = map_grid::board_size(shape, cols, rows, 1.0);
+        let on_board = |p: WallPoint| p.x >= -0.01 && p.y >= -0.01 && p.x <= bw + 0.01 && p.y <= bh + 0.01;
+        self.segments.retain(|w| on_board(w.a) && on_board(w.b));
         for t in &mut self.tokens {
             t.grid_col = t.grid_col.round().clamp(0.0, (cols - 1) as f32);
             t.grid_row = t.grid_row.round().clamp(0.0, (rows - 1) as f32);
@@ -756,18 +805,51 @@ mod tests {
         assert_eq!(m.terrain_at(Cell::new(1, 1)), None);
     }
 
+    fn wall(id: &str, a: (f32, f32), b: (f32, f32), kind: WallKind) -> WallSegment {
+        WallSegment { id: id.into(), a: WallPoint { x: a.0, y: a.1 }, b: WallPoint { x: b.0, y: b.1 }, kind }
+    }
+
     #[test]
-    fn walls_are_shared_between_neighbors() {
+    fn straight_walls_and_doors() {
         let mut m = map();
-        // Lado leste de (2,2) é o mesmo que o oeste de (3,2)
-        m.apply(&MapOp::SetWalls { edges: vec![Edge { cell: Cell::new(2, 2), side: 1 }], kind: Some(WallKind::Door) }).expect("porta");
-        m.apply(&MapOp::SetWalls { edges: vec![Edge { cell: Cell::new(3, 2), side: 3 }], kind: Some(WallKind::Door) }).expect("mesma porta");
-        assert_eq!(m.walls.len(), 1);
-        m.apply(&MapOp::ToggleDoor { edge: Edge { cell: Cell::new(3, 2), side: 3 } }).expect("abrir");
-        assert_eq!(m.walls[0].kind, WallKind::DoorOpen);
-        // Borda externa do mapa também aceita parede
-        m.apply(&MapOp::SetWalls { edges: vec![Edge { cell: Cell::new(0, 0), side: 0 }], kind: Some(WallKind::Wall) }).expect("borda");
-        assert_eq!(m.walls.len(), 2);
+        // Uma linha reta de 8 células é UMA parede, não vários pedaços
+        m.apply(&MapOp::AddWall(wall("w1", (1.0, 2.0), (9.0, 2.0), WallKind::Wall))).expect("parede");
+        assert_eq!(m.segments.len(), 1);
+        m.apply(&MapOp::AddWall(wall("d1", (3.0, 5.0), (4.0, 5.0), WallKind::Door))).expect("porta");
+        m.apply(&MapOp::ToggleDoor { id: "d1".into() }).expect("abrir");
+        assert_eq!(m.segments[1].kind, WallKind::DoorOpen);
+        // Acha a parede perto de um ponto em pixels (célula de 50 px)
+        assert_eq!(m.wall_near(250.0, 104.0, 10.0).map(|w| w.id.as_str()), Some("w1"));
+        assert!(m.wall_near(250.0, 140.0, 10.0).is_none());
+        m.apply(&MapOp::RemoveWalls { ids: vec!["w1".into()] }).expect("apagar");
+        assert_eq!(m.segments.len(), 1);
+        // Fora do tabuleiro e comprimento zero são recusados
+        assert!(m.apply(&MapOp::AddWall(wall("x", (1.0, 1.0), (99.0, 1.0), WallKind::Wall))).is_err());
+        assert!(m.apply(&MapOp::AddWall(wall("y", (1.0, 1.0), (1.0, 1.0), WallKind::Wall))).is_err());
+    }
+
+    #[test]
+    fn walls_survive_grid_shape_change() {
+        let mut m = map();
+        m.apply(&MapOp::AddWall(wall("w", (1.0, 1.0), (4.0, 1.0), WallKind::Wall))).expect("parede");
+        let mut cfg = m.config();
+        cfg.grid_shape = GridShape::HexPointy;
+        m.apply(&MapOp::Configure(cfg)).expect("hexagonal");
+        assert_eq!(m.segments.len(), 1, "segmento livre não depende dos lados das células");
+    }
+
+    #[test]
+    fn legacy_edge_walls_become_segments() {
+        let json = r#"{"cols":10,"rows":10,"walls":[
+            {"edge":{"cell":{"col":2,"row":2},"side":1},"kind":"door"},
+            {"edge":{"cell":{"col":3,"row":2},"side":3},"kind":"door"}]}"#;
+        let mut m: RoomMapData = serde_json::from_str(json).expect("formato anterior");
+        m.normalize();
+        assert!(m.walls.is_empty());
+        assert_eq!(m.segments.len(), 1, "o mesmo lado visto das duas células vira uma só parede");
+        let w = &m.segments[0];
+        assert_eq!((w.a.x, w.b.x), (3.0, 3.0), "lado leste de (2,2) = linha x = 3");
+        assert!(!serde_json::to_string(&m).expect("json").contains("\"walls\""));
     }
 
     #[test]
@@ -834,7 +916,7 @@ mod tests {
 
     #[test]
     fn ops_roundtrip_as_json() {
-        let op = MapOp::SetWalls { edges: vec![Edge { cell: Cell::new(1, 2), side: 3 }], kind: Some(WallKind::Window) };
+        let op = MapOp::AddWall(wall("j", (1.0, 2.0), (3.0, 2.0), WallKind::Window));
         let json = serde_json::to_string(&op).expect("json");
         assert_eq!(serde_json::from_str::<MapOp>(&json).expect("volta"), op);
     }
