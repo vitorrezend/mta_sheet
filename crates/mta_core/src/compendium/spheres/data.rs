@@ -691,6 +691,6 @@ pub const SPHERE_THEORY_RULES: SphereTheoryArticle = SphereTheoryArticle {
     title: "General Sphere Rules: Metaphysics, Ranks & Conjunctional Magick",
     title_pt: "Regras Gerais das Esferas: Metafísica, Graduações & Mágica Conjunta",
     page_ref: "M20, pp. 511-512",
-    content: include_str!("../../../data/compendium/spheres/theory_sphere_rules.en.md"),
-    content_pt: include_str!("../../../data/compendium/spheres/theory_sphere_rules.pt.md"),
+    content: include_str!("../../../../../data/compendium/spheres/theory_sphere_rules.en.md"),
+    content_pt: include_str!("../../../../../data/compendium/spheres/theory_sphere_rules.pt.md"),
 };

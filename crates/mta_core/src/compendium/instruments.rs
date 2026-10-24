@@ -70,8 +70,8 @@ pub const THEORY_TOOLS_OF_FOCUS: InstrumentTheoryArticle = InstrumentTheoryArtic
     title: "Instruments: The Tools of Focus",
     title_pt: "Instrumentos: As Ferramentas do Foco",
     page_ref: "M20, pp. 586-587",
-    content: include_str!("../../data/compendium/instruments/tools_of_focus.en.md"),
-    content_pt: include_str!("../../data/compendium/instruments/tools_of_focus.pt.md"),
+    content: include_str!("../../../../data/compendium/instruments/tools_of_focus.en.md"),
+    content_pt: include_str!("../../../../data/compendium/instruments/tools_of_focus.pt.md"),
 };
 
 pub const THEORY_CLASSIFICATIONS: InstrumentTheoryArticle = InstrumentTheoryArticle {
@@ -79,8 +79,8 @@ pub const THEORY_CLASSIFICATIONS: InstrumentTheoryArticle = InstrumentTheoryArti
     title: "Classifications: Standard, Personalized, and Unique",
     title_pt: "Classificações: Instrumentos Padrão, Personalizados e Únicos",
     page_ref: "M20, pp. 587-588",
-    content: include_str!("../../data/compendium/instruments/classifications.en.md"),
-    content_pt: include_str!("../../data/compendium/instruments/classifications.pt.md"),
+    content: include_str!("../../../../data/compendium/instruments/classifications.en.md"),
+    content_pt: include_str!("../../../../data/compendium/instruments/classifications.pt.md"),
 };
 
 pub const THEORY_SIGNIFICANT_RULE: InstrumentTheoryArticle = InstrumentTheoryArticle {
@@ -88,8 +88,8 @@ pub const THEORY_SIGNIFICANT_RULE: InstrumentTheoryArticle = InstrumentTheoryArt
     title: "Optional Rule: Significant Instruments",
     title_pt: "Regra Opcional: Instrumentos Significativos",
     page_ref: "M20, p. 588",
-    content: include_str!("../../data/compendium/instruments/significant_instruments.en.md"),
-    content_pt: include_str!("../../data/compendium/instruments/significant_instruments.pt.md"),
+    content: include_str!("../../../../data/compendium/instruments/significant_instruments.en.md"),
+    content_pt: include_str!("../../../../data/compendium/instruments/significant_instruments.pt.md"),
 };
 
 pub const ALL_THEORY_ARTICLES: &[InstrumentTheoryArticle] = &[

@@ -4,6 +4,9 @@ version = "0.21.1"
 edition = "2024"
 license = "MIT"
 
+[workspace]
+members = [".", "crates/mta_core"]
+
 [lints.clippy]
 unwrap_used = "deny"
 expect_used = "warn"
@@ -26,6 +29,7 @@ path = "tests/all_tests.rs"
 required-features = ["ssr"]
 
 [dependencies]
+mta_core = { path = "crates/mta_core" }
 leptos = { version = "0.6" }
 leptos_axum = { version = "0.6", optional = true }
 leptos_router = { version = "0.6" }

@@ -25,6 +25,7 @@ COPY styles ./styles
 COPY fonts ./fonts
 COPY data ./data
 COPY src ./src
+COPY crates ./crates
 COPY migrations ./migrations
 COPY build.rs ./
 COPY tests ./tests

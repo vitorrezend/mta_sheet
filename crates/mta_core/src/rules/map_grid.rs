@@ -13,7 +13,29 @@
 //!   escolhe uma única representação para ele.
 
 use serde::{Deserialize, Serialize};
-use crate::rooms::GridShape;
+
+/// Formato da grade do mapa tático.
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum GridShape {
+    #[default]
+    #[serde(rename = "square")]
+    Square,
+    #[serde(rename = "hex_pointy")]
+    HexPointy,
+    #[serde(rename = "hex_flat")]
+    HexFlat,
+}
+
+impl GridShape {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Square => "Quadrada",
+            Self::HexPointy => "Hexagonal (pontas em cima)",
+            Self::HexFlat => "Hexagonal (lados em cima)",
+        }
+    }
+}
+
 
 const SQRT3: f32 = 1.732_050_8;
 

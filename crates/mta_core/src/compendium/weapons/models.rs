@@ -506,8 +506,8 @@ impl CombatManeuver {
         }
     }
 
-    pub fn to_weapon_item(&self, lang: Language) -> crate::state::WeaponItem {
-        crate::state::WeaponItem {
+    pub fn to_weapon_item(&self, lang: Language) -> crate::models::WeaponItem {
+        crate::models::WeaponItem {
             name: self.name(lang).to_string(),
             diff: self.difficulty(lang).to_string(),
             damage: self.damage(lang).to_string(),

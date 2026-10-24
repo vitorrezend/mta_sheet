@@ -121,8 +121,8 @@ pub const SPECIALTIES_RULE: SpecialtyRuleArticle = SpecialtyRuleArticle {
     title: "Specialties (Attributes & Abilities)",
     title_pt: "Especialidades (Atributos & Habilidades)",
     page_ref: "M20, p. 273",
-    content: include_str!("../../data/compendium/attributes/rule_specialties.en.md"),
-    content_pt: include_str!("../../data/compendium/attributes/rule_specialties.pt.md"),
+    content: include_str!("../../../../data/compendium/attributes/rule_specialties.en.md"),
+    content_pt: include_str!("../../../../data/compendium/attributes/rule_specialties.pt.md"),
 };
 
 // ============================================================================

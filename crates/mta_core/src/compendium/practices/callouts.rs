@@ -30,6 +30,6 @@ pub const BOX_LEFT_AND_RIGHT_HAND_PATHS: CalloutBox = CalloutBox {
     title: "Left- and Right-Hand Paths",
     title_pt: "Caminhos da Mão Esquerda e da Mão Direita",
     page_ref: "M20, p. 574",
-    content: include_str!("../../../data/compendium/practices/left_and_right_hand_paths.en.md"),
-    content_pt: include_str!("../../../data/compendium/practices/left_and_right_hand_paths.pt.md"),
+    content: include_str!("../../../../../data/compendium/practices/left_and_right_hand_paths.en.md"),
+    content_pt: include_str!("../../../../../data/compendium/practices/left_and_right_hand_paths.pt.md"),
 };

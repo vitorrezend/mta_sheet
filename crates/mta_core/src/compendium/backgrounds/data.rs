@@ -936,8 +936,8 @@ pub const BACKGROUND_THEORY_RULES: BackgroundTheoryArticle = BackgroundTheoryArt
     title: "Background Rules: Traits Over Five & Pooling Resources",
     title_pt: "Regras de Antecedentes: Pontuações Acima de 5 & Agrupamento na Cabala",
     page_ref: "M20, pp. 301-303",
-    content: include_str!("../../../data/compendium/backgrounds/theory_background_rules.en.md"),
-    content_pt: include_str!("../../../data/compendium/backgrounds/theory_background_rules.pt.md"),
+    content: include_str!("../../../../../data/compendium/backgrounds/theory_background_rules.en.md"),
+    content_pt: include_str!("../../../../../data/compendium/backgrounds/theory_background_rules.pt.md"),
 };
 
 // ============================================================================

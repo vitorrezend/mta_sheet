@@ -23,6 +23,7 @@ mod compliance_tests {
     fn test_no_forbidden_unwrap_in_production_code() {
         let mut files = Vec::new();
         collect_rs_files(Path::new("src"), &mut files);
+        collect_rs_files(Path::new("crates"), &mut files);
 
         let mut violations = Vec::new();
 

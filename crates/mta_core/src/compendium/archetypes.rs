@@ -112,8 +112,8 @@ pub const ARCHETYPE_THEORY_RULES: ArchetypeTheoryArticle = ArchetypeTheoryArticl
     title: "Personality Archetypes: Nature and Demeanor",
     title_pt: "Arquétipos de Personalidade: Natureza e Comportamento",
     page_ref: "M20, pp. 267-268",
-    content: include_str!("../../data/compendium/archetypes/theory_nature_demeanor.en.md"),
-    content_pt: include_str!("../../data/compendium/archetypes/theory_nature_demeanor.pt.md"),
+    content: include_str!("../../../../data/compendium/archetypes/theory_nature_demeanor.en.md"),
+    content_pt: include_str!("../../../../data/compendium/archetypes/theory_nature_demeanor.pt.md"),
 };
 
 pub const ARCHETYPE_ACTIVIST: ArchetypeDefinition = ArchetypeDefinition {

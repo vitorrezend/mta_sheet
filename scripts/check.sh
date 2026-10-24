@@ -26,10 +26,11 @@ FAST=0
 step() { echo; echo "=== $* ==="; }
 
 step "1/4 Clippy"
-cargo clippy --features ssr --lib --bin mta_sheet_server
+cargo clippy --workspace --features ssr --lib --bin mta_sheet_server
 
 step "2/4 Testes Rust (unidade + integração)"
-cargo test --features ssr --lib --test all_tests
+# --workspace inclui o crate de domínio (crates/mta_core)
+cargo test --workspace --features ssr --lib --test all_tests
 
 if [ "$FAST" = "1" ]; then
     echo; echo "[OK] Checagem rápida concluída (sem E2E)."

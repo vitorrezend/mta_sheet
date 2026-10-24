@@ -1,5 +1,4 @@
 use leptos::*;
-use serde::{Deserialize, Serialize};
 
 pub mod traits;
 pub mod dossier;
@@ -11,35 +10,7 @@ pub use dossier::*;
 pub use auth::*;
 pub use ui::*;
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum Language {
-    #[default]
-    PtBr,
-    EnUs,
-}
-
-impl Language {
-    pub fn code(&self) -> &'static str {
-        match self {
-            Language::PtBr => "pt",
-            Language::EnUs => "en",
-        }
-    }
-
-    pub fn display_name(&self) -> &'static str {
-        match self {
-            Language::PtBr => "Português",
-            Language::EnUs => "English",
-        }
-    }
-
-    pub fn flag(&self) -> &'static str {
-        match self {
-            Language::PtBr => "🇧🇷",
-            Language::EnUs => "🇺🇸",
-        }
-    }
-}
+pub use mta_core::i18n::Language;
 
 pub fn detect_browser_language() -> Language {
     #[cfg(target_arch = "wasm32")]

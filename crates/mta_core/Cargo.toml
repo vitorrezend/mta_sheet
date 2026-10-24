@@ -1,0 +1,19 @@
+[package]
+name = "mta_core"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "Domínio do MTA Sheet: regras de M20, modelos da ficha e compêndio, sem interface nem servidor"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "warn"
+panic = "deny"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.0", features = ["v4", "serde", "js"] }
+getrandom = { version = "0.2", features = ["js"] }
+ammonia = "4"
+log = "0.4"

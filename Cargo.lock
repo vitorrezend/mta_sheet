@@ -1784,6 +1784,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "mta_core"
+version = "0.1.0"
+dependencies = [
+ "ammonia",
+ "getrandom 0.2.17",
+ "log",
+ "serde",
+ "serde_json",
+ "uuid",
+]
+
+[[package]]
 name = "mta_sheet"
 version = "0.21.1"
 dependencies = [
@@ -1806,6 +1818,7 @@ dependencies = [
  "leptos_router",
  "log",
  "mime_guess",
+ "mta_core",
  "rust-embed",
  "serde",
  "serde_json",
