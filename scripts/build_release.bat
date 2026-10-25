@@ -87,6 +87,8 @@ echo   -^> [CSS Bundle] Empacotando suite de estilos em target\site\pkg\mta_shee
     echo.
     type styles\12-compendium.css
     echo.
+    type styles\13-sheet-header.css
+    echo.
     type styles\patch_notes.css
     echo.
     type styles\home.css

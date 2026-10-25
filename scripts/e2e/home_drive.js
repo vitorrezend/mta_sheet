@@ -162,14 +162,21 @@ const folderCard = (page, name) => page.locator('.drive-folder-card', { hasText:
   if (PROFILE === 'iphone') {
     await step(p, 'modo Larga não aparece no celular', async () => {
       await p.waitForSelector('.sheet-container', { timeout: 30000 });
-      if (await p.locator('.layout-toggle-btn').isVisible()) throw new Error('botão visível no celular');
+      await tap(p.locator('.actions-menu-trigger-btn'));
+      await p.waitForSelector('.actions-menu-backdrop.open', { timeout: 5000 });
+      const visible = await p.locator('.layout-toggle-btn').isVisible();
+      await tap(p.locator('.actions-menu-panel .panel-close-btn'));
+      if (visible) throw new Error('opção de largura visível no celular');
     });
   } else {
     await step(p, 'modo Larga alarga a ficha e fica salvo', async () => {
       await p.setViewportSize({ width: 1600, height: 1000 });
-      await p.waitForSelector('.layout-toggle-btn', { timeout: 30000 });
+      // A largura fica no menu "⋯", seção Exibição
+      await p.waitForSelector('.actions-menu-trigger-btn', { timeout: 30000 });
       const a4 = await sheetWidth();
+      await p.locator('.actions-menu-trigger-btn').click();
       await p.locator('.layout-toggle-btn').click();
+      await p.locator('.actions-menu-panel .panel-close-btn').click();
       await p.waitForFunction(() => document.querySelector('.sheet-container').getBoundingClientRect().width > 1100, null, { timeout: 5000 });
       const wide = await sheetWidth();
       await p.reload({ waitUntil: 'networkidle' });
@@ -186,7 +193,9 @@ const folderCard = (page, name) => page.locator('.drive-folder-card', { hasText:
       await p.emulateMedia({ media: 'screen' });
       if (printed !== '210mm') throw new Error(`--page-width na impressão: ${printed}`);
       // Volta para A4 para não afetar outras execuções
+      await p.locator('.actions-menu-trigger-btn').click();
       await p.locator('.layout-toggle-btn').click();
+      await p.locator('.actions-menu-panel .panel-close-btn').click();
       return `tela: ${onScreen} · impressão: ${printed}`;
     });
   }
