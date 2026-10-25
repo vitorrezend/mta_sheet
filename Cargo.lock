@@ -1899,7 +1899,7 @@ dependencies = [
 
 [[package]]
 name = "mta_sheet"
-version = "0.21.1"
+version = "0.22.0"
 dependencies = [
  "ammonia",
  "axum",

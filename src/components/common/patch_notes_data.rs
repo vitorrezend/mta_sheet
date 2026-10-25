@@ -19,6 +19,95 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.22.0",
+        date: "2026-10-25",
+        tag: "v0.22.0",
+        title: "Salas em Tempo Real, Mapa Tático Montável, Rolador de Dados, Modo Larga e Blindagem para iPhone",
+        highlight: "Chat da sala com sons e rolagens, mapa tático construído pelo Narrador (terreno, paredes, objetos e imagem de fundo), rolador de dados na ficha, extrato de XP, ficha em modo largo, salvamento à prova de conflitos, correções para Safari/iPhone, segurança reforçada e um site até 73% mais leve para baixar.",
+        sections: &[
+            PatchSection {
+                category: "💬 Salas em Tempo Real",
+                icon: "🏰",
+                items: &[
+                    "💬 Chat da Sala: Mensagens e rolagens de dados visíveis para todos na mesa, com comando /r (ex.: /r 5 dif 6), fala como personagem ou fora de jogo e aviso de novas mensagens.",
+                    "🔔 Sons de Notificação: Som ao chegar mensagem e ao rolar dados, com opção de silenciar; funciona também no iPhone.",
+                    "⚡ Tudo ao Vivo: Fichas, iniciativa, mapa, Capela e Crônica atualizam para todos na hora, sem recarregar; reconecta sozinho ao voltar para a aba.",
+                    "👥 Quem Está Online: Faixa com os jogadores conectados na sala.",
+                    "📜 Capela e Crônica Sincronizadas: Se duas pessoas editarem ao mesmo tempo, a sala oferece usar a versão nova ou manter a sua.",
+                    "🔑 Códigos de Sala Mais Fortes: Novo formato MTA-XXXX-XXXX e limite de tentativas de entrada.",
+                ],
+            },
+            PatchSection {
+                category: "🗺️ Mapa Tático Montável",
+                icon: "🧭",
+                items: &[
+                    "🧱 Narrador Monta o Mapa: Pintura de terreno (16 tipos), paredes, portas e janelas, objetos (22 tipos, com giro e tamanho) e imagem de fundo com ajuste de posição, escala e opacidade.",
+                    "📏 Paredes Retas: Cada arraste vira uma linha reta presa à grade; no hexágono a linha pode cruzar o meio das células.",
+                    "♟️ Jogador Move o Seu: Cada jogador move apenas o próprio token; NPCs podem ficar ocultos dos jogadores.",
+                    "⬢ Grade Quadrada ou Hexagonal: Formato, tamanho e metros por célula configuráveis, com régua de distância.",
+                    "📱 Toque e Mouse: Funciona com dedo no iPhone e com mouse no computador, sem travar com mapas grandes.",
+                ],
+            },
+            PatchSection {
+                category: "🎲 Ficha: Rolador, XP e Modo Larga",
+                icon: "📜",
+                items: &[
+                    "🎲 Rolador de Dados na Ficha: Monta a parada com Atributo + Habilidade, dados extras, dificuldade, especialização e penalidade de ferimentos; se a ficha está numa sala, a rolagem aparece no chat.",
+                    "📒 Extrato de XP: Registro de ganhos e gastos de experiência integrado ao extrato de custos.",
+                    "↔️ Modo Larga: Botão na barra da ficha alterna entre a folha A4 e uma ficha mais larga em telas grandes; a escolha fica salva no navegador, e celular e PDF continuam em A4.",
+                    "📁 Pastas no Celular: Botão para mover pastas e fichas sem arrastar, e cards de pasta e ficha que agora abrem com um toque no iPhone.",
+                ],
+            },
+            PatchSection {
+                category: "💾 Salvamento Confiável",
+                icon: "🛡️",
+                items: &[
+                    "🔄 Sem Sobrescrever Ninguém: Se a ficha mudou em outro lugar (outra aba, o Narrador na sala), aparece um aviso para recarregar ou manter suas alterações.",
+                    "📦 Salvamento Parcial: Só o que mudou é enviado ao servidor, o que deixa cada salvamento muito mais leve.",
+                    "🚪 Nada se Perde ao Sair: Corrigido um caso em que uma edição feita logo antes de voltar ao Início não era salva.",
+                ],
+            },
+            PatchSection {
+                category: "📱 Safari & iPhone",
+                icon: "🍎",
+                items: &[
+                    "👆 Toques que Funcionam: Bolinhas, quadrados de vitalidade e roda de quintessência respondem ao toque no iPhone.",
+                    "🕒 Datas e Horários Corretos no Safari, campos sem zoom ao digitar e altura de tela correta com a barra do navegador.",
+                    "🖼️ Imagens Comprimidas Corretamente no Safari, que não gera WebP.",
+                ],
+            },
+            PatchSection {
+                category: "🔐 Segurança",
+                icon: "🛡️",
+                items: &[
+                    "🧼 Texto Rico Sanitizado no Servidor: Bloqueia scripts maliciosos em fichas e anotações da sala.",
+                    "🌐 Limite de Requisições pelo IP Real, com proxies confiáveis configuráveis.",
+                    "🔒 Permissões Revisadas: Só o dono vincula a própria ficha a uma sala; Capela e Crônica só para o Narrador e membros.",
+                    "🗄️ Banco de Dados Atualizado (sqlx 0.8) com migrações versionadas.",
+                ],
+            },
+            PatchSection {
+                category: "⚡ Desempenho",
+                icon: "🚀",
+                items: &[
+                    "📉 Site Mais Leve: A aplicação é enviada comprimida (brotli), caindo de 6,2 MB para 1,7 MB; páginas HTML também ficam bem menores.",
+                    "🎯 Ficha Mais Ágil: Marcar uma bolinha atualiza só aquele campo, em vez de recalcular todos os campos da ficha.",
+                    "🛠️ Servidor Otimizado para Velocidade e mais resistente a falhas: um erro afeta só uma requisição, não o site inteiro.",
+                ],
+            },
+            PatchSection {
+                category: "🏛️ Arquitetura & Qualidade",
+                icon: "🧪",
+                items: &[
+                    "🧩 Domínio Separado: Regras de M20, modelos da ficha e compêndio movidos para o crate mta_core, sem dependência de interface ou servidor.",
+                    "🗂️ Ficha, Campos e Tela Inicial Reorganizados em stores e componentes menores, mais fáceis de manter.",
+                    "✅ 371 Testes Rust e 7 suítes de ponta a ponta no Safari (WebKit), em iPhone e computador, rodando com scripts/check.sh antes de cada versão.",
+                    "⏱️ Compilação de Desenvolvimento Mais Rápida: recompilar após mudar um componente caiu de cerca de 35 s para 20 s.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.21.1",
         date: "2026-10-09",
         tag: "v0.21.1",
