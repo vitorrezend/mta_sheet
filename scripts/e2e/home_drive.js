@@ -158,6 +158,39 @@ const folderCard = (page, name) => page.locator('.drive-folder-card', { hasText:
     await p.waitForURL(/\/sheet\//, { timeout: 15000 });
   });
 
+  const sheetWidth = () => p.evaluate(() => document.querySelector('.sheet-container').getBoundingClientRect().width);
+  if (PROFILE === 'iphone') {
+    await step(p, 'modo Larga não aparece no celular', async () => {
+      await p.waitForSelector('.sheet-container', { timeout: 30000 });
+      if (await p.locator('.layout-toggle-btn').isVisible()) throw new Error('botão visível no celular');
+    });
+  } else {
+    await step(p, 'modo Larga alarga a ficha e fica salvo', async () => {
+      await p.setViewportSize({ width: 1600, height: 1000 });
+      await p.waitForSelector('.layout-toggle-btn', { timeout: 30000 });
+      const a4 = await sheetWidth();
+      await p.locator('.layout-toggle-btn').click();
+      await p.waitForFunction(() => document.querySelector('.sheet-container').getBoundingClientRect().width > 1100, null, { timeout: 5000 });
+      const wide = await sheetWidth();
+      await p.reload({ waitUntil: 'networkidle' });
+      await p.waitForFunction(() => document.querySelector('.sheet-container').getBoundingClientRect().width > 1100, null, { timeout: 15000 });
+      return `${Math.round(a4)}px → ${Math.round(wide)}px, mantido após recarregar`;
+    });
+
+    await step(p, 'impressão continua em A4 no modo Larga', async () => {
+      // O CSS de impressão usa a largura da página; o que importa é a regra larga não valer
+      const pageWidth = () => p.evaluate(() => getComputedStyle(document.querySelector('.sheet-page-container')).getPropertyValue('--page-width').trim());
+      const onScreen = await pageWidth();
+      await p.emulateMedia({ media: 'print' });
+      const printed = await pageWidth();
+      await p.emulateMedia({ media: 'screen' });
+      if (printed !== '210mm') throw new Error(`--page-width na impressão: ${printed}`);
+      // Volta para A4 para não afetar outras execuções
+      await p.locator('.layout-toggle-btn').click();
+      return `tela: ${onScreen} · impressão: ${printed}`;
+    });
+  }
+
   await browser.close();
   const failed = results.filter(ok => !ok).length;
   console.log(`\n${results.length - failed}/${results.length} passos OK (${PROFILE})`);

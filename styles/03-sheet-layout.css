@@ -984,3 +984,23 @@
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
     transform: translateY(-1px);
 }
+
+/* ==========================================================================
+   Modo "Larga" (preferência do usuário, guardada no navegador)
+   A ficha herda a largura de --page-width: redefinir a variável no contêiner
+   alarga folha, barra superior e abas juntas. Só vale em telas largas
+   (@media screen): no celular e na impressão a ficha continua em A4.
+   ========================================================================== */
+.layout-toggle-btn {
+    display: none !important;
+}
+
+@media screen and (min-width: 1100px) {
+    .layout-toggle-btn {
+        display: inline-flex !important;
+    }
+
+    .sheet-page-container.sheet-layout-wide {
+        --page-width: min(1400px, calc(100vw - 48px));
+    }
+}

@@ -6,6 +6,7 @@ pub mod pdf_export_modal;
 pub mod sheet_share_modal;
 pub mod xp_ledger_modal;
 pub mod dice_roller;
+pub mod layout_mode;
 
 pub use cost_breakdown_modal::CostBreakdownModal;
 pub use sheet_top_bar::{SaveStatus, SheetTopBar, SheetTopBarActions, SheetTopBarState};
@@ -15,6 +16,7 @@ pub use pdf_export_modal::PdfExportModal;
 pub use sheet_share_modal::SheetShareModal;
 pub use xp_ledger_modal::XpLedgerModal;
 pub use dice_roller::SheetDiceRoller;
+pub use layout_mode::{use_sheet_layout, SheetLayout};
 
 use leptos::*;
 use crate::state::DotOrigin;

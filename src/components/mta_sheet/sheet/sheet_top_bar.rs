@@ -3,7 +3,7 @@ use leptos_router::A;
 use wasm_bindgen::JsCast;
 use crate::components::Callback;
 use crate::state::{CharacterData, CostSummary, DotOrigin};
-use super::ActiveDotOriginContext;
+use super::{ActiveDotOriginContext, SheetLayout};
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum SaveStatus {
@@ -22,6 +22,8 @@ pub struct SheetTopBarState {
     pub is_public: Signal<bool>,
     pub can_edit: MaybeSignal<bool>,
     pub author_username: MaybeSignal<Option<String>>,
+    /// Largura da ficha na tela (A4 ou Larga)
+    pub layout: RwSignal<SheetLayout>,
 }
 
 /// O que os botões da barra fazem: ações e janelas que eles abrem.
@@ -47,7 +49,7 @@ pub fn SheetTopBar(
     actions: SheetTopBarActions,
 ) -> impl IntoView {
     let ActiveDotOriginContext { origin: active_origin, set_origin: set_active_origin } = origin;
-    let SheetTopBarState { costs, save_status, is_public, can_edit, author_username } = state;
+    let SheetTopBarState { costs, save_status, is_public, can_edit, author_username, layout } = state;
     let SheetTopBarActions {
         on_back_click,
         do_manual_save,
@@ -137,6 +139,28 @@ pub fn SheetTopBar(
                         }
                     >
                         <span>{move || match lang() { crate::i18n::Language::PtBr => "🇧🇷 PT", crate::i18n::Language::EnUs => "🇺🇸 EN" }}</span>
+                    </button>
+
+                    // Só aparece em telas largas (CSS): no celular a ficha é sempre A4
+                    <button
+                        type="button"
+                        class="lang-toggle-btn layout-toggle-btn"
+                        class:active=move || layout.get().is_wide()
+                        aria-pressed=move || if layout.get().is_wide() { "true" } else { "false" }
+                        on:click=move |_| layout.update(|l| *l = l.toggled())
+                        title=move || match (layout.get().is_wide(), lang()) {
+                            (false, crate::i18n::Language::PtBr) => "Ficha em folha A4 (Mudar para larga)",
+                            (true, crate::i18n::Language::PtBr) => "Ficha larga (Voltar para folha A4)",
+                            (false, crate::i18n::Language::EnUs) => "A4 sheet (Switch to wide)",
+                            (true, crate::i18n::Language::EnUs) => "Wide sheet (Back to A4)",
+                        }
+                    >
+                        <span>{move || match (layout.get().is_wide(), lang()) {
+                            (false, crate::i18n::Language::PtBr) => "📄 A4",
+                            (true, crate::i18n::Language::PtBr) => "↔️ Larga",
+                            (false, crate::i18n::Language::EnUs) => "📄 A4",
+                            (true, crate::i18n::Language::EnUs) => "↔️ Wide",
+                        }}</span>
                     </button>
                 </div>
 
@@ -562,6 +586,7 @@ mod tests {
             is_public: Signal::derive(|| false),
             can_edit: true.into(),
             author_username: None.into(),
+            layout: create_rw_signal(SheetLayout::A4),
         };
         let actions = SheetTopBarActions {
             on_back_click: Callback::new(|_| ()),
