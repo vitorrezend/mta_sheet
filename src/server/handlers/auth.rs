@@ -191,13 +191,8 @@ pub async fn form_register_handler(
 
     let pool = crate::database::get_db().await;
 
-    let user_count: i64 = sqlx::query("SELECT COUNT(*) as count FROM users")
-        .fetch_one(&pool)
-        .await
-        .map(|r| r.get("count"))
-        .unwrap_or(0);
-
-    let is_admin = user_count == 0 || crate::auth::is_username_in_admin_env(&clean_user);
+    // Admin só pela lista ADMIN_USERNAMES (nunca "o primeiro cadastro")
+    let is_admin = crate::auth::is_username_in_admin_env(&clean_user);
 
     let password_hash = match crate::auth::hash_password(&payload.password, bcrypt::DEFAULT_COST).await {
         Ok(h) => h,

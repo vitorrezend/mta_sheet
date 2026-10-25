@@ -79,12 +79,19 @@ pub async fn upload_image_handler(
     mut multipart: axum::extract::Multipart,
 ) -> impl IntoResponse {
     let pool = crate::database::get_db().await;
-    let auth_user = crate::auth::user_id_from_headers(&pool, &headers).await;
-    if auth_user.is_none() {
+    let Some(user_id) = crate::auth::user_id_from_headers(&pool, &headers).await else {
         return (
             http::StatusCode::UNAUTHORIZED,
             [(http::header::CONTENT_TYPE, "application/json")],
             serde_json::json!({"error": "Autenticação necessária para enviar imagens"}).to_string(),
+        )
+            .into_response();
+    };
+    if !crate::state::server_fns::allow_upload(&user_id) {
+        return (
+            http::StatusCode::TOO_MANY_REQUESTS,
+            [(http::header::CONTENT_TYPE, "application/json")],
+            serde_json::json!({"error": "Muitos envios de imagem. Aguarde alguns minutos."}).to_string(),
         )
             .into_response();
     }

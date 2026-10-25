@@ -97,6 +97,9 @@ pub fn create_app(
             },
             crate::App,
         )
+        // Corpo máximo das requisições: uma imagem de 5 MB em base64 (~6,7 MB) com folga.
+        // Sem isso vale o padrão do Axum (2 MB), menor que o limite de 5 MB das imagens
+        .layer(axum::extract::DefaultBodyLimit::max(MAX_REQUEST_BODY_BYTES))
         .layer(axum::middleware::from_fn(api_rate_limit_middleware))
         .layer(axum::middleware::from_fn(csrf_protection_middleware))
         // Brotli/gzip conforme o Accept-Encoding do navegador: a WebAssembly cai de ~7,5 MB
@@ -115,6 +118,9 @@ pub fn create_app(
         .layer(axum::middleware::from_fn(client_ip_middleware))
         .with_state(leptos_options)
 }
+
+/// Tamanho máximo do corpo de uma requisição (uploads de imagem incluídos).
+pub const MAX_REQUEST_BODY_BYTES: usize = 8 * 1024 * 1024;
 
 /// Quando comprimir dinamicamente. Em desenvolvimento a WebAssembly tem dezenas de MB com
 /// depuração e muda a cada build: comprimi-la a cada carga custaria segundos por página.

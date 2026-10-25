@@ -57,6 +57,25 @@ pub fn prune_stale_entries(attempts: &mut HashMap<String, Vec<Instant>>, now: In
     }
 }
 
+/// Content-Security-Policy da resposta.
+///
+/// - Arquivos enviados por usuários (`/uploads/`) não executam nada: só imagens, em sandbox.
+/// - Páginas: scripts só do próprio site, do CDN do Eruda (diagnóstico com SRI) ou embutidos
+///   com o `nonce` gerado na renderização. Sem `'unsafe-inline'`, uma injeção de HTML que
+///   escape da sanitização não consegue executar script.
+pub fn content_security_policy(path: &str, nonce: Option<&str>) -> String {
+    if path.starts_with("/uploads/") {
+        return "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox".to_string();
+    }
+    let nonce_source = nonce.map(|n| format!(" 'nonce-{}'", n)).unwrap_or_default();
+    format!(
+        "default-src 'self'; script-src 'self'{nonce_source} 'wasm-unsafe-eval' https://cdn.jsdelivr.net; \
+         style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: blob:; \
+         font-src 'self' data:; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self'; \
+         frame-ancestors 'self'; form-action 'self'"
+    )
+}
+
 pub async fn security_headers_middleware(
     request: axum::extract::Request,
     next: axum::middleware::Next,
@@ -83,12 +102,13 @@ pub async fn security_headers_middleware(
         http::HeaderName::from_static("permissions-policy"),
         http::HeaderValue::from_static("camera=(), microphone=(), geolocation=(), interest-cohort=(), payment=()"),
     );
-    headers.insert(
-        http::header::CONTENT_SECURITY_POLICY,
-        http::HeaderValue::from_static(
-            "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ws: wss:;"
-        ),
-    );
+    // Páginas já trazem o CSP com o nonce da renderização (ver `App`); arquivos enviados
+    // por usuários sempre recebem a política fechada, mesmo que algo tenha definido outra
+    if path.starts_with("/uploads/") || !headers.contains_key(http::header::CONTENT_SECURITY_POLICY) {
+        if let Ok(value) = http::HeaderValue::from_str(&content_security_policy(&path, None)) {
+            headers.insert(http::header::CONTENT_SECURITY_POLICY, value);
+        }
+    }
 
     if cfg!(debug_assertions) || is_local {
         // Em modo de desenvolvimento ou acesso local (localhost / 127.0.0.1),

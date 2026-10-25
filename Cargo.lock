@@ -1537,6 +1537,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8401c46c86c1f4c16dcb7881ed319fcdca9cda9b9e78a6088955cb423afcf119"
 dependencies = [
  "async-recursion",
+ "base64",
  "cfg-if",
  "drain_filter_polyfill",
  "futures",
@@ -1549,6 +1550,7 @@ dependencies = [
  "once_cell",
  "pad-adapter",
  "paste",
+ "rand",
  "rustc-hash",
  "serde",
  "serde_json",
@@ -1925,6 +1927,7 @@ dependencies = [
  "rust-embed",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
  "sqlx",
  "tokio",
  "tokio-stream",

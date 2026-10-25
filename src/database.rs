@@ -357,7 +357,8 @@ async fn migrate_and_extract_base64_images(pool: &SqlitePool) {
         let mut modified = false;
 
         for wonder in &mut char_data.wonders {
-            if wonder.image_url.starts_with("data:image") {
+            // SVG fica embutido: num <img> ele não executa script, mas como arquivo em /uploads executaria
+            if wonder.image_url.starts_with("data:image") && !wonder.image_url.starts_with("data:image/svg") {
                 let img_data = &wonder.image_url;
                 if let Some(idx) = img_data.find(";base64,") {
                     let mime_type = if img_data.starts_with("data:") {
@@ -372,7 +373,6 @@ async fn migrate_and_extract_base64_images(pool: &SqlitePool) {
                             "image/png" => "png",
                             "image/jpeg" | "image/jpg" => "jpg",
                             "image/gif" => "gif",
-                            "image/svg+xml" => "svg",
                             _ => "webp",
                         };
 
@@ -407,7 +407,7 @@ async fn migrate_and_extract_base64_images(pool: &SqlitePool) {
 
         // Migrate profile photo if it is stored as inline base64
         if let Some(photo_data) = char_data.labels.get("profile_photo").cloned() {
-            if photo_data.starts_with("data:image") {
+            if photo_data.starts_with("data:image") && !photo_data.starts_with("data:image/svg") {
                 if let Some(idx) = photo_data.find(";base64,") {
                     let mime_type = if photo_data.starts_with("data:") {
                         &photo_data[5..idx]
@@ -421,7 +421,6 @@ async fn migrate_and_extract_base64_images(pool: &SqlitePool) {
                             "image/png" => "png",
                             "image/jpeg" | "image/jpg" => "jpg",
                             "image/gif" => "gif",
-                            "image/svg+xml" => "svg",
                             _ => "webp",
                         };
 

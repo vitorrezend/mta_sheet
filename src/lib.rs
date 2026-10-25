@@ -45,6 +45,16 @@ pub fn App() -> impl IntoView {
     });
     provide_context(AuthContext { user, refetch });
 
+    // CSP desta página com o nonce gerado na renderização: o Leptos põe o mesmo nonce em
+    // todos os scripts embutidos (hidratação, recursos, <Script>), e nada mais executa
+    #[cfg(feature = "ssr")]
+    if let (Some(nonce), Some(response)) = (leptos::nonce::use_nonce(), use_context::<leptos_axum::ResponseOptions>()) {
+        let policy = crate::server::middleware::security::content_security_policy("", Some(&nonce));
+        if let Ok(value) = http::HeaderValue::from_str(&policy) {
+            response.insert_header(http::header::CONTENT_SECURITY_POLICY, value);
+        }
+    }
+
     #[cfg(target_arch = "wasm32")]
     {
         use wasm_bindgen::JsCast;

@@ -477,9 +477,9 @@ mod tests {
         let valid_gif = b"GIF89a\x01\x00\x01\x00...";
         assert_eq!(validate_image_magic_bytes(valid_gif).unwrap(), ("image/gif", "gif"));
 
-        // Valid SVG
-        let valid_svg = b"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"></svg>";
-        assert_eq!(validate_image_magic_bytes(valid_svg).unwrap(), ("image/svg+xml", "svg"));
+        // SVG é sempre recusado (pode carregar script)
+        let svg = b"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"></svg>";
+        assert!(validate_image_magic_bytes(svg).is_err());
 
         // MALICIOUS / INVALID: Fake PNG with shell script or ELF binary
         let fake_png_script = b"#!/bin/bash\necho 'malicious script'";

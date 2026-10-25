@@ -31,13 +31,14 @@ required-features = ["ssr"]
 [dependencies]
 mta_core = { path = "crates/mta_core" }
 leptos = { version = "0.6" }
-leptos_axum = { version = "0.6", optional = true }
+leptos_axum = { version = "0.6", optional = true, features = ["nonce"] }
 leptos_router = { version = "0.6" }
 leptos_meta = { version = "0.6" }
 axum = { version = "0.7", optional = true, features = ["macros"] }
 tower = { version = "0.4", optional = true, features = ["util"] }
 tower-http = { version = "0.5", optional = true, features = ["fs", "compression-br", "compression-gzip"] }
 brotli = { version = "8", optional = true }
+sha2 = { version = "0.10", optional = true }
 tokio = { version = "1", features = ["full"], optional = true }
 sqlx = { version = "0.8", default-features = false, features = ["sqlite", "runtime-tokio", "macros", "migrate"], optional = true }
 serde = { version = "1.0", features = ["derive"] }
@@ -71,6 +72,7 @@ ssr = [
     "dep:tower",
     "dep:tower-http",
     "dep:brotli",
+    "dep:sha2",
     "dep:leptos_axum",
     "dep:sqlx",
     "dep:dotenvy",

@@ -97,11 +97,21 @@ pub fn session_token_from_headers(headers: &http::HeaderMap) -> Option<String> {
         .filter(|token| !token.is_empty())
 }
 
+/// Chave da sessão no banco: o SHA-256 do token do cookie.
+///
+/// O banco nunca guarda o token em si; quem obtiver uma cópia do banco (um backup, por
+/// exemplo) não consegue montar um cookie válido a partir dele.
+#[cfg(feature = "ssr")]
+pub fn session_key(token: &str) -> String {
+    use sha2::{Digest, Sha256};
+    Sha256::digest(token.as_bytes()).iter().map(|b| format!("{:02x}", b)).collect()
+}
+
 /// Usuário de uma sessão ainda válida.
 #[cfg(feature = "ssr")]
 pub async fn user_id_from_session(pool: &sqlx::SqlitePool, token: &str) -> Option<String> {
     sqlx::query_scalar("SELECT user_id FROM sessions WHERE id = ? AND expires_at > CURRENT_TIMESTAMP")
-        .bind(token)
+        .bind(session_key(token))
         .fetch_optional(pool)
         .await
         .ok()
@@ -172,7 +182,7 @@ pub async fn get_auth_user_id() -> Result<Option<String>, ServerFnError> {
     let row = sqlx::query(
         "SELECT user_id FROM sessions WHERE id = ? AND expires_at > CURRENT_TIMESTAMP"
     )
-    .bind(token)
+    .bind(session_key(&token))
     .fetch_optional(&pool)
     .await
     .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -224,13 +234,13 @@ pub async fn create_session_with_fifo(pool: &sqlx::SqlitePool, user_id: &str) ->
     .execute(pool)
     .await;
 
-    // 3. Cria a nova sessão válida por 30 dias
+    // 3. Cria a nova sessão válida por 30 dias (o banco guarda só o hash do token)
     let session_token = Uuid::new_v4().to_string();
     sqlx::query(
-        "INSERT INTO sessions (id, user_id, expires_at) 
+        "INSERT INTO sessions (id, user_id, expires_at)
          VALUES (?, ?, datetime('now', '+30 days'))"
     )
-    .bind(&session_token)
+    .bind(session_key(&session_token))
     .bind(user_id)
     .execute(pool)
     .await?;
@@ -251,11 +261,11 @@ pub async fn is_current_user_admin() -> Result<bool, ServerFnError> {
     })?;
 
     let row = sqlx::query(
-        "SELECT u.username, u.is_admin FROM sessions s 
-         JOIN users u ON s.user_id = u.id 
+        "SELECT u.username, u.is_admin FROM sessions s
+         JOIN users u ON s.user_id = u.id
          WHERE s.id = ? AND s.expires_at > CURRENT_TIMESTAMP"
     )
-    .bind(token)
+    .bind(session_key(&token))
     .fetch_optional(&pool)
     .await
     .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -283,11 +293,11 @@ pub async fn get_current_user() -> Result<Option<UserInfo>, ServerFnError> {
     })?;
 
     let row = sqlx::query(
-        "SELECT u.id, u.username, u.is_admin FROM sessions s 
-         JOIN users u ON s.user_id = u.id 
+        "SELECT u.id, u.username, u.is_admin FROM sessions s
+         JOIN users u ON s.user_id = u.id
          WHERE s.id = ? AND s.expires_at > CURRENT_TIMESTAMP"
     )
-    .bind(token)
+    .bind(session_key(&token))
     .fetch_optional(&pool)
     .await
     .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -327,20 +337,15 @@ pub async fn register(username: String, password: String) -> Result<UserInfo, Se
         }
     }
 
-    use sqlx::{SqlitePool, Row};
+    use sqlx::SqlitePool;
     use uuid::Uuid;
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
 
-    // Verifica se é o primeiro usuário do sistema ou se está na lista ADMIN_USERNAMES
-    let user_count_row = sqlx::query("SELECT COUNT(*) as count FROM users")
-        .fetch_one(&pool)
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
-    let user_count: i64 = user_count_row.get("count");
-    let is_first_user = user_count == 0;
-    let is_admin = is_first_user || is_username_in_admin_env(&clean_user);
+    // Admin só pela lista ADMIN_USERNAMES: "o primeiro cadastro vira admin" deixava qualquer
+    // pessoa assumir um servidor recém-instalado antes do dono criar a conta
+    let is_admin = is_username_in_admin_env(&clean_user);
 
     let password_hash = crate::auth::hash_password(&password, bcrypt::DEFAULT_COST).await
         .map_err(|e| ServerFnError::new(format!("Erro ao processar senha: {}", e)))?;
@@ -439,7 +444,7 @@ pub async fn logout() -> Result<(), ServerFnError> {
     if let Some(token) = extract_session_token().await {
         if let Some(pool) = use_context::<SqlitePool>() {
             let _ = sqlx::query("DELETE FROM sessions WHERE id = ?")
-                .bind(token)
+                .bind(session_key(&token))
                 .execute(&pool)
                 .await;
         }
@@ -494,7 +499,7 @@ pub async fn change_password(
          JOIN users u ON s.user_id = u.id 
          WHERE s.id = ? AND s.expires_at > CURRENT_TIMESTAMP"
     )
-    .bind(&token)
+    .bind(session_key(&token))
     .fetch_optional(&pool)
     .await
     .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -561,7 +566,7 @@ pub async fn change_password(
     // 7. Revogar todas as outras sessões ativas do usuário por segurança
     let revoked_sessions = sqlx::query("DELETE FROM sessions WHERE user_id = ? AND id != ?")
         .bind(&user_id)
-        .bind(&token)
+        .bind(session_key(&token))
         .execute(&pool)
         .await
         .map(|res| res.rows_affected())
@@ -599,7 +604,7 @@ pub async fn revoke_other_sessions() -> Result<u64, ServerFnError> {
 
     let res = sqlx::query("DELETE FROM sessions WHERE user_id = ? AND id != ?")
         .bind(&auth_user_id)
-        .bind(&token)
+        .bind(session_key(&token))
         .execute(&pool)
         .await
         .map_err(|e| ServerFnError::new(format!("Erro ao revogar sessões: {}", e)))?;
