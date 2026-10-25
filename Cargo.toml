@@ -36,7 +36,8 @@ leptos_router = { version = "0.6" }
 leptos_meta = { version = "0.6" }
 axum = { version = "0.7", optional = true, features = ["macros"] }
 tower = { version = "0.4", optional = true, features = ["util"] }
-tower-http = { version = "0.5", optional = true, features = ["fs"] }
+tower-http = { version = "0.5", optional = true, features = ["fs", "compression-br", "compression-gzip"] }
+brotli = { version = "8", optional = true }
 tokio = { version = "1", features = ["full"], optional = true }
 sqlx = { version = "0.8", default-features = false, features = ["sqlite", "runtime-tokio", "macros", "migrate"], optional = true }
 serde = { version = "1.0", features = ["derive"] }
@@ -69,6 +70,7 @@ ssr = [
     "dep:tokio",
     "dep:tower",
     "dep:tower-http",
+    "dep:brotli",
     "dep:leptos_axum",
     "dep:sqlx",
     "dep:dotenvy",
@@ -94,18 +96,36 @@ bin-features = ["ssr"]
 bin-target = "mta_sheet_server"
 bin-exe-name = "mta_sheet_server"
 lib-features = ["hydrate"]
+lib-profile-release = "wasm-release"
 
+# Servidor: velocidade. `panic = "unwind"` faz um panic derrubar só a requisição
+# (o Axum/Tokio isola a tarefa) em vez do processo inteiro.
 [profile.release]
-opt-level = 'z'
-lto = true
-codegen-units = 1
-panic = 'abort'
+opt-level = 3
+lto = "thin"
+codegen-units = 16
+panic = "unwind"
 strip = true
 
+# WebAssembly: tamanho, porque é baixada pelo navegador. Usado pelo cargo-leptos
+# (lib-profile-release) e pelos builds manuais (--profile wasm-release).
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
 
+# Desenvolvimento: compilar rápido. Sem `codegen-units = 1` (que serializava a geração
+# de código e desligava a compilação incremental fina) e com depuração só de linhas,
+# suficiente para panics com arquivo e linha.
 [profile.dev]
-opt-level = 0                
-codegen-units = 1     
-panic = 'unwind'      
-strip = false         
-debug = true
+opt-level = 0
+panic = "unwind"
+debug = "line-tables-only"
+
+# Dependências otimizadas uma vez e guardadas em cache: servidor e testes rodam mais
+# rápido sem deixar a compilação do nosso código mais lenta.
+[profile.dev.package."*"]
+opt-level = 1
+debug = false

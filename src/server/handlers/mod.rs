@@ -4,6 +4,7 @@ pub mod media;
 pub mod sse;
 pub mod compendium;
 pub mod seo;
+pub mod precompressed;
 
 pub use static_files::*;
 pub use auth::*;

@@ -30,13 +30,13 @@ COPY migrations ./migrations
 COPY build.rs ./
 COPY tests ./tests
 
-# 1. Compila Frontend WASM Release
-RUN cargo build --lib --target wasm32-unknown-unknown --release --no-default-features --features hydrate
+# 1. Compila Frontend WASM (perfil wasm-release: otimizado para tamanho)
+RUN cargo build --lib --target wasm32-unknown-unknown --profile wasm-release --no-default-features --features hydrate
 
 # 2. Gera bindings JS, minifica bytecode com wasm-opt (-Oz) e empacota assets
 RUN mkdir -p target/site/pkg target/site/fonts && \
     wasm-bindgen --target web --out-dir target/site/pkg --out-name mta_sheet \
-    target/wasm32-unknown-unknown/release/mta_sheet.wasm --no-typescript && \
+    target/wasm32-unknown-unknown/wasm-release/mta_sheet.wasm --no-typescript && \
     wasm-opt -Oz --strip-debug target/site/pkg/mta_sheet_bg.wasm -o target/site/pkg/mta_sheet_bg.wasm && \
     cp -f target/site/pkg/mta_sheet_bg.wasm target/site/pkg/mta_sheet.wasm && \
     cp -rf fonts/* target/site/fonts/ 2>/dev/null || true && \

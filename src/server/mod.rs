@@ -99,9 +99,27 @@ pub fn create_app(
         )
         .layer(axum::middleware::from_fn(api_rate_limit_middleware))
         .layer(axum::middleware::from_fn(csrf_protection_middleware))
+        // Brotli/gzip conforme o Accept-Encoding do navegador: a WebAssembly cai de ~7,5 MB
+        // para ~2 MB. O predicado padrão não comprime eventos SSE (tempo real das salas),
+        // imagens nem respostas minúsculas; nível 5 equilibra tamanho e CPU por requisição.
+        // Em produção a WebAssembly, o JS e o CSS já saem pré-comprimidos (handlers::precompressed),
+        // e esta camada pula respostas que já têm Content-Encoding.
+        .layer(
+            tower_http::compression::CompressionLayer::new()
+                .quality(tower_http::CompressionLevel::Precise(5))
+                .compress_when(compression_predicate()),
+        )
         .layer(axum::middleware::from_fn(security_headers_middleware))
         .layer(axum::middleware::from_fn(access_log_middleware))
         // Camada mais externa: resolve o IP real antes de logs e rate limit
         .layer(axum::middleware::from_fn(client_ip_middleware))
         .with_state(leptos_options)
+}
+
+/// Quando comprimir dinamicamente. Em desenvolvimento a WebAssembly tem dezenas de MB com
+/// depuração e muda a cada build: comprimi-la a cada carga custaria segundos por página.
+fn compression_predicate() -> impl tower_http::compression::Predicate {
+    use tower_http::compression::predicate::{DefaultPredicate, NotForContentType, Predicate};
+    let skip_wasm_in_dev = if cfg!(debug_assertions) { "application/wasm" } else { "application/x-never-skip" };
+    DefaultPredicate::new().and(NotForContentType::const_new(skip_wasm_in_dev))
 }
