@@ -3,7 +3,7 @@ use super::super::models::{RoomSummary, RoomDetails, ChantryPoolData};
 #[allow(unused_imports)]
 use super::super::map::RoomMapData;
 #[cfg(feature = "ssr")]
-use super::super::models::{RoomInitiativeData, RoomMemberInfo, RoomSheetSummary, build_room_sheet_summary};
+use super::super::models::{RoomInitiativeData, RoomMemberInfo, RoomSheetSummary};
 
 #[server(endpoint = "get_user_rooms")]
 pub async fn get_user_rooms() -> Result<Vec<RoomSummary>, ServerFnError> {
@@ -328,33 +328,12 @@ pub async fn get_room_details(room_id: String) -> Result<RoomDetails, ServerFnEr
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    // 3. Get sheets (GM sees all, players only see non-hidden sheets or their own)
-    let sheet_query = if is_gm {
-        "SELECT id, user_id, name, data, is_hidden_in_room, updated_at FROM character_sheets WHERE room_id = ? ORDER BY LOWER(name) ASC, id ASC"
-    } else {
-        "SELECT id, user_id, name, data, is_hidden_in_room, updated_at FROM character_sheets WHERE room_id = ? AND (is_hidden_in_room = 0 OR user_id = ?) ORDER BY LOWER(name) ASC, id ASC"
-    };
-
-    let mut q = sqlx::query(sheet_query).bind(&room_id);
-    if !is_gm {
-        q = q.bind(&current_user_id);
-    }
-
-    let sheet_rows = q.fetch_all(&pool)
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
-
-    let mut sheets: Vec<RoomSheetSummary> = sheet_rows.into_iter().map(|r| {
-        let id: String = r.get("id");
-        let sheet_user_id: Option<String> = r.get("user_id");
-        let is_owner = !current_user_id.is_empty() && sheet_user_id.as_deref() == Some(&current_user_id);
-        let is_hidden: bool = r.try_get::<i64, _>("is_hidden_in_room").map(|v| v == 1).unwrap_or(false);
-        let name: String = r.get("name");
-        let data_json: String = r.get("data");
-        let updated_at: String = r.get("updated_at");
-
-        build_room_sheet_summary(id, name, &data_json, updated_at, is_hidden, is_owner)
-    }).collect();
+    // 3. Cards das fichas (narrador vê todas; jogadores, as visíveis e as próprias),
+    //    reaproveitando o resumo guardado de cada ficha que não mudou
+    let mut sheets: Vec<RoomSheetSummary> =
+        crate::repositories::RoomRepository::room_sheet_summaries(&pool, &room_id, &current_user_id, is_gm)
+            .await
+            .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     // Aplica a ordem customizada persistida da sala (se houver)
     if !sheet_order.is_empty() {

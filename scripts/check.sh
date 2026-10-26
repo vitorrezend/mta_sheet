@@ -3,12 +3,13 @@
 # MTA Sheet - Checagem completa antes de um release (substitui um CI)
 #
 #   1. clippy (erros de lint barram; avisos antigos apenas aparecem)
-#   2. testes Rust (unidade + integração)
-#   3. build do app e testes de ponta a ponta no motor do Safari (WebKit/iPhone)
+#   2. cargo audit: dependências com vulnerabilidade conhecida barram
+#   3. testes Rust (unidade + integração)
+#   4. build do app e testes de ponta a ponta no motor do Safari (WebKit/iPhone)
 #
 # Uso:
 #   scripts/check.sh            # tudo
-#   scripts/check.sh --fast     # só clippy + testes Rust (sem build/E2E)
+#   scripts/check.sh --fast     # só clippy, audit e testes Rust (sem build/E2E)
 #
 # Os testes E2E sobem uma instância isolada na porta 3099 com um banco descartável
 # em target/e2e/, sem tocar no seu banco nem no servidor que estiver rodando.
@@ -25,10 +26,19 @@ FAST=0
 
 step() { echo; echo "=== $* ==="; }
 
-step "1/4 Clippy"
+step "1/5 Clippy"
 cargo clippy --workspace --features ssr --lib --bin mta_sheet_server
 
-step "2/4 Testes Rust (unidade + integração)"
+step "2/5 Vulnerabilidades conhecidas nas dependências (cargo audit)"
+# Base RustSec atualizada a cada execução. Vulnerabilidade barra; avisos (crate sem
+# manutenção, versão retirada) aparecem mas não barram.
+if ! cargo audit --version > /dev/null 2>&1; then
+    echo "  -> cargo-audit não encontrado. Instalando (uma vez só)..."
+    cargo install cargo-audit --locked
+fi
+cargo audit
+
+step "3/5 Testes Rust (unidade + integração)"
 # --workspace inclui o crate de domínio (crates/mta_core)
 cargo test --workspace --features ssr --lib --test all_tests
 
@@ -37,10 +47,10 @@ if [ "$FAST" = "1" ]; then
     exit 0
 fi
 
-step "3/4 Build do app (cargo leptos build)"
+step "4/5 Build do app (cargo leptos build)"
 cargo leptos build
 
-step "4/4 Testes de ponta a ponta no WebKit (Safari)"
+step "5/5 Testes de ponta a ponta no WebKit (Safari)"
 if [ ! -d scripts/e2e/node_modules ]; then
     (cd scripts/e2e && npm install --no-audit --no-fund)
 fi
@@ -84,7 +94,7 @@ run_suite home_drive.js desktop
 
 echo
 if [ "$FAILED" = "0" ]; then
-    echo "[OK] Checagem completa: clippy, testes Rust e E2E no WebKit passaram."
+    echo "[OK] Checagem completa: clippy, cargo audit, testes Rust e E2E no WebKit passaram."
     echo "     Capturas de tela em $OUT/"
 else
     echo "[FALHOU] Algum teste de ponta a ponta falhou. Veja acima e as capturas em $OUT/"

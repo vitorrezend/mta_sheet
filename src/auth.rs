@@ -48,6 +48,28 @@ pub async fn verify_password(password: &str, hash: &str) -> Result<bool, String>
         .map_err(|e| e.to_string())
 }
 
+/// Hash de uma senha que ninguém tem, calculado uma vez (com o mesmo custo das senhas reais).
+#[cfg(feature = "ssr")]
+static DUMMY_PASSWORD_HASH: std::sync::LazyLock<String> =
+    std::sync::LazyLock::new(|| bcrypt::hash("usuario-inexistente", bcrypt::DEFAULT_COST).unwrap_or_default());
+
+/// Confere a senha de um login. Quando o usuário não existe (`hash = None`), roda o
+/// bcrypt contra um hash falso e devolve `false`: a resposta leva o mesmo tempo de uma
+/// senha errada, e o tempo deixa de revelar quais nomes de usuário existem.
+#[cfg(feature = "ssr")]
+pub async fn verify_login_password(password: &str, hash: Option<&str>) -> bool {
+    let (password, hash) = (password.to_string(), hash.map(str::to_string));
+    tokio::task::spawn_blocking(move || match hash {
+        Some(hash) => bcrypt::verify(password, &hash).unwrap_or(false),
+        None => {
+            let _ = bcrypt::verify(password, &DUMMY_PASSWORD_HASH);
+            false
+        }
+    })
+    .await
+    .unwrap_or(false)
+}
+
 #[cfg(feature = "ssr")]
 pub async fn extract_client_ip_from_context() -> String {
     // IP resolvido pelo client_ip_middleware (considera apenas proxies confiáveis)
@@ -433,21 +455,19 @@ pub async fn login(username: String, password: String) -> Result<UserInfo, Serve
         .bind(&clean_user)
         .fetch_optional(&pool)
         .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .ok_or_else(|| ServerFnError::new("Usuário ou senha incorretos"))?;
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    // Usuário inexistente também passa pelo bcrypt: mesmo tempo de resposta de uma senha errada
+    let stored_hash: Option<String> = row.as_ref().map(|r| r.get("password_hash"));
+    let is_valid = verify_login_password(&password, stored_hash.as_deref()).await;
+    let Some(row) = row.filter(|_| is_valid) else {
+        return Err(ServerFnError::new("Usuário ou senha incorretos"));
+    };
 
     let user_id: String = row.get("id");
     let actual_username: String = row.get("username");
-    let password_hash: String = row.get("password_hash");
     let is_admin_col: i64 = row.try_get("is_admin").unwrap_or(0);
     let is_admin = is_admin_col == 1 || is_username_in_admin_env(&actual_username);
-
-    let is_valid = crate::auth::verify_password(&password, &password_hash).await
-        .map_err(|_| ServerFnError::new("Erro ao verificar credenciais"))?;
-
-    if !is_valid {
-        return Err(ServerFnError::new("Usuário ou senha incorretos"));
-    }
 
     // Create session for 30 days (FIFO policy: max 5 active sessions)
     let session_token = create_session_with_fifo(&pool, &user_id)

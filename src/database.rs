@@ -455,7 +455,8 @@ async fn migrate_and_extract_base64_images(pool: &SqlitePool) {
 
         if modified {
             if let Ok(new_json) = serde_json::to_string(&char_data) {
-                let _ = sqlx::query("UPDATE character_sheets SET data = ? WHERE id = ?")
+                // Muda a foto sem subir a versão: descarta o resumo da sala guardado
+                let _ = sqlx::query("UPDATE character_sheets SET data = ?, room_summary_json = NULL WHERE id = ?")
                     .bind(new_json)
                     .bind(&sheet_id)
                     .execute(pool)

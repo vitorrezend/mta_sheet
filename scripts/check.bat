@@ -2,8 +2,8 @@
 :: ==============================================================================
 :: MTA Sheet - Checagem completa antes de um release (substitui um CI)
 :: Executa scripts\check.sh pelo Git Bash (instalado junto com o Git for Windows).
-::   scripts\check.bat          -> tudo (clippy, testes Rust, E2E no WebKit)
-::   scripts\check.bat --fast   -> so clippy + testes Rust
+::   scripts\check.bat          -> tudo (clippy, cargo audit, testes Rust, E2E no WebKit)
+::   scripts\check.bat --fast   -> so clippy, cargo audit e testes Rust
 :: ==============================================================================
 setlocal
 cd /d "%~dp0.."

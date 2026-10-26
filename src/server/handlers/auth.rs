@@ -79,25 +79,19 @@ pub async fn form_login_handler(
 
     let pool = crate::database::get_db().await;
 
-    let row = match sqlx::query("SELECT id, username, password_hash FROM users WHERE username = ? COLLATE NOCASE")
+    let row = sqlx::query("SELECT id, username, password_hash FROM users WHERE username = ? COLLATE NOCASE")
         .bind(&clean_user)
         .fetch_optional(&pool)
         .await
-    {
-        Ok(Some(r)) => r,
-        _ => {
-            return (
-                [(http::header::LOCATION, "/login?error=Usu%C3%A1rio+ou+senha+incorretos".to_string())],
-                http::StatusCode::SEE_OTHER,
-            )
-                .into_response();
-        }
-    };
+        .ok()
+        .flatten();
 
-    let user_id: String = row.get("id");
-    let password_hash: String = row.get("password_hash");
+    // Usuário inexistente também passa pelo bcrypt: mesmo tempo de resposta de uma senha errada
+    let stored_hash: Option<String> = row.as_ref().map(|r| r.get("password_hash"));
+    let is_valid = crate::auth::verify_login_password(&payload.password, stored_hash.as_deref()).await;
 
-    if crate::auth::verify_password(&payload.password, &password_hash).await.unwrap_or(false) {
+    if let Some(row) = row.filter(|_| is_valid) {
+        let user_id: String = row.get("id");
         let session_token = match crate::auth::create_session_with_fifo(&pool, &user_id).await {
             Ok(t) => t,
             Err(e) => {
