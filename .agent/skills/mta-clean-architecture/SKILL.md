@@ -15,13 +15,14 @@ Este guia estabelece os padrões arquiteturais, regras de modularização, conve
 ## 📏 1. Regra de Ouro: Limite de Tamanho de Arquivo (1.000 Linhas)
 
 1. **Teto Máximo:** Nenhum arquivo de código (`.rs` ou `.css`) deve ultrapassar **1.000 linhas**.
-2. **Exceção Canônica para Compêndios Estáticos (`src/compendium/` e `data/compendium/`):**
+2. **Exceção Canônica para Compêndios Estáticos (`crates/mta_core/src/compendium/` e `data/compendium/`):**
    - Arquivos puramente declarativos de dados estáticos, tabelas de regras de RPG e catálogos de compêndio (como `backgrounds/data.rs`, `spheres/data.rs`, `practices.rs`, etc.) estão **isentos** do teto de 1.000 linhas.
    - **Proibição de Fatiamento Numérico:** É expressamente **proibido** criar arquivos artificiais como `data_part1.rs`, `data_part2.rs`. Dados de compêndio devem ser unificados em arquivos semânticos coesos (`data.rs` ou por categorias de jogo como `social.rs`, `mystic.rs`).
 3. **Decomposição por Domínio:**
    - Ao aproximar-se de 1.000 linhas em arquivos de **lógica de aplicação, estado ou UI**, o módulo deve ser decomposto em uma pasta com `mod.rs` e submódulos temáticos.
    - Separar **Dados Estáticos** de **Lógica de Apresentação** (ex: catálogos estáticos em `catalog.rs`, modelos em `models.rs`, visualização em `view.rs`).
 4. **Single Responsibility:** Cada componente de UI deve cuidar exclusivamente de sua sub-árvore (ex: separar `sidebar`, `weapon_card`, `maneuver_card` e `callouts`).
+5. **Crate de domínio (`crates/mta_core`):** regras de M20 (`rules`), modelos da ficha (`models`), compêndio, custos, sanitização e JSON Merge Patch. **Não pode depender de Leptos, Axum, sqlx nem do app.** O app reexporta esses módulos nos caminhos antigos (`crate::rules`, `crate::compendium`, `crate::state::models`...). Métodos novos de `CharacterData` (blocos `impl`) precisam ficar no `mta_core`, porque o Rust só aceita `impl` no crate que define o tipo. Testes do domínio: `cargo test -p mta_core`.
 
 ---
 
@@ -62,7 +63,7 @@ Para evitar duplicação de CSS e markup no DOM:
 1. **Focus-Lock em Inputs:** Campos de digitação contínua devem usar `StableTextInput`, `StableTextArea` ou `ValueField` para eliminar perda de foco ou reset do cursor na digitação.
 2. **Sem Clones Desnecessários no Render:** Mantenha closures reativas enxutas (`move || signal.get()`).
 3. **Internacionalização Centralizada:** Em vez de aninhar `match current_lang.get() { ... }` repetitivo em JSX, utilize métodos do domínio (`model.name(lang)`, `model.damage(lang)`) ou chaves centralizadas em `crate::i18n::tr(...)`.
-4. **Resiliência a JSON Antigo:** Modelos do estado (`CharacterData`) devem implementar serde default e sanitização graciosa (`src/state/sanitization.rs`).
+4. **Resiliência a JSON Antigo:** Modelos do estado (`CharacterData`) devem implementar serde default e sanitização graciosa (`crates/mta_core/src/sanitization.rs`).
 
 ---
 

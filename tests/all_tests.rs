@@ -82,6 +82,12 @@ mod room_security_and_health_penalty_test;
 #[path = "suites/security_limits_test.rs"]
 mod security_limits_test;
 
+#[path = "suites/ownership_and_transport_test.rs"]
+mod ownership_and_transport_test;
+
+#[path = "suites/room_summary_cache_test.rs"]
+mod room_summary_cache_test;
+
 #[path = "suites/seo_and_home_showcase_test.rs"]
 mod seo_and_home_showcase_test;
 

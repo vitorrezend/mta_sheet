@@ -17,7 +17,7 @@ use crate::components::mta_sheet::page5::PageGrimoire;
 use crate::components::mta_sheet::page6::PageNotes;
 use crate::components::mta_sheet::sheet::{
     ActiveDotOriginContext, CostBreakdownModal, QuizModal, SheetDiceRoller, SheetPageTab, SheetShareModal, SheetTabs,
-    SheetTopBar, SheetTopBarActions, SheetTopBarState,
+    SheetTopBar, SheetTopBarActions, SheetTopBarState, use_sheet_layout,
 };
 use compendium::{provide_sheet_compendium, SheetCompendiumModal};
 use meta::SheetMeta;
@@ -47,6 +47,7 @@ pub fn CharacterSheet() -> impl IntoView {
     let (active_origin, set_active_origin) = create_signal(DotOrigin::Base);
     let origin = ActiveDotOriginContext { origin: active_origin, set_origin: set_active_origin };
     let (active_tab, set_active_tab) = create_signal(SheetPageTab::Main);
+    let layout = use_sheet_layout();
     let (show_breakdown, set_show_breakdown) = create_signal(false);
     let (show_share_modal, set_show_share_modal) = create_signal(false);
     let (show_clone_login_modal, set_show_clone_login_modal) = create_signal(false);
@@ -114,6 +115,7 @@ pub fn CharacterSheet() -> impl IntoView {
         is_public: Signal::derive(move || data.with(|d| d.is_public)),
         can_edit: can_edit.into(),
         author_username: Signal::derive(move || data.with(|d| d.author_username.clone())).into(),
+        layout,
     };
     let top_bar_actions = SheetTopBarActions {
         on_back_click,
@@ -139,7 +141,11 @@ pub fn CharacterSheet() -> impl IntoView {
     };
 
     view! {
-        <div class="sheet-page-container" class:sheet-readonly=move || !can_edit.get()>
+        <div
+            class="sheet-page-container"
+            class:sheet-readonly=move || !can_edit.get()
+            class:sheet-layout-wide=move || layout.get().is_wide()
+        >
             <SheetMeta data=data />
             <SheetDiceRoller sheet_id=id data=data can_edit=can_edit />
             <SheetConflictBanner conflict=store.conflict on_reload=reload_latest on_keep=move |_| store.keep_mine() />

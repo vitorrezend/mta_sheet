@@ -25,22 +25,23 @@ COPY styles ./styles
 COPY fonts ./fonts
 COPY data ./data
 COPY src ./src
+COPY crates ./crates
 COPY migrations ./migrations
 COPY build.rs ./
 COPY tests ./tests
 
-# 1. Compila Frontend WASM Release
-RUN cargo build --lib --target wasm32-unknown-unknown --release --no-default-features --features hydrate
+# 1. Compila Frontend WASM (perfil wasm-release: otimizado para tamanho)
+RUN cargo build --lib --target wasm32-unknown-unknown --profile wasm-release --no-default-features --features hydrate
 
 # 2. Gera bindings JS, minifica bytecode com wasm-opt (-Oz) e empacota assets
 RUN mkdir -p target/site/pkg target/site/fonts && \
     wasm-bindgen --target web --out-dir target/site/pkg --out-name mta_sheet \
-    target/wasm32-unknown-unknown/release/mta_sheet.wasm --no-typescript && \
+    target/wasm32-unknown-unknown/wasm-release/mta_sheet.wasm --no-typescript && \
     wasm-opt -Oz --strip-debug target/site/pkg/mta_sheet_bg.wasm -o target/site/pkg/mta_sheet_bg.wasm && \
     cp -f target/site/pkg/mta_sheet_bg.wasm target/site/pkg/mta_sheet.wasm && \
     cp -rf fonts/* target/site/fonts/ 2>/dev/null || true && \
     cp -f data/banner_og.jpg target/site/banner_og.jpg 2>/dev/null || true && \
-    cat styles/00-tokens.css styles/01-variables.css styles/02-common.css styles/03-sheet-layout.css styles/04-page1-main.css styles/05-page2-magic-combat.css styles/06-page3-expanded.css styles/07-page4-history-visuals.css styles/08-print-pdf.css styles/09-gods-and-monsters.css styles/10-page5-grimoire.css styles/11-page6-notes.css styles/12-compendium.css styles/patch_notes.css styles/home.css styles/auth.css styles/rooms.css styles/logs.css styles/feed.css styles/profile.css styles/share.css styles/about.css styles/compendium-navigation.css > target/site/pkg/mta_sheet.css
+    cat styles/00-tokens.css styles/01-variables.css styles/02-common.css styles/03-sheet-layout.css styles/04-page1-main.css styles/05-page2-magic-combat.css styles/06-page3-expanded.css styles/07-page4-history-visuals.css styles/08-print-pdf.css styles/09-gods-and-monsters.css styles/10-page5-grimoire.css styles/11-page6-notes.css styles/12-compendium.css styles/13-sheet-header.css styles/patch_notes.css styles/home.css styles/auth.css styles/rooms.css styles/logs.css styles/feed.css styles/profile.css styles/share.css styles/about.css styles/compendium-navigation.css > target/site/pkg/mta_sheet.css
 
 # 3. Compila Servidor Backend SSR Estatico (linkado com musl)
 RUN cargo build --release --no-default-features --features ssr

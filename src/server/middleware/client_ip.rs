@@ -139,8 +139,23 @@ pub async fn client_ip_middleware(
         .map(|c| c.0.ip())
         .unwrap_or(IpAddr::V4(Ipv4Addr::LOCALHOST));
     let ip = resolve_client_ip(peer, request.headers(), &TRUSTED_PROXIES);
+    strip_untrusted_forwarding_headers(peer, request.headers_mut(), &TRUSTED_PROXIES);
     request.extensions_mut().insert(ClientIp(ip));
     next.run(request).await
+}
+
+/// Cabeçalhos que só um proxy confiável pode informar (protocolo e host originais)
+const FORWARDING_HEADERS: [&str; 3] = ["x-forwarded-proto", "x-forwarded-host", "forwarded"];
+
+/// Remove os cabeçalhos de encaminhamento quando a conexão não veio de um proxy confiável:
+/// daqui em diante (cookie `Secure`, por exemplo) só se enxerga o que o proxy de fato informou.
+pub fn strip_untrusted_forwarding_headers(peer: IpAddr, headers: &mut http::HeaderMap, trusted: &TrustedProxies) {
+    if trusted.is_trusted(peer.to_canonical()) {
+        return;
+    }
+    for name in FORWARDING_HEADERS {
+        headers.remove(name);
+    }
 }
 
 /// IP resolvido em formato texto (chave do rate limit e dos logs).
@@ -180,6 +195,22 @@ mod tests {
         assert!(IpNet::parse("0.0.0.0/0").expect("any").contains(ip("8.8.8.8")));
         assert!(IpNet::parse("10.0.0.0/33").is_none());
         assert!(IpNet::parse("lixo").is_none());
+    }
+
+    #[test]
+    fn forwarding_headers_only_survive_from_trusted_proxies() {
+        let trusted = TrustedProxies::from_config(Some("172.16.0.0/12"));
+        let original = headers(&[("x-forwarded-proto", "https"), ("x-forwarded-host", "evil.example"), ("host", "site")]);
+
+        let mut from_client = original.clone();
+        strip_untrusted_forwarding_headers(ip("203.0.113.9"), &mut from_client, &trusted);
+        assert!(from_client.get("x-forwarded-proto").is_none());
+        assert!(from_client.get("x-forwarded-host").is_none());
+        assert_eq!(from_client.get("host").and_then(|h| h.to_str().ok()), Some("site"));
+
+        let mut from_proxy = original.clone();
+        strip_untrusted_forwarding_headers(ip("172.18.0.3"), &mut from_proxy, &trusted);
+        assert_eq!(from_proxy.get("x-forwarded-proto").and_then(|h| h.to_str().ok()), Some("https"));
     }
 
     #[test]

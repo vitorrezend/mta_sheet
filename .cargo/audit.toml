@@ -1,0 +1,10 @@
+# Configuração do `cargo audit` (executado por scripts/check.sh).
+# Cada exceção precisa de justificativa e deve ser revista quando a dependência mudar.
+
+[advisories]
+ignore = [
+    # rsa (Marvin Attack, sem versão corrigida): aparece só no Cargo.lock, puxado pelo driver
+    # MySQL do sqlx, que não é compilado (o projeto usa só SQLite). `cargo tree -i rsa
+    # --target all --all-features` não encontra o crate no grafo de dependências.
+    "RUSTSEC-2023-0071",
+]

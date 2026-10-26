@@ -1,6 +1,6 @@
 use mta_sheet::logging::{
     server::{
-        enforce_category_limits_with_max, get_active_log_file_with_limit, parse_log_file_key,
+        enforce_category_limits_with_max, get_active_log_file_with_limit, parse_log_file_key, CategoryFile,
         MAX_FILES_PER_CATEGORY, MAX_LOG_FILE_BYTES,
     },
     LogCategory,
@@ -104,6 +104,71 @@ fn test_log_slicing_when_size_limit_reached() {
     let _ = fs::remove_file(&base_file);
     let _ = fs::remove_file(&slice_1);
     let _ = fs::remove_file(&slice_2);
+}
+
+#[test]
+fn test_open_log_file_rotates_by_size_and_day_without_rescanning_each_line() {
+    let cat = LogCategory::Errors;
+    let (day1, day2) = ("2097-03-01", "2097-03-02");
+    let file = |date: &str, slice: u32| {
+        if slice == 0 {
+            format!("logs/errors/errors_{}.log", date)
+        } else {
+            format!("logs/errors/errors_{}.{}.log", date, slice)
+        }
+    };
+    for path in [file(day1, 0), file(day1, 1), file(day1, 2), file(day2, 0)] {
+        let _ = fs::remove_file(path);
+    }
+
+    let mut writer = CategoryFile::new();
+    let line = "[2097-03-01 00:00:00.000] [ERROR] linha de teste com uns 60 bytes\n";
+    // Limite de 100 bytes: duas linhas por arquivo (a rotação acontece quando o arquivo já passou do limite)
+    for _ in 0..4 {
+        writer.append(&cat, day1, line, 100);
+    }
+    writer.flush();
+    let base = fs::read_to_string(file(day1, 0)).expect("arquivo base");
+    let slice = fs::read_to_string(file(day1, 1)).expect("fatia .1");
+    assert_eq!(base.lines().count(), 2);
+    assert_eq!(slice.lines().count(), 2);
+
+    // Virada do dia: arquivo novo, mesmo com espaço sobrando
+    writer.append(&cat, day2, line, 100);
+    writer.flush();
+    assert_eq!(fs::read_to_string(file(day2, 0)).expect("arquivo do dia 2").lines().count(), 1);
+
+    for path in [file(day1, 0), file(day1, 1), file(day1, 2), file(day2, 0)] {
+        let _ = fs::remove_file(path);
+    }
+}
+
+#[test]
+fn test_client_logs_cannot_forge_lines_or_categories() {
+    use mta_sheet::logging::{sanitize_client_log, CLIENT_LOG_MAX_DETAILS, CLIENT_LOG_MAX_MESSAGE};
+
+    // Quebra de linha viraria um registro falso no arquivo
+    let forged = sanitize_client_log(
+        "user_actions",
+        "info",
+        "ok\n[2026-01-01 00:00:00.000] [ERROR] admin apagou tudo",
+        Some("a\r\nb"),
+    );
+    assert!(!forged.message.contains('\n') && !forged.message.contains('\r'));
+    assert_eq!(forged.details.as_deref(), Some("a  b"));
+
+    // O navegador não escreve no registro de acessos nem de requisições
+    for category in ["access", "requests", "qualquer"] {
+        assert_eq!(sanitize_client_log(category, "INFO", "x", None).category, LogCategory::UserActions);
+    }
+    assert_eq!(sanitize_client_log("errors", "ERROR", "x", None).category, LogCategory::Errors);
+
+    // Nível fora da lista vira INFO; tamanho limitado
+    assert_eq!(sanitize_client_log("errors", "CRITICAL", "x", None).level, "INFO");
+    let huge = "x".repeat(10_000);
+    let line = sanitize_client_log("errors", "WARN", &huge, Some(&huge));
+    assert_eq!(line.message.chars().count(), CLIENT_LOG_MAX_MESSAGE);
+    assert_eq!(line.details.as_deref().map(|d| d.chars().count()), Some(CLIENT_LOG_MAX_DETAILS));
 }
 
 #[test]

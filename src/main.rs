@@ -124,6 +124,8 @@ async fn main() {
 
     // Monta o roteador completo através do módulo server
     let app = server::create_app(leptos_options, db, routes);
+    // Comprime WebAssembly, JS e CSS uma vez, em segundo plano
+    server::handlers::precompressed::warm_up();
 
     let listener = match tokio::net::TcpListener::bind(&addr).await {
         Ok(l) => l,

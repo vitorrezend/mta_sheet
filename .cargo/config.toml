@@ -1,0 +1,4 @@
+# Linker LLD (vem com o Rust) no Windows: liga o binário do servidor bem mais rápido
+# que o link.exe da Microsoft. Não afeta Linux/Docker nem a WebAssembly.
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld.exe"

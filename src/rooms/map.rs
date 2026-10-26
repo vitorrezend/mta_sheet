@@ -17,26 +17,7 @@ pub const MAX_OPS_PER_BATCH: usize = 64;
 /// Limite de células/lados por operação de pintura
 pub const MAX_CELLS_PER_OP: usize = 4096;
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum GridShape {
-    #[default]
-    #[serde(rename = "square")]
-    Square,
-    #[serde(rename = "hex_pointy")]
-    HexPointy,
-    #[serde(rename = "hex_flat")]
-    HexFlat,
-}
-
-impl GridShape {
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::Square => "Quadrada",
-            Self::HexPointy => "Hexagonal (pontas em cima)",
-            Self::HexFlat => "Hexagonal (lados em cima)",
-        }
-    }
-}
+pub use mta_core::rules::map_grid::GridShape;
 
 // ---------------------------------------------------------------------------
 // Terreno

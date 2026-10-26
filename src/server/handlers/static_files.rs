@@ -131,6 +131,31 @@ pub async fn pkg_handler(
     // consultar PRIMEIRO o SiteAssets (embutido no binário) para blindar contra arquivos fantasmas do dev
     #[cfg(not(debug_assertions))]
     {
+        // Versão em brotli já pronta (comprimida uma vez no início do servidor)
+        if super::precompressed::accepts_brotli(&req) {
+            for key in &candidate_keys {
+                if let Some(compressed) = super::precompressed::get(key) {
+                    let mime = if key.ends_with(".wasm") {
+                        "application/wasm"
+                    } else if key.ends_with(".js") {
+                        "text/javascript"
+                    } else {
+                        "text/css"
+                    };
+                    return (
+                        [
+                            (http::header::CONTENT_TYPE, mime.to_string()),
+                            (http::header::CACHE_CONTROL, cache_hdr),
+                            (http::header::CONTENT_ENCODING, "br".to_string()),
+                            (http::header::VARY, "Accept-Encoding".to_string()),
+                        ],
+                        compressed.as_ref().clone(),
+                    )
+                        .into_response();
+                }
+            }
+        }
+
         for key in &candidate_keys {
             if let Some(file) = SiteAssets::get(key) {
                 let mime = if key.ends_with(".wasm") {

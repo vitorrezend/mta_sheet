@@ -423,33 +423,99 @@ pub mod server {
         }
     }
 
+    /// Arquivo de log aberto de uma categoria, com o tamanho acompanhado em memória.
+    ///
+    /// A pasta só é listada (para achar o arquivo da vez) quando o dia muda ou o arquivo
+    /// enche; no resto do tempo cada linha é só uma escrita no arquivo já aberto.
+    pub struct CategoryFile {
+        date: String,
+        size: u64,
+        file: Option<std::io::BufWriter<fs::File>>,
+    }
+
+    impl CategoryFile {
+        pub fn new() -> Self {
+            Self { date: String::new(), size: 0, file: None }
+        }
+
+        /// Escreve uma linha (sem flush), girando o arquivo se o dia mudou ou passou de `max_bytes`.
+        pub fn append(&mut self, category: &LogCategory, date: &str, line: &str, max_bytes: u64) {
+            if self.file.is_none() || self.date != date || self.size >= max_bytes {
+                self.flush();
+                let _ = fs::create_dir_all(get_log_dir(category));
+                let path = get_active_log_file_with_limit(category, date, max_bytes);
+                self.file = OpenOptions::new().create(true).append(true).open(&path).ok().map(std::io::BufWriter::new);
+                self.size = fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
+                self.date = date.to_string();
+                // Abrir um arquivo novo é o único momento em que a contagem de arquivos muda
+                enforce_category_limits(category);
+            }
+            if let Some(file) = self.file.as_mut()
+                && file.write_all(line.as_bytes()).is_ok()
+            {
+                self.size += line.len() as u64;
+            }
+        }
+
+        pub fn flush(&mut self) {
+            if let Some(file) = self.file.as_mut() {
+                let _ = file.flush();
+            }
+        }
+    }
+
+    impl Default for CategoryFile {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
+    struct LogLine {
+        category: LogCategory,
+        date: String,
+        line: String,
+    }
+
+    /// Canal para a thread que grava os logs. Criada no primeiro uso.
+    static LOG_SENDER: std::sync::OnceLock<std::sync::Mutex<std::sync::mpsc::Sender<LogLine>>> = std::sync::OnceLock::new();
+
+    fn log_sender() -> &'static std::sync::Mutex<std::sync::mpsc::Sender<LogLine>> {
+        LOG_SENDER.get_or_init(|| {
+            let (sender, receiver) = std::sync::mpsc::channel::<LogLine>();
+            let spawned = std::thread::Builder::new().name("mta-log-writer".into()).spawn(move || {
+                let mut files: std::collections::HashMap<&'static str, CategoryFile> = std::collections::HashMap::new();
+                // Bloqueia até chegar uma linha, grava tudo que já estiver na fila e só então faz flush
+                while let Ok(first) = receiver.recv() {
+                    let mut batch = vec![first];
+                    batch.extend(receiver.try_iter().take(1024));
+                    for entry in batch {
+                        files
+                            .entry(entry.category.as_str())
+                            .or_default()
+                            .append(&entry.category, &entry.date, &entry.line, MAX_LOG_FILE_BYTES);
+                    }
+                    files.values_mut().for_each(CategoryFile::flush);
+                }
+            });
+            if let Err(e) = spawned {
+                log::error!("Não foi possível iniciar a thread de logs: {}", e);
+            }
+            std::sync::Mutex::new(sender)
+        })
+    }
+
+    /// Registra uma linha de log. Não toca no disco: a thread de logs grava em segundo plano,
+    /// então pode ser chamada de qualquer lugar sem bloquear as threads que atendem requisições.
     pub fn write_log(category: LogCategory, level: &str, message: &str, details: Option<&str>) {
-        ensure_log_dirs();
         let now = Local::now();
         let timestamp = now.format("%Y-%m-%d %H:%M:%S%.3f").to_string();
-        let date_str = now.format("%Y-%m-%d").to_string();
-        let file_path = get_active_log_file(&category, &date_str);
+        let date = now.format("%Y-%m-%d").to_string();
 
         let details_str = details.map(|d| format!(" | {}", d)).unwrap_or_default();
         let line = format!("[{}] [{}] {}{}\n", timestamp, level.to_uppercase(), message, details_str);
 
-        let cat_clone = category.clone();
-        // Se estiver executando dentro do runtime assíncrono do Tokio, delega a escrita em disco para o pool bloqueante
-        // evitando travar as threads do reactor sob concorrência
-        if tokio::runtime::Handle::try_current().is_ok() {
-            let fp = file_path.clone();
-            let l = line.clone();
-            tokio::task::spawn_blocking(move || {
-                if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&fp) {
-                    let _ = file.write_all(l.as_bytes());
-                }
-                enforce_category_limits(&cat_clone);
-            });
-        } else {
-            if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&file_path) {
-                let _ = file.write_all(line.as_bytes());
-            }
-            enforce_category_limits(&category);
+        if let Ok(sender) = log_sender().lock() {
+            let _ = sender.send(LogLine { category: category.clone(), date, line });
         }
 
         // Also log to standard terminal
@@ -642,7 +708,57 @@ pub async fn get_system_logs(
         ));
     }
     let lim = limit.unwrap_or(200).min(500);
-    Ok(server::read_recent_logs(category, search, lim))
+    // Lê até 5 arquivos do disco: fora das threads que atendem requisições
+    tokio::task::spawn_blocking(move || server::read_recent_logs(category, search, lim))
+        .await
+        .map_err(|e| ServerFnError::new(format!("Falha ao ler os logs: {}", e)))
+}
+
+/// Tamanho máximo da mensagem e dos detalhes de um log enviado pelo navegador
+pub const CLIENT_LOG_MAX_MESSAGE: usize = 300;
+pub const CLIENT_LOG_MAX_DETAILS: usize = 1000;
+/// Logs enviados por usuário por minuto
+pub const CLIENT_LOGS_PER_MINUTE: usize = 60;
+
+/// Uma linha de log vinda do navegador, já limpa.
+#[derive(Debug, PartialEq)]
+pub struct ClientLogLine {
+    pub category: LogCategory,
+    pub level: &'static str,
+    pub message: String,
+    pub details: Option<String>,
+}
+
+/// Uma linha de texto só, sem caracteres de controle e com tamanho limitado.
+/// Sem isso, um `\n` na mensagem criaria linhas falsas no arquivo de log.
+fn single_line(text: &str, max_chars: usize) -> String {
+    text.chars()
+        .map(|c| if c.is_control() { ' ' } else { c })
+        .take(max_chars)
+        .collect::<String>()
+        .trim()
+        .to_string()
+}
+
+/// Limpa o log enviado pelo navegador. O navegador só escreve nas categorias de uso
+/// (ações, erros, banco); acessos e requisições são registrados pelo servidor.
+pub fn sanitize_client_log(category: &str, level: &str, message: &str, details: Option<&str>) -> ClientLogLine {
+    let category = match category {
+        "errors" => LogCategory::Errors,
+        "database" => LogCategory::Database,
+        _ => LogCategory::UserActions,
+    };
+    let level = match level.to_ascii_uppercase().as_str() {
+        "ERROR" => "ERROR",
+        "WARN" => "WARN",
+        _ => "INFO",
+    };
+    ClientLogLine {
+        category,
+        level,
+        message: single_line(message, CLIENT_LOG_MAX_MESSAGE),
+        details: details.map(|d| single_line(d, CLIENT_LOG_MAX_DETAILS)).filter(|d| !d.is_empty()),
+    }
 }
 
 #[server(endpoint = "record_client_log")]
@@ -652,14 +768,22 @@ pub async fn record_client_log(
     message: String,
     details: Option<String>,
 ) -> Result<(), ServerFnError> {
-    let cat = match category.as_str() {
-        "requests" => LogCategory::Requests,
-        "database" => LogCategory::Database,
-        "errors" => LogCategory::Errors,
-        "access" => LogCategory::Access,
-        _ => LogCategory::UserActions,
+    // Só de quem está logado e com limite: sem isso, qualquer um enchia o disco de logs.
+    // Visitantes são ignorados em silêncio (o navegador registra para todos)
+    let Some(user_id) = crate::auth::get_auth_user_id().await? else { return Ok(()) };
+    if !crate::server::middleware::security::check_action_rate_limit(
+        &format!("client_log:{}", user_id),
+        CLIENT_LOGS_PER_MINUTE,
+        std::time::Duration::from_secs(60),
+    ) {
+        return Ok(());
+    }
+    let line = sanitize_client_log(&category, &level, &message, details.as_deref());
+    let details = match line.details {
+        Some(d) => format!("user:{} | {}", user_id, d),
+        None => format!("user:{}", user_id),
     };
-    server::write_log(cat, &level, &message, details.as_deref());
+    server::write_log(line.category, line.level, &line.message, Some(&details));
     Ok(())
 }
 

@@ -579,7 +579,9 @@ fn test_mobile_tactical_party_card_and_spheres_pills() {
 /// sequências de Mojibake (corrupção típica de decodificação UTF-8 lida como ANSI/Windows-1252).
 #[test]
 fn test_no_mojibake_encoding_artifacts() {
-    let rs_files = get_all_rs_files(Path::new("src"));
+    // O app (src) e os crates do workspace (crates/*/src)
+    let mut rs_files = get_all_rs_files(Path::new("src"));
+    rs_files.extend(get_all_rs_files(Path::new("crates")));
     let mut violations = Vec::new();
 
     let mojibake_patterns = [
@@ -642,7 +644,9 @@ fn test_compendium_sidebar_tab_name_no_unnatural_word_break() {
 /// e diretórios de dados devem respeitar rigorosamente o teto de 1000 linhas por arquivo.
 #[test]
 fn test_all_source_files_under_1000_lines() {
-    let rs_files = get_all_rs_files(Path::new("src"));
+    // O app (src) e os crates do workspace (crates/*/src)
+    let mut rs_files = get_all_rs_files(Path::new("src"));
+    rs_files.extend(get_all_rs_files(Path::new("crates")));
     let mut violations = Vec::new();
 
     for file_path in &rs_files {

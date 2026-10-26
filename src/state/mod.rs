@@ -1,8 +1,5 @@
-pub mod models;
-pub mod costs;
-pub mod sanitization;
-pub mod rich_text;
-pub mod json_patch;
+// Modelos da ficha e as regras sobre eles moram no crate de domínio (crates/mta_core)
+pub use mta_core::{costs, json_patch, models, rich_text, sanitization};
 pub mod server_fns;
 pub mod server_fns_folders;
 pub mod server_fns_share;

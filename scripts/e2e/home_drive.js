@@ -46,6 +46,27 @@ const folderCard = (page, name) => page.locator('.drive-folder-card', { hasText:
   const p = await ctx.newPage();
   let sheetUrl = '';
 
+  await step(p, 'sem login não cria nem importa ficha', async () => {
+    const anon = await browser.newContext();
+    const attempts = {
+      create_sheet: { name: 'Anonima', sheet_type: 'mage' },
+      import_sheet: { data: JSON.stringify({ id: 'x', name: 'Importada' }) },
+    };
+    const problems = [];
+    const notes = [];
+    for (const [fn, form] of Object.entries(attempts)) {
+      const res = await anon.request.post(`${BASE}/api/${fn}`, { form, headers: { Accept: 'application/json' } });
+      const text = (await res.text()).slice(0, 120);
+      if (res.ok()) problems.push(`${fn} aceito: ${text}`);
+      // create_sheet decodifica sem dificuldade: a recusa tem de ser por falta de login
+      else if (fn === 'create_sheet' && !/login/i.test(text)) problems.push(`${fn} recusado por outro motivo: ${text}`);
+      else notes.push(`${fn} ${res.status()}`);
+    }
+    await anon.close();
+    if (problems.length) throw new Error(problems.join(' | '));
+    return notes.join(', ');
+  });
+
   await step(p, 'início: drive vazio', async () => {
     await p.goto(BASE + '/', { waitUntil: 'networkidle' });
     await p.waitForSelector('.drive-container', { timeout: 20000 });
@@ -157,6 +178,48 @@ const folderCard = (page, name) => page.locator('.drive-folder-card', { hasText:
     await tap(p.locator('.character-card', { hasText: 'Maga do Drive' }).locator('.card-name'));
     await p.waitForURL(/\/sheet\//, { timeout: 15000 });
   });
+
+  const sheetWidth = () => p.evaluate(() => document.querySelector('.sheet-container').getBoundingClientRect().width);
+  if (PROFILE === 'iphone') {
+    await step(p, 'modo Larga não aparece no celular', async () => {
+      await p.waitForSelector('.sheet-container', { timeout: 30000 });
+      await tap(p.locator('.actions-menu-trigger-btn'));
+      await p.waitForSelector('.actions-menu-backdrop.open', { timeout: 5000 });
+      const visible = await p.locator('.layout-toggle-btn').isVisible();
+      await tap(p.locator('.actions-menu-panel .panel-close-btn'));
+      if (visible) throw new Error('opção de largura visível no celular');
+    });
+  } else {
+    await step(p, 'modo Larga alarga a ficha e fica salvo', async () => {
+      await p.setViewportSize({ width: 1600, height: 1000 });
+      // A largura fica no menu "⋯", seção Exibição
+      await p.waitForSelector('.actions-menu-trigger-btn', { timeout: 30000 });
+      const a4 = await sheetWidth();
+      await p.locator('.actions-menu-trigger-btn').click();
+      await p.locator('.layout-toggle-btn').click();
+      await p.locator('.actions-menu-panel .panel-close-btn').click();
+      await p.waitForFunction(() => document.querySelector('.sheet-container').getBoundingClientRect().width > 1100, null, { timeout: 5000 });
+      const wide = await sheetWidth();
+      await p.reload({ waitUntil: 'networkidle' });
+      await p.waitForFunction(() => document.querySelector('.sheet-container').getBoundingClientRect().width > 1100, null, { timeout: 15000 });
+      return `${Math.round(a4)}px → ${Math.round(wide)}px, mantido após recarregar`;
+    });
+
+    await step(p, 'impressão continua em A4 no modo Larga', async () => {
+      // O CSS de impressão usa a largura da página; o que importa é a regra larga não valer
+      const pageWidth = () => p.evaluate(() => getComputedStyle(document.querySelector('.sheet-page-container')).getPropertyValue('--page-width').trim());
+      const onScreen = await pageWidth();
+      await p.emulateMedia({ media: 'print' });
+      const printed = await pageWidth();
+      await p.emulateMedia({ media: 'screen' });
+      if (printed !== '210mm') throw new Error(`--page-width na impressão: ${printed}`);
+      // Volta para A4 para não afetar outras execuções
+      await p.locator('.actions-menu-trigger-btn').click();
+      await p.locator('.layout-toggle-btn').click();
+      await p.locator('.actions-menu-panel .panel-close-btn').click();
+      return `tela: ${onScreen} · impressão: ${printed}`;
+    });
+  }
 
   await browser.close();
   const failed = results.filter(ok => !ok).length;

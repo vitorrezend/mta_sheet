@@ -3,33 +3,6 @@
    Compatível com o Design System Canônico & Tokens (Dark Gothic / Arcane)
    ========================================================================== */
 
-/* ── Botão de Compartilhar na Barra Superior (SheetTopBar) ── */
-.share-top-bar-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    background: var(--surface-card-subtle, #f9f6ef);
-    border: 1px solid var(--gold-line, rgba(202, 167, 93, 0.45));
-    border-radius: var(--radius-md, 6px);
-    color: var(--primary-color, #2c3e50);
-    padding: 0.35rem 0.75rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.share-top-bar-btn:hover {
-    background: var(--gold-light, #f7e6b5);
-    border-color: var(--gold-primary, #caa75d);
-    color: var(--purple-deep, #170428);
-    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
-}
-
-.share-top-bar-btn .btn-icon {
-    font-size: 0.95rem;
-}
-
 /* ── Modal de Compartilhamento (SheetShareModal) ── */
 .sheet-share-modal-body {
     display: flex;

@@ -41,24 +41,9 @@ pub fn reset_auth_rate_limit_for_test() {
 
 use crate::server::middleware::client_ip::ClientIp;
 
-fn is_secure_connection(headers: &http::HeaderMap) -> bool {
-    let is_prod = std::env::var("LEPTOS_ENV").map(|e| e.to_lowercase() == "production" || e.to_lowercase() == "prod").unwrap_or(false)
-        || std::env::var("ENABLE_SECURE_COOKIE").map(|e| e == "1" || e.to_lowercase() == "true").unwrap_or(false);
-
-    if is_prod {
-        return true;
-    }
-
-    if let Some(proto) = headers.get("x-forwarded-proto").and_then(|h| h.to_str().ok()) {
-        return proto.eq_ignore_ascii_case("https");
-    }
-
-    false
-}
-
-fn build_session_cookie(session_token: &str, is_secure: bool) -> String {
-    let secure_flag = if is_secure { "; Secure" } else { "" };
-    format!("session_token={}; Path=/; SameSite=Lax; HttpOnly{}; Max-Age=2592000", session_token, secure_flag)
+/// Cookie de sessão de 30 dias, com a mesma regra de `Secure` das server functions.
+fn build_session_cookie(session_token: &str, headers: &http::HeaderMap) -> String {
+    crate::auth::session_cookie(session_token, 30 * 24 * 60 * 60, crate::auth::request_is_secure(headers))
 }
 
 #[derive(serde::Deserialize)]
@@ -94,25 +79,19 @@ pub async fn form_login_handler(
 
     let pool = crate::database::get_db().await;
 
-    let row = match sqlx::query("SELECT id, username, password_hash FROM users WHERE username = ? COLLATE NOCASE")
+    let row = sqlx::query("SELECT id, username, password_hash FROM users WHERE username = ? COLLATE NOCASE")
         .bind(&clean_user)
         .fetch_optional(&pool)
         .await
-    {
-        Ok(Some(r)) => r,
-        _ => {
-            return (
-                [(http::header::LOCATION, "/login?error=Usu%C3%A1rio+ou+senha+incorretos".to_string())],
-                http::StatusCode::SEE_OTHER,
-            )
-                .into_response();
-        }
-    };
+        .ok()
+        .flatten();
 
-    let user_id: String = row.get("id");
-    let password_hash: String = row.get("password_hash");
+    // Usuário inexistente também passa pelo bcrypt: mesmo tempo de resposta de uma senha errada
+    let stored_hash: Option<String> = row.as_ref().map(|r| r.get("password_hash"));
+    let is_valid = crate::auth::verify_login_password(&payload.password, stored_hash.as_deref()).await;
 
-    if crate::auth::verify_password(&payload.password, &password_hash).await.unwrap_or(false) {
+    if let Some(row) = row.filter(|_| is_valid) {
+        let user_id: String = row.get("id");
         let session_token = match crate::auth::create_session_with_fifo(&pool, &user_id).await {
             Ok(t) => t,
             Err(e) => {
@@ -124,7 +103,7 @@ pub async fn form_login_handler(
             }
         };
 
-        let cookie_str = build_session_cookie(&session_token, is_secure_connection(&headers));
+        let cookie_str = build_session_cookie(&session_token, &headers);
         (
             [
                 (http::header::SET_COOKIE, cookie_str),
@@ -191,13 +170,8 @@ pub async fn form_register_handler(
 
     let pool = crate::database::get_db().await;
 
-    let user_count: i64 = sqlx::query("SELECT COUNT(*) as count FROM users")
-        .fetch_one(&pool)
-        .await
-        .map(|r| r.get("count"))
-        .unwrap_or(0);
-
-    let is_admin = user_count == 0 || crate::auth::is_username_in_admin_env(&clean_user);
+    // Admin só pela lista ADMIN_USERNAMES (nunca "o primeiro cadastro")
+    let is_admin = crate::auth::is_username_in_admin_env(&clean_user);
 
     let password_hash = match crate::auth::hash_password(&payload.password, bcrypt::DEFAULT_COST).await {
         Ok(h) => h,
@@ -238,7 +212,7 @@ pub async fn form_register_handler(
         }
     };
 
-    let cookie_str = build_session_cookie(&session_token, is_secure_connection(&headers));
+    let cookie_str = build_session_cookie(&session_token, &headers);
     (
         [
             (http::header::SET_COOKIE, cookie_str),

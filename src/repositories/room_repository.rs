@@ -1,12 +1,86 @@
 #[cfg(feature = "ssr")]
 use sqlx::{SqlitePool, Row};
 #[cfg(feature = "ssr")]
-use crate::rooms::models::{RoomSummary, RoomMemberInfo, RoomChatMessage, ChatRollData, ChatMessageKind};
+use crate::rooms::models::{RoomSummary, RoomMemberInfo, RoomChatMessage, ChatRollData, ChatMessageKind, RoomSheetSummary};
 
 pub struct RoomRepository;
 
 #[cfg(feature = "ssr")]
 impl RoomRepository {
+    /// Cards das fichas da sala. O narrador vê todas; os demais, as visíveis e as próprias.
+    ///
+    /// O resumo de cada ficha fica guardado com a versão em que foi calculado: a ficha
+    /// inteira (`data`) só é lida e decodificada quando mudou desde então.
+    pub async fn room_sheet_summaries(
+        pool: &SqlitePool,
+        room_id: &str,
+        viewer_id: &str,
+        is_gm: bool,
+    ) -> Result<Vec<RoomSheetSummary>, sqlx::Error> {
+        let rows = sqlx::query(
+            "SELECT id, user_id, name, is_hidden_in_room, updated_at, version, room_summary_json, \
+                    CASE WHEN room_summary_version = version AND room_summary_json IS NOT NULL THEN NULL ELSE data END AS stale_data \
+             FROM character_sheets \
+             WHERE room_id = ? AND (? OR is_hidden_in_room = 0 OR user_id = ?) \
+             ORDER BY LOWER(name) ASC, id ASC",
+        )
+        .bind(room_id)
+        .bind(is_gm)
+        .bind(viewer_id)
+        .fetch_all(pool)
+        .await?;
+
+        let mut summaries = Vec::with_capacity(rows.len());
+        let mut to_store = Vec::new();
+        for row in rows {
+            let id: String = row.get("id");
+            let owner: Option<String> = row.get("user_id");
+            let version: i64 = row.try_get("version").unwrap_or(0);
+            let stale_data: Option<String> = row.get("stale_data");
+            let cached = row
+                .get::<Option<String>, _>("room_summary_json")
+                .filter(|_| stale_data.is_none())
+                .and_then(|json| serde_json::from_str::<RoomSheetSummary>(&json).ok());
+
+            let mut summary = match cached {
+                Some(summary) => summary,
+                None => {
+                    let fresh = crate::rooms::models::build_room_sheet_summary(
+                        id.clone(),
+                        row.get("name"),
+                        stale_data.as_deref().unwrap_or("{}"),
+                        String::new(),
+                        false,
+                        false,
+                    );
+                    if let Ok(json) = serde_json::to_string(&fresh) {
+                        to_store.push((id.clone(), version, json));
+                    }
+                    fresh
+                }
+            };
+            // O que depende de quem pede ou do momento não vai para o resumo guardado
+            summary.is_owner = !viewer_id.is_empty() && owner.as_deref() == Some(viewer_id);
+            summary.is_hidden = row.try_get::<i64, _>("is_hidden_in_room").map(|v| v == 1).unwrap_or(false);
+            summary.updated_at = row.get("updated_at");
+            summaries.push(summary);
+        }
+
+        // Guarda os recalculados; se a ficha mudou enquanto isso, a versão não bate e nada é gravado
+        for (id, version, json) in to_store {
+            let _ = sqlx::query(
+                "UPDATE character_sheets SET room_summary_json = ?, room_summary_version = ? WHERE id = ? AND version = ?",
+            )
+            .bind(json)
+            .bind(version)
+            .bind(&id)
+            .bind(version)
+            .execute(pool)
+            .await;
+        }
+        Ok(summaries)
+    }
+
     pub async fn list_user_rooms(pool: &SqlitePool, user_id: &str) -> Result<Vec<RoomSummary>, sqlx::Error> {
         let query = "
             SELECT 

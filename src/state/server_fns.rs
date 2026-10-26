@@ -134,7 +134,8 @@ pub async fn get_sheet(id: String, token: Option<String>) -> Result<CharacterDat
     }
     data.is_public = is_public;
     data.version = SheetRepository::find_version(&pool, &id).await.ok().flatten().unwrap_or(0);
-    data.can_edit = is_owner || is_gm || has_acl_write || sheet_user_id.is_none();
+    // Ficha sem dono (de antes das contas) é só leitura: ninguém responde por ela
+    data.can_edit = sheet_user_id.is_some() && (is_owner || is_gm || has_acl_write);
     data.author_username = if let Some(ref uid) = sheet_user_id {
         SheetRepository::find_username_by_id(&pool, uid).await.ok().flatten()
     } else {
@@ -186,26 +187,37 @@ pub fn validate_image_magic_bytes(bytes: &[u8]) -> Result<(&'static str, &'stati
         return Ok(("image/webp", "webp"));
     }
 
-    // SVG / XML text (allow safe <svg or <?xml ... <svg)
-    if bytes.len() >= 4 {
-        let text = String::from_utf8_lossy(bytes).to_lowercase();
-        if text.contains("<svg") {
-            // Rejeitar scripts ou eventos embutidos que possibilitem Stored XSS
-            if text.contains("<script")
-                || text.contains("javascript:")
-                || text.contains("onload")
-                || text.contains("onerror")
-                || text.contains("onclick")
-                || text.contains("onmouseover")
-                || text.contains("<foreignobject")
-            {
-                return Err(ServerFnError::new("SVG inseguro rejeitado: scripts e manipuladores de eventos embutidos não são permitidos."));
-            }
-            return Ok(("image/svg+xml", "svg"));
-        }
-    }
+    // SVG não é aceito: é um documento que pode carregar script, e nenhuma lista de
+    // palavras proibidas cobre todos os eventos e codificações possíveis (XSS armazenado).
+    Err(ServerFnError::new("Formato de arquivo não suportado. Apenas imagens PNG, JPEG, WebP e GIF são permitidas."))
+}
 
-    Err(ServerFnError::new("Formato de arquivo não suportado. Apenas imagens autênticas PNG, JPEG, WebP, GIF e SVG são permitidas."))
+/// Envios de imagem por usuário a cada 10 minutos (evita encher o disco)
+pub const UPLOADS_PER_WINDOW: usize = 30;
+
+/// Trecho de caminho seguro para virar nome de pasta: só letras, números, `-` e `_`.
+pub fn is_safe_path_segment(segment: &str) -> bool {
+    !segment.is_empty()
+        && segment.len() <= 64
+        && segment.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+}
+
+/// Registra um envio de imagem do usuário; `false` se ele passou do limite da janela.
+#[cfg(feature = "ssr")]
+pub fn allow_upload(user_id: &str) -> bool {
+    crate::server::middleware::security::check_action_rate_limit(
+        &format!("upload:{}", user_id),
+        UPLOADS_PER_WINDOW,
+        std::time::Duration::from_secs(600),
+    )
+}
+
+/// Usuário logado, ou erro pedindo login para `action` (ex.: "criar uma ficha").
+#[cfg(feature = "ssr")]
+async fn require_login(action: &str) -> Result<String, ServerFnError> {
+    crate::auth::get_auth_user_id()
+        .await?
+        .ok_or_else(|| ServerFnError::new(format!("Faça login para {}.", action)))
 }
 
 #[cfg(feature = "ssr")]
@@ -251,7 +263,8 @@ pub async fn import_sheet(data: CharacterData) -> Result<String, ServerFnError> 
         imported_data.labels.insert(crate::state::keys::HEADER_NOME.to_string(), final_name.clone());
 
         let s_type = imported_data.sheet_type.clone();
-        let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
+        // Toda ficha nova tem dono: sem login não se importa (fichas sem dono são só leitura)
+        let auth_user_id = Some(require_login("importar uma ficha").await?);
 
         // Limite de cota de 50 fichas por conta
         if let Some(ref uid) = auth_user_id {
@@ -324,7 +337,8 @@ pub async fn create_sheet(
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
     })?;
 
-    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
+    // Toda ficha nova tem dono: sem login não se cria ficha (fichas sem dono são só leitura)
+    let auth_user_id = Some(require_login("criar uma ficha").await?);
 
     // Limite de cota de 50 fichas por conta
     if let Some(ref uid) = auth_user_id {
@@ -509,6 +523,19 @@ pub async fn save_uploaded_media(
 
     let clean_sheet_id = if sheet_id.trim().is_empty() { "temp".to_string() } else { sheet_id.trim().to_string() };
     let clean_block = if block.trim().is_empty() { "wonders".to_string() } else { block.trim().to_string() };
+
+    // Os dois viram pastas: nada de "..", barras ou caracteres especiais
+    if !is_safe_path_segment(&clean_sheet_id) || !is_safe_path_segment(&clean_block) {
+        return Err(ServerFnError::new("Destino de upload inválido"));
+    }
+
+    // Upload exige login, inclusive para fichas ainda não salvas ("temp")
+    let user_id = crate::auth::get_auth_user_id()
+        .await?
+        .ok_or_else(|| ServerFnError::new("Faça login para enviar imagens"))?;
+    if !allow_upload(&user_id) {
+        return Err(ServerFnError::new("Muitos envios de imagem. Aguarde alguns minutos."));
+    }
 
     // Check ownership / GM permission if sheet exists
     if clean_sheet_id != "temp" {

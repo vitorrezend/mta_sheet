@@ -48,6 +48,28 @@ pub async fn verify_password(password: &str, hash: &str) -> Result<bool, String>
         .map_err(|e| e.to_string())
 }
 
+/// Hash de uma senha que ninguém tem, calculado uma vez (com o mesmo custo das senhas reais).
+#[cfg(feature = "ssr")]
+static DUMMY_PASSWORD_HASH: std::sync::LazyLock<String> =
+    std::sync::LazyLock::new(|| bcrypt::hash("usuario-inexistente", bcrypt::DEFAULT_COST).unwrap_or_default());
+
+/// Confere a senha de um login. Quando o usuário não existe (`hash = None`), roda o
+/// bcrypt contra um hash falso e devolve `false`: a resposta leva o mesmo tempo de uma
+/// senha errada, e o tempo deixa de revelar quais nomes de usuário existem.
+#[cfg(feature = "ssr")]
+pub async fn verify_login_password(password: &str, hash: Option<&str>) -> bool {
+    let (password, hash) = (password.to_string(), hash.map(str::to_string));
+    tokio::task::spawn_blocking(move || match hash {
+        Some(hash) => bcrypt::verify(password, &hash).unwrap_or(false),
+        None => {
+            let _ = bcrypt::verify(password, &DUMMY_PASSWORD_HASH);
+            false
+        }
+    })
+    .await
+    .unwrap_or(false)
+}
+
 #[cfg(feature = "ssr")]
 pub async fn extract_client_ip_from_context() -> String {
     // IP resolvido pelo client_ip_middleware (considera apenas proxies confiáveis)
@@ -97,11 +119,21 @@ pub fn session_token_from_headers(headers: &http::HeaderMap) -> Option<String> {
         .filter(|token| !token.is_empty())
 }
 
+/// Chave da sessão no banco: o SHA-256 do token do cookie.
+///
+/// O banco nunca guarda o token em si; quem obtiver uma cópia do banco (um backup, por
+/// exemplo) não consegue montar um cookie válido a partir dele.
+#[cfg(feature = "ssr")]
+pub fn session_key(token: &str) -> String {
+    use sha2::{Digest, Sha256};
+    Sha256::digest(token.as_bytes()).iter().map(|b| format!("{:02x}", b)).collect()
+}
+
 /// Usuário de uma sessão ainda válida.
 #[cfg(feature = "ssr")]
 pub async fn user_id_from_session(pool: &sqlx::SqlitePool, token: &str) -> Option<String> {
     sqlx::query_scalar("SELECT user_id FROM sessions WHERE id = ? AND expires_at > CURRENT_TIMESTAMP")
-        .bind(token)
+        .bind(session_key(token))
         .fetch_optional(pool)
         .await
         .ok()
@@ -137,17 +169,43 @@ impl<S: Send + Sync> axum::extract::FromRequestParts<S> for AuthUser {
     }
 }
 
+/// `LEPTOS_ENV=production` (ou `prod`): liga HSTS e o cookie `Secure` sempre.
+#[cfg(feature = "ssr")]
+pub fn is_production() -> bool {
+    std::env::var("LEPTOS_ENV")
+        .map(|e| matches!(e.to_lowercase().as_str(), "production" | "prod"))
+        .unwrap_or(false)
+}
+
+/// O cookie de sessão leva `Secure` em produção, quando forçado por `ENABLE_SECURE_COOKIE`
+/// ou quando o proxy informa que o navegador chegou por HTTPS.
+pub fn cookie_should_be_secure(production: bool, force_secure: bool, forwarded_proto: Option<&str>) -> bool {
+    production || force_secure || forwarded_proto.is_some_and(|p| p.trim().eq_ignore_ascii_case("https"))
+}
+
+/// Regra do `Secure` aplicada a uma requisição. A mesma para o login por formulário e
+/// pelas server functions (antes cada caminho decidia de um jeito).
+#[cfg(feature = "ssr")]
+pub fn request_is_secure(headers: &http::HeaderMap) -> bool {
+    let force = std::env::var("ENABLE_SECURE_COOKIE").map(|e| e == "1" || e.eq_ignore_ascii_case("true")).unwrap_or(false);
+    let proto = headers.get("x-forwarded-proto").and_then(|h| h.to_str().ok());
+    cookie_should_be_secure(is_production(), force, proto)
+}
+
+/// Valor do cabeçalho `Set-Cookie` da sessão.
+pub fn session_cookie(token: &str, max_age_secs: i64, secure: bool) -> String {
+    let secure_flag = if secure { "; Secure" } else { "" };
+    format!("session_token={}; Path=/; SameSite=Lax; HttpOnly{}; Max-Age={}", token, secure_flag, max_age_secs)
+}
+
 #[cfg(feature = "ssr")]
 pub fn set_session_cookie(token: &str, max_age_secs: i64) {
     if let Some(res_options) = use_context::<leptos_axum::ResponseOptions>() {
-        let is_prod = std::env::var("LEPTOS_ENV").map(|e| e.to_lowercase() == "production" || e.to_lowercase() == "prod").unwrap_or(false)
-            || std::env::var("ENABLE_SECURE_COOKIE").map(|e| e == "1" || e.to_lowercase() == "true").unwrap_or(false);
-
-        let secure_flag = if is_prod { "; Secure" } else { "" };
-        let cookie_str = format!(
-            "session_token={}; Path=/; SameSite=Lax; HttpOnly{}; Max-Age={}",
-            token, secure_flag, max_age_secs
-        );
+        let secure = match use_context::<http::request::Parts>() {
+            Some(parts) => request_is_secure(&parts.headers),
+            None => is_production(),
+        };
+        let cookie_str = session_cookie(token, max_age_secs, secure);
         if let Ok(header_val) = http::HeaderValue::from_str(&cookie_str) {
             res_options.insert_header(http::header::SET_COOKIE, header_val);
             log::debug!("Set-Cookie registered: session_token={}; Max-Age={}", mask_token(token), max_age_secs);
@@ -172,7 +230,7 @@ pub async fn get_auth_user_id() -> Result<Option<String>, ServerFnError> {
     let row = sqlx::query(
         "SELECT user_id FROM sessions WHERE id = ? AND expires_at > CURRENT_TIMESTAMP"
     )
-    .bind(token)
+    .bind(session_key(&token))
     .fetch_optional(&pool)
     .await
     .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -224,13 +282,13 @@ pub async fn create_session_with_fifo(pool: &sqlx::SqlitePool, user_id: &str) ->
     .execute(pool)
     .await;
 
-    // 3. Cria a nova sessão válida por 30 dias
+    // 3. Cria a nova sessão válida por 30 dias (o banco guarda só o hash do token)
     let session_token = Uuid::new_v4().to_string();
     sqlx::query(
-        "INSERT INTO sessions (id, user_id, expires_at) 
+        "INSERT INTO sessions (id, user_id, expires_at)
          VALUES (?, ?, datetime('now', '+30 days'))"
     )
-    .bind(&session_token)
+    .bind(session_key(&session_token))
     .bind(user_id)
     .execute(pool)
     .await?;
@@ -251,11 +309,11 @@ pub async fn is_current_user_admin() -> Result<bool, ServerFnError> {
     })?;
 
     let row = sqlx::query(
-        "SELECT u.username, u.is_admin FROM sessions s 
-         JOIN users u ON s.user_id = u.id 
+        "SELECT u.username, u.is_admin FROM sessions s
+         JOIN users u ON s.user_id = u.id
          WHERE s.id = ? AND s.expires_at > CURRENT_TIMESTAMP"
     )
-    .bind(token)
+    .bind(session_key(&token))
     .fetch_optional(&pool)
     .await
     .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -283,11 +341,11 @@ pub async fn get_current_user() -> Result<Option<UserInfo>, ServerFnError> {
     })?;
 
     let row = sqlx::query(
-        "SELECT u.id, u.username, u.is_admin FROM sessions s 
-         JOIN users u ON s.user_id = u.id 
+        "SELECT u.id, u.username, u.is_admin FROM sessions s
+         JOIN users u ON s.user_id = u.id
          WHERE s.id = ? AND s.expires_at > CURRENT_TIMESTAMP"
     )
-    .bind(token)
+    .bind(session_key(&token))
     .fetch_optional(&pool)
     .await
     .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -327,20 +385,15 @@ pub async fn register(username: String, password: String) -> Result<UserInfo, Se
         }
     }
 
-    use sqlx::{SqlitePool, Row};
+    use sqlx::SqlitePool;
     use uuid::Uuid;
     let pool = use_context::<SqlitePool>().ok_or_else(|| {
         ServerFnError::new("Conexão com o banco de dados indisponível")
     })?;
 
-    // Verifica se é o primeiro usuário do sistema ou se está na lista ADMIN_USERNAMES
-    let user_count_row = sqlx::query("SELECT COUNT(*) as count FROM users")
-        .fetch_one(&pool)
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
-    let user_count: i64 = user_count_row.get("count");
-    let is_first_user = user_count == 0;
-    let is_admin = is_first_user || is_username_in_admin_env(&clean_user);
+    // Admin só pela lista ADMIN_USERNAMES: "o primeiro cadastro vira admin" deixava qualquer
+    // pessoa assumir um servidor recém-instalado antes do dono criar a conta
+    let is_admin = is_username_in_admin_env(&clean_user);
 
     let password_hash = crate::auth::hash_password(&password, bcrypt::DEFAULT_COST).await
         .map_err(|e| ServerFnError::new(format!("Erro ao processar senha: {}", e)))?;
@@ -402,21 +455,19 @@ pub async fn login(username: String, password: String) -> Result<UserInfo, Serve
         .bind(&clean_user)
         .fetch_optional(&pool)
         .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .ok_or_else(|| ServerFnError::new("Usuário ou senha incorretos"))?;
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    // Usuário inexistente também passa pelo bcrypt: mesmo tempo de resposta de uma senha errada
+    let stored_hash: Option<String> = row.as_ref().map(|r| r.get("password_hash"));
+    let is_valid = verify_login_password(&password, stored_hash.as_deref()).await;
+    let Some(row) = row.filter(|_| is_valid) else {
+        return Err(ServerFnError::new("Usuário ou senha incorretos"));
+    };
 
     let user_id: String = row.get("id");
     let actual_username: String = row.get("username");
-    let password_hash: String = row.get("password_hash");
     let is_admin_col: i64 = row.try_get("is_admin").unwrap_or(0);
     let is_admin = is_admin_col == 1 || is_username_in_admin_env(&actual_username);
-
-    let is_valid = crate::auth::verify_password(&password, &password_hash).await
-        .map_err(|_| ServerFnError::new("Erro ao verificar credenciais"))?;
-
-    if !is_valid {
-        return Err(ServerFnError::new("Usuário ou senha incorretos"));
-    }
 
     // Create session for 30 days (FIFO policy: max 5 active sessions)
     let session_token = create_session_with_fifo(&pool, &user_id)
@@ -439,7 +490,7 @@ pub async fn logout() -> Result<(), ServerFnError> {
     if let Some(token) = extract_session_token().await {
         if let Some(pool) = use_context::<SqlitePool>() {
             let _ = sqlx::query("DELETE FROM sessions WHERE id = ?")
-                .bind(token)
+                .bind(session_key(&token))
                 .execute(&pool)
                 .await;
         }
@@ -494,7 +545,7 @@ pub async fn change_password(
          JOIN users u ON s.user_id = u.id 
          WHERE s.id = ? AND s.expires_at > CURRENT_TIMESTAMP"
     )
-    .bind(&token)
+    .bind(session_key(&token))
     .fetch_optional(&pool)
     .await
     .map_err(|e| ServerFnError::new(e.to_string()))?
@@ -561,7 +612,7 @@ pub async fn change_password(
     // 7. Revogar todas as outras sessões ativas do usuário por segurança
     let revoked_sessions = sqlx::query("DELETE FROM sessions WHERE user_id = ? AND id != ?")
         .bind(&user_id)
-        .bind(&token)
+        .bind(session_key(&token))
         .execute(&pool)
         .await
         .map(|res| res.rows_affected())
@@ -599,7 +650,7 @@ pub async fn revoke_other_sessions() -> Result<u64, ServerFnError> {
 
     let res = sqlx::query("DELETE FROM sessions WHERE user_id = ? AND id != ?")
         .bind(&auth_user_id)
-        .bind(&token)
+        .bind(session_key(&token))
         .execute(&pool)
         .await
         .map_err(|e| ServerFnError::new(format!("Erro ao revogar sessões: {}", e)))?;
