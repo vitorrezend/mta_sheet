@@ -41,24 +41,9 @@ pub fn reset_auth_rate_limit_for_test() {
 
 use crate::server::middleware::client_ip::ClientIp;
 
-fn is_secure_connection(headers: &http::HeaderMap) -> bool {
-    let is_prod = std::env::var("LEPTOS_ENV").map(|e| e.to_lowercase() == "production" || e.to_lowercase() == "prod").unwrap_or(false)
-        || std::env::var("ENABLE_SECURE_COOKIE").map(|e| e == "1" || e.to_lowercase() == "true").unwrap_or(false);
-
-    if is_prod {
-        return true;
-    }
-
-    if let Some(proto) = headers.get("x-forwarded-proto").and_then(|h| h.to_str().ok()) {
-        return proto.eq_ignore_ascii_case("https");
-    }
-
-    false
-}
-
-fn build_session_cookie(session_token: &str, is_secure: bool) -> String {
-    let secure_flag = if is_secure { "; Secure" } else { "" };
-    format!("session_token={}; Path=/; SameSite=Lax; HttpOnly{}; Max-Age=2592000", session_token, secure_flag)
+/// Cookie de sessão de 30 dias, com a mesma regra de `Secure` das server functions.
+fn build_session_cookie(session_token: &str, headers: &http::HeaderMap) -> String {
+    crate::auth::session_cookie(session_token, 30 * 24 * 60 * 60, crate::auth::request_is_secure(headers))
 }
 
 #[derive(serde::Deserialize)]
@@ -124,7 +109,7 @@ pub async fn form_login_handler(
             }
         };
 
-        let cookie_str = build_session_cookie(&session_token, is_secure_connection(&headers));
+        let cookie_str = build_session_cookie(&session_token, &headers);
         (
             [
                 (http::header::SET_COOKIE, cookie_str),
@@ -233,7 +218,7 @@ pub async fn form_register_handler(
         }
     };
 
-    let cookie_str = build_session_cookie(&session_token, is_secure_connection(&headers));
+    let cookie_str = build_session_cookie(&session_token, &headers);
     (
         [
             (http::header::SET_COOKIE, cookie_str),

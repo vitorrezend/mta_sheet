@@ -134,7 +134,8 @@ pub async fn get_sheet(id: String, token: Option<String>) -> Result<CharacterDat
     }
     data.is_public = is_public;
     data.version = SheetRepository::find_version(&pool, &id).await.ok().flatten().unwrap_or(0);
-    data.can_edit = is_owner || is_gm || has_acl_write || sheet_user_id.is_none();
+    // Ficha sem dono (de antes das contas) é só leitura: ninguém responde por ela
+    data.can_edit = sheet_user_id.is_some() && (is_owner || is_gm || has_acl_write);
     data.author_username = if let Some(ref uid) = sheet_user_id {
         SheetRepository::find_username_by_id(&pool, uid).await.ok().flatten()
     } else {
@@ -211,6 +212,14 @@ pub fn allow_upload(user_id: &str) -> bool {
     )
 }
 
+/// Usuário logado, ou erro pedindo login para `action` (ex.: "criar uma ficha").
+#[cfg(feature = "ssr")]
+async fn require_login(action: &str) -> Result<String, ServerFnError> {
+    crate::auth::get_auth_user_id()
+        .await?
+        .ok_or_else(|| ServerFnError::new(format!("Faça login para {}.", action)))
+}
+
 #[cfg(feature = "ssr")]
 pub(crate) async fn verify_sheet_write_permission(pool: &sqlx::SqlitePool, sheet_id: &str) -> Result<(), ServerFnError> {
     let auth_user_id = crate::auth::get_auth_user_id().await.map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -254,7 +263,8 @@ pub async fn import_sheet(data: CharacterData) -> Result<String, ServerFnError> 
         imported_data.labels.insert(crate::state::keys::HEADER_NOME.to_string(), final_name.clone());
 
         let s_type = imported_data.sheet_type.clone();
-        let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
+        // Toda ficha nova tem dono: sem login não se importa (fichas sem dono são só leitura)
+        let auth_user_id = Some(require_login("importar uma ficha").await?);
 
         // Limite de cota de 50 fichas por conta
         if let Some(ref uid) = auth_user_id {
@@ -327,7 +337,8 @@ pub async fn create_sheet(
         ServerFnError::new("Erro interno: Conexão com o banco de dados indisponível")
     })?;
 
-    let auth_user_id = crate::auth::get_auth_user_id().await.unwrap_or(None);
+    // Toda ficha nova tem dono: sem login não se cria ficha (fichas sem dono são só leitura)
+    let auth_user_id = Some(require_login("criar uma ficha").await?);
 
     // Limite de cota de 50 fichas por conta
     if let Some(ref uid) = auth_user_id {

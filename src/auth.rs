@@ -147,17 +147,43 @@ impl<S: Send + Sync> axum::extract::FromRequestParts<S> for AuthUser {
     }
 }
 
+/// `LEPTOS_ENV=production` (ou `prod`): liga HSTS e o cookie `Secure` sempre.
+#[cfg(feature = "ssr")]
+pub fn is_production() -> bool {
+    std::env::var("LEPTOS_ENV")
+        .map(|e| matches!(e.to_lowercase().as_str(), "production" | "prod"))
+        .unwrap_or(false)
+}
+
+/// O cookie de sessão leva `Secure` em produção, quando forçado por `ENABLE_SECURE_COOKIE`
+/// ou quando o proxy informa que o navegador chegou por HTTPS.
+pub fn cookie_should_be_secure(production: bool, force_secure: bool, forwarded_proto: Option<&str>) -> bool {
+    production || force_secure || forwarded_proto.is_some_and(|p| p.trim().eq_ignore_ascii_case("https"))
+}
+
+/// Regra do `Secure` aplicada a uma requisição. A mesma para o login por formulário e
+/// pelas server functions (antes cada caminho decidia de um jeito).
+#[cfg(feature = "ssr")]
+pub fn request_is_secure(headers: &http::HeaderMap) -> bool {
+    let force = std::env::var("ENABLE_SECURE_COOKIE").map(|e| e == "1" || e.eq_ignore_ascii_case("true")).unwrap_or(false);
+    let proto = headers.get("x-forwarded-proto").and_then(|h| h.to_str().ok());
+    cookie_should_be_secure(is_production(), force, proto)
+}
+
+/// Valor do cabeçalho `Set-Cookie` da sessão.
+pub fn session_cookie(token: &str, max_age_secs: i64, secure: bool) -> String {
+    let secure_flag = if secure { "; Secure" } else { "" };
+    format!("session_token={}; Path=/; SameSite=Lax; HttpOnly{}; Max-Age={}", token, secure_flag, max_age_secs)
+}
+
 #[cfg(feature = "ssr")]
 pub fn set_session_cookie(token: &str, max_age_secs: i64) {
     if let Some(res_options) = use_context::<leptos_axum::ResponseOptions>() {
-        let is_prod = std::env::var("LEPTOS_ENV").map(|e| e.to_lowercase() == "production" || e.to_lowercase() == "prod").unwrap_or(false)
-            || std::env::var("ENABLE_SECURE_COOKIE").map(|e| e == "1" || e.to_lowercase() == "true").unwrap_or(false);
-
-        let secure_flag = if is_prod { "; Secure" } else { "" };
-        let cookie_str = format!(
-            "session_token={}; Path=/; SameSite=Lax; HttpOnly{}; Max-Age={}",
-            token, secure_flag, max_age_secs
-        );
+        let secure = match use_context::<http::request::Parts>() {
+            Some(parts) => request_is_secure(&parts.headers),
+            None => is_production(),
+        };
+        let cookie_str = session_cookie(token, max_age_secs, secure);
         if let Ok(header_val) = http::HeaderValue::from_str(&cookie_str) {
             res_options.insert_header(http::header::SET_COOKIE, header_val);
             log::debug!("Set-Cookie registered: session_token={}; Max-Age={}", mask_token(token), max_age_secs);

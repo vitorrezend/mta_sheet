@@ -46,6 +46,27 @@ const folderCard = (page, name) => page.locator('.drive-folder-card', { hasText:
   const p = await ctx.newPage();
   let sheetUrl = '';
 
+  await step(p, 'sem login não cria nem importa ficha', async () => {
+    const anon = await browser.newContext();
+    const attempts = {
+      create_sheet: { name: 'Anonima', sheet_type: 'mage' },
+      import_sheet: { data: JSON.stringify({ id: 'x', name: 'Importada' }) },
+    };
+    const problems = [];
+    const notes = [];
+    for (const [fn, form] of Object.entries(attempts)) {
+      const res = await anon.request.post(`${BASE}/api/${fn}`, { form, headers: { Accept: 'application/json' } });
+      const text = (await res.text()).slice(0, 120);
+      if (res.ok()) problems.push(`${fn} aceito: ${text}`);
+      // create_sheet decodifica sem dificuldade: a recusa tem de ser por falta de login
+      else if (fn === 'create_sheet' && !/login/i.test(text)) problems.push(`${fn} recusado por outro motivo: ${text}`);
+      else notes.push(`${fn} ${res.status()}`);
+    }
+    await anon.close();
+    if (problems.length) throw new Error(problems.join(' | '));
+    return notes.join(', ');
+  });
+
   await step(p, 'início: drive vazio', async () => {
     await p.goto(BASE + '/', { waitUntil: 'networkidle' });
     await p.waitForSelector('.drive-container', { timeout: 20000 });

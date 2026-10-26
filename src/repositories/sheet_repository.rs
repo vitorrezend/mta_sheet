@@ -3,6 +3,10 @@ use sqlx::{SqlitePool, Row};
 #[cfg(feature = "ssr")]
 use crate::state::models::{CharacterData, CharacterSummary, QuizQuestionEntry, SystemStats};
 
+/// Fichas sem dono (criadas antes das contas) podem ser lidas e clonadas, mas não alteradas.
+pub const OWNERLESS_SHEET_READ_ONLY: &str =
+    "Esta ficha não tem dono e é somente leitura. Use \"Clonar ficha\" para ter uma cópia editável.";
+
 pub struct SheetRepository;
 
 #[cfg(feature = "ssr")]
@@ -480,8 +484,11 @@ impl SheetRepository {
                     return Ok(Err("Autenticação necessária para alterar esta ficha"));
                 }
             }
+            // Sem dono: antes valia para qualquer pessoa, mesmo sem login, que soubesse o id
+            return Ok(Err(OWNERLESS_SHEET_READ_ONLY));
         }
 
+        // Ficha inexistente: quem chamou trata o "não encontrada"
         Ok(Ok(()))
     }
 

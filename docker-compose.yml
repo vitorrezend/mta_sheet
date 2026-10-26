@@ -17,6 +17,10 @@ services:
       # podem informar o IP do cliente via X-Forwarded-For; conexões diretas usam o IP do socket.
       - TRUSTED_PROXIES=127.0.0.1/8,::1/128,172.16.0.0/12,192.168.0.0/16,10.0.0.0/8
       - RUST_LOG=info
+      # Liga HSTS e o cookie de sessão com Secure (o Caddy serve o site por HTTPS)
+      - LEPTOS_ENV=production
+      # Única forma de virar administrador: use o seu usuário (veja .env.example)
+      - ADMIN_USERNAMES=${ADMIN_USERNAMES:-}
     volumes:
       - mta_data:/app/data
       - mta_uploads:/app/uploads

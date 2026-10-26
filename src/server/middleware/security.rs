@@ -57,6 +57,10 @@ pub fn prune_stale_entries(attempts: &mut HashMap<String, Vec<Instant>>, now: In
     }
 }
 
+/// HSTS de produção: 1 ano. Sem `preload`, que inscreve o domínio na lista embutida dos
+/// navegadores e leva meses para desfazer se o HTTPS precisar sair do ar.
+pub const HSTS_VALUE: &str = "max-age=31536000; includeSubDomains";
+
 /// Content-Security-Policy da resposta.
 ///
 /// - Arquivos enviados por usuários (`/uploads/`) não executam nada: só imagens, em sandbox.
@@ -155,14 +159,11 @@ pub async fn security_headers_middleware(
             );
         }
 
-        let is_prod = std::env::var("LEPTOS_ENV").map(|e| e.to_lowercase() == "production" || e.to_lowercase() == "prod").unwrap_or(false)
-            || std::env::var("ENABLE_HSTS").map(|e| e == "1" || e.to_lowercase() == "true").unwrap_or(false);
+        let hsts = crate::auth::is_production()
+            || std::env::var("ENABLE_HSTS").map(|e| e == "1" || e.eq_ignore_ascii_case("true")).unwrap_or(false);
 
-        if is_prod {
-            headers.insert(
-                http::header::STRICT_TRANSPORT_SECURITY,
-                http::HeaderValue::from_static("max-age=63072000; includeSubDomains; preload"),
-            );
+        if hsts {
+            headers.insert(http::header::STRICT_TRANSPORT_SECURITY, http::HeaderValue::from_static(HSTS_VALUE));
         }
     }
 
