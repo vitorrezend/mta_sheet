@@ -118,3 +118,6 @@ Desktop.ini
 
 # --- Testes de ponta a ponta (Playwright) ---
 node_modules/
+
+# --- Copyrighted Source Books (never publish) ---
+*.pdf

@@ -1,7 +1,9 @@
 ### Status
 
-You enjoy high prestige, esteem, and formal recognition within your Tradition, Technocratic Convention, or mystic craft. Peers listen attentively to your counsel in assemblies and your name commands social authority.
+Respect is important. Fortunately, you enjoy a certain degree of respect within your chosen group. This Background reflects your overall reputation among your Awakened peers — Virtual Adepts, Templars, Progenitors, etc. At the highest levels of Status (4 and 5), that rep extends to affiliated groups (all the Traditions, Disparate Crafts, Technocracy Conventions) and might extend outside your faction as well. (“I’ve heard a lot about you, Mister Leonard — even here, we’ve heard of you…”)
 
-Unlike [Rank](mta://backgrounds/rank), which denotes direct military command, Status represents social distinction and acclaim among fellow willworkers.
+Story-wise, Status gives you a certain amount of respect from associated mages. This, in turn, grants you some deference: folks open doors for you, address you by your desired name and title, send you invitations for special events, and so forth. If you need a small favor, or get involved in a dispute, Status lends your cause a bit of weight.
 
-Harmonizes with [Influence](mta://backgrounds/influence) and [Legend](mta://backgrounds/legend).
+In game terms, you may add this Background to your dice pool during Social rolls when dealing with your peers; an admired Virtual Adept, for instance, would add four dice to her Social rolls among the Adepts. That bonus is halved (round up) among mages from a different but allied sect; the same Adept would get a two-dice bonus among other Traditions. You don’t get that bonus among enemies or strangers, though they might acknowledge you in story terms. (“Our files on you, Ms. Vasquez — or perhaps I should call you ‘Voodoo’ — are most… impressive…”)
+
+Obviously, Status must be based on something you do or have done. A brand-new mage isn’t going to have Status 5 — she’ll have to earn it. This Background reflects a reputation among mages, not among Sleepers or other entities, though certain beings in the know (like vampires or spirit-lords) might recognize a Status 4 or 5 mage. Ideally, this Background is granted by the Storyteller as a reward for your actions throughout the chronicle. You can also lose Status by failing to live up to it; an agent known for cowardice won’t command respect for long…
