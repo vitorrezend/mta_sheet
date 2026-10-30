@@ -1,9 +1,7 @@
 ### Certification
 
-In an age when you need permits for every damn thing imaginable, the right certifications can save you a world of aggravation. With this Background, your character has official papers that allow her to pursue some regulated activity: hunting, driving heavy machinery, practicing medicine, owning restricted weapons, and so on.
+In an age when you need permits for every damn thing imaginable, the right certifications can save you a world of aggravation. With this Background, your character has official papers that allow her to pursue some regulated activity: hunting, driving, operating heavy machinery, practicing medicine, owning certain weapons, and so on. Generally, such activities involve risk, demand special training, affect society at large, or a combination of the three. Simple certifications, like a fishing permit, are easy to obtain, whereas really hazardous or complex activities demand higher levels of certification.
 
-Generally, such activities involve risk, demand special training, or affect public safety. Simple certifications are easy to obtain, whereas hazardous or complex activities demand higher levels of certification.
+Unless your character has managed to obtain a permit without the proper training, you’ll need at least one dot in a related Ability for each dot in this Background; a medical license, for example, would demand at least four dots in Medicine. Assuming that your character has the appropriate skills (or has paid the appropriate bribes), you can get certifications for alternate identities (see [Alternate Identity](mta://backgrounds/alternate_identity), above) to reflect a character with the right papers under various names.
 
-You typically need at least one dot in a related Ability for each dot in this Background (e.g. Medicine 4 for a medical license). Certifications can also be linked to [Alternate Identity](mta://backgrounds/alternate_identity).
-
-> **Caution:** Official certifications carry visibility. A heavy weapons permit lets you carry serious [Weapons](mta://weapons/weapons/katana), but assures you will be the first suspect questioned if an incident occurs nearby!
+Official certifications carry a degree of visibility. Certifications can be checked by the authorities, and although a heavy-weapons permit might let you own some serious hardware, it also assures that you’ll be one of the first people the cops look for when someone commits a crime with such weaponry!

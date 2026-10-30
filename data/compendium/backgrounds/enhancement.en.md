@@ -1,11 +1,28 @@
 ### Enhancement
 
-Enlightened hypertech can accomplish incredible things, few of them more staggering (or, to some mages, unholy) than the modification of living tissue with the power of machines. Such enhancements improve upon (or desecrate) Nature’s work, creating permanent mutations in the character's physiology.
+Enlightened hypertech can accomplish incredible things, few of them more staggering (or, to some mages, unholy) than the modification of living tissue with the power of machines. Such enhancements improve upon (or desecrate) Nature’s work, creating more-or-less permanent mutations — cybernetic limbs or genegineered biomods that give the subject powers far beyond normal abilities.
 
-An Enhanced character selects strictly one of three paths:
+An Enhanced character has one of three options:
 
-- **Cybernetics:** Biomechanical devices integrated into bones and organs (Primium bones, extendable claws, infra-red scanners). Grants devices at the cost of permanent Paradox points on the wheel!
-- **Biomods:** Permanent organic modifications grafted or grown into the body. Suffers permanent Paradox if obvious, but cannot be easily uninstalled.
-- **Genegineering:** Genetic enhancements boosting [Stamina](mta://attributes/stamina), [Strength](mta://attributes/strength), or Dexterity above human limits, at the cost of permanent Genetic Flaws.
+- A **cyborg** has biomechanical devices integrated into her body: Primium bones, extendable claws, infra-red scanners, and so on. The Background rating gives that character a certain amount of cybernetic Enhancement Devices, at the cost of permanent Paradox points.
+- A **biomodified** (or biomodded) person has permanent organic modifications grafted, grown, or otherwise implanted into his body. The Background rating acts like cybernetics, with permanent Paradox but a few benefits over mechanical modification.
+- A **genegineered** being has certain physical enhancements that make him stronger, faster, tougher, smarter, more perceptive, or better-looking than a typical specimen of that species. The Background rating boosts the related Attributes above their normal maximums, at the cost of permanent genetic flaws.
 
-> **Life Magick Vulnerability:** Cybernetic devices suffer 2 additional levels of aggravated damage from Life Sphere magick, as living tissue violently rejects mechanical implants. Technocracy cyborgs rely on Primium Countermeasures to survive.
+Those three options cannot be combined. A single character may have only one, not all three. Each option has certain rules and limitations:
+
+- **Cybernetics:** These devices turn you into a Paradox magnet. In game terms, you’ve got permanent Paradox points added to your Paradox Wheel; these points never go away, and any additional Paradox you earn gets added to those permanent points. Thus, Paradox backlashes can get very ugly.
+
+Cyber-implants are essentially machines keyed to your body. Cyborgs who annoy their inventors have their implants removed, which tends to be a terminal process. Such entities are also walking investments for their creators, who keep very close watch on the behavior and location of those human resources. The lessons of Frankenstein are not lost on people who build cyborgs, and they often install failsafes in order to cut down on such unfortunate events. If nothing else, they’ll often go to ridiculous lengths to retrieve an errant cyborg… or to destroy her.
+
+As for the effects of Life-based magick on cybernetic humanoids… well, it’s not pretty. Such witcheries cause organic tissue to reject the mechanical devices. Life spells inflict two additional levels of aggravated damage on cyborgs if they get past the cyborg’s countermagick. As a protection, Technocracy cyborgs get outfitted with Primium Countermeasures, which are described under Biotech in Appendix II, (p. 659). Cyborgs from non-Technocratic sects, however, are kinda screwed.
+
+- **Biomods:** This form of genetic or flesh-crafting mutation essentially installs permanent modifications to the character’s body. Unlike mechanical cybernetics, these mods cannot be uninstalled or rejected from the body. (They can, of course, be cut off or surgically removed.) The extra Life Sphere damage, then, does not apply to biomods, although the permanent Paradox points still apply to obvious biomods. Like genegineering enhancements, biomods also make the character take one Genetic Flaw per level in the Background Trait.
+- **Genegineering:** Unlike mechanical enhancements, genegineering isn’t usually obvious. Unless a genemodded bioconstruct lifts a car or bounces bullets off his chest, he can typically pass for a normal human being. Even so, the imperfect understanding of organic tissue — or simply the hubris of people who would master it — leaves its own legacy: madness, illness, and so forth, represented in the rules by the Genetic Flaw Traits, described in Appendix II, (pp. 648 and 651).
+
+The following Attributes — and no others! — may be boosted by Enhancements: [Strength](mta://attributes/strength), [Dexterity](mta://attributes/dexterity), [Stamina](mta://attributes/stamina), [Appearance](mta://attributes/appearance), [Perception](mta://attributes/perception), [Intelligence](mta://attributes/intelligence) and Health. These added Trait dots can raise a character’s normal Traits as high as 8 and may be divided between several different Attributes… for example, three to Strength and two to Stamina.
+
+Thanks to its powerful effects and unusual properties, the Enhancements Trait is more expensive than usual. This Background costs TWO points per dot, instead of the usual one point. These modifications are essentially built-in Devices, so this Background cannot be shared, requisitioned or pooled. It can be raised with experience points, provided there’s another character around who knows how to work with the associated technologies. We do not recommend allowing player characters to purchase this Background higher than the maximum rating of 5. Certain powerful supporting-cast characters might have more extensive modifications, but such extreme Enhancements should be off-limits to your players.
+
+Typically, the Enhancements Background applies only to Technocrat characters. With the Storyteller’s approval, however, other tech-based characters (Etherites, Virtual Adepts, cyberpagans, etc.) may get such mods as well. There’s one caveat, however: The Union has spent decades perfecting these technologies, while individual mad scientists have flown by the seat of their pants. It is utterly appropriate to make non-Technocrat characters take additional Flaws or suffer other game-based penalties based on their Enhancements.
+
+For details about Enhancements and their related Flaws, again see the Biotech and Genetic Flaws sections in Appendix II, (pp. 648-651) and (pp. 657-661).

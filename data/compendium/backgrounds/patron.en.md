@@ -1,7 +1,5 @@
 ### Patron
 
-An influential backer — a billionaire mogul, a philanthropic trust, a monastic order, or a black-budget agency — finances your arcane research, expeditions, and operations.
+In the chessboard politics of the Ascension factions, certain players conceal their faces from the pawns. One of those players has dedicated him- or herself to your welfare… at least for the moment. Chances are, you have no idea who this patron is, what they want, or what the final bill for services rendered will be; even if you think you know who’s behind that goodwill, the truth remains uncertain. This person is no [Mentor](mta://backgrounds/mentor) or [Ally](mta://backgrounds/allies) but a secretive benefactor whose true goals remain hidden… at least for the moment… from your understanding.
 
-Unlike [Resources](mta://backgrounds/resources), the money is not yours to blow; you must account for expenditures and produce deliverables.
-
-In return, your patron provides elite legal defense, high-end laboratories, and institutional cover.
+Game-wise, Patron reflects a powerful party who’s watching out for your character’s interests. Only the Storyteller knows what this party’s plans are and what their interest in the character might be. At the beginning of the chronicle, at least, this benefactor exerts force in mysterious ways: orders get reversed, contracts issued or terminated, gifts delivered, hints dropped, and strings pulled. Magick will not reveal the reason for these indulgences — the patron’s far too clever to get caught that easily. There’s clearly some alliance or common ground involved, but the nature of that connection remains elusive. Especially in paranoid labyrinths like the Hermetic or Technocratic Orders, this mysterious generosity can be very disconcerting. Someday, you know, the patron will call in his markers…

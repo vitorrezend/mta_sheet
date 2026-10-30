@@ -1,7 +1,9 @@
 ### Past Lives
 
-Death is not the end for an awakened [Avatar](mta://backgrounds/avatar). The divine spark within has witnessed the fall of Atlantis, marched through medieval sieges, or stoked early industrial furnaces in previous incarnations.
+Reincarnation remains a subject of debate, even among mages. Akashics and Chakravanti base their entire approach to reality upon that idea, yet their Chorus allies (to say nothing of those atheistic Technocrats) deny the concept of recycled souls… or sometimes the very idea of a soul! Still, there appears to be something there… a familiar essence that certain people can call upon in times of need.
 
-With this Background, you can tune into memories and reflexes from those former lives. In times of need, you commune with ancestral incarnations to recall dead tongues, cipher codes, or forgotten lores.
+With this Background, you can meditate on a past life (or, at the Storyteller’s discretion, experience a sudden burst of insight) in order to get help in a current situation. Maybe the glare of an imposing adversary reminds you of that time you faced down Stalin’s chief operative, or that weird book reminds you of the alchemical scroll you studied in Byzantium. If the Past Lives Background kicks in, your memories help you with the present dilemma.
 
-Harmonizes with [Dream](mta://backgrounds/dream) and [Legend](mta://backgrounds/legend).
+Game-wise, this Background’s dice pool may add to the dice pool of another task. Once per game session, you can check in with that well of memory. Every dot in Past Lives gives you one die to roll against difficulty 8; each success on that roll gives you an extra die to use on an upcoming roll with some other Ability. These dice can either add to the dice pool for an Ability you already possess, or else — like the Background: [Dream](mta://backgrounds/dream) — give you a temporary dice pool for an Ability you don’t normally have on your sheet. Past Lives does not ensure success, but it can lend a bit of extra expertise.
+
+Botching a Past Lives roll lands you in the middle of some past-life trauma; for a crucial moment, the memories overwhelm your character, blowing any chance of success in the here-and-now. That’s especially disconcerting if your mage doesn’t believe in reincarnation! (“What the hell was THAT all about…?”) For an extra dose of Awesome Sauce, note down details of your past life when you access this Trait successfully. Such memories will probably come in handy again someday…

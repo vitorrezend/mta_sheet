@@ -1,9 +1,9 @@
 ### Spies
 
-You direct active informants and intelligence operatives who infiltrate rival cabals, megacorps, government bureaus, or mystic sects to deliver actionable reconnaissance.
+A collection of little birds in various nests keeps you well-informed. These informants aren’t necessarily your friends — they may, in fact, hate you with the burning intensity of a thousand fiery suns. For the moment, though, you have something they want: money, sex, drugs, magick, whatever. In return for that indulgence, they’ll tell you what they know.
 
-Unlike [Contacts](mta://backgrounds/contacts), who offer casual tips, spies tap communications, breach servers, plant bugs, and steal classified files on your demand.
+Spies come in many different forms: disgruntled associates, dismayed staff, jaded groupies, desperate addicts, loyal acolytes of your cause, folks who owe you favors, people who’d be in very deep trouble without you, opportunists who like the color of your money, lovers who want to stay on your good side… Certain mad scientists and Technocrats even have special critters or tiny robots who report back to them. Whatever your relationship to these spies might be, however, they could turn against you if you’re not careful. Money, magick, better drugs, the threat of torture — all these things and more might flip your spies into someone else’s service. And even if they do remain loyal to you, your spies can be misled with false data or mistaken impressions of what’s really going on. They know only what they’re able to see.
 
-Spies can be tethered to an [Alternate Identity](mta://backgrounds/alternate_identity).
+Systems-wise, this Trait lets you ferret out information ([Intelligence](mta://attributes/intelligence) + Spies); circulate misinformation, diversions, and lies ([Manipulation](mta://attributes/manipulation) + Spies); impress people from a distance ([Charisma](mta://attributes/charisma) + Spies); or note potential threats before they solidify ([Perception](mta://attributes/perception) + Spies). A true spymaster can command well above five dots in this Trait, which explains the frightening influence of certain Hermetics, Technocrats, vigilantes, and criminal minds.
 
 > **Special Rule:** Transnational espionage webs can reach up to 10 dots. See [Background Rules Over 5](mta://backgrounds/theory_background_rules).
