@@ -128,6 +128,14 @@ fn test_compendium_cross_links_integrity() {
                             let exists = mta_sheet::compendium::merits_flaws::find_derangement(id).is_some();
                             assert!(exists, "Link para perturbação inexistente em {} ({:?}): {}", bg.id, lang, id);
                         }
+                        CompendiumTarget::Tradition(id) => {
+                            let exists = mta_sheet::compendium::traditions::find_tradition(id).is_some();
+                            assert!(exists, "Link para Tradição inexistente em {} ({:?}): {}", bg.id, lang, id);
+                        }
+                        CompendiumTarget::Bestiary(id) => {
+                            let exists = mta_sheet::compendium::bestiary::find_bestiary_entry(id).is_some();
+                            assert!(exists, "Link para verbete do bestiário inexistente em {} ({:?}): {}", bg.id, lang, id);
+                        }
                     }
 
                     // Valida que o label retorna texto legível

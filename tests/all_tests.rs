@@ -25,6 +25,9 @@ mod anti_patterns_test;
 #[path = "suites/attributes_compendium_test.rs"]
 mod attributes_compendium_test;
 
+#[path = "suites/bestiary_compendium_test.rs"]
+mod bestiary_compendium_test;
+
 #[path = "suites/backgrounds_compendium_test.rs"]
 mod backgrounds_compendium_test;
 
@@ -108,6 +111,9 @@ mod spheres_compendium_test;
 
 #[path = "suites/system_stats_test.rs"]
 mod system_stats_test;
+
+#[path = "suites/traditions_compendium_test.rs"]
+mod traditions_compendium_test;
 
 #[path = "suites/vitality_track_test.rs"]
 mod vitality_track_test;

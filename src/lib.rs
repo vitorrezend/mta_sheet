@@ -45,6 +45,9 @@ pub fn App() -> impl IntoView {
     });
     provide_context(AuthContext { user, refetch });
 
+    // Mini fichas de NPC (descartáveis, guardadas só no navegador)
+    crate::components::npc_tray::provide_npc_tray();
+
     // CSP desta página com o nonce gerado na renderização: o Leptos põe o mesmo nonce em
     // todos os scripts embutidos (hidratação, recursos, <Script>), e nada mais executa
     #[cfg(feature = "ssr")]
@@ -200,6 +203,7 @@ pub fn App() -> impl IntoView {
                 <Route path="/sheet/:id" view=crate::components::CharacterSheet />
             </Routes>
         </Router>
+        <crate::components::npc_tray::NpcTrayDock />
     }
 }
 

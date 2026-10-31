@@ -14,7 +14,7 @@ pub use resonance::Resonance;
 pub use experience::Experience;
 pub use willpower::Willpower;
 pub use quintessence_paradox::QuintessenceParadox;
-pub use vitality::Vitality;
+pub use vitality::{HealthDamageIcon, Vitality};
 pub use quick_combat::QuickCombat;
 
 #[component]

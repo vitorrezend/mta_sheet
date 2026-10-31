@@ -3,7 +3,7 @@ use mta_sheet::i18n::Language;
 
 #[test]
 fn test_compendium_all_sections_count_and_metadata() {
-    assert_eq!(ALL_SECTIONS.len(), 9, "O Compêndio M20 deve ter exatamente 9 seções canônicas");
+    assert_eq!(ALL_SECTIONS.len(), 11, "O Compêndio M20 deve ter exatamente 11 seções canônicas");
 
     let expected_sections = [
         CompendiumSection::Practices,
@@ -15,6 +15,8 @@ fn test_compendium_all_sections_count_and_metadata() {
         CompendiumSection::Weapons,
         CompendiumSection::Abilities,
         CompendiumSection::MeritsFlaws,
+        CompendiumSection::Traditions,
+        CompendiumSection::Bestiary,
     ];
 
     for (idx, expected) in expected_sections.iter().enumerate() {
@@ -56,10 +58,10 @@ fn test_cyclic_navigation_indices() {
 
     // 2. Navegação para trás a partir do início (deve ir para a última seção)
     let prev_from_first = if first_idx == 0 { ALL_SECTIONS.len() - 1 } else { first_idx - 1 };
-    assert_eq!(ALL_SECTIONS[prev_from_first].section, CompendiumSection::MeritsFlaws);
+    assert_eq!(ALL_SECTIONS[prev_from_first].section, CompendiumSection::Bestiary);
 
     // 3. Navegação para frente a partir do fim (deve dar a volta para o início)
-    let last_idx = ALL_SECTIONS.len() - 1; // MeritsFlaws
+    let last_idx = ALL_SECTIONS.len() - 1; // Bestiary
     let next_from_last = (last_idx + 1) % ALL_SECTIONS.len();
     assert_eq!(ALL_SECTIONS[next_from_last].section, CompendiumSection::Practices);
 }

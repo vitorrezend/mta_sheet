@@ -75,6 +75,20 @@ pub const ALL_SECTIONS: &[SectionMeta] = &[
         name_en: "Merits & Flaws",
         count: "26",
     },
+    SectionMeta {
+        section: CompendiumSection::Traditions,
+        icon: "🏛️",
+        name_pt: "Facções da Ascensão",
+        name_en: "Ascension Factions",
+        count: "25",
+    },
+    SectionMeta {
+        section: CompendiumSection::Bestiary,
+        icon: "🐺",
+        name_pt: "Aliados & Antagonistas",
+        name_en: "Allies & Antagonists",
+        count: "61",
+    },
 ];
 
 pub fn get_section_meta(section: CompendiumSection) -> &'static SectionMeta {
