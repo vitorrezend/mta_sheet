@@ -1,0 +1,38 @@
+### Sindicato
+*Antigamente a Alta Guilda*
+
+> *“Quem faz o ouro faz as regras. E, felizmente, eu posso fazer os dois.”*
+
+> **Fonte:** Livro Básico M20, pp. 192-193  
+> **Esferas de Afinidade:** [Entropia](mta://spheres/entropy), [Mente](mta://spheres/mind) ou [Utilidade Primordial](mta://spheres/primal_utility)
+
+Dinheiro é poder — não apenas pelo que ele é capaz de comprar, mas porque a própria concepção de dinheiro define o valor intrínseco das pessoas. Palavras como “valor”, “riqueza” e “merecimento” refletem a influência esmagadora que as finanças exercem na sociedade humana. Nós nos definimos e avaliamos os outros com base em nossa capacidade fiscal. Noções de classe social e elegância dependem diretamente das coisas que o capital pode adquirir. E assim, em inúmeros aspectos, o Sindicato é o grupo mais influente da Terra nos dias de hoje.
+
+Você não perceberia isso ouvindo as conversas de corredor. Afinal, equívocos populares associam a palavra “sindicato” à escória do crime organizado. A imagem corriqueira dos agentes do Sindicato costuma retratá-los como mafiosos — perigosos, sem dúvida, mas sem qualquer comparação com a verdadeira Iluminação. E embora haja alguma verdade nessa impressão (o comércio clandestino, afinal, é altamente lucrativo), trata-se de uma camuflagem meticulosamente construída para ocultar a real envergadura e autoridade desta Convenção. Nas raras ocasiões em que um mago das Tradições cruza o caminho de um representante ostensivo do Sindicato, balas certamente serão trocadas. O que esse feiticeiro ingênuo jamais compreende, contudo, é que o capanga armado é o máximo a que esses fanáticos místicos chegam dos verdadeiros círculos de influência. O poder real, por sua vez, repousa confortavelmente em escritórios executivos na cobertura de arranha-céus, muito acima do tiroteio.
+
+Em muitos sentidos, o Sindicato sempre esteve no comando da Tecnocracia. Onde mais, afinal, os Maçons Artesãos teriam conseguido verbas para fundir seus canhões? Como mais os Exploradores teriam financiado suas caravelas oceânicas? Artífices, sacerdotes e cavaleiros sempre dependeram de ouro para adquirir as ferramentas das quais tanto se orgulhavam. E desde os primeiros tempos, esse capital jorrou dos cofres da Alta Guilda. Em troca, os Mestres da Guilda arrecadavam impostos, dízimos e lucros exorbitantes, ao mesmo tempo em que ditavam as diretrizes… e, muito frequentemente, as próprias realidades… que governavam as outras Convenções. Embora a Guilda raramente sujasse as próprias mãos, seus agentes e investimentos espalharam sua influência por todo o planeta.
+
+Despida de conotações criminosas mundanas, a palavra *sindicato* refere-se àqueles que convergem interesses e unem recursos. Quando a Ordem da Razão se reestruturou no século XIX, a Alta Guilda assumiu esse vocábulo como seu título oficial. Enquanto outros Tecnocratas realizavam experimentos em laboratórios, caçavam Desviantes de Realidade ou expandiam as fronteiras da física para o século XX, o Sindicato uniu todos eles sob a égide da prosperidade e do capital. Banqueiros, financistas, diplomatas, industriais e ocasionais corretores do submundo amarraram o mundo em um empreendimento unificado e lucrativo, conectado pelo comércio global e pela mídia de massas. Das companhias marítimas da era colonial aos conglomerados corporativos onipresentes de hoje, o Sindicato literalmente lucrou sobre o progresso humano.
+
+E assim, embora grande parte da Guerra da Ascensão tenha colocado Homens de Preto e ciborgues HIT Mark contra tradicionalistas desesperados, o Sindicato consolidou o planeta em um punhado de corporações integradas… a grande maioria das quais sob o seu controle direto.
+
+Isso soa implacável… e, no entanto, sem moeda e comércio, a civilização como a concebemos seria impraticável. A linguagem escrita e a matemática nasceram do comércio mercantil; tecnologias se propagaram através das rotas de troca; sistemas monetários regulados permitiram que impérios crescessem e prosperassem. Até mesmo Jesus reconheceu a importância de “dar a César o que é de César”. O dinheiro e suas vantagens são a justa recompensa conquistada pelo trabalho estratégico e pelo empreendedorismo audaz. É natural, portanto, que as mentes que melhor compreendem esses sistemas sejam aquelas que mais colhem seus dividendos.
+
+#### Organização
+Estruturado como uma corporação global (ou talvez o mundo corporativo tenha se moldado à sua imagem…), o Sindicato desdobra-se em uma pirâmide executiva. No topo assenta-se o CEO e dez Vice-Presidentes de Operações (VPOs) que compõem o Conselho de Administração; a partir daí, vários Diretores-Gerais (ou Homens de Visão) respondem ao Conselho, supervisionando cada Constructo e Simpósio financeiro. Gerentes prestam contas a esses Diretores, e os Associados (ou Homens da Mágika) respondem aos Gerentes. Esses Associados compõem a linha de frente de agentes não Iluminados do Sindicato, com os Provedores (também chamados de Nossos Amigos ou simplesmente Grampos) executando o trabalho de base na base da pirâmide.
+
+#### Iniciação
+Talento inato, disciplina, imaginação audaciosa e frieza para jogar pesado significam tudo nesta Convenção. Recrutas costumam surgir em escritórios de investimentos e escolas de negócios de elite, onde olheiros caçam talentos em ascensão… especialmente aqueles atolados em dívidas, incrivelmente brilhantes, ou ambos. Após sucessivas sabatinas, o candidato é testado, contratado como Provedor e forjado na responsabilidade pragmática. Se e quando a aspirante demonstrar que controla o capital em vez de deixar que o capital a controle, recebe sua promoção aos escalões superiores. Lá, é iniciada nos segredos do desejo e nos mecanismos para reescrever o balanço contábil da própria realidade.
+
+#### Esferas de Afinidade
+[Entropia](mta://spheres/entropy), [Mente](mta://spheres/mind) ou [Utilidade Primordial](mta://spheres/primal_utility).
+
+#### Foco
+A Ars Cupiditae, [a Arte do Desejo](mta://practices/art_of_desire), pulsa no âmago da metodologia do Sindicato. Refinada pela Alta Guilda durante o período medieval, essa gama de técnicas foca no autodomínio pessoal e na psicologia das massas. Essencialmente, o praticante disciplina a própria mente e corpo, afia técnicas interpessoais e estabelece uma esfera de influência ao seu redor que gradualmente se expande em um império invisível de persuasão.
+
+Salvo nas situações mais desesperadoras, um agente do Sindicato jamais recorre a Procedimentos vulgares; mesmo nessas ocasiões, esses Ajustes utilizam armamentos de alta tecnologia, [artes marciais](mta://practices/martial_arts) ou métodos sofisticados e discretos. Na maior parte do tempo, um Associado do Sindicato manipula pessoas e instituições com empurrões sutis e certeiros — telefonemas influentes, subornos estratégicos, apertos de mão, perfumes caros, almoços executivos, apresentações de impacto, hipereconomia e dominação social — fazendo com que outros executem o trabalho pesado enquanto o Associado contabiliza os lucros. A Força Faz o Direito no mundo corporativo do Sindicato; sem ela, a civilização ruma direto para a Falência Total.
+
+#### Estereótipos
+- **Convenções Companheiras:** Temos uma equipe vencedora, contanto que eles se lembrem de que lado do pão a manteiga está passada, e esqueçam quem segura a faca.
+- **As Tradições:** Alguns apostadores não sabem a hora de largar as cartas e ir para casa. Se isso significa liquidá-los por completo, que assim seja.
+- **Os Disparatados:** Tinta vermelha ambulante, são como bêbados sem-teto correndo soltos no seu cassino com uma calibre .45 semi-carregada. Em suma, estão falidos o suficiente para serem perigosos.

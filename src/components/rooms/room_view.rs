@@ -296,6 +296,7 @@ pub fn RoomView() -> impl IntoView {
 
 
     let is_gm_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.is_gm).unwrap_or(false)));
+    let npc_tray = crate::components::npc_tray::use_npc_tray();
     let room_name_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.name.clone()).unwrap_or_default()));
     let room_code_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.code.clone()).unwrap_or_default()));
     let gm_username_sig = Signal::derive(move || room_data.with(|r| r.as_ref().map(|x| x.gm_username.clone()).unwrap_or_default()));
@@ -483,6 +484,15 @@ pub fn RoomView() -> impl IntoView {
                                 >
                                     "⚔️ Iniciativa"
                                 </button>
+                                <Show when=move || is_gm_sig.get()>
+                                    <button
+                                        class="initiative-top-bar-btn"
+                                        on:click=move |_| if let Some(tray) = npc_tray { tray.open.update(|v| *v = !*v) }
+                                        title="Mini fichas de NPC: bestiário pronto, vitalidade e token no mapa"
+                                    >
+                                        "💀 NPCs"
+                                    </button>
+                                </Show>
                                 <button class="add-sheet-to-room-btn" on:click=move |_| set_show_assign_modal.set(true)>"+ Adicionar Ficha"</button>
                             </div>
                         </header>

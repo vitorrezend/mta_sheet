@@ -501,6 +501,18 @@ pub fn BattleGrid(room_id: Signal<String>, room_sheets: Signal<Vec<RoomSheetSumm
             health_status: Some("NPC".into()),
         })]);
     });
+    // Mini fichas de NPC: o mestre cria o token direto do painel lateral
+    if let Some(tray) = crate::components::npc_tray::use_npc_tray() {
+        create_effect(move |_| tray.map_ready.set(is_gm.get()));
+        on_cleanup(move || tray.map_ready.set(false));
+        let create_npc = create_npc.clone();
+        create_effect(move |_| {
+            if let Some(req) = tray.token_request.get() {
+                tray.token_request.set(None);
+                create_npc.call((req.name, req.color, 1.0));
+            }
+        });
+    }
     let close_modal = Callback::new(move |_: ()| modal.set(None));
     let (close_config, close_npc, close_background) = (close_modal.clone(), close_modal.clone(), close_modal);
 

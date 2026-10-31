@@ -1,0 +1,7 @@
+> **Source:** M20 Core Rulebook, Appendix I: Allies and Antagonists, p. 632
+
+As animists have always known, animals have spirits too — not “souls” as people define that term (although they just might have souls too…), but spiritual personifications of the essence of each species. Beyond the obvious totem spirits, these animal spirits appear, in human terms, as Gaffling and Jaggling spirits that resemble the beast in question but possess mystic powers too. A mage, then, might encounter a crow spirit, serpent spirit, horse spirit, and so on — all with powers that suit their particular beast.
+
+In general, animal spirits look like normal animals (see the Bestiary), with the gifts of mental or physical speech; sapient personalities; and a few appropriate mythic powers like great speed, a paralyzing stare, and so forth. Given the vast array of potential animal spirits — which extends even to extinct beasts like titanic insects, dinosaurs, and other such creatures — we encourage the Storyteller to treat such powers as low-level rotes (Ranks 1-4, with an Arete between 2 and 6) or story elements based on the legendary talents of the associated animal. All animal spirits have the following Charms in addition to all others: Airt Sense, Appear, and Reform. Jagglings can Materialize (as per the animal type, with greater intellect), and have other Charms and powers as well.
+
+In Background Trait terms, such entities may become Allies or Familiars, too. A handful of examples includes:

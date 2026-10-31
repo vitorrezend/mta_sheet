@@ -1,0 +1,11 @@
+> **Source:** M20 Core Rulebook, Appendix I: Allies and Antagonists, p. 633
+
+For shamans both urban and otherwise, the totem spirits present an array of allies that few other people — even Awakened ones — understand. Ecstatics, Dreamspeakers, and other spiritworkers contact these entities, sometimes adopting them (and being adopted by them) as mystic kin — see the Totem Background Trait for details. Any mage with Spirit Sphere magick can deal with totem entities, though few mages bond with them the way that shamans do.
+
+Classified as Incarna Umbrood by Hermetic-type mages, totem spirits are essentially gods. Though they tend to manifest totem avatars — lesser entities that represent a sample of that spirit’s essence — such beings are immortal, boundless, and beyond the definitions of simple game stats. (For some sample totem avatars, see the animal spirits above.) On most levels, totems are far older than humanity, even when they take identities from human myths. Many represent animals, plants, or other natural forces, although some totems personify mythic beings and others represent ideas. A few technological totems seem drawn from the concepts and powers of the modern age, and though they lack the timeless majesty of their primal kin, they can be quite powerful in the industrialized world.
+
+The following entities reflect a tiny portion of the world’s potential totems. Although they’re among the totems a North American mage is most likely to meet, these spirits transcend geography, and have different identities and conceptions in other human cultures. Coyote, for example, is uniquely American, but Spider, and Crow have many faces, names, and personalities across the world.
+
+Human mages and shamanic werewolves interact very differently with totem spirits. Even so, the Werewolf: The Apocalypse line features a wide array of potential totems. That said, mage characters do not buy totems the way that werewolves do. A mage’s Totem Background reflects the level of contact he has with a given spirit; the spirit itself decides how intimate a bond the totem shares with its adopted human, and that bond can change over time. Again, see the Totem Background entry in Chapter Six for details.
+
+A handful of North American totem spirits includes…

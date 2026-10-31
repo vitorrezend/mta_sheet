@@ -6,6 +6,8 @@ use crate::compendium::backgrounds::find_background;
 use crate::compendium::instruments::{find_instrument, find_theory_article};
 use crate::compendium::practices::find_practice;
 use crate::compendium::spheres::find_sphere;
+use crate::compendium::bestiary::find_bestiary_entry;
+use crate::compendium::traditions::find_faction;
 use crate::compendium::weapons::{find_combat_entity, CombatEntity, CombatSubTab};
 use crate::compendium::abilities::{find_ability, find_ability_theory_rule};
 use crate::compendium::merits_flaws::{find_derangement, find_merit_flaw};
@@ -44,6 +46,8 @@ pub fn resolve_compendium_query(
         CompendiumSection::Instruments,
         CompendiumSection::Attributes,
         CompendiumSection::Archetypes,
+        CompendiumSection::Traditions,
+        CompendiumSection::Bestiary,
     ];
 
     for &sec in ALL_SECTIONS {
@@ -201,6 +205,16 @@ fn match_section(section: CompendiumSection, query: &str) -> Option<ResolvedComp
                 None
             }
         }
+        CompendiumSection::Bestiary => find_bestiary_entry(query).map(|e| ResolvedCompendiumLocation {
+            section: CompendiumSection::Bestiary,
+            item_id: e.id.to_string(),
+            combat_subtab: None,
+        }),
+        CompendiumSection::Traditions => find_faction(query).map(|t| ResolvedCompendiumLocation {
+            section: CompendiumSection::Traditions,
+            item_id: t.id.to_string(),
+            combat_subtab: None,
+        }),
         CompendiumSection::Spheres => {
             if let Some(matched_s) = find_sphere(query) {
                 Some(ResolvedCompendiumLocation {

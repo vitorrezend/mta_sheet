@@ -206,6 +206,40 @@ pub fn InitiativeDrawer(
         sync_to_server(false);
     };
 
+    // Mini fichas de NPC: o botão "Na iniciativa" do painel lateral entra aqui
+    if let Some(tray) = crate::components::npc_tray::use_npc_tray() {
+        create_effect(move |_| tray.initiative_ready.set(is_gm.get()));
+        on_cleanup(move || tray.initiative_ready.set(false));
+        create_effect(move |_| {
+            let Some(req) = tray.initiative_request.get() else { return };
+            tray.initiative_request.set(None);
+            if !is_gm.get_untracked() {
+                return;
+            }
+            entries.update(|list| {
+                if let Some(existing) = list.iter_mut().find(|e| e.is_npc && e.name == req.name) {
+                    existing.base_total = req.base;
+                    existing.health_penalty = req.penalty;
+                } else {
+                    list.push(InitiativeEntry {
+                        id: format!("npc_{}", uuid::Uuid::new_v4()),
+                        name: req.name.clone(),
+                        is_npc: true,
+                        is_active: true,
+                        base_dex: 0,
+                        base_wits: 0,
+                        base_total: req.base.max(1),
+                        health_penalty: req.penalty,
+                        rolled_die: None,
+                        final_total: None,
+                    });
+                }
+            });
+            sync_to_server(false);
+            set_is_open.set(true);
+        });
+    }
+
     let remove_participant = move |id: String| {
         if !is_gm.get() {
             return;

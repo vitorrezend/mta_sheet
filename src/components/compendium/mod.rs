@@ -33,6 +33,8 @@ pub enum CompendiumSection {
     Weapons,
     Abilities,
     MeritsFlaws,
+    Traditions,
+    Bestiary,
 }
 
 #[component]
@@ -62,6 +64,12 @@ pub fn CompendiumModal(
 
     // ID da qualidade ou defeito atualmente selecionado
     let selected_merit_flaw_id = create_rw_signal("acute_senses".to_string());
+
+    // ID da Tradição (ou do quadro introdutório) atualmente selecionado
+    let selected_tradition_id = create_rw_signal("article_tradition_descriptions".to_string());
+
+    // ID do verbete do Apêndice I (Aliados & Antagonistas) atualmente selecionado
+    let selected_bestiary_id = create_rw_signal("article_supporting_cast".to_string());
 
     // ID da esfera atualmente selecionada
     let selected_sphere_id = create_rw_signal("correspondence".to_string());
@@ -187,6 +195,8 @@ pub fn CompendiumModal(
                         CompendiumSection::Instruments => selected_instrument_id.set(loc.item_id),
                         CompendiumSection::Attributes => selected_attribute_id.set(loc.item_id),
                         CompendiumSection::Archetypes => selected_archetype_id.set(loc.item_id),
+                        CompendiumSection::Traditions => selected_tradition_id.set(loc.item_id),
+                        CompendiumSection::Bestiary => selected_bestiary_id.set(loc.item_id),
                     }
                     mobile_show_detail.set(true);
                 } else {
@@ -238,6 +248,8 @@ pub fn CompendiumModal(
         let selected_archetype_id = selected_archetype_id.clone();
         let selected_ability_id = selected_ability_id.clone();
         let selected_merit_flaw_id = selected_merit_flaw_id.clone();
+        let selected_tradition_id = selected_tradition_id.clone();
+        let selected_bestiary_id = selected_bestiary_id.clone();
         let combat_subtab = combat_subtab.clone();
         move |lang: Language| -> String {
             match active_section.get() {
@@ -272,6 +284,12 @@ pub fn CompendiumModal(
                 CompendiumSection::MeritsFlaws => {
                     CompendiumTarget::MeritFlaw(selected_merit_flaw_id.get()).label(lang)
                 }
+                CompendiumSection::Traditions => {
+                    CompendiumTarget::Tradition(selected_tradition_id.get()).label(lang)
+                }
+                CompendiumSection::Bestiary => {
+                    CompendiumTarget::Bestiary(selected_bestiary_id.get()).label(lang)
+                }
             }
         }
     };
@@ -288,6 +306,8 @@ pub fn CompendiumModal(
         let selected_archetype_id = selected_archetype_id.clone();
         let selected_ability_id = selected_ability_id.clone();
         let selected_merit_flaw_id = selected_merit_flaw_id.clone();
+        let selected_tradition_id = selected_tradition_id.clone();
+        let selected_bestiary_id = selected_bestiary_id.clone();
         let combat_subtab = combat_subtab.clone();
         let mobile_show_detail = mobile_show_detail.clone();
         let compendium_history = compendium_history.clone();
@@ -314,6 +334,8 @@ pub fn CompendiumModal(
                 CompendiumSection::Archetypes => selected_archetype_id.get(),
                 CompendiumSection::Abilities => selected_ability_id.get(),
                 CompendiumSection::MeritsFlaws => selected_merit_flaw_id.get(),
+                CompendiumSection::Traditions => selected_tradition_id.get(),
+                CompendiumSection::Bestiary => selected_bestiary_id.get(),
             };
             let cur_combat_subtab = if cur_section == CompendiumSection::Weapons {
                 Some(combat_subtab.get())
@@ -350,6 +372,8 @@ pub fn CompendiumModal(
                 CompendiumTarget::Archetype(id) => selected_archetype_id.set(id.clone()),
                 CompendiumTarget::Ability(id) => selected_ability_id.set(id.clone()),
                 CompendiumTarget::MeritFlaw(id) | CompendiumTarget::Derangement(id) => selected_merit_flaw_id.set(id.clone()),
+                CompendiumTarget::Tradition(id) => selected_tradition_id.set(id.clone()),
+                CompendiumTarget::Bestiary(id) => selected_bestiary_id.set(id.clone()),
             }
             mobile_show_detail.set(true);
         }
@@ -367,6 +391,8 @@ pub fn CompendiumModal(
         let selected_archetype_id = selected_archetype_id.clone();
         let selected_ability_id = selected_ability_id.clone();
         let selected_merit_flaw_id = selected_merit_flaw_id.clone();
+        let selected_tradition_id = selected_tradition_id.clone();
+        let selected_bestiary_id = selected_bestiary_id.clone();
         let combat_subtab = combat_subtab.clone();
         let mobile_show_detail = mobile_show_detail.clone();
         let compendium_history = compendium_history.clone();
@@ -399,6 +425,8 @@ pub fn CompendiumModal(
                     CompendiumSection::Archetypes => selected_archetype_id.set(entry.item_id),
                     CompendiumSection::Abilities => selected_ability_id.set(entry.item_id),
                     CompendiumSection::MeritsFlaws => selected_merit_flaw_id.set(entry.item_id),
+                    CompendiumSection::Traditions => selected_tradition_id.set(entry.item_id),
+                    CompendiumSection::Bestiary => selected_bestiary_id.set(entry.item_id),
                 }
                 mobile_show_detail.set(true);
             }
@@ -488,6 +516,8 @@ pub fn CompendiumModal(
                                             CompendiumSection::Weapons => "⚔️",
                                             CompendiumSection::Abilities => "🎯",
                                             CompendiumSection::MeritsFlaws => "✨",
+                                            CompendiumSection::Traditions => "🏛️",
+                                            CompendiumSection::Bestiary => "🐺",
                                         }}
                                     </span>
                                     <div class="practice-modal-title-content">
@@ -512,6 +542,10 @@ pub fn CompendiumModal(
                                                 (CompendiumSection::Abilities, Language::EnUs) => "Abilities & Specialties",
                                                 (CompendiumSection::MeritsFlaws, Language::PtBr) => "Qualidades, Defeitos & Perturbações",
                                                 (CompendiumSection::MeritsFlaws, Language::EnUs) => "Merits, Flaws & Derangements",
+                                                (CompendiumSection::Traditions, Language::PtBr) => "Tradições, União Tecnocrática & Disparates",
+                                                (CompendiumSection::Traditions, Language::EnUs) => "Traditions, Technocratic Union & Disparates",
+                                                (CompendiumSection::Bestiary, Language::PtBr) => "Aliados & Antagonistas",
+                                                (CompendiumSection::Bestiary, Language::EnUs) => "Allies & Antagonists",
                                             }}
                                         </h3>
                                         <span class="practice-modal-subtitle">
@@ -520,8 +554,8 @@ pub fn CompendiumModal(
                                                 (CompendiumSection::Practices, Language::EnUs) => "M20, pp. 573-586 • Chapter 10: Focus and Arts (Canonical Practices)",
                                                 (CompendiumSection::Instruments, Language::PtBr) => "M20, pp. 586-608 • Capítulo 10: Foco e Artes (Instrumentos & Teoria Canônica)",
                                                 (CompendiumSection::Instruments, Language::EnUs) => "M20, pp. 586-608 • Chapter 10: Focus and Arts (Instruments & Canonical Theory)",
-                                                (CompendiumSection::Archetypes, Language::PtBr) => "M20, pp. 264-269 • Capítulo 6: Criação do Personagem (Natureza & Comportamento)",
-                                                (CompendiumSection::Archetypes, Language::EnUs) => "M20, pp. 264-269 • Chapter 6: Creating the Character (Nature & Demeanor)",
+                                                (CompendiumSection::Archetypes, Language::PtBr) => "M20, pp. 267-273 • Capítulo 6: Criação do Personagem (Natureza & Comportamento)",
+                                                (CompendiumSection::Archetypes, Language::EnUs) => "M20, pp. 267-273 • Chapter 6: Creating the Character (Nature & Demeanor)",
                                                 (CompendiumSection::Attributes, Language::PtBr) => "M20, pp. 273-275 • Capítulo 6: Atributos & Regra Canônica de Especialidades",
                                                 (CompendiumSection::Attributes, Language::EnUs) => "M20, pp. 273-275 • Chapter 6: Attributes & Canonical Specialties Rule",
                                                 (CompendiumSection::Backgrounds, Language::PtBr) => "M20, pp. 301-311 • Capítulo 6: Criação do Personagem (Antecedentes Canônicos)",
@@ -534,6 +568,10 @@ pub fn CompendiumModal(
                                                 (CompendiumSection::Abilities, Language::EnUs) => "M20, pp. 275-301 • Chapter 6: Abilities (Talents, Skills, Knowledges & Secondary)",
                                                 (CompendiumSection::MeritsFlaws, Language::PtBr) => "M20, pp. 642-650 • Apêndice II: Qualidades, Defeitos & Perturbações Mentais",
                                                 (CompendiumSection::MeritsFlaws, Language::EnUs) => "M20, pp. 642-650 • Appendix II: Merits, Flaws & Derangements",
+                                                (CompendiumSection::Traditions, Language::PtBr) => "M20, pp. 147-223 • Capítulo 5: Guerreiros da Ascensão (Tradições, União Tecnocrática e Disparates)",
+                                                (CompendiumSection::Traditions, Language::EnUs) => "M20, pp. 147-223 • Chapter Five: Ascension Warriors (Traditions, Technocratic Union, and Disparates)",
+                                                (CompendiumSection::Bestiary, Language::PtBr) => "M20, pp. 618-641 • Apêndice I: Aliados e Antagonistas (fichas prontas)",
+                                                (CompendiumSection::Bestiary, Language::EnUs) => "M20, pp. 618-641 • Appendix I: Allies and Antagonists (ready-made templates)",
                                             }}
                                         </span>
                                     </div>
@@ -733,6 +771,24 @@ pub fn CompendiumModal(
                                             />
                                         }.into_view()
                                     }
+                                    CompendiumSection::Bestiary => {
+                                        view! {
+                                            <BestiaryView
+                                                selected_bestiary_id=selected_bestiary_id
+                                                current_lang=current_lang
+                                                mobile_show_detail=Some(mobile_show_detail)
+                                            />
+                                        }.into_view()
+                                    }
+                                    CompendiumSection::Traditions => {
+                                        view! {
+                                            <TraditionsView
+                                                selected_tradition_id=selected_tradition_id
+                                                current_lang=current_lang
+                                                mobile_show_detail=Some(mobile_show_detail)
+                                            />
+                                        }.into_view()
+                                    }
                                     CompendiumSection::MeritsFlaws => {
                                         let on_sel = on_select_mf_action.clone();
                                         let on_cls = on_close_action.clone();
@@ -759,8 +815,8 @@ pub fn CompendiumModal(
                                         (CompendiumSection::Practices, Language::EnUs) => "M20, pp. 573-586 • Official 20 Magickal Practices and Sidebars".to_string(),
                                         (CompendiumSection::Instruments, Language::PtBr) => "M20, pp. 586-608 • Catálogo Oficial de 54 Instrumentos e Artigos Teóricos".to_string(),
                                         (CompendiumSection::Instruments, Language::EnUs) => "M20, pp. 586-608 • Official 54 Instruments and Theory Articles".to_string(),
-                                        (CompendiumSection::Archetypes, Language::PtBr) => "M20, pp. 264-269 • Catálogo Oficial de 20 Arquétipos (Natureza & Comportamento)".to_string(),
-                                        (CompendiumSection::Archetypes, Language::EnUs) => "M20, pp. 264-269 • Official 20 Personality Archetypes (Nature & Demeanor)".to_string(),
+                                        (CompendiumSection::Archetypes, Language::PtBr) => "M20, pp. 267-273 • Catálogo Oficial de 20 Arquétipos (Natureza & Comportamento)".to_string(),
+                                        (CompendiumSection::Archetypes, Language::EnUs) => "M20, pp. 267-273 • Official 20 Personality Archetypes (Nature & Demeanor)".to_string(),
                                         (CompendiumSection::Attributes, Language::PtBr) => "M20, pp. 273-275 • Atributos Físicos, Sociais, Mentais & Regra de Especialidades".to_string(),
                                         (CompendiumSection::Attributes, Language::EnUs) => "M20, pp. 273-275 • Physical, Social, Mental Attributes & Specialties Rule".to_string(),
                                         (CompendiumSection::Weapons, Language::PtBr) => "M20, pp. 423-426, 448-453 • Catálogo Oficial de 82 Armas e 35 Manobras & Artes Marciais".to_string(),
@@ -773,6 +829,10 @@ pub fn CompendiumModal(
                                         (CompendiumSection::Abilities, Language::EnUs) => "M20, pp. 275-301 • Official 48 Abilities and Optional Rules Catalog".to_string(),
                                         (CompendiumSection::MeritsFlaws, Language::PtBr) => "M20, pp. 642-650 • Catálogo Oficial de Qualidades, Defeitos e Perturbações".to_string(),
                                         (CompendiumSection::MeritsFlaws, Language::EnUs) => "M20, pp. 642-650 • Official Merits, Flaws, and Derangements Catalog".to_string(),
+                                        (CompendiumSection::Traditions, Language::PtBr) => "M20, pp. 147-223 • 9 Tradições, 5 Convenções da União Tecnocrática e 11 seitas Disparates".to_string(),
+                                        (CompendiumSection::Traditions, Language::EnUs) => "M20, pp. 147-223 • 9 Traditions, 5 Technocratic Conventions, and 11 Disparate sects (full text)".to_string(),
+                                        (CompendiumSection::Bestiary, Language::PtBr) => "M20, pp. 618-641 • 61 fichas prontas de animais, mortais, Tecnocratas, magos e espíritos".to_string(),
+                                        (CompendiumSection::Bestiary, Language::EnUs) => "M20, pp. 618-641 • 61 ready-made templates: animals, mortals, Technocrats, mages, and spirits".to_string(),
                                     }}
                                 </span>
 

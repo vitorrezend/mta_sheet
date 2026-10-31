@@ -4,6 +4,7 @@ pub mod common;
 pub mod compendium;
 pub mod gods_and_monsters;
 pub mod mta_sheet;
+pub mod npc_tray;
 pub mod profile;
 pub mod rooms;
 pub mod views;

@@ -9,6 +9,8 @@ use crate::compendium::backgrounds::find_background;
 use crate::compendium::instruments::{find_instrument, find_theory_article};
 use crate::compendium::practices::find_practice;
 use crate::compendium::spheres::find_sphere;
+use crate::compendium::bestiary::find_bestiary_entry;
+use crate::compendium::traditions::{find_faction, TRADITION_DESCRIPTIONS};
 use crate::compendium::weapons::{find_combat_entity, CombatEntity, CombatSubTab};
 use crate::components::compendium::CompendiumSection;
 use crate::i18n::Language;
@@ -30,6 +32,8 @@ pub enum CompendiumTarget {
     Ability(String),
     MeritFlaw(String),
     Derangement(String),
+    Tradition(String),
+    Bestiary(String),
 }
 
 impl CompendiumTarget {
@@ -45,6 +49,7 @@ impl CompendiumTarget {
     /// - `mta://attributes/strength`
     /// - `mta://attributes/rule_specialties`
     /// - `mta://archetypes/activist`
+    /// - `mta://traditions/order_of_hermes`
     pub fn from_uri(uri: &str) -> Option<Self> {
         let path = uri.strip_prefix("mta://")?;
         let parts: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
@@ -130,6 +135,15 @@ impl CompendiumTarget {
                 let id = parts.get(1)?;
                 Some(CompendiumTarget::Derangement(id.to_string()))
             }
+            "traditions" | "tradition" | "tradicoes" | "tradicao" | "conventions" | "convention"
+            | "convencoes" | "convencao" | "technocracy" | "tecnocracia" | "disparates" | "disparate" => {
+                let id = parts.get(1)?;
+                Some(CompendiumTarget::Tradition(id.to_string()))
+            }
+            "bestiary" | "bestiario" | "allies" | "antagonists" | "antagonistas" => {
+                let id = parts.get(1)?;
+                Some(CompendiumTarget::Bestiary(id.to_string()))
+            }
             _ => None,
         }
     }
@@ -146,6 +160,8 @@ impl CompendiumTarget {
             CompendiumTarget::Archetype(_) => CompendiumSection::Archetypes,
             CompendiumTarget::Ability(_) => CompendiumSection::Abilities,
             CompendiumTarget::MeritFlaw(_) | CompendiumTarget::Derangement(_) => CompendiumSection::MeritsFlaws,
+            CompendiumTarget::Tradition(_) => CompendiumSection::Traditions,
+            CompendiumTarget::Bestiary(_) => CompendiumSection::Bestiary,
         }
     }
 
@@ -163,6 +179,8 @@ impl CompendiumTarget {
             CompendiumTarget::Ability(id) => id,
             CompendiumTarget::MeritFlaw(id) => id,
             CompendiumTarget::Derangement(id) => id,
+            CompendiumTarget::Tradition(id) => id,
+            CompendiumTarget::Bestiary(id) => id,
         }
     }
 
@@ -287,6 +305,18 @@ impl CompendiumTarget {
                     id.clone()
                 }
             }
+            CompendiumTarget::Tradition(id) => {
+                if id == TRADITION_DESCRIPTIONS.id {
+                    TRADITION_DESCRIPTIONS.title(lang).to_string()
+                } else if let Some(t) = find_faction(id) {
+                    t.name(lang).to_string()
+                } else {
+                    id.clone()
+                }
+            }
+            CompendiumTarget::Bestiary(id) => find_bestiary_entry(id)
+                .map(|e| e.name(lang).to_string())
+                .unwrap_or_else(|| id.clone()),
         }
     }
 }

@@ -13,7 +13,7 @@ const BASE_HEALTH_LEVELS: [(&str, Option<&str>); 7] = [
 ];
 
 #[component]
-fn HealthDamageIcon(dmg: DamageType) -> impl IntoView {
+pub fn HealthDamageIcon(dmg: DamageType) -> impl IntoView {
     match dmg {
         DamageType::None => view! {
             <span class="dmg-empty"></span>

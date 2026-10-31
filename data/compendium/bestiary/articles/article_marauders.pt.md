@@ -1,0 +1,5 @@
+> **Fonte:** Livro Básico M20, Apêndice I: Aliados e Antagonistas, p. 628
+
+Exemplos aterrorizantes de Dinamismo levado ao paroxismo, cada Marauder é um indivíduo vivenciando a realidade exatamente como ele, ela, aquilo ou eles a concebem. Sua aparente imunidade ao Paradoxo, combinada com os efeitos caóticos e disruptivos que provocam sobre o ambiente ao seu redor, coloca-os entre as ameaças mais pavorosas que um mago pode enfrentar. Embora certos Marauders compartilhem delírios afins o suficiente para cooperarem temporariamente, a maioria desses Insanos opera em realidades pessoais arcanas demais para qualquer outro mago decifrar. O conhecimento acumulado sobre essas entidades é pura conjectura. Magos sãos que tentam compreendê-los acabam, na melhor das hipóteses, perplexos; na pior, enlouquecidos entre eles.
+
+Em razão de seus poderes de deformação da realidade, os Marauders funcionam melhor na narrativa como catalisadores vivos da trama, capazes de — dentro do razoável — realizar o que a história exigir. Para mais detalhes, consulte a seção sobre Os Insanos no Capítulo Cinco.

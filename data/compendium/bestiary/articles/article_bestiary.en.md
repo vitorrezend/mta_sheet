@@ -1,0 +1,7 @@
+> **Source:** M20 Core Rulebook, Appendix I: Allies and Antagonists, p. 618
+
+Some mages are urbanites who rarely see anything wilder than a house cat or a pigeon. Others prefer to live in remote wilderness regions, and a few mages use Life Sphere magick to take on the form of animals. Certain Sons of Ether and Progenitors also employ a wide range of experimental beasts — enhancing their intelligence, placing control circuits into their brains, or using drugs and gene therapy to give them new and powerful capabilities. And then you’ve got Familiars (as in the Background described in Chapter Six), many of which take the form of animals with extraordinary intellect and a few other surprises.
+
+Normal animals have only Physical and Mental Traits, because their Social traits are largely irrelevant for interacting with humans. Few have Intelligence scores higher than 2 or Perception scores lower than 3. Damage inflicted by animals is typically lethal, although the Storyteller may decide that small animals (housecat or small-dog size) inflict bashing damage instead. Medium-size animals (dogs, chimps, wolves, etc.) inflict lethal damage with their teeth and bashing damage with their claws.
+
+For familiars, or manifestations of totem spirits, add one to three dots and dice to the Traits below, plus whatever other Abilities seem appropriate. (For details about incarnated totem demigods, see Totem Spirits, p. 633-636.)

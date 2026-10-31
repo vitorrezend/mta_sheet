@@ -1,0 +1,3 @@
+> **Fonte:** Livro Básico M20, Apêndice I: Aliados e Antagonistas, p. 628
+
+Alguns desses indivíduos perigosos — e com frequência insanos — ocultam-se no seio das Tradições ou da União. Outros misturam-se anonimamente entre as Massas. Todos eles configuram ameaças letais, especialmente quando você sequer percebe que encontrou um até ser tarde demais…

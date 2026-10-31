@@ -1,0 +1,3 @@
+> **Fonte:** Livro Básico M20, Apêndice I: Aliados e Antagonistas, p. 620
+
+Até mesmo o mago mais recluso e misantropo ocasionalmente lida com Adormecidos. A maioria das pessoas Despertas vive em meio às Massas — e mesmo aqueles que não o fazem acabarão, cedo ou tarde, interagindo com pelo menos alguns Adormecidos. Isso é especialmente verdadeiro se você possuir os Antecedentes Aliados, Reforços, Culto, Lacaios ou Espiões (consulte o Capítulo Seis), que colocam tais personagens a serviço do seu mago. Assistentes de laboratório, seguranças, capangas, amantes, tietes, acólitos, cultistas, convertidos e assim por diante… quando um grupo de magos se vê trocando palavras ou lâminas com essas pessoas, os modelos a seguir serão de grande valia.

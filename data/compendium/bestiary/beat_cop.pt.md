@@ -1,0 +1,17 @@
+### Policial de Ronda
+
+> **Fonte:** Livro Básico M20, Apêndice I: Aliados e Antagonistas, pp. 620-621
+
+No Mundo das Trevas, a maioria dos policiais de ronda já presenciou coisas que não compreende… mas também sabem que policiais que investigam ocorrências misteriosas com frequência excessiva tendem a desaparecer ou a desenvolver uma estranha aversão a discutir tais episódios. Em vez disso, policiais compartilham causos sobre as coisas bizarras que viram e alertam uns aos outros sobre a necessidade de relatar qualquer coisa estranha demais ao FBI ou a alguma agência equivalente.
+
+Policiais de ronda reagem à mágica de maneiras muito distintas, dependendo do que veem. Alguém que apresente ao policial um distintivo ou documento indicando pertencer a alguma agência governamental ou militar, enquanto empunha um dispositivo que aparenta ser uma peça tecnológica impressionantemente avançada ou improvável, será tratado com deferência e respeito. Por outro lado, a maioria dos policiais encara um indivíduo de vestes excêntricas agitando cristais ou balbuciando em idiomas desconhecidos como uma ameaça evidente. Os policiais têm grande probabilidade de deter, agredir ou até atirar em tal pessoa, a depender do quanto se sentem ameaçados e do quão perigoso o indivíduo pareça ser.
+
+Nos últimos anos, as forças policiais (especialmente nos Estados Unidos) foram abastecidas com equipamento de padrão militar, treinamento para operá-lo e respaldo para praticar atos terríveis impunemente. Como o crime corriqueiro de rua raramente exige veículos blindados e tropas prontas para o combate, essas polícias frequentemente transformam até as situações mais rotineiras em zonas de batalha campal. Diante da resposta policial desproporcional a protestos como o Occupy, a Primavera Árabe e Ferguson, não é absurdo supor que um atrito com policiais de ronda possa descambar para uma guerra urbana em questão de horas — quando não de minutos, especialmente no Mundo das Trevas. Magos que queiram mexer com a polícia devem esperar consequências implacáveis.
+
+- **Atributos Sugeridos:** Força 3, Destreza 2, Vigor 3, Carisma 2, Manipulação 3, Aparência 2, Percepção 3, Inteligência 2, Raciocínio 3
+- **Habilidades Sugeridas:** Prontidão 2, Conhecimento da Área 3, Atletismo 2, Briga 2, Computador 1, Condução 2, Armas de Fogo 3, Intimidação 1, Investigação 2, Direito 2, Armas Brancas 2, Furtividade 1, Manha 2, Tecnologia 2
+- **Força de Vontade:** 5
+- **Níveis de Vitalidade:** OK, -1, -1, -2, -2, -5, Incapacitado
+- **Equipamento:** Distintivo e credencial funcional, pistola pesada, cassetete antitumulto, spray de pimenta, taser, rádio comunicador, uniforme policial. Policiais urbanos frequentemente usam coletes de Kevlar ao esperar tumultos. Respostas escaladas podem prover esses mesmos policiais com trajes e escudos de choque, espingardas ou fuzis de assalto, gás de dispersão e viaturas táticas blindadas.
+- **Imagem:** Policiais de ronda típicos trajam a farda da polícia local, carregam o equipamento regulamentar e exibem o olhar vigilante e desconfiado característico, atento a pormenores e intolerante a gracinhas. Operadores de SWAT e tropas de choque usam blindagem corporal pesada, portam armamento militar e recorrem a táticas brutais e letais.
+- **Notas de Interpretação:** Você já viu mais horrores do que estaria disposto a relatar a qualquer um fora da corporação. Salvo nas circunstâncias mais extremas, você é leal aos seus irmãos de farda; pode não simpatizar com certos indivíduos, mas apenas outro policial entende pelo que você passa.

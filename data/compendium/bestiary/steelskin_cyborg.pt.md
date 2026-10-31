@@ -1,0 +1,19 @@
+### Ciborgue “Pele de Aço” Comum
+
+> **Fonte:** Livro Básico M20, Apêndice I: Aliados e Antagonistas, pp. 623-624
+
+Dentre os operativos de campo mais eficientes da União Tecnocrática, os ciborgues comuns da Iteração X receberam aprimoramentos mecânicos e biomodificações especializadas: força e resistência aumentadas, suporte vital embutido, ferramentas integradas, sensores ou armas camufladas, e assim por diante. Originalmente seres humanos mundanos (ou por vezes animais), tornaram-se algo muito mais avançado do que outrora foram. Embora condicionados para aceitar suas novas existências (e, portanto, figurarem entre os membros mais leais da Tecnocracia), esses exo-soldados conservam uma fração de livre-arbítrio, ainda que pouca individualidade.
+
+Tipicamente identificados por designações alfanuméricas (X-235, por exemplo), os peles de aço atuam frequentemente como operários braçais, vigilantes de segurança, infiltradores, investigadores e caçadores-exterminadores. A despeito da despersonalização evidente, costumam reter motivações e aspectos visuais próprios, a menos que tenham sido submetidos a sucessivos ciclos de Condicionamento Social. Nesse sentido, ciborgues da Tecnocracia são essencialmente pessoas dotadas de modificações singulares, às vezes drásticas, e de um senso de dever obstinado para com a União Tecnocrática em geral e para com a Iteração X em particular. Diferente dos HIT Marks, esses agentes não são máquinas — são pessoas. Exo-agentes veteranos ou severamente Condicionados perdem quase toda a sua personalidade, mas muitos operacionais a conservam, a menos que algo terrível aconteça… o que, no Mundo das Trevas, invariavelmente acaba acontecendo.
+
+- **Atributos Sugeridos:** Força 3-4, Destreza 3, Vigor 4, Carisma 2, Manipulação 1, Aparência 2, Percepção 3, Inteligência 2, Raciocínio 3
+- **Habilidades Sugeridas:** Prontidão 3, Atletismo 2, Consciência 2, Briga 2, Computador 2, Condução 1, Armas de Fogo 2-4, Investigação 2, Medicina 1, Armas Brancas 1, Ciências 2-3, Tecnologia 3-5
+- **Força de Vontade:** 5 (3 no que tange à programação tecnocrática)
+- **Níveis de Vitalidade:** OK, OK, -1, -1, -2, -2, -5, Incapacitado
+- **Blindagem:** 1 (cinco dados de absorção no total)
+- **Ataques/ Poderes:** Variáveis; todos os ciborgues possuem transmissores implantados com funções de telefonia celular e internet sem fio, além de portas USB e outras interfaces de conexão e armazenamento de dados. Cada ciborgue também conta com implantes adicionais, dependendo de sua função designada:
+- Agentes de Combate recebem +2 em Força, Briga, Armas de Fogo e Armas Brancas; garras que infligem Força + 1 de dano letal; e +2 de blindagem (contundente e letal).
+- Agentes de Investigação adicionam +3 a Computador e Investigação; contam com visão infravermelha e ultravioleta, além de audição e olfato aprimorados (em termos de regras, reduza a dificuldade de testes de audição e olfato em -2, até o mínimo de 2), e um dispositivo de interface VDAS.
+- Agentes de Intrusão adicionam +2 a Computador, Furtividade e Tecnologia, contendo ferramentas embutidas e conectores de acesso que reduzem a dificuldade de testes de Tecnologia e invasão de sistemas em -2 (até o mínimo de 2), além de um HUD VDAS.
+- **Imagem:** A despeito do apelido, a maioria dos peles de aço aparenta ser formada por pessoas comuns (embora um pouco mais robustas que a média), com cortes de cabelo severos e maneiras mecânicas. Ciborgues profundamente modificados raspam o couro cabeludo e o corpo (independentemente do sexo) e exibem uma neutralidade desconcertante no olhar e na voz. Conforme a missão, usam uniformes funcionais, trajes civis ou macacões industriais sóbrios.
+- **Notas de Interpretação:** A União é a sua vida e a Iteração X é o seu farol. A ordem é indispensável e o desvio é um crime.

@@ -1,0 +1,7 @@
+> **Source:** M20 Core Rulebook, Appendix I: Allies and Antagonists, p. 626
+
+Earlier versions of the HIT Mark design — versions I through IV — were susceptible to “reprogramming” by computerhacking Virtual Adepts. By the Mark V model, however, those bugs had largely been eliminated (+4 difficulty to all hacking attempts) by a combination of biological tissue, improved programming, and Primium countermeasures. By the Mark VII model, hacking had been rendered more or less impossible, thanks to the fusion of computer technology and biological brain matter. By the Mark X model, the computer-hacking glitch has been completely eliminated… one of several problems solved by the transition from thinking machine to biomechanical organism.
+
+As self-governed machines, the HIT Marks cannot be cracked via remote access. A Reality Deviant needs to get his hands on each individual HIT Mark… a task, that, for obvious reasons, is not as easy as it sounds! Characters who want to hack an early-model HIT Mark need to spend at least 10 minutes with that task, making one Intelligence + Hypertech roll (difficulty equal to the HIT Mark’s model name — i.e. 5 for a Mark V) for each iteration of the model (again, five rolls for a Mark V).
+
+A HIT Mark X can be reprogrammed only with a combination of Matter 3/ Mind 3/ Forces 2, plus the hacking rolls as above. The protocols necessary to program a HIT Mark X remain closely guarded secrets within Iteration X and the NWO. Even members of those Conventions rarely have access to such information if they’re below the Manager grade.

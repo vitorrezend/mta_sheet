@@ -6,6 +6,8 @@ pub mod backgrounds_view;
 pub mod spheres_view;
 pub mod abilities_view;
 pub mod merits_flaws_view;
+pub mod traditions_view;
+pub mod bestiary_view;
 pub mod weapons;
 pub use weapons as weapons_view;
 
@@ -17,4 +19,6 @@ pub use backgrounds_view::BackgroundsView;
 pub use spheres_view::SpheresView;
 pub use abilities_view::AbilitiesView;
 pub use merits_flaws_view::MeritsFlawsView;
+pub use traditions_view::TraditionsView;
+pub use bestiary_view::BestiaryView;
 pub use weapons::WeaponsView;
