@@ -19,6 +19,44 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.23.0",
+        date: "2026-10-30",
+        tag: "v0.23.0",
+        title: "Compêndio com Texto Integral do M20: Antecedentes, Habilidades, Qualidades e Defeitos",
+        highlight: "Antecedentes, Habilidades, Qualidades, Defeitos e Perturbações agora trazem o texto completo do livro em inglês e português, com os quadros e regras opcionais de cada capítulo, e Santuário e Aprimoramento passam a custar 2 pontos por bolinha como no M20.",
+        sections: &[
+            PatchSection {
+                category: "📚 Antecedentes",
+                icon: "🏛️",
+                items: &[
+                    "📖 Texto Integral M20: Os 33 Antecedentes (pp. 304-328) com a descrição completa do livro, em inglês e português.",
+                    "🔗 Regras Gerais com Links: Traços acima de 5, agrupamento na cabala e antecedentes diferenciais levam direto a cada Antecedente citado.",
+                    "💰 Custo 2:1: Santuário e Aprimoramento custam 2 pontos por bolinha na criação, nos pontos de bônus e na experiência, com a marcação \"Custo 2:1\" no extrato de custos.",
+                ],
+            },
+            PatchSection {
+                category: "🎓 Habilidades",
+                icon: "📘",
+                items: &[
+                    "📖 Texto Integral M20: As 58 Habilidades (pp. 276-300), com níveis, quem possui e especializações sugeridas revisados pelo livro.",
+                    "🆕 12 Habilidades Secundárias Novas: Voo, Alto Ritual, Sonho Lúcido, Busca, Hipertecnologia, Jetpack, Montaria, Tortura, Finanças, Saber, Mídia e Farmacopeia.",
+                    "🧪 Ciência com as 24 Especializações Científicas do livro.",
+                    "📋 Quadros e Regras Opcionais: Habilidades Mínimas, Especialista Profissional, Artesão Habilidoso, Do e Artes Marciais, Controle Corporal, Especializações Científicas e CIÊNCIA!!!",
+                ],
+            },
+            PatchSection {
+                category: "⚖️ Qualidades, Defeitos e Perturbações",
+                icon: "🎭",
+                items: &[
+                    "📖 Texto Integral M20: 16 Qualidades e Defeitos e as 10 Perturbações do Apêndice II (pp. 642-651), em inglês e português.",
+                    "🆕 Atavismo de Estresse: Berserker agora também pode ser comprado como Defeito, como no livro.",
+                    "📋 Quadros do Apêndice II: Qualidades e Defeitos, Poderes da Fé Verdadeira, Defeitos Genéticos e Perturbações, no topo da aba Todos.",
+                    "📄 Páginas Corrigidas: 13 Qualidades e Defeitos apontavam para a página errada do livro.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.22.0",
         date: "2026-10-25",
         tag: "v0.22.0",
