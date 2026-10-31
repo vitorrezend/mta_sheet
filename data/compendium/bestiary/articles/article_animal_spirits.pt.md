@@ -1,0 +1,7 @@
+> **Fonte:** Livro Básico M20, Apêndice I: Aliados e Antagonistas, p. 632
+
+Como os animistas sempre souberam, os animais também possuem espíritos — não “almas” segundo a definição humana comum (embora bem possam tê-las também…), mas personificações espirituais da essência de cada espécie. Para além dos espíritos totêmicos notórios, esses espíritos animais surgem na forma de Gafflings e Jagglings que se assemelham à fera em questão, dotados contudo de poderes místicos singulares. Um mago, portanto, pode deparar com um espírito de corvo, serpente, cavalo e assim por diante — todos com faculdades condizentes com seu arquétipo animal.
+
+Em linhas gerais, espíritos animais assemelham-se a feras comuns (veja o Bestiário), agraciados com a fala mental ou física, senciência e poderes míticos apropriados, como velocidade prodigiosa ou olhar paralisante. Dada a vasta diversidade de espíritos animais potenciais — estendendo-se inclusive a feras extintas como insetos titânicos e dinossauros —, incentivamos o Narrador a tratar tais poderes como rotinas mágikas menores (Círculos 1 a 4, com Arete entre 2 e 6) baseadas nos talentos lendários do animal. Todos os espíritos animais possuem os seguintes Encantos adicionais: Sentir as Correntes de Ar, Aparecer e Reformar. Jagglings podem se Materializar (com o formato físico do animal e intelecto superior) e manejar outros Encantos e poderes.
+
+Em termos de Traços de Antecedentes, tais entidades podem se tornar Aliados ou Familiares. A seguir constam alguns exemplos:

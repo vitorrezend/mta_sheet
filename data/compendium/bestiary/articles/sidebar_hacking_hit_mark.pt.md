@@ -1,0 +1,7 @@
+> **Fonte:** Livro Básico M20, Apêndice I: Aliados e Antagonistas, p. 626
+
+Versões antigas do projeto HIT Mark — iterações de I a IV — eram vulneráveis à “reprogramação” por invasores cibernéticos dos Adeptos Virtuais. No modelo Mark V, contudo, essas falhas foram amplamente mitigadas (+4 na dificuldade de invasão) pela integração de tecido biológico, rotinas aprimoradas e contramedidas de Primium. No modelo Mark VII, a invasão tornou-se praticamente impossível graças à fusão da computação com matéria encefálica biológica. No Mark X, a vulnerabilidade a invasões de computador foi completamente eliminada — um dos muitos êxitos da transição de máquina pensante para organismo biomecânico.
+
+Como máquinas autônomas, os HIT Marks não podem ser invadidos por acesso remoto sem fio. Um Desviante da Realidade precisa acessar fisicamente a carcaça de cada unidade — uma tarefa que, por razões óbvias, está longe de ser trivial! Personagens que queiram reprogramar um HIT Mark de modelo antigo precisam gastar pelo menos 10 minutos na operação, realizando um teste de Inteligência + Hipertecnologia (dificuldade igual ao número do modelo do HIT Mark — isto é, 5 para o Mark V) para cada nível de iteração (novamente, cinco testes sucessivos para um Mark V).
+
+Um HIT Mark X só pode ser reprogramado através da combinação das Esferas de Matéria 3 / Mente 3 / Forças 2, somada aos testes de invasão supracitados. Os protocolos necessários para reprogramar um Mark X figuram entre os segredos mais zelosamente resguardados na Iteração X e na NOM.

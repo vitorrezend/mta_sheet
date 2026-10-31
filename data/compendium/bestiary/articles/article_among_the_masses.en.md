@@ -1,0 +1,3 @@
+> **Source:** M20 Core Rulebook, Appendix I: Allies and Antagonists, p. 620
+
+Even the most reclusive and misanthropic mage occasionally deals with Sleepers. Most Awakened folks live amidst the Masses… and even those who don’t do so will eventually wind up interacting with at least a few Sleepers. That’s especially true if you’ve got the Backgrounds Allies, Backup, Cult, Retainers, or Spies (see Chapter Six), which put such characters into your mage’s employ. Lab assistants, security guards, toughs, lovers, groupies, acolytes, cultists, converts, and so forth… if and when a group of mages finds itself crossing words or swords with such people, the following templates will come in handy.

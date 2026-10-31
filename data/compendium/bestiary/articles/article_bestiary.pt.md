@@ -1,0 +1,7 @@
+> **Fonte:** Livro Básico M20, Apêndice I: Aliados e Antagonistas, p. 618
+
+Alguns magos são urbanos que raramente veem algo mais selvagem do que um gato doméstico ou um pombo. Outros preferem habitar regiões remotas e selvagens, e alguns magos usam a mágica da Esfera da Vida para assumir formas de animais. Certos Filhos do Éter e Progenitores também empregam uma vasta gama de feras experimentais — aprimorando sua inteligência, inserindo circuitos de controle em seus cérebros ou administrando drogas e terapia genética para lhes conceder faculdades inéditas e formidáveis. E temos ainda os Familiares (como no Antecedente descrito no Capítulo Seis), muitos dos quais tomam a forma de animais com intelecto extraordinário e mais algumas surpresas.
+
+Animais normais possuem apenas Traços Físicos e Mentais, já que seus atributos Sociais são essencialmente irrelevantes na interação com seres humanos. Poucos ostentam Inteligência superior a 2 ou Percepção inferior a 3. O dano infligido por animais é tipicamente letal, muito embora o Narrador possa decidir que animais pequenos (do tamanho de um gato ou cão pequeno) inflijam dano contundente. Animais de porte médio (cães, chimpanzés, lobos etc.) infligem dano letal com suas presas e dano contundente com suas garras.
+
+Para familiares, ou manifestações de espíritos totêmicos, adicione de um a três pontos e dados aos Traços abaixo, além de quaisquer outras Habilidades que parecerem apropriadas. (Para pormenores acerca de semideuses totêmicos encarnados, consulte Espíritos Totêmicos, pp. 633-636.)

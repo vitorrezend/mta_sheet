@@ -1,0 +1,40 @@
+### Sociedade do Éter
+*Os Eteritas (antigamente os Filhos do Éter)*
+
+> *“Avante e ao Alto — Tudo ou Nada!”*
+
+> **Fonte:** Livro Básico M20, pp. 160-161  
+> **Esferas de Afinidade:** [Matéria](mta://spheres/matter); [Forças](mta://spheres/forces) ou [Primórdio](mta://spheres/prime)
+
+A única barreira que impede a humanidade de alcançar sua sonhada Utopia é a pequenez de sua imaginação. Enquanto os indivíduos permitirem que a sociedade e seus governantes ditem o tamanho e o alcance de seus sonhos, o tédio mundano e todo o sofrimento a ele associado persistirão. Até mesmo a imaginação mística da maioria das Nove Tradições encontra-se acorrentada àquilo que lhe foi outorgado em eras passadas pelos Poderes Vigentes, fossem esses poderes xamãs, faraós ou sacerdotes. Apenas o futuro está livre desses grilhões, ainda não moldado e aguardando para ser sonhado. Somente os verdadeiramente audaciosos conseguem tornar o amanhã real no presente, e os Eteritas são tudo, menos covardes!
+
+Uma sociedade de sonhadores tecnomânticos radicais, os Filhos do Éter originais provaram-se inadequados para o paradigma claustrofóbico e sufocante da Tecnocracia. Embora tenham adotado o nome atual na virada do século XX, esses Cientistas Iluminados são tanto filhos quanto filhas de sua teoria unificadora: a do Éter Luminífero, aquela substância sutil que pulsa por trás da fachada de todos os fenômenos do universo. Por muito tempo criticada como um clube masculino devido aos seus costumes vitorianos antiquados, a comunidade eterita avançou com os anos. Embora tradicionalistas ainda prezem pela etiqueta clássica, o termo Sociedade do Éter substituiu amplamente a masculinidade desgastada do nome original da confraria.
+
+Os Eteritas traçam sua linhagem até a antiga Troia, embora poucos fora da Tradição aceitem essa reivindicação histórica. O alicerce de sua filosofia natural teria sido estabelecido entre os pensadores pré-socráticos da Grécia e do Mediterrâneo, registrado em um tomo intitulado (por seus tradutores árabes) *Kitab-al-Alacir*, o *Livro do Éter*. Como a primeira tentativa Inspirada (ou seja, Desperta) de formular uma filosofia natural sistemática, o *Kitab* é reverenciado pelos Eteritas, muitos dos quais Despertaram ao folhear suas páginas.
+
+De uma tradição intelectual dispersa praticada por luminares isolados, o grupo finalmente conquistou uma base institucional sólida com a fundação da Casa Hermética Golo na Itália Medieval. Esta linhagem transformou-se mais tarde na Guilda dos Filósofos Naturais e, subsequentemente, na Era Vitoriana, nos Engenheiros Eletrodinos, cujo fascínio pelo poder revolucionário da eletricidade prometia emancipar o homem comum das trevas físicas e metafísicas. Tal idealismo permanece a alma viva desta Tradição. A Tecnocracia não pôde esmagá-lo. Guerras mundiais não puderam extingui-lo. Nem o ceticismo mundano, nem falhas de ignição, nem as acusações de que os Eteritas são todos loucos e inconsequentes conseguiram impedir esses gênios de entregarem sua Ciência grandiosa ao mundo.
+
+Sim, para os padrões da maioria das pessoas (inclusive daqueles loucos com quem compartilham alianças), a maioria dos Eteritas é excêntrica. Bizarra. Talvez até completamente insana. Mas essa loucura é o clarão de uma supernova contida em uma carcaça humana frágil demais. Em um mundo determinado a ser medíocre e pequeno, a Sociedade do Éter forja heróis. Se esses heróis por vezes desintegram laboratórios, assistentes ou até mesmo… bem, cidades inteiras… em certas ocasiões, tais incidentes são o preço inevitável da verdadeira Iluminação. E o mundo torna-se melhor graças a isso. Por acaso a era moderna não é a prova viva disso? Máquinas voadoras! Aparelhos de comunicação instantânea! As pessoas não morrem mais às centenas por pestes erradicadas ou fome! (Bem, exceto talvez naquelas terras desprovidas de Ciência suficiente… uma lástima, sem dúvida). E assim, a despeito de seus custos e obstáculos, os Filhos e Filhas do Éter permanecem dedicados ao progresso da gloriosa Ciência!
+
+No século XXI, esta Tradição floresceu plenamente. A influência da ficção científica — em especial de sua vertente eteriana, o steampunk — na cultura popular permite que os Eteritas se posicionem orgulhosamente na vanguarda das aspirações humanas. Entre todas as Tradições, apenas os Adeptos Virtuais (e ocasionalmente os Akashayana) desfrutam de benevolência comparável perante o Paradoxo. A realidade moderna tem apreço por essa Ciência insólita, e embora os Eteritas ocasionalmente exagerem na voltagem e sofram os Choques de Retorno do Paradoxo, a Sociedade do Éter consegue safar-se de… bem, “assassinato” é um termo por demais deselegante. Digamos, em vez disso, grandiosidade.
+
+Aos olhos de suas Tradições irmãs, muitos Eteritas soam como individualistas vaidosos, promovendo paradigmas onde mentes brilhantes se destacam enquanto deixam as Massas para trás. Os Eteritas, contudo, lutam incansavelmente para democratizar as dádivas da Ciência Desperta para todos. “Tudo ou nada!” é o seu brado de guerra. Como resultado, buscam reconhecimento com fervor — não apenas de seus pares Iluminados, mas acima de tudo das próprias Massas. Essa aceitação, sabem eles, reflete o espírito humano audaz — um espírito que fita o Amanhã e as incontáveis Maravilhas que Estão por Vir.
+
+#### Organização
+Os Eteritas, a despeito de suas proclamações eloquentes sobre coleguismo, são frequentemente competitivos e individualistas. A confraria existe como um espaço para colher elogios; as críticas apenas o instigam a voltar ao laboratório e projetar uma versão ainda mais brilhante na próxima tentativa. Embora muitos Eteritas se tranquem em suas oficinas e laboratórios por semanas a fio sem qualquer contato humano, acabam sempre procurando a companhia de seus colegas, por mais obsessivas que suas pesquisas se tornem.
+
+#### Iniciação
+Candidatos a Eteritas costumam ser descobertos por Cientistas veteranos, com base em indícios precoces de genialidade incomum. Esses aspirantes recebem um enigma prático formulado para forçá-los a encarar as implicações revolucionárias de suas teorias. Comumente, o futuro Cientista é levado a encontrar uma cópia misteriosa do *Kitab-al-Alacir*, cujos postulados operam como catalisadores para Despertar a centelha de feitos ainda mais grandiosos por vir.
+
+#### Esferas de Afinidade
+[Matéria](mta://spheres/matter); [Forças](mta://spheres/forces) ou [Primórdio](mta://spheres/prime).
+
+#### Foco
+Ciência! Ou, mais precisamente, uma compreensão audaciosa e intuitiva dos princípios da natureza canalizada por meio de tecnologias físicas e energéticas comprovadas. Muito mais pragmáticos e materiais do que seus colegas dos Adeptos Virtuais, esses tecnomantes preferem empregar uma Ciência que possa ser tocada, manipulada, construída e demonstrada aos olhos de qualquer cético. Para esse fim, a Ciência Eterita é espetacular, romântica e elegantemente futurista, mesmo que esse futuro se assemelhe mais a clássicos da ficção científica do que à tecnologia mundana e sem vida dos Adormecidos.
+
+Na prática laboratorial, um Eterita utilizará qualquer método que produza resultados empíricos. A maioria dos Cientistas, contudo, privilegia variações esotéricas e brilhantes de [alquimia](mta://practices/alchemy), [ofícios](mta://practices/craftwork), [cibernética](mta://practices/cybernetics), [hipertecnologia](mta://practices/hypertech), [hackeamento da realidade](mta://practices/reality_hacking) e, naturalmente, [ciência bizarra](mta://practices/weird_science). Os paradigmas giram em torno de teses como Um Cosmos Mecanicista, Tudo são Dados, A Força Faz o Direito e Tudo é uma Ilusão, mas invariavelmente convergem para: A Tecnologia Detém Todas as Respostas.
+
+#### Estereótipos
+- **Companheiros de Tradição:** Aliados fascinantes, imagino eu… mas *eles* têm a ousadia de chamar *a nós* de loucos?
+- **A Tecnocracia:** Uma aberração grotesca que profana o nobre nome da Ciência, degradando o assombro da descoberta em mero controle policial.
+- **Os Disparatados:** Retrógrados teimosos. Misteriosos, sem dúvida. Certamente merecedores de estudos laboratoriais adicionais…

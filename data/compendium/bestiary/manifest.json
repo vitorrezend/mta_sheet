@@ -1,0 +1,555 @@
+[
+ {
+  "kind": "article",
+  "id": "article_supporting_cast",
+  "name": "Supporting Cast",
+  "group": "intro",
+  "page_ref": "M20, p. 618"
+ },
+ {
+  "kind": "article",
+  "id": "article_bestiary",
+  "name": "Bestiary",
+  "group": "animals",
+  "page_ref": "M20, p. 618"
+ },
+ {
+  "kind": "entry",
+  "id": "alligator",
+  "name": "Alligator",
+  "group": "animals",
+  "page_ref": "M20, p. 618"
+ },
+ {
+  "kind": "entry",
+  "id": "bird_small",
+  "name": "Bird, Small (Finch, Sparrow, Pigeon, etc.)",
+  "group": "animals",
+  "page_ref": "M20, pp. 618-619"
+ },
+ {
+  "kind": "entry",
+  "id": "bird_substantial",
+  "name": "Bird, Substantial (Hawk, Raven, Owl, etc.)",
+  "group": "animals",
+  "page_ref": "M20, p. 619"
+ },
+ {
+  "kind": "entry",
+  "id": "bird_large",
+  "name": "Bird, Large (Eagle, Swan, Vulture, etc.)",
+  "group": "animals",
+  "page_ref": "M20, p. 619"
+ },
+ {
+  "kind": "entry",
+  "id": "cat_domestic",
+  "name": "Cat, Domestic-Size",
+  "group": "animals",
+  "page_ref": "M20, p. 619"
+ },
+ {
+  "kind": "entry",
+  "id": "chimpanzee",
+  "name": "Chimpanzee",
+  "group": "animals",
+  "page_ref": "M20, p. 619"
+ },
+ {
+  "kind": "entry",
+  "id": "dog_small",
+  "name": "Dog, Small (Chihuahua, Pug, etc.)",
+  "group": "animals",
+  "page_ref": "M20, p. 619"
+ },
+ {
+  "kind": "entry",
+  "id": "dog_medium",
+  "name": "Dog, Medium (Beagle, Border Collie, etc.)",
+  "group": "animals",
+  "page_ref": "M20, p. 619"
+ },
+ {
+  "kind": "entry",
+  "id": "dog_large",
+  "name": "Dog, Large (German Shepherd, Great Dane, etc.)",
+  "group": "animals",
+  "page_ref": "M20, p. 619"
+ },
+ {
+  "kind": "entry",
+  "id": "horse",
+  "name": "Horse",
+  "group": "animals",
+  "page_ref": "M20, p. 619"
+ },
+ {
+  "kind": "entry",
+  "id": "big_cat",
+  "name": "Leopard, Jaguar, Panther, or Cougar",
+  "group": "animals",
+  "page_ref": "M20, p. 619"
+ },
+ {
+  "kind": "entry",
+  "id": "lynx",
+  "name": "Lynx or Bobcat",
+  "group": "animals",
+  "page_ref": "M20, p. 619"
+ },
+ {
+  "kind": "entry",
+  "id": "tiger_lion",
+  "name": "Tiger or Lion",
+  "group": "animals",
+  "page_ref": "M20, p. 620"
+ },
+ {
+  "kind": "entry",
+  "id": "wolf",
+  "name": "Wolf",
+  "group": "animals",
+  "page_ref": "M20, p. 620"
+ },
+ {
+  "kind": "article",
+  "id": "article_among_the_masses",
+  "name": "Among the Masses",
+  "group": "masses",
+  "page_ref": "M20, p. 620"
+ },
+ {
+  "kind": "entry",
+  "id": "typical_citizen",
+  "name": "Typical Citizen",
+  "group": "masses",
+  "page_ref": "M20, p. 620"
+ },
+ {
+  "kind": "entry",
+  "id": "thug",
+  "name": "Thug",
+  "group": "masses",
+  "page_ref": "M20, p. 620"
+ },
+ {
+  "kind": "entry",
+  "id": "beat_cop",
+  "name": "Beat Cop",
+  "group": "masses",
+  "page_ref": "M20, pp. 620-621"
+ },
+ {
+  "kind": "entry",
+  "id": "professional_badass",
+  "name": "Professional Badass",
+  "group": "masses",
+  "page_ref": "M20, pp. 621-622"
+ },
+ {
+  "kind": "entry",
+  "id": "government_agent",
+  "name": "Government Agent",
+  "group": "masses",
+  "page_ref": "M20, pp. 622-623"
+ },
+ {
+  "kind": "article",
+  "id": "article_technocratic_creations",
+  "name": "Extraordinary Operatives and Technocratic Creations",
+  "group": "technocracy",
+  "page_ref": "M20, p. 623"
+ },
+ {
+  "kind": "entry",
+  "id": "extraordinary_scientist",
+  "name": "Extraordinary Scientist",
+  "group": "technocracy",
+  "page_ref": "M20, p. 623"
+ },
+ {
+  "kind": "entry",
+  "id": "extraordinary_field_agent",
+  "name": "Extraordinary Field Agent",
+  "group": "technocracy",
+  "page_ref": "M20, p. 623"
+ },
+ {
+  "kind": "entry",
+  "id": "steelskin_cyborg",
+  "name": "Common “Steelskin” Cyborg",
+  "group": "technocracy",
+  "page_ref": "M20, pp. 623-624"
+ },
+ {
+  "kind": "entry",
+  "id": "victor",
+  "name": "Victor",
+  "group": "technocracy",
+  "page_ref": "M20, p. 624"
+ },
+ {
+  "kind": "article",
+  "id": "article_hit_marks",
+  "name": "HIT Marks",
+  "group": "technocracy",
+  "page_ref": "M20, pp. 624-625"
+ },
+ {
+  "kind": "entry",
+  "id": "hit_mark_v",
+  "name": "HIT Mark V — “Old Rusty”",
+  "group": "technocracy",
+  "page_ref": "M20, pp. 625-626"
+ },
+ {
+  "kind": "article",
+  "id": "sidebar_hacking_hit_mark",
+  "name": "Hacking a HIT Mark",
+  "group": "technocracy",
+  "page_ref": "M20, p. 626"
+ },
+ {
+  "kind": "entry",
+  "id": "hit_mark_x",
+  "name": "HIT Mark X — “The Invisible Soldier”",
+  "group": "technocracy",
+  "page_ref": "M20, p. 626"
+ },
+ {
+  "kind": "article",
+  "id": "article_awakened_brethren",
+  "name": "Our Awakened Brethren",
+  "group": "awakened",
+  "page_ref": "M20, p. 626"
+ },
+ {
+  "kind": "entry",
+  "id": "urban_shamanic_musician",
+  "name": "Urban Shamanic Musician",
+  "group": "awakened",
+  "page_ref": "M20, pp. 626-627"
+ },
+ {
+  "kind": "entry",
+  "id": "awakened_hacktivist",
+  "name": "Awakened Hacktivist",
+  "group": "awakened",
+  "page_ref": "M20, p. 627"
+ },
+ {
+  "kind": "entry",
+  "id": "black_suit",
+  "name": "Black Suit",
+  "group": "awakened",
+  "page_ref": "M20, pp. 627-628"
+ },
+ {
+  "kind": "article",
+  "id": "article_awakened_enemies",
+  "name": "Awakened Enemies",
+  "group": "enemies",
+  "page_ref": "M20, p. 628"
+ },
+ {
+  "kind": "article",
+  "id": "article_marauders",
+  "name": "Marauders",
+  "group": "enemies",
+  "page_ref": "M20, p. 628"
+ },
+ {
+  "kind": "entry",
+  "id": "pillory",
+  "name": "Pillory (Nightmarish Marauder)",
+  "group": "enemies",
+  "page_ref": "M20, pp. 628-629"
+ },
+ {
+  "kind": "entry",
+  "id": "hive",
+  "name": "Hive (Innocuous Marauder)",
+  "group": "enemies",
+  "page_ref": "M20, p. 629"
+ },
+ {
+  "kind": "article",
+  "id": "article_nephandi",
+  "name": "Nephandi",
+  "group": "enemies",
+  "page_ref": "M20, p. 630"
+ },
+ {
+  "kind": "entry",
+  "id": "widderslainte_cultist",
+  "name": "Widderslainte Cultist",
+  "group": "enemies",
+  "page_ref": "M20, pp. 630-631"
+ },
+ {
+  "kind": "entry",
+  "id": "nwo_infiltrator",
+  "name": "NWO Infiltrator",
+  "group": "enemies",
+  "page_ref": "M20, p. 631"
+ },
+ {
+  "kind": "article",
+  "id": "article_spirits",
+  "name": "Spirits",
+  "group": "spirits",
+  "page_ref": "M20, p. 631"
+ },
+ {
+  "kind": "article",
+  "id": "article_naturae",
+  "name": "Naturae",
+  "group": "spirits",
+  "page_ref": "M20, p. 631"
+ },
+ {
+  "kind": "entry",
+  "id": "forest_heart",
+  "name": "Ancient Forest-Heart (Grand Natura)",
+  "group": "spirits",
+  "page_ref": "M20, pp. 631-632"
+ },
+ {
+  "kind": "article",
+  "id": "article_animal_spirits",
+  "name": "Animal Spirits (Gafflings and Jagglings)",
+  "group": "spirits",
+  "page_ref": "M20, p. 632"
+ },
+ {
+  "kind": "entry",
+  "id": "crow_spirit",
+  "name": "Crow Spirit",
+  "group": "spirits",
+  "page_ref": "M20, p. 632"
+ },
+ {
+  "kind": "entry",
+  "id": "serpent_spirit",
+  "name": "Serpent Spirit",
+  "group": "spirits",
+  "page_ref": "M20, p. 632"
+ },
+ {
+  "kind": "entry",
+  "id": "horse_spirit",
+  "name": "Horse Spirit",
+  "group": "spirits",
+  "page_ref": "M20, pp. 632-633"
+ },
+ {
+  "kind": "entry",
+  "id": "owl_spirit",
+  "name": "Owl Spirit",
+  "group": "spirits",
+  "page_ref": "M20, p. 633"
+ },
+ {
+  "kind": "entry",
+  "id": "monkey_spirit",
+  "name": "Monkey Spirit",
+  "group": "spirits",
+  "page_ref": "M20, p. 633"
+ },
+ {
+  "kind": "article",
+  "id": "article_totem_spirits",
+  "name": "Totem Spirits",
+  "group": "totems",
+  "page_ref": "M20, p. 633"
+ },
+ {
+  "kind": "entry",
+  "id": "raven_crow",
+  "name": "Raven & Crow",
+  "group": "totems",
+  "page_ref": "M20, pp. 633-634"
+ },
+ {
+  "kind": "article",
+  "id": "sidebar_totem_traits",
+  "name": "Totem Traits",
+  "group": "totems",
+  "page_ref": "M20, p. 634"
+ },
+ {
+  "kind": "entry",
+  "id": "coyote",
+  "name": "Coyote",
+  "group": "totems",
+  "page_ref": "M20, p. 634"
+ },
+ {
+  "kind": "entry",
+  "id": "spider",
+  "name": "Spider",
+  "group": "totems",
+  "page_ref": "M20, p. 634"
+ },
+ {
+  "kind": "entry",
+  "id": "glitch",
+  "name": "Glitch",
+  "group": "totems",
+  "page_ref": "M20, p. 635"
+ },
+ {
+  "kind": "entry",
+  "id": "city_heart",
+  "name": "City-Heart",
+  "group": "totems",
+  "page_ref": "M20, p. 635"
+ },
+ {
+  "kind": "entry",
+  "id": "the_man",
+  "name": "The Man",
+  "group": "totems",
+  "page_ref": "M20, p. 635"
+ },
+ {
+  "kind": "entry",
+  "id": "mary_jane",
+  "name": "Mary Jane",
+  "group": "totems",
+  "page_ref": "M20, pp. 635-636"
+ },
+ {
+  "kind": "entry",
+  "id": "the_machine",
+  "name": "The Machine",
+  "group": "totems",
+  "page_ref": "M20, p. 636"
+ },
+ {
+  "kind": "article",
+  "id": "article_elementals",
+  "name": "Elementals",
+  "group": "elementals",
+  "page_ref": "M20, p. 636"
+ },
+ {
+  "kind": "entry",
+  "id": "air_elemental",
+  "name": "Air Elemental",
+  "group": "elementals",
+  "page_ref": "M20, p. 636"
+ },
+ {
+  "kind": "entry",
+  "id": "earth_elemental",
+  "name": "Earth Elemental",
+  "group": "elementals",
+  "page_ref": "M20, p. 636"
+ },
+ {
+  "kind": "entry",
+  "id": "fire_elemental",
+  "name": "Fire Elemental",
+  "group": "elementals",
+  "page_ref": "M20, p. 636"
+ },
+ {
+  "kind": "entry",
+  "id": "water_elemental",
+  "name": "Water Elemental",
+  "group": "elementals",
+  "page_ref": "M20, p. 636"
+ },
+ {
+  "kind": "entry",
+  "id": "electricity_elemental",
+  "name": "Electricity Elemental",
+  "group": "elementals",
+  "page_ref": "M20, p. 636"
+ },
+ {
+  "kind": "entry",
+  "id": "glass_elemental",
+  "name": "Glass Elemental",
+  "group": "elementals",
+  "page_ref": "M20, pp. 636-637"
+ },
+ {
+  "kind": "entry",
+  "id": "ice_elemental",
+  "name": "Ice Elemental",
+  "group": "elementals",
+  "page_ref": "M20, p. 637"
+ },
+ {
+  "kind": "entry",
+  "id": "metal_elemental",
+  "name": "Metal Elemental",
+  "group": "elementals",
+  "page_ref": "M20, p. 637"
+ },
+ {
+  "kind": "entry",
+  "id": "storm_spirit",
+  "name": "Storm Spirit",
+  "group": "elementals",
+  "page_ref": "M20, p. 637"
+ },
+ {
+  "kind": "entry",
+  "id": "wood_elemental",
+  "name": "Wood Elemental",
+  "group": "elementals",
+  "page_ref": "M20, p. 637"
+ },
+ {
+  "kind": "article",
+  "id": "article_minions",
+  "name": "Minions",
+  "group": "minions",
+  "page_ref": "M20, p. 638"
+ },
+ {
+  "kind": "entry",
+  "id": "memophores",
+  "name": "Memophores (Digital Web Entities)",
+  "group": "minions",
+  "page_ref": "M20, pp. 638-639"
+ },
+ {
+  "kind": "entry",
+  "id": "pattern_spider",
+  "name": "Pattern Spider (Technology Minions)",
+  "group": "minions",
+  "page_ref": "M20, p. 639"
+ },
+ {
+  "kind": "article",
+  "id": "article_paradox_manifestations",
+  "name": "Paradox Manifestations",
+  "group": "paradox",
+  "page_ref": "M20, p. 639"
+ },
+ {
+  "kind": "entry",
+  "id": "judgment",
+  "name": "Judgment (Destructive Vulgar Magick of Any Sphere)",
+  "group": "paradox",
+  "page_ref": "M20, pp. 639-640"
+ },
+ {
+  "kind": "entry",
+  "id": "wrinkle",
+  "name": "Wrinkle (Typically Time, Sometimes Other Spheres)",
+  "group": "paradox",
+  "page_ref": "M20, pp. 640-641"
+ },
+ {
+  "kind": "entry",
+  "id": "sendings",
+  "name": "Sendings",
+  "group": "paradox",
+  "page_ref": "M20, p. 641"
+ }
+]

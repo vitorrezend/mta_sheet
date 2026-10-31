@@ -1,0 +1,24 @@
+### Black Suit
+
+> **Source:** M20 Core Rulebook, Appendix I: Allies and Antagonists, pp. 627-628
+
+Except for gender and skin color, these mysterious beings all look more or less the same: a well-dressed person in a dark suit and sunglasses, usually carrying a briefcase and always driving an expensive car. Most, though not all, are bald and virtually hairless. Descendants of old-school black knights and the dark-clad investigators of Victoria’s elite detective corps, these are the front-line agents of the New World Order.
+
+Composed largely of clones created for such duty, the Black Suits begin as field agents with a chance at upward mobility. Cloned agents (derived from a handful of distinguished retirees of several different ethnicities) initially share a hive mind, whereas the NWO recruits other agents from the outside world and then Socially Conditions them to an appropriate degree of loyalty and competence. Agents who display potential are soon groomed for better things; some Awaken and get promoted, and the remainders function as rank-and-file field Operatives. The best of the best graduate to become Gray Suits, Intelligence Analysts, and perhaps even White Suited Gatekeepers. Although the Black Suits embody an obvious and unnerving authority, such Gatekeepers work in the shadows of that authority… and with far more competence than their obvious peers.
+
+Regardless of their degree of Enlightenment, all Black Suits appear soulless to anyone who examines them with Spirit magick; their thoughts and memories remain hidden to all but the most skillful Masters of the Mind Sphere. Whether or not a particular Black Suit can, in game terms, use Technocratic magick, each one of them can employ Technocratic Devices and a Mind Sphere Effect that intimidates everyone nearby. (See below for details.) Black Suits typically travel in groups of between three and six agents, each member’s specializations complementing the others’. These agents seem to be immune — or at least resistant — to Paradox, but that might be because they rarely use vulgar Effects. Instead, they prefer subtle yet pervasive psychology, martial arts, and advanced weaponry.
+
+Black Suits appear taciturn, matter-of-fact, and intensely focused on their current mission. Very few of them display any sense of humor beyond a dry and understated sarcasm. When killed, Black Suits of all types rapidly dissolve into a pool of liquid that evaporates within seconds, leaving behind no evidence of their existence.
+
+- **Suggested Attributes:** Strength 3, Dexterity 3, Stamina 3, Charisma 2, Manipulation 4, Appearance 2, Perception 5, Intelligence 4, Wits 3
+- **Suggested Abilities:** Alertness 5, Athletics 2, Awareness 3, Brawl 2, Computer 3, Drive 2, Energy Weapons 3-5, Enigmas 1, Firearms 3, Hypertech 3, Intimidation 4, Investigation 3, Martial Arts 3-4, Meditation 2, Melee 3, Science (typically Psychology) 4, Streetwise 2, Subterfuge 3, Stealth 5, Technology 3
+- **Suggested Arete:** 3-5 (Enlightened Operatives only)
+- **Suggested Spheres:** All Enlightened Black Suits have at least Mind 2, plus two to four other Spheres between Ranks 2 and 4. Typically, these Spheres are Forces, Prime, Time, or Entropy, occasionally Life or Correspondence/ Data.
+- **Willpower:** 8
+- **Health Levels:** OK, OK, OK, -1, -2, -2, -5, Vaporized
+- **Armor:** 4 (in their ever-present suits; seven soak dice, total)
+- **Attacks/ Powers:** In addition to guns and hypertech weapons, Black Suit teams generate a constant aura of fear around themselves. To overcome that aura, an enemy must make a Willpower roll against difficulty 5 +1 for every Black Suit present (maximum of 10). Even those characters who resist the full effects feel disconcerted in the presence of so much as a single Man in Black. Intimidation is an essential weapon in the Black Suit arsenal.
+- **Equipment:** Hypertech smart phone, high-density mesh-weave suit (the armor mentioned above), armored briefcase, badge & ID card, heavy pistol, large black car, various Technocratic Devices, and a VDAS datacrawl.
+- **Image:** See above; most Black Suits are Caucasian or Asian, though a select and growing number seem to be of African, Indian, or Latino origin. All Black Suits appear fit, imposing, and grim, composed and dignified under even the most difficult circumstances.
+- **Roleplaying Notes:** Other agents might wield more brute power or technological weaponry, but you and your comrades are the finest and most essential agents in your Order’s employ. Remain proud and strong even in the face of fierce adversity.
+- **Focus:** In A World of Gods and Monsters, Might is Right, and Tech Holds All Answers. Through a skillful combination of dominion, reality hacking and martial arts, a Black Suit employs all manner of technologies, from weaponry to meditation to force of social domination.

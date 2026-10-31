@@ -1,0 +1,3 @@
+> **Source:** M20 Core Rulebook, Appendix I: Allies and Antagonists, p. 628
+
+Some of these dangerous, and often insane, individuals hide within the Traditions or the Union. Others blend in among the Masses. All of them can be deadly threats, especially when you don’t realize that you’ve met one until it’s far too late…
