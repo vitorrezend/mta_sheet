@@ -20,10 +20,10 @@ pub struct PatchSection {
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
         version: "v0.23.0",
-        date: "2026-10-30",
+        date: "2026-10-31",
         tag: "v0.23.0",
-        title: "Compêndio com Texto Integral do M20: Antecedentes, Habilidades, Qualidades e Defeitos",
-        highlight: "Antecedentes, Habilidades, Qualidades, Defeitos e Perturbações agora trazem o texto completo do livro em inglês e português, com os quadros e regras opcionais de cada capítulo, e Santuário e Aprimoramento passam a custar 2 pontos por bolinha como no M20.",
+        title: "Compêndio com Texto Integral do M20: Antecedentes, Habilidades, Esferas, Arquétipos, Qualidades e Defeitos",
+        highlight: "Antecedentes, Habilidades, Esferas, Qualidades, Defeitos e Perturbações agora trazem o texto completo do livro em inglês e português, com os quadros e regras opcionais de cada capítulo; Naturezas e Comportamentos destacam a recuperação de Força de Vontade; e Santuário e Aprimoramento passam a custar 2 pontos por bolinha como no M20.",
         sections: &[
             PatchSection {
                 category: "📚 Antecedentes",
@@ -52,6 +52,24 @@ pub static PATCH_RELEASES: &[PatchRelease] = &[
                     "🆕 Atavismo de Estresse: Berserker agora também pode ser comprado como Defeito, como no livro.",
                     "📋 Quadros do Apêndice II: Qualidades e Defeitos, Poderes da Fé Verdadeira, Defeitos Genéticos e Perturbações, no topo da aba Todos.",
                     "📄 Páginas Corrigidas: 13 Qualidades e Defeitos apontavam para a página errada do livro.",
+                ],
+            },
+            PatchSection {
+                category: "🔮 Esferas",
+                icon: "✨",
+                items: &[
+                    "📖 Texto Integral M20: As 9 Esferas, Dados, Ciência Dimensional, Utilidade Primordial, Talento Selvagem e as regras gerais (pp. 511-528), agora como no livro, em inglês e português.",
+                    "🏷️ Nomes dos Postos, Especialidades e Subtítulos revisados pelo livro.",
+                    "📋 Quadros Data Connections e Primal Ventures incluídos.",
+                ],
+            },
+            PatchSection {
+                category: "🎭 Naturezas e Comportamentos",
+                icon: "🎭",
+                items: &[
+                    "✅ Os 20 Arquétipos Conferidos com o Livro (pp. 267-273): texto idêntico ao M20 e páginas corrigidas.",
+                    "⚡ Recuperação de Força de Vontade: a regra do livro (p. 268) em destaque no quadro de Natureza e Comportamento e em cada arquétipo.",
+                    "📋 Quadro de Natureza e Comportamento em inglês e português, com a lista dos 20 arquétipos, página, força, fraqueza e link para cada um.",
                 ],
             },
         ],
