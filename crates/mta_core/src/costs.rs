@@ -121,13 +121,15 @@ impl CharacterData {
         let (arete_base, _, _, _) = self.attributes.get(keys::KEY_ARETE).map(|a| a.count_origins()).unwrap_or((ARETE_CREATION_BASE, 0, 0, 0));
         let arete_exceeded = arete_base > ARETE_CREATION_BASE;
 
-        // 5. Antecedentes (Orçamento: 7 pontos)
+        // 5. Antecedentes (Orçamento: 7 pontos, Santuário e Aprimoramento custam 2:1 no M20)
         let mut backgrounds_spent = 0;
         if let Some(list) = self.custom_lists.get(keys::CAT_ANTECEDENTES) {
             for id in list {
                 if let Some(attr) = self.attributes.get(id) {
                     let (base, _, _, _) = attr.count_origins();
-                    backgrounds_spent += base;
+                    let label = self.labels.get(id).map(|s| s.as_str()).unwrap_or("");
+                    let multiplier = background_cost_multiplier(label, id) as usize;
+                    backgrounds_spent += base * multiplier;
                 }
             }
         }
@@ -451,15 +453,21 @@ impl CharacterData {
                         TraitCategory::Ability
                     };
 
+                    let bg_mult = if is_background {
+                        background_cost_multiplier(&display_name, &id)
+                    } else {
+                        1
+                    };
+
                     for (idx, &origin) in origins.iter().take(lvl).enumerate() {
                         match origin {
                             DotOrigin::Bonus => {
                                 bonus_dots += 1;
-                                trait_bonus_cost += freebie_cost_per_dot(cat);
+                                trait_bonus_cost += freebie_cost_per_dot(cat) * bg_mult;
                             }
                             DotOrigin::Experience => {
                                 xp_dots += 1;
-                                trait_xp_cost += xp_cost_for_dot(cat, idx, is_affinity);
+                                trait_xp_cost += xp_cost_for_dot(cat, idx, is_affinity) * bg_mult;
                             }
                             _ => {}
                         }
@@ -469,10 +477,22 @@ impl CharacterData {
                 if trait_bonus_cost != 0 || trait_xp_cost > 0 {
                     total_bonus_spent += trait_bonus_cost;
                     total_xp_spent += trait_xp_cost;
+                    let bg_mult = if is_background {
+                        background_cost_multiplier(&display_name, &id)
+                    } else {
+                        1
+                    };
+                    let category_label = if is_affinity {
+                        "Esfera de Afinidade".to_string()
+                    } else if is_background && bg_mult > 1 {
+                        format!("{} (Custo 2:1)", category)
+                    } else {
+                        category
+                    };
                     items.push(CostBreakdownItem {
                         id,
                         name: display_name,
-                        category: if is_affinity { "Esfera de Afinidade".to_string() } else { category },
+                        category: category_label,
                         level: attr.level,
                         bonus_dots,
                         bonus_cost: trait_bonus_cost,
@@ -546,6 +566,7 @@ impl CharacterData {
 
     /// Helper to get single dot cost and explanation for tooltips
     pub fn get_dot_cost_description(trait_name: &str, dot_idx: usize, origin: DotOrigin, is_affinity: bool) -> (i32, String) {
+        let is_bg = trait_name.starts_with("bg_") || is_double_cost_background(trait_name, "");
         let cat = if trait_name == keys::KEY_ARETE {
             TraitCategory::Arete
         } else if STANDARD_SPHERES.contains(&trait_name)
@@ -557,17 +578,23 @@ impl CharacterData {
             TraitCategory::Willpower
         } else if STANDARD_ATTRIBUTES.contains(&trait_name) {
             TraitCategory::Attribute
-        } else if trait_name.starts_with("bg_") {
+        } else if is_bg {
             TraitCategory::Background
         } else {
             TraitCategory::Ability
         };
-        format_dot_cost_description(
+        let multiplier = if is_bg && is_double_cost_background(trait_name, "") {
+            2
+        } else {
+            1
+        };
+        format_dot_cost_description_with_multiplier(
             cat,
             dot_idx,
             is_affinity,
             matches!(origin, DotOrigin::Bonus),
             matches!(origin, DotOrigin::Experience),
+            multiplier,
         )
     }
 }

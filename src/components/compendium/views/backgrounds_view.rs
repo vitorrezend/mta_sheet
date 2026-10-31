@@ -119,13 +119,13 @@ pub fn BackgroundsView(
             // ================= COLUNA ESQUERDA: LISTA DE ANTECEDENTES =================
             <div class="practice-sidebar-pane">
                 // Campo de Busca
-                <div class="practice-search-box" style="margin-bottom: 0.6rem;">
+                <div class="practice-search-box">
                     <input
                         type="text"
                         class="practice-search-input"
                         placeholder=move || match current_lang.get() {
-                            Language::PtBr => "Buscar Antecedente (ex: Aliados, Arcano, Avatar...)",
-                            Language::EnUs => "Search Background (e.g. Allies, Arcane, Avatar...)",
+                            Language::PtBr => "Buscar antecedente…",
+                            Language::EnUs => "Search backgrounds…",
                         }
                         prop:value=search_filter
                         on:input=move |ev| set_search_filter.set(event_target_value(&ev))
@@ -280,45 +280,11 @@ pub fn BackgroundsView(
                                     </div>
                                 </div>
 
-                                <div class="archetype-mechanics-summary" style="margin-top: 1rem;">
-                                    <div class="archetype-mech-item">
-                                        <span class="archetype-mech-title">
-                                            "★ " {match lang {
-                                                Language::PtBr => "Pontuações Acima de 5 Bolinhas:",
-                                                Language::EnUs => "Traits Over Five Dots:",
-                                            }}
-                                        </span>
-                                        <span class="archetype-mech-desc">
-                                            {match lang {
-                                                Language::PtBr => "Mortais e iniciantes limitam-se a 5. Em mesas de alto poder mítico ou ativos comunitários da cabala, Antecedentes como Aliados, Reforço, Capela, Contatos e Culto podem ascender até 10 pontos.",
-                                                Language::EnUs => "Mortals and starting characters cap at 5. In mythic elder games or pooled cabal assets, Traits like Allies, Backup, Chantry, Contacts, and Cult may scale up to 10 dots.",
-                                            }}
-                                        </span>
-                                    </div>
-                                    <div class="archetype-mech-item" style="margin-top: 0.5rem;">
-                                        <span class="archetype-mech-title">
-                                            "★ " {match lang {
-                                                Language::PtBr => "Agrupamento de Recursos na Cabala:",
-                                                Language::EnUs => "Pooling Cabal Resources:",
-                                            }}
-                                        </span>
-                                        <span class="archetype-mech-desc">
-                                            {match lang {
-                                                Language::PtBr => "Membros de uma mesma Cabala ou Amálgama podem somar seus pontos para fundar Capelas, Nós de Quintessência compartilhados ou redes conjuntas de contatos e cultistas.",
-                                                Language::EnUs => "Members of a Cabal or Amalgam may pool background points to build shared Chantries, communal Nodes, or joint information webs.",
-                                            }}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="practice-description-block" style="margin-top: 1.2rem;">
+                                <div class="practice-description-block" style="margin-top: 0.8rem;">
                                     {
                                         let content = rule.content(lang);
-                                        content.split("\n\n").map(|paragraph| {
-                                            view! {
-                                                <p class="practice-desc-para">{paragraph.to_string()}</p>
-                                            }
-                                        }).collect_view()
+                                        let text_sig = Signal::derive(move || content.to_string());
+                                        view! { <RichTextView text=text_sig /> }
                                     }
                                 </div>
                             </div>
