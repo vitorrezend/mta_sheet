@@ -1,0 +1,5 @@
+Na moderna era do consumo, a maioria das pessoas esqueceu como sobreviver sem uma loja ou supermercado por perto. Você não. Uma combinação de aprendizado prático e instinto animal ajuda você a localizar fontes de alimento, água, abrigo e segurança relativa. Você provavelmente consegue encontrar seu caminho pela selva, matagais ou ermos urbanos, decifrando os perigos locais por tempo suficiente para se manter vivo... ao menos por enquanto.
+
+Habilidades de sobrevivência muito básicas aplicam-se a quase qualquer ambiente; tarefas avançadas, contudo — ou ambientes extremamente severos ou alienígenas —, exigem especializações específicas de Sobrevivência. Um pouco de experiência com mochilão, por exemplo, não ajudará muito você no Vale da Morte ou no centro superpovoado de Mumbai. Uma variante desta Perícia, Sobrevivência Urbana, confere a você a experiência para viver nas ruas, revirar caçambas e descobrir onde — e onde não — tirar uma soneca nas cidades e subúrbios deste Mundo das Trevas.
+
+Para regras sobre situações de sobrevivência, consulte Perigos Ambientais no Capítulo Nove, (pp. 435–436).

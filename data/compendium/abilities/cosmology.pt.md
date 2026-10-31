@@ -1,0 +1,3 @@
+Conhecido por Tecnocratas e muitos místicos da hipertecnologia como Subdimensões, este traço reflete um conhecimento prático dos enigmáticos Outros Mundos além do plano terreno. Com ele, você tem uma chance decente de encontrar seu caminho por lá sem acabar morto. (Sem ele, você está seriamente encrencado.) A maneira específica pela qual você enxerga os Outros Mundos dependerá muito do que você espera encontrar lá; este Conhecimento simplesmente fornece as ferramentas para navegar por trilhas, identificar perigos, lidar com entidades e reconhecer oportunidades ou ameaças quando cruzar com elas.
+
+Para uma visão geral dos Outros Mundos, consulte o Capítulo Quatro. Para sistemas de jogo, consulte Os Outros Mundos no Capítulo Nove, (pp. 474–485).

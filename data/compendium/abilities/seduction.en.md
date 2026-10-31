@@ -1,0 +1,3 @@
+You’re good at being bad. A master of attraction, you can draw people into engagements they might otherwise ignore or avoid. We’re not talking about simple chemistry here, although you can certainly augment your chemistry with a little Life or Mind magick. This Talent reflects the combination of carnal allure and emotional manipulation that can wind people around your fingers (or other parts of your anatomy…) whenever you want their attention.
+
+Seduction isn’t always sexual. It does, however, play off the target’s desires. Note that you don’t have to be gorgeous to use this Ability; many seducers, in fact, seem unremarkable until they put this gift to work. For game systems associated with social machinations, see the Social Occasions and Intrigue entry in Chapter Nine.

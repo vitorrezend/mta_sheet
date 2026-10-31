@@ -1,0 +1,3 @@
+Você sabe como fazer coisas fazerem BUM, geralmente sem se despedaçar em pedacinhos no processo. Esta especialidade perigosa torna-se especialmente importante no novo milênio, quando Dispositivos Explosivos Improvisados são armas de escolha e oportunidade.
+
+Esse Conhecimento confere familiaridade prática com química e tecnologia de explosivos, compreensão dos projetos comuns, aptidão para calcular padrões e efeitos de detonação e — em seus níveis mais altos — a perícia necessária para também desarmar muitos artefatos explosivos. O que ele não faz é fornecer tecnologia explosiva infalível. Uma vez que as coisas explodem, o caos sempre assume o controle.

@@ -1,0 +1,3 @@
+Carros? Você entende de carros. Talvez caminhões também, se for bom o bastante. Esta Perícia reflete as complexidades cotidianas da condução de automóveis: quanto maior a sua pontuação, melhor você é ao volante. Um único ponto representa a operação básica de um carro com transmissão automática. Níveis superiores colocam uma gama mais ampla de veículos sob o seu comando. A condução habitual no dia a dia não exige teste, mas se você se encontrar em uma corrida, perseguição ou outra circunstância desafiadora, é melhor torcer para ter alguns pontos nesta Perícia. Do contrário, o resultado pode ser... desastroso.
+
+Para regras de jogo que tratam de condução e afins, consulte Sistemas de Veículos no Capítulo Nove, (pp. 458–462).

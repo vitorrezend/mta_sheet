@@ -1,0 +1,3 @@
+For folks with the power to change reality — and who live, by default, on a different level of reality than most people do — schizophrenia is frighteningly close to everyday existence. As a derangement, however, the disconnection from reality becomes profoundly dangerous. Hallucinations, phantom voices and sensations, vicious quirks of mood and temperament, leaps of (il)logic that feel extreme even by Awakened standards… such symptoms make it difficult to tell where reality ends and insanity begins. For mages, schizophrenia is the road to Marauderdom… or, in extreme cases, becomes that Mad destination from which no mage can return.
+
+> **Related box:** [Derangements](mta://merits_flaws/article_derangements)

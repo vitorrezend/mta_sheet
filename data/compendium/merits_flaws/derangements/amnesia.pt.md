@@ -1,0 +1,3 @@
+Ao bloquear fragmentos inteiros de suas lembranças, uma pessoa acometida por amnésia não esquece necessariamente quem ou onde está, mas perde recordações traumáticas, perigosas ou que pareçam irreais à sua mente. A depender do choque desencadeador, o amnésico pode apagar facetas inteiras de sua identidade, esquecer pessoas ou locais específicos, bloquear eventos determinados ou passar a funcionar em uma camada da realidade onde o elemento esquecido (um irmão, uma residência de infância, um braço decepado) simplesmente nunca existiu.
+
+> **Quadro relacionado:** [Perturbações](mta://merits_flaws/article_derangements)

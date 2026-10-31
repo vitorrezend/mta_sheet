@@ -1,0 +1,3 @@
+Você conhece uma determinada região como a palma da sua mão. Em termos de jogo, escolha uma região específica (não maior que uma cidade) sobre a qual seu personagem tenha motivos para conhecer profundamente. Testes bem-sucedidos de Conhecimento de Área ajudam você a se deslocar, identificar atalhos e compreender costumes locais, pistas e curiosidades de maneiras que nenhum forasteiro conseguiria entender.
+
+(Nota: A opção da regra [O Artífice Habilidoso](mta://abilities/rule_well_skilled_craftsman) não se aplica a Conhecimento de Área. Para aprender sobre um lugar, você precisa passar tempo nele.)

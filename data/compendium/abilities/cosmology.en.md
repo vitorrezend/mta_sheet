@@ -1,0 +1,3 @@
+Known by Technocrats and many hypertech mystics as Subdimensions, this trait reflects a working knowledge of the puzzling Otherworlds beyond the Earthly plane. With it, you stand a decent chance of finding your way around out there without getting yourself killed. (Without it, you’re seriously screwed.) The specific way in which you view the Otherworlds will depend a lot on what you expect to see there; this Knowledge simply gives you the tools to navigate paths, spot hazards, deal with entities, and recognize opportunities or threats when you run across them.
+
+For an overview of the Otherworlds, see Chapter Four. For game systems, see The Otherworlds in Chapter Nine, (pp. 474-485).

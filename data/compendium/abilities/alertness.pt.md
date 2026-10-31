@@ -1,0 +1,1 @@
+Você pressente as coisas se aproximando muito antes de qualquer outra pessoa. Uma combinação de instintos aguçados e raciocínio afiado, esta Habilidade ajuda você a avaliar situações e responder de acordo. Povos-fera, sobreviventes, cortesãos brilhantes e veteranos calejados em batalha possuem altas pontuações em Prontidão.

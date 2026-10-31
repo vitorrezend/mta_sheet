@@ -1,0 +1,10 @@
+Awful experiences have given you a hair-trigger response to certain situations. Anxiety, aversions, phobias, sudden rage… whatever the symptoms might be, this post-traumatic stress disorder acts as a protective shield against further harm. Unlike a derangement, this Flaw doesn’t induce delusions — your character remains lucid enough. Still, her fears kick in at difficult, sometimes unpredictable, times, undermining every attempt at whatever passes for a normal life in the Awakened world.
+
+As usual, the different levels of this Flaw manifest in various levels of severity:
+
+- **(2 points)** Your PTSD conjures occasional nightmares and anxieties under certain rare circumstances (confronting ghosts, dealing with demons, entering the wilderness, and so forth).
+- **(3 points)** The trauma triggers phobias or other strong reactions to more common situations (dealing with elders, facing financial difficulty, etc.).
+- **(4 points)** Reactions become more extreme — near-panic, powerful aversion, rapid mood swings — and provocations become more common (gunshots, confrontations, raised voices, etc.).
+- **(5 points)** Your PTSD kicks off major reactions — fight-or-flight panic, vivid flashbacks, moments of stark terror, incapacitating catatonia — in fairly common situations (sex, arguments, financial transactions, etc.). Even without the specific stimulus, you suffer from nightmares, social anxieties, fear of common things, and other circumstances that could evoke the traumatic event(s).
+
+Sadly common in the World of Darkness, PTSD reflects deep-seated pain caused by things that a person might not even recall. Combat, torture, accidents, poverty, sexual violation, domestic violence, parental abuse… anything that can destroy a person’s sense of safety might cause PTSD. Despite its sometimes extreme nature, PTSD is a perfectly rational response to harm. Because of that, it can be difficult to treat successfully, even with advanced psychiatry or Mind-based magicks. In most cases, a person suffering from PTSD simply learns to live with the symptoms and avoid the triggers that can set off a reaction.

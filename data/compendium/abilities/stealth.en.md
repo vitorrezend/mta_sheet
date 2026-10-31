@@ -1,0 +1,1 @@
+A vital proficiency for folks who want or need to get around without being noticed, this Skill helps you move in silence, take advantage of your environment, and spot potential hazards before they blow your cover. Other characters have a chance to notice you, of course (see Chapter Nine, p. 403), but a high rating in this Skill can beat most mundane forms of observation.

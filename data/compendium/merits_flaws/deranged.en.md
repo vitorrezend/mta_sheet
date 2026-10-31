@@ -1,0 +1,5 @@
+You suffer from a lasting form of mental illness. Although a successful Willpower roll (Storyteller’s option) might allow you to cope with the effects for a short time, this insanity lingers until and unless it can be cured… which also involves buying off the Flaw. An essential Flaw for Marauder characters (though it’s not exclusive to the Mad), this Trait gives you one of the Derangements described in the sidebar of that name. This madness might also affect someone with a Genetic Flaw (see below), or who’s been subjected to Room 101 or Things Man Was Not Meant to Know (see Chapters Five and Nine).
+
+A minor 3-point derangement reflects a troubling but manageable level of insanity; the 5-point level, meanwhile, represents an intensity of madness that makes your character a danger to herself and everyone nearby, if only because she’s a crazy person with the power of a mage.
+
+> **Related boxes:** [Derangements](mta://merits_flaws/article_derangements) · [Genetic Flaws](mta://merits_flaws/article_genetic_flaws)

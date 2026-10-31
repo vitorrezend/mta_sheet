@@ -1,0 +1,3 @@
+O dinheiro é o truque de mágica humano definitivo, e você sabe como ele funciona. Comércio, tendências, investimentos, mercados e riscos fornecem a você estímulo mental, poder Desperto/Iluminado, solidez econômica e — muito provavelmente — muito dinheiro (em termos de jogo, o [Antecedente Recursos](mta://backgrounds/resources)).
+
+Uma Característica essencial para Tecnocratas do Sindicato, este Conhecimento enriquece magos, Adeptos, cientistas loucos e bruxas astutas em toda parte, além de fornecer um componente fundamental da Ars Cupiditae — uma forma venerável de mágika baseada no desejo. (Consulte A Arte do Desejo/Hipereconomia no Capítulo Dez, pág. 573.)

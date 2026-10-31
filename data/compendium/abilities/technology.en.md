@@ -1,0 +1,3 @@
+In our high-tech world, this Skill often comes in handy. A catch-all group of familiar tech affinities, Technology reflects a working knowledge of typical developed-world gadgets. Most urbanized characters have at least one dot in Technology but seldom more than three. This Ability covers simple operations and repairs; for advanced forms of technology and hypertech, see Crafts above, or Computers and Secondary Skills below. For game systems that deal with mundane tech, see Inventing, Modifying, and Improving Technology in Chapter Nine, (pp. 463-464).
+
+> **Related boxes:** [Optional Rule: Minimum Abilities](mta://abilities/rule_minimum_abilities)

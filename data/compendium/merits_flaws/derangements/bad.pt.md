@@ -1,0 +1,3 @@
+Também conhecido como psicose maníaco-depressiva, o Transtorno Afetivo Bipolar (TAB) faz o indivíduo oscilar entre episódios maníacos de euforia hiperativa e abismos de depressão profunda. Ocasionalmente, ambos os estados podem coexistir em episódios mistos, provocando um estado de melancolia exuberante ou de fúria agitada. Fases maníacas tendem a despertar comportamentos imprudentes e impulsivos, expectativas irreais e paixões desmedidas; já as crises depressivas drenam a energia vital, esmagam a autoestima e transformam qualquer motivação e confiança em poeira escura.
+
+> **Quadro relacionado:** [Perturbações](mta://merits_flaws/article_derangements)
