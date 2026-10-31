@@ -1,34 +1,38 @@
-### Entropia (Entropy)
+### Entropia
 *Acaso e Mortalidade*
 
-> **Especializações:** Destino, Sorte/Fortuna, Decomposição, Ordem, Caos, Necromancia  
-> **Fonte:** Livro Básico M20, pp. 508-510
+> **Especializações:** Destino, Fortuna, Decaimento, Ordem, Caos, Necromancia  
+> **Fonte:** Livro Básico M20, pp. 514-515
 
-Tudo é mortal. Objetos, pessoas e até ideias se decompõem com o tempo. Quando você compreende verdadeiramente esse princípio — e, mais ainda, quando pode influenciá-lo pessoalmente —, tal conhecimento traz consigo uma sensação de libertação… uma ponta de tristeza, sem dúvida, mas também o conforto sereno do desapego.
+Tudo é mortal. Objetos, pessoas, até mesmo conceitos decaem com o tempo. Quando você verdadeiramente compreende esse princípio — e mais, quando pode você mesmo influenciá-lo — tal conhecimento traz consigo uma sensação de libertação... um pouco de tristeza, é claro, mas também o conforto de desapegar.
 
-Controlando as energias da probabilidade e do declínio, um mago versado em Entropia pode manipular variáveis aleatórias, observar e explorar falhas estruturais em qualquer sistema, canalizar as energias da Umbra Baixa, induzir ou purgar corrupção, e impor sua Vontade através do processo inexorável da mortalidade.
+Controlando as energias da probabilidade e do decaimento, um mago versado em Entropia pode manipular fatores aleatórios, observar e influenciar falhas dentro de um sistema, conectar-se às energias da Baixa Umbra, induzir ou remover corrupção e, de outras formas, exercer sua Vontade através do processo inexorável da mortalidade.
 
-Não é uma senda fácil. O mago entrópico assimila parte da Ressonância da decomposição em seu próprio Padrão e carrega o peso do fim em sua mente e alma. Ainda assim, os poderes desta Esfera — embora menos espalhafatosos e destrutivos à primeira vista que os de outras Artes — conferem um domínio sutil, onipresente e implacável sobre a Criação.
+Esta não é uma disciplina fácil. O mago Entrópico assume parte da Ressonância do decaimento dentro de seu próprio Padrão, e carrega o peso da mortalidade dentro de sua mente e alma. Ainda assim, os poderes desta Esfera — embora menos obviamente destrutivos do que os de outras Artes — concedem àquele mago um controle sutil, porém pervasivo, sobre a Criação como um todo.
 
-Ao contrário da maioria das outras Esferas, os feitiços de Entropia não causam dano direto até o Nível 4; a partir daí, tal dano é invariavelmente agravado, pois esgarça os próprios Padrões da existência. Até esse ponto, a Entropia ajuda o mago a explorar ou adiar os efeitos do acaso e da decadência… um trunfo que permite voltar o próprio ambiente do oponente contra ele, mesmo sem atacá-lo de forma ostensiva.
+Ao contrário da maioria das outras Esferas, os feitiços de Entropia não causam dano até o Posto 4; depois disso, tal dano é agravado, pois despedaça os próprios Padrões da existência. Até esse ponto, a Entropia ajuda o mago a explorar ou adiar os efeitos do decaimento e da probabilidade... uma dádiva que o ajuda a usar o ambiente do oponente contra ele mesmo, mesmo quando não ataca diretamente.
 
-Por razões evidentes, magos de Entropia tendem a ser fatalistas, dissociados ou estranhamente bem-humorados. Para eles, a máxima "tudo passa" não é mero ditado popular, mas uma lei cósmica irrefutável.
+Por razões óbvias, magos versados em Entropia costumam ser fatalistas, dissociados ou estranhamente alegres. Para eles, o ditado “tudo deve passar” não é um mero sentimento, mas um fato intrínseco da vida.
 
 ---
 
-#### • Sentir Falhas, Destino & Sorte / O Anel da Verdade
-A compreensão entrópica básica permite ao mago enxergar as correntes de probabilidade, localizar pontos fracos em Padrões e notar detalhes reveladores na fala e postura de alguém que indicam se ela crê no que está dizendo. Embora ainda não possa comandar tais fenômenos, o mago antecipa jogadas de dados, cartas de baralho e eventos aparentemente caóticos; identifica rachaduras em objetos, argumentos ou pessoas; e usa esses vislumbres profundos a seu favor.
+#### • Sentir Falhas, Destino & Fortuna / Anel da Verdade
+A compreensão Entrópica básica permite ao mago ver as correntes de probabilidade, localizar falhas em Padrões e notar os detalhes sutis, porém reveladores, na fala e no comportamento de uma pessoa que sugerem se ela está ou não dizendo o que acredita ser a verdade. Embora ainda não possa controlar tais fenômenos, o mago pode prever lançamentos de dados, cartas puxadas e outros eventos aparentemente aleatórios; detectar pontos fracos em objetos, pessoas ou argumentos; e usar esses discernimentos imperfeitos, porém profundos, em seu benefício.
 
 #### •• Controlar Probabilidade
-Agora o mago governa os fatores que antes apenas observava. Puxando os cordões do acaso, ele influencia desfechos — guiando a queda de dados ou cartas, acertando repetidamente pontos vulneráveis e conduzindo pessoas e objetos para a conclusão desejada. Pequenos eventos (vencer uma aposta de cavalo) exigem menos sucessos que grandes catástrofes (engavetamento de seis veículos).
+Agora o mago pode controlar os fatores que antes conseguia apenas pressentir. Puxando as cordas de eventos aparentemente aleatórios, ele pode influenciar atividades e resultados — direcionando a queda de dados ou cartas, atingindo repetidamente pontos fracos e conduzindo pessoas e coisas em direção a uma conclusão de sua escolha. É claro que é mais fácil controlar pequenos eventos (o vencedor de uma corrida de cavalos) do que grandes acontecimentos (causar um engavetamento de seis carros). Em termos de regras, grandes alterações exigem mais sucessos do que as pequenas.
 
 #### ••• Afetar Padrões Previsíveis
-Toda matéria perece. Neste Nível, o mago controla a velocidade com que objetos físicos falham ou se desgastam. É muito mais fácil quebrar máquinas complexas (motores, computadores) do que estruturas simples (muros, rochas). O mago também pode atrelar boa ou má sorte prolongada a pessoas e coisas, além de ditar o fluxo causal em uma área delimitada.
+As coisas eventualmente quebram. Neste Posto, o mago pode controlar a velocidade com que objetos materiais falham ou decaem. Isso é mais fácil de fazer com máquinas complexas (carros, computadores) do que com estruturas simples (paredes, pedras) — afinal de contas, mais coisas podem dar errado em elementos complicados.
 
-#### •••• Afetar a Vida / Definhamento / Dano Agravado
-A Entropia agora atinge o âmago dos Padrões vivos. O mago pode induzir podridão, necrose espontânea e definhamento fulminante em organismos vivos, causando dano agravado que ignora armaduras físicas convencionais. Por outro lado, pode retardar o envelhecimento, curar gangrena ou amaldiçoar o destino de um indivíduo com tragédias implacáveis.
+Neste Posto, o mago também pode começar a controlar o destino e a fortuna de objetos e pessoas, concedendo-lhes boa ou má sorte ao controlar a probabilidade de eventos ao seu redor. Novamente, grandes feitos exigem mais sucessos do que os menores.
 
-Combinado com [Mente 4](mta://spheres/mind), pode corroer pensamentos e sanidade; com [Matéria 4](mta://spheres/matter), apodrecer metais e pedras instantaneamente; com [Forças 4](mta://spheres/forces), dispersar energias cinéticas e térmicas.
+#### •••• Afetar Seres Vivos
+Neste Posto, o mago assume o poder formidável de abençoar, amaldiçoar e conceder saúde ou decaimento absolutos. Ao influenciar o fluxo de entropia dentro de um corpo vivo, esse mago pode conceder vitalidade extraordinária a seu alvo ou infligir-lhe uma doença súbita. Tal influência, como observado acima, causa ou cura dano agravado e pode conceder sorte ou infortúnio de longo prazo. (Fica a critério do Narrador como isso se manifesta.)
 
-#### ••••• Mutar Pensamentos & Conceitos / Necromancia & Dissolução Total
-O domínio supremo da Entropia permite desmanchar conceitos abstratos, crenças e instituições inteiras. O Mestre pode dissolver a autoridade de governos, fragmentar a psiquê coletiva, convocar e subjugar espíritos dos mortos (aparições), ou colapsar subitamente um ecossistema. Tudo o que tem um início pode ser levado a um encerramento súbito e absoluto.
+#### ••••• Afetar o Pensamento / Moldar Memes / Juramento Vinculante
+As aplicações mais esotéricas da Entropia permitem ao mago alterar ideias, fortalecendo ou desmantelando conceitos. Embora não afete o funcionamento real da consciência, ele pode fazer com que sinapses falhem (confundindo assim percepções e processamento mental, infligindo penalidades nas rolagens de dados de um inimigo), vincular alguém a um juramento ou degradar os padrões de pensamento. Ao fazer isso, esse Mestre Entrópico pode criar, perpetrar, reforçar e minar argumentos, crenças e até memórias.
+
+Para fazer tais coisas, o Mestre meramente fala com o alvo de sua atenção ou lança um olhar em sua direção. Mestres do Caos podem embaralhar as percepções de alguém com algumas palavras estranhas, e Mestres da Ordem podem apresentar argumentos com uma lógica aparentemente perfeita. Ao oferecer declarações convincentes, o Mestre pode criar ou destruir memes (ver p. 594), influenciando assim padrões inteiros de crença. Um juramento, por sua vez, amarra o destino do indivíduo à sua lealdade; se ele quebrar o juramento, sua sorte se torna muito, muito ruim.
+
+Em termos de regras, tais feitos exigem um certo número de sucessos. Inspirar um capricho requer apenas um ou dois sucessos, despertar uma fantasia passageira exige três, estabelecer ou minar uma convicção custa quatro ou cinco sucessos, e fixar obsessões profundas demanda cinco sucessos ou mais. Tais atividades são geralmente coincidentes e são tipicamente roladas contra uma dificuldade igual à Força de Vontade do alvo, com dificuldade mínima de 4.
