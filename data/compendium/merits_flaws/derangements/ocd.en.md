@@ -1,0 +1,3 @@
+Sometimes called monomania, OCD drives a person to anxious, repetitious, and often ritualistic behavior patterns. Essentially, a person with OCD fixates on intrusive doubts and fears — fixations she tries to banish by making sure that certain things are in order, even if they already are. Often seen as an attempt to control one’s circumstances, OCD is especially common among ceremonial mages, technomancers, and mad scientists, thanks to the many things they do that really MUST be tightly controlled and perfectly organized.
+
+> **Related box:** [Derangements](mta://merits_flaws/article_derangements)

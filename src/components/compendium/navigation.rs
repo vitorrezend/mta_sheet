@@ -274,6 +274,8 @@ impl CompendiumTarget {
             CompendiumTarget::MeritFlaw(id) => {
                 if let Some(mf) = find_merit_flaw(id) {
                     mf.name(lang).to_string()
+                } else if let Some(art) = crate::compendium::merits_flaws::find_merit_flaw_article(id) {
+                    art.title(lang).to_string()
                 } else {
                     id.clone()
                 }

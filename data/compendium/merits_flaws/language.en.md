@@ -1,0 +1,5 @@
+Beyond your native language, you understand another form of communication. Each 1-pt. Language Merit reflects a single language, typically in its written form as well as the spoken one.
+
+Mages — especially Hermetic wizards, Syndicate diplomats, and Technocratic field ops — tend to know a number of languages, both common (French, Latin, Mandarin, Spanish) and obscure (Old Kingdom Hieroglyphics, High Akkadian, Jovitos). If you possess five Language Merits or more, then you’ve begun to understand the principles of language itself and can try to unravel languages you don’t already know ([Intelligence](mta://attributes/intelligence) + [Enigmas](mta://abilities/enigmas), difficulty 7 or higher).
+
+Characters should have background-based reasons for understanding various languages. It’s perfectly reasonable to assume that a barrio teenager might know English, Portuguese, several dialects of Spanish, and possibly even Arabic. If she’s also got German, Sanskrit, and Classical Greek on her character sheet, however, then someone’s got some explaining to do.

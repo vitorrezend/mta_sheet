@@ -2,7 +2,7 @@
 *Chance and Mortality*
 
 > **Specialties:** Fate, Fortune, Decay, Order, Chaos, Necromancy  
-> **Source:** M20 Core Rulebook, pp. 508-510
+> **Source:** M20 Core Rulebook, pp. 514-515
 
 Everything is mortal. Objects, people, even concepts decay over time. When you truly understand that principle — and more, when you can influence it yourself — such knowledge brings with it a sense of liberation… a bit of sadness, of course, but also the comfort of letting go.
 
@@ -25,12 +25,14 @@ Now the mage can control the factors he could only sense before. Pulling the str
 #### ••• Affect Predictable Patterns
 Things eventually break down. At this Rank, the mage can control the speed at which material objects fail or decay. That’s easier to do with complex machines (cars, computers) than it is with simple ones (walls, stones) — after all, more things can go wrong with complicated things.
 
-At this Rank, the mage can also start controlling the fate and fortune of objects and people, giving them good or bad luck for a time; and he can influence, guide, or avoid random factors over a localized area.
+At this Rank, the mage can also start controlling the fate and fortune of objects and people, giving them good or bad luck by controlling the probability of events around them. Again, large feats demand more successes than smaller ones.
 
-#### •••• Affect Life / Wither / Inflict Aggravated Harm
-Entropy now touches the quick of living Patterns. The mage can inflict rot, disease, spontaneous decay, and withering upon organic beings, inflicting aggravated damage that bypasses ordinary physical armor. Conversely, he may defer aging, cleanse decay or rot, or curse a target’s destiny with inexorable tragedy.
+#### •••• Affect Living Things
+At this Rank, the mage assumes the awesome power of blessing, cursing, and conferring outright health or decay. By influencing the flow of entropy within a living body, that mage can grant outstanding vitality to, or inflict sudden disease upon, his subject. Such influence, as noted above, inflicts or heals aggravated damage and may grant long-term luck or misfortune. (Storyteller’s option as to how this manifests.)
 
-By combining Entropy 4 with other Spheres, he may break down thoughts ([Mind 4](mta://spheres/mind)), rot inanimate matter instantly ([Matter 4](mta://spheres/matter)), or dissolve physical energies ([Forces 4](mta://spheres/forces)).
+#### ••••• Affect Thought / Shape Memes / Binding Oath
+The most esoteric applications of Entropy allow the mage to alter ideas, strengthening or breaking down concepts. Although he does not affect the actual workings of consciousness, he can cause synapses to misfire (thus confusing perceptions and mental processing, inflicting penalties on an enemy’s dice rolls), bind someone to an oath, or degrade the patterns of thought. By doing so, that Entropic Master can craft, perpetrate, reinforce, and undermine arguments, beliefs, and even memories.
 
-#### ••••• Mutate Thought & Concepts / Necromancy & Dissolution
-The ultimate mastery of Entropy allows the mage to unravel concepts, thoughts, and complex systems at will. He may dissolve a government’s authority, erode sanity, summon and command the shades of the dead, or bring an entire ecosystem to sudden entropic collapse. Everything that has a beginning can be brought to an abrupt and absolute end.
+To do such things, the Master merely speaks to, or glances at, the subject of his attention. Chaos Masters can scramble someone’s perceptions with a few weird utterances, and Masters of Order can present arguments with apparently perfect logic. By offering compelling statements, the Master can create or destroy memes (see p. 594), thus influencing whole patterns of belief. An oath, meanwhile, ties the subject’s fate to her loyalty; if she breaks the oath, then her luck goes really, really bad.
+
+In game terms, such feats demand a certain number of successes. Inspiring a whim requires only one or two successes, sparking a fancy takes three, setting or undermining a conviction takes four or five successes, and setting up obsessions demands five successes or more. Such activities are usually coincidental and are typically rolled against a difficulty of the subject’s Willpower, with a minimum difficulty of 4.

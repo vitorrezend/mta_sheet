@@ -208,12 +208,13 @@ fn test_sphere_suggested_specialties() {
 
     // Forças / Forces
     let forces_pt = get_suggested_specialties("Forças", Language::PtBr);
-    assert!(forces_pt.contains(&"Eletricidade"));
-    assert!(forces_pt.contains(&"Fogo"));
+    assert!(forces_pt.contains(&"Movimento"));
+    assert!(forces_pt.contains(&"Clima"));
 
     let forces_en = get_suggested_specialties("forces", Language::EnUs);
-    assert!(forces_en.contains(&"Electricity"));
-    assert!(forces_en.contains(&"Fire"));
+    // Especialidades do livro (M20 p. 515)
+    assert!(forces_en.contains(&"Motion"));
+    assert!(forces_en.contains(&"Weather"));
 
     // Vida / Life
     let life_pt = get_suggested_specialties("Vida", Language::PtBr);

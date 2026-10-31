@@ -142,6 +142,72 @@ pub fn xp_cost_for_dot(category: TraitCategory, current_rating: usize, is_affini
     }
 }
 
+// ============================================================================
+// ANTECEDENTES ESPECIAIS COM CUSTO DOBRADO (M20 pp. 308-309, 318-319)
+// ============================================================================
+
+/// Normaliza um identificador ou nome de traço para comparação sem acentos e em minúsculas.
+pub fn normalize_trait_name(s: &str) -> String {
+    s.trim()
+        .to_lowercase()
+        .replace(['á', 'à', 'ã', 'â'], "a")
+        .replace(['é', 'ê'], "e")
+        .replace(['í'], "i")
+        .replace(['ó', 'õ', 'ô'], "o")
+        .replace(['ú'], "u")
+        .replace(['ç'], "c")
+}
+
+/// Identifica se um antecedente é o Santuário (Sanctum / Laboratório),
+/// que possui a regra oficial de Custo Dobrado (2:1) em M20 (pp. 318-319).
+pub fn is_sanctum_background(label: &str, id: &str) -> bool {
+    let id_clean = id.trim().to_lowercase();
+    if id_clean == "sanctum" || id_clean == "bg_sanctum" {
+        return true;
+    }
+    let norm = normalize_trait_name(label);
+    if norm.is_empty() {
+        return false;
+    }
+    norm.contains("santuario")
+        || norm.contains("sanctum")
+        || norm.contains("laboratorio")
+        || norm.contains("laboratory")
+}
+
+/// Identifica se um antecedente é Aprimoramento (Enhancement / Biotech),
+/// que também possui a regra oficial de Custo Dobrado (2:1) em M20 (pp. 308-309).
+pub fn is_enhancement_background(label: &str, id: &str) -> bool {
+    let id_clean = id.trim().to_lowercase();
+    if id_clean == "enhancement" || id_clean == "bg_enhancement" {
+        return true;
+    }
+    let norm = normalize_trait_name(label);
+    if norm.is_empty() {
+        return false;
+    }
+    norm.contains("aprimoramento")
+        || norm.contains("enhancement")
+        || norm.contains("biotech")
+        || norm.contains("cibernetica")
+        || norm.contains("cybernetics")
+}
+
+/// Identifica se o antecedente possui regra canônica de Custo Dobrado (2:1) no M20.
+/// Santuário (pp. 318-319) e Aprimoramento (pp. 308-309).
+pub fn is_double_cost_background(label: &str, id: &str) -> bool {
+    is_sanctum_background(label, id) || is_enhancement_background(label, id)
+}
+
+/// Multiplicador de custo de um antecedente (2 para Santuário e Aprimoramento, 1 para os demais).
+pub fn background_cost_multiplier(label: &str, id: &str) -> i32 {
+    if is_double_cost_background(label, id) {
+        2
+    } else {
+        1
+    }
+}
+
 /// Helper puro que gera o par (custo, descrição) para tooltips de bolinhas.
 pub fn format_dot_cost_description(
     category: TraitCategory,
@@ -150,11 +216,24 @@ pub fn format_dot_cost_description(
     is_bonus: bool,
     is_xp: bool,
 ) -> (i32, String) {
+    format_dot_cost_description_with_multiplier(category, dot_idx, is_affinity, is_bonus, is_xp, 1)
+}
+
+/// Helper puro que gera o par (custo, descrição) com suporte a multiplicador customizado (ex: 2:1 para Santuário).
+pub fn format_dot_cost_description_with_multiplier(
+    category: TraitCategory,
+    dot_idx: usize,
+    is_affinity: bool,
+    is_bonus: bool,
+    is_xp: bool,
+    multiplier: i32,
+) -> (i32, String) {
+    let mult = multiplier.max(1);
     if is_bonus {
-        let cost = freebie_cost_per_dot(category);
+        let cost = freebie_cost_per_dot(category) * mult;
         (cost, format!("{} pts de Bônus", cost))
     } else if is_xp {
-        let cost = xp_cost_for_dot(category, dot_idx, is_affinity);
+        let cost = xp_cost_for_dot(category, dot_idx, is_affinity) * mult;
         let desc = match category {
             TraitCategory::Sphere if dot_idx == 0 => "10 XP (Nova Esfera)".to_string(),
             TraitCategory::Sphere if is_affinity => {
@@ -164,6 +243,13 @@ pub fn format_dot_cost_description(
                 format!("{} XP (Nível {} -> {})", cost, dot_idx, dot_idx + 1)
             }
             TraitCategory::Ability if dot_idx == 0 => "3 XP (Nova Habilidade)".to_string(),
+            TraitCategory::Background if mult > 1 => {
+                if dot_idx == 0 {
+                    format!("{} XP (Novo Antecedente Custo 2:1)", cost)
+                } else {
+                    format!("{} XP (Nível {} -> {}, Custo 2:1)", cost, dot_idx, dot_idx + 1)
+                }
+            }
             _ => format!("{} XP (Nível {} -> {})", cost, dot_idx, dot_idx + 1),
         };
         (cost, desc)
@@ -252,5 +338,64 @@ mod tests {
         let (cost, desc) = format_dot_cost_description(TraitCategory::Sphere, 2, true, false, true);
         assert_eq!(cost, 14);
         assert_eq!(desc, "14 XP (Afinidade Nível 2 -> 3)");
+    }
+
+    #[test]
+    fn test_double_cost_background_detection_and_multipliers() {
+        // Santuário (Sanctum / Laboratório)
+        assert!(is_sanctum_background("Santuário", "bg_1"));
+        assert!(is_sanctum_background("Santuário (Dojo)", "bg_2"));
+        assert!(is_sanctum_background("Sanctum", "bg_3"));
+        assert!(is_sanctum_background("Sanctum (Penthouse)", "bg_4"));
+        assert!(is_sanctum_background("Laboratório", "bg_5"));
+        assert!(is_sanctum_background("Laboratory", "bg_6"));
+        assert!(is_sanctum_background("", "sanctum"));
+        assert!(is_sanctum_background("", "bg_sanctum"));
+
+        assert_eq!(background_cost_multiplier("Santuário", "bg_1"), 2);
+        assert_eq!(background_cost_multiplier("Sanctum (Penthouse)", "bg_4"), 2);
+
+        // Aprimoramento (Enhancement / Biotech)
+        assert!(is_enhancement_background("Aprimoramento", "bg_7"));
+        assert!(is_enhancement_background("Aprimoramentos", "bg_8"));
+        assert!(is_enhancement_background("Enhancement", "bg_9"));
+        assert!(is_enhancement_background("Biotech Implant", "bg_10"));
+        assert!(is_enhancement_background("", "enhancement"));
+
+        assert_eq!(background_cost_multiplier("Aprimoramento", "bg_7"), 2);
+
+        // Antecedentes comuns (custo padrão 1:1)
+        assert!(!is_double_cost_background("Avatar", "bg_11"));
+        assert!(!is_double_cost_background("Recursos", "bg_12"));
+        assert!(!is_double_cost_background("Mentor", "bg_13"));
+        assert!(!is_double_cost_background("Nodo", "bg_14"));
+        assert!(!is_double_cost_background("Aliados", "bg_15"));
+        assert_eq!(background_cost_multiplier("Avatar", "bg_11"), 1);
+        assert_eq!(background_cost_multiplier("Recursos", "bg_12"), 1);
+    }
+
+    #[test]
+    fn test_double_cost_dot_description_formatting() {
+        // Bônus: normal (1 pt) vs Santuário (2 pts)
+        let (cost_norm, desc_norm) = format_dot_cost_description(TraitCategory::Background, 0, false, true, false);
+        assert_eq!(cost_norm, 1);
+        assert_eq!(desc_norm, "1 pts de Bônus");
+
+        let (cost_double, desc_double) = format_dot_cost_description_with_multiplier(TraitCategory::Background, 0, false, true, false, 2);
+        assert_eq!(cost_double, 2);
+        assert_eq!(desc_double, "2 pts de Bônus");
+
+        // XP: normal (3 XP novo, 3*idx avanço) vs Santuário (6 XP novo, 6*idx avanço)
+        let (cost_xp_norm_new, desc_xp_norm_new) = format_dot_cost_description(TraitCategory::Background, 0, false, false, true);
+        assert_eq!(cost_xp_norm_new, 3);
+        assert_eq!(desc_xp_norm_new, "3 XP (Nível 0 -> 1)");
+
+        let (cost_xp_dbl_new, desc_xp_dbl_new) = format_dot_cost_description_with_multiplier(TraitCategory::Background, 0, false, false, true, 2);
+        assert_eq!(cost_xp_dbl_new, 6);
+        assert_eq!(desc_xp_dbl_new, "6 XP (Novo Antecedente Custo 2:1)");
+
+        let (cost_xp_dbl_adv, desc_xp_dbl_adv) = format_dot_cost_description_with_multiplier(TraitCategory::Background, 2, false, false, true, 2);
+        assert_eq!(cost_xp_dbl_adv, 12); // 2 * 3 * 2 = 12
+        assert_eq!(desc_xp_dbl_adv, "12 XP (Nível 2 -> 3, Custo 2:1)");
     }
 }

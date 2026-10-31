@@ -4,9 +4,11 @@
 
 pub mod models;
 pub mod data;
+pub mod unabridged;
 
 pub use models::*;
 pub use data::*;
+pub use unabridged::find_ability_unabridged_text;
 
 use std::sync::LazyLock;
 

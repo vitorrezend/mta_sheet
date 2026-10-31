@@ -1,0 +1,5 @@
+Enraizar, centralizar, respirar e relaxar. Esta Perícia ajuda você a afastar o tumulto da existência cotidiana e encontrar um ponto interior de serenidade. Dependendo do seu estilo preferido, da sua bagagem pessoal e do propósito pelo qual pratica meditação, isso pode envolver momentos simples de quietude, posturas corporais elaboradas e controle respiratório, devoção religiosa ou até dança e oração extática.
+
+Em termos de jogo, a Perícia Meditação pode ajudar seu personagem a compensar sono perdido, hibernar, obter intuições artísticas ou místicas, decifrar padrões ou enigmas, ou restaurar sua pontuação de Quintessência (consulte as entradas dos Traços Avatar e Quintessência adiante neste capítulo).
+
+Um personagem com Meditação frequentemente possui pelo menos um ponto no Traço de Conhecimento [Esotérica](mta://abilities/esoterica). Muitas formas de mágika, ou proezas como a viagem astral, também utilizam a meditação como instrumento de foco — consulte o Capítulo Dez, (pp. 594–596), para detalhes.

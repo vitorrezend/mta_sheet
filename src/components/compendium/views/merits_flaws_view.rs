@@ -1,8 +1,10 @@
 use leptos::*;
 use crate::compendium::merits_flaws::{
-    find_derangement, find_merit_flaw, ALL_DERANGEMENTS, ALL_FLAWS, ALL_MERITS, ALL_MERITS_FLAWS,
-    DerangementDefinition, MeritFlawDefinition, TraitCategory, TraitType,
+    find_derangement, find_derangement_unabridged_text, find_merit_flaw, find_merit_flaw_article,
+    find_merit_flaw_unabridged_text, ALL_DERANGEMENTS, ALL_FLAWS, ALL_MERITS, ALL_MERITS_FLAWS,
+    DerangementDefinition, MeritFlawDefinition, TraitCategory, TraitType, MERIT_FLAW_ARTICLES,
 };
+use crate::components::compendium::rich_text::RichTextView;
 use crate::components::Callback;
 use crate::i18n::Language;
 
@@ -58,6 +60,11 @@ pub fn MeritsFlawsView(
                 set_selected_cost.set(first_cost);
             }
         }
+    });
+
+    let active_article = Signal::derive(move || {
+        let cur_id = selected_item_id.get();
+        find_merit_flaw_article(&cur_id).copied()
     });
 
     let is_derangement_active = Signal::derive(move || {
@@ -304,8 +311,62 @@ pub fn MeritsFlawsView(
                         let d_list = filtered_derangements.get();
                         let lang = current_lang.get();
 
+                        let show_articles = active_tab.get() == MainTab::All && search_filter.get().trim().is_empty();
+
                         view! {
                             <div>
+                                // Quadros e regras gerais do Apêndice II (aba Todos, sem busca)
+                                {if show_articles {
+                                    view! {
+                                        <div style="margin-bottom: 0.75rem;">
+                                            <div class="compendium-rules-category-header">
+                                                <span class="rules-category-title">
+                                                    {match lang {
+                                                        Language::PtBr => "REGRAS E QUADROS DO APÊNDICE II",
+                                                        Language::EnUs => "APPENDIX II RULES & SIDEBARS",
+                                                    }}
+                                                </span>
+                                            </div>
+                                            <div class="practice-tab-list">
+                                                {MERIT_FLAW_ARTICLES.iter().map(|art| {
+                                                    let a_id = art.id.to_string();
+                                                    let a_id_click = a_id.clone();
+                                                    let is_active = Signal::derive(move || selected_item_id.get() == a_id);
+                                                    view! {
+                                                        <button
+                                                            type="button"
+                                                            class=move || if is_active.get() { "practice-tab-btn special-box-tab active" } else { "practice-tab-btn special-box-tab" }
+                                                            on:click={
+                                                                let id = a_id_click.clone();
+                                                                move |_| {
+                                                                    selected_item_id.set(id.clone());
+                                                                    if let Some(m) = mobile_show_detail {
+                                                                        m.set(true);
+                                                                    }
+                                                                }
+                                                            }
+                                                        >
+                                                            <span class="tab-indicator">"⚖️"</span>
+                                                            <div class="tab-text-wrap">
+                                                                <div class="tab-name-row">
+                                                                    <span class="tab-name">{art.title(lang)}</span>
+                                                                    <span class="compendium-sub-pill compendium-sub-pill-gold">{art.page_ref}</span>
+                                                                </div>
+                                                                <span class="tab-sub">{match lang {
+                                                                    Language::PtBr => "M20 • Quadro",
+                                                                    Language::EnUs => "M20 • Sidebar",
+                                                                }}</span>
+                                                            </div>
+                                                        </button>
+                                                    }
+                                                }).collect_view()}
+                                            </div>
+                                        </div>
+                                    }.into_view()
+                                } else {
+                                    view! { <span></span> }.into_view()
+                                }}
+
                                 {if !list.is_empty() {
                                     view! {
                                         <div class="practice-tab-list">
@@ -431,7 +492,46 @@ pub fn MeritsFlawsView(
             <div class="practice-detail-pane">
                 {move || {
                     let lang = current_lang.get();
-                    if is_derangement_active.get() {
+                    if let Some(art) = active_article.get() {
+                        view! {
+                            <div class="compendium-article-view">
+                                <div class="compendium-mobile-back-bar">
+                                    <button
+                                        type="button"
+                                        class="compendium-mobile-back-btn"
+                                        on:click=move |_| {
+                                            if let Some(m) = mobile_show_detail {
+                                                m.set(false);
+                                            }
+                                        }
+                                    >
+                                        "← " {match lang {
+                                            Language::PtBr => "Voltar à lista",
+                                            Language::EnUs => "Back to list",
+                                        }}
+                                    </button>
+                                </div>
+
+                                <div class="compendium-article-header">
+                                    <div class="compendium-article-title-wrap">
+                                        <span class="compendium-article-icon">"⚖️"</span>
+                                        <div>
+                                            <span class="compendium-badge-sup">{match lang {
+                                                Language::PtBr => "M20 • QUADRO DO APÊNDICE II",
+                                                Language::EnUs => "M20 • APPENDIX II SIDEBAR",
+                                            }}</span>
+                                            <h2 class="compendium-article-title">{art.title(lang)}</h2>
+                                            <span class="compendium-article-page">{art.page_ref}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="compendium-rich-content">
+                                    <RichTextView text=Signal::derive(move || art.content(lang).to_string()) />
+                                </div>
+                            </div>
+                        }.into_view()
+                    } else if is_derangement_active.get() {
                         if let Some(d) = active_derangement.get() {
                             view! {
                                 <div class="compendium-article-view">
@@ -463,25 +563,37 @@ pub fn MeritsFlawsView(
                                         </div>
                                     </div>
 
-                                    <div class="compendium-section-card">
-                                        <h4 class="section-card-title">
-                                            "📖 " {match lang {
-                                                Language::PtBr => "Descrição Clínica & Psicológica",
-                                                Language::EnUs => "Clinical & Psychological Description",
-                                            }}
-                                        </h4>
-                                        <p class="section-card-text">{d.description(lang)}</p>
-                                    </div>
+                                    {match find_derangement_unabridged_text(d.id, lang) {
+                                        Some(full_text) => view! {
+                                            <div class="compendium-section-card">
+                                                <h4 class="section-card-title">"📖 " {match lang { Language::PtBr => "Texto Integral (M20)", Language::EnUs => "Full Text (M20)" }}</h4>
+                                                <div class="compendium-rich-content">
+                                                    <RichTextView text=Signal::derive(move || full_text.to_string()) />
+                                                </div>
+                                            </div>
+                                        }.into_view(),
+                                        None => view! {
+                                            <div class="compendium-section-card">
+                                                <h4 class="section-card-title">
+                                                    "📖 " {match lang {
+                                                        Language::PtBr => "Descrição Clínica & Psicológica",
+                                                        Language::EnUs => "Clinical & Psychological Description",
+                                                    }}
+                                                </h4>
+                                                <p class="section-card-text">{d.description(lang)}</p>
+                                            </div>
 
-                                    <div class="compendium-section-card" style="margin-top: 1rem; border-left: 3px solid var(--purple-bright, #9333ea);">
-                                        <h4 class="section-card-title" style="color: var(--purple-bright, #9333ea);">
-                                            "⚖️ " {match lang {
-                                                Language::PtBr => "Efeitos de Jogo & Crises",
-                                                Language::EnUs => "Game Effects & Crises",
-                                            }}
-                                        </h4>
-                                        <p class="section-card-text">{d.effects(lang)}</p>
-                                    </div>
+                                            <div class="compendium-section-card" style="margin-top: 1rem; border-left: 3px solid var(--purple-bright, #9333ea);">
+                                                <h4 class="section-card-title" style="color: var(--purple-bright, #9333ea);">
+                                                    "⚖️ " {match lang {
+                                                        Language::PtBr => "Efeitos de Jogo & Crises",
+                                                        Language::EnUs => "Game Effects & Crises",
+                                                    }}
+                                                </h4>
+                                                <p class="section-card-text">{d.effects(lang)}</p>
+                                            </div>
+                                        }.into_view(),
+                                    }}
                                 </div>
                             }.into_view()
                         } else {
@@ -661,6 +773,17 @@ pub fn MeritsFlawsView(
                                     view! { <span></span> }.into_view()
                                 }}
 
+                                {match find_merit_flaw_unabridged_text(mf.id, lang) {
+                                    Some(full_text) => view! {
+                                        <div class="compendium-section-card">
+                                            <h4 class="section-card-title">"📖 " {match lang { Language::PtBr => "Texto Integral (M20)", Language::EnUs => "Full Text (M20)" }}</h4>
+                                            <div class="compendium-rich-content">
+                                                <RichTextView text=Signal::derive(move || full_text.to_string()) />
+                                            </div>
+                                        </div>
+                                    }.into_view(),
+                                    None => view! {
+                                <div>
                                 // Descrição do Trait
                                 <div class="compendium-section-card">
                                     <h4 class="section-card-title">
@@ -684,6 +807,9 @@ pub fn MeritsFlawsView(
                                         {mf.system(lang)}
                                     </div>
                                 </div>
+                                </div>
+                                    }.into_view(),
+                                }}
                             </div>
                         }.into_view()
                     }

@@ -261,15 +261,15 @@ fn test_background_theory_rules_article() {
 
     // Conteúdo em EN
     let content_en = rules.content(Language::EnUs);
-    assert!(content_en.contains("TRAITS OVER FIVE"));
-    assert!(content_en.contains("POOLING BACKGROUNDS"));
-    assert!(content_en.contains("DIFFERENTIAL BACKGROUNDS"));
+    assert!(content_en.to_uppercase().contains("TRAITS OVER FIVE"));
+    assert!(content_en.to_uppercase().contains("POOLING BACKGROUNDS"));
+    assert!(content_en.to_uppercase().contains("DIFFERENTIAL BACKGROUNDS"));
 
     // Conteúdo em PT
     let content_pt = rules.content(Language::PtBr);
-    assert!(content_pt.contains("PONTUAÇÕES ACIMA DE 5 PONTOS"));
-    assert!(content_pt.contains("AGRUPAMENTO DE ANTECEDENTES NA CABALA"));
-    assert!(content_pt.contains("ANTECEDENTES DIFERENCIAIS"));
+    assert!(content_pt.to_uppercase().contains("PONTUAÇÕES ACIMA DE 5 PONTOS"));
+    assert!(content_pt.to_uppercase().contains("AGRUPAMENTO DE ANTECEDENTES NA CABALA"));
+    assert!(content_pt.to_uppercase().contains("ANTECEDENTES DIFERENCIAIS"));
 }
 
 #[test]
@@ -334,3 +334,131 @@ fn test_totem_unabridged_text_full_content() {
     assert!(pt_text.contains("Marca Totêmica"), "Deve detalhar a Marca Totêmica em PT");
 }
 
+
+#[test]
+fn test_sanctum_double_cost_in_creation_points() {
+    use mta_sheet::state::{CharacterData, DotOrigin, AttributeValue, keys};
+
+    let mut char_data = CharacterData::new("sanctum_cp".to_string(), "Hermetic".to_string());
+    
+    // Normal background (Recursos): 2 dots Base -> 2 creation points
+    let r_id = "bg_recursos".to_string();
+    char_data.custom_lists.entry(keys::CAT_ANTECEDENTES.to_string()).or_default().push(r_id.clone());
+    char_data.labels.insert(r_id.clone(), "Recursos".to_string());
+    char_data.attributes.insert(r_id, AttributeValue {
+        level: 2,
+        modifier: String::new(),
+        dot_origins: vec![DotOrigin::Base, DotOrigin::Base],
+        is_supernatural: false,
+    });
+
+    // Sanctum (Santuário): 2 dots Base -> 2 * 2 = 4 creation points
+    let s_id = "bg_sanctum".to_string();
+    char_data.custom_lists.entry(keys::CAT_ANTECEDENTES.to_string()).or_default().push(s_id.clone());
+    char_data.labels.insert(s_id.clone(), "Santuário".to_string());
+    char_data.attributes.insert(s_id, AttributeValue {
+        level: 2,
+        modifier: String::new(),
+        dot_origins: vec![DotOrigin::Base, DotOrigin::Base],
+        is_supernatural: false,
+    });
+
+    let cp = char_data.calculate_creation_points();
+    // 2 (Recursos) + 4 (Santuário) = 6 points spent out of 7 budget
+    assert_eq!(cp.backgrounds_spent, 6);
+    assert!(!cp.backgrounds_exceeded);
+
+    // Increase Santuário to 3 dots: 2 (Recursos) + 6 (Santuário 3*2) = 8 points spent -> Exceeded!
+    char_data.attributes.get_mut("bg_sanctum").unwrap().level = 3;
+    char_data.attributes.get_mut("bg_sanctum").unwrap().dot_origins.push(DotOrigin::Base);
+
+    let cp2 = char_data.calculate_creation_points();
+    assert_eq!(cp2.backgrounds_spent, 8);
+    assert!(cp2.backgrounds_exceeded);
+    assert!(cp2.warnings.iter().any(|w| w.contains("Antecedentes: 8/7 pontos de criação gastos. Excedente: 1 pts.")));
+}
+
+#[test]
+fn test_sanctum_double_cost_in_freebies_and_xp() {
+    use mta_sheet::state::{CharacterData, DotOrigin, AttributeValue, keys};
+
+    let mut char_data = CharacterData::new("sanctum_costs".to_string(), "Order of Hermes".to_string());
+
+    // 1. Standard background (Mentor): 1 Bonus dot, 1 XP dot
+    let m_id = "bg_mentor".to_string();
+    char_data.custom_lists.entry(keys::CAT_ANTECEDENTES.to_string()).or_default().push(m_id.clone());
+    char_data.labels.insert(m_id.clone(), "Mentor".to_string());
+    char_data.attributes.insert(m_id, AttributeValue {
+        level: 2,
+        modifier: String::new(),
+        dot_origins: vec![DotOrigin::Bonus, DotOrigin::Experience],
+        is_supernatural: false,
+    });
+
+    // 2. Sanctum: 1 Bonus dot, 1 XP dot
+    let s_id = "bg_sanctum".to_string();
+    char_data.custom_lists.entry(keys::CAT_ANTECEDENTES.to_string()).or_default().push(s_id.clone());
+    char_data.labels.insert(s_id.clone(), "Santuário (Dojo)".to_string());
+    char_data.attributes.insert(s_id, AttributeValue {
+        level: 2,
+        modifier: String::new(),
+        dot_origins: vec![DotOrigin::Bonus, DotOrigin::Experience],
+        is_supernatural: false,
+    });
+
+    let costs = char_data.calculate_costs();
+
+    // Mentor: 1 Bonus dot = 1 pt. 1 XP dot (idx 1, advance from 1 to 2) = 1 * 3 = 3 XP
+    let mentor_item = costs.items.iter().find(|i| i.id == "bg_mentor").unwrap();
+    assert_eq!(mentor_item.bonus_cost, 1);
+    assert_eq!(mentor_item.xp_cost, 3);
+    assert_eq!(mentor_item.category, "Antecedente");
+
+    // Santuário: 1 Bonus dot = 1 * 2 = 2 pts. 1 XP dot (idx 1) = (1 * 3) * 2 = 6 XP
+    let sanctum_item = costs.items.iter().find(|i| i.id == "bg_sanctum").unwrap();
+    assert_eq!(sanctum_item.bonus_cost, 2, "Santuário deve custar 2 pontos de bônus por bolinha");
+    assert_eq!(sanctum_item.xp_cost, 6, "Santuário deve custar o dobro de XP (6 XP no avanço)");
+    assert_eq!(sanctum_item.category, "Antecedente (Custo 2:1)");
+
+    assert_eq!(costs.total_bonus_spent, 3); // 1 + 2 = 3
+    assert_eq!(costs.total_xp_spent, 9); // 3 + 6 = 9
+}
+
+#[test]
+fn test_sanctum_technocracy_and_english_variants_doubled() {
+    use mta_sheet::state::{CharacterData, DotOrigin, AttributeValue, keys};
+
+    // Technocracy variant: "Laboratório"
+    let mut char_data = CharacterData::new("techno_sanctum".to_string(), "Iteration X".to_string());
+    let lab_id = "bg_lab".to_string();
+    char_data.custom_lists.entry(keys::CAT_ANTECEDENTES.to_string()).or_default().push(lab_id.clone());
+    char_data.labels.insert(lab_id.clone(), "Laboratório de Biocibernética".to_string());
+    char_data.attributes.insert(lab_id, AttributeValue {
+        level: 1,
+        modifier: String::new(),
+        dot_origins: vec![DotOrigin::Bonus],
+        is_supernatural: false,
+    });
+
+    let costs = char_data.calculate_costs();
+    let lab_item = costs.items.iter().find(|i| i.id == "bg_lab").unwrap();
+    assert_eq!(lab_item.bonus_cost, 2, "Laboratório (variante tecnocrata do Santuário) deve dobrar");
+    assert_eq!(lab_item.category, "Antecedente (Custo 2:1)");
+
+    // English variant: "Sanctum"
+    let mut char_data_en = CharacterData::new("en_sanctum".to_string(), "Hermetic".to_string());
+    let s_en_id = "bg_sanctum_en".to_string();
+    char_data_en.custom_lists.entry(keys::CAT_ANTECEDENTES.to_string()).or_default().push(s_en_id.clone());
+    char_data_en.labels.insert(s_en_id.clone(), "Sanctum (Penthouse)".to_string());
+    char_data_en.attributes.insert(s_en_id, AttributeValue {
+        level: 1,
+        modifier: String::new(),
+        dot_origins: vec![DotOrigin::Bonus],
+        is_supernatural: false,
+    });
+
+    let costs_en = char_data_en.calculate_costs();
+    let s_en_item = costs_en.items.iter().find(|i| i.id == "bg_sanctum_en").unwrap();
+    assert_eq!(s_en_item.bonus_cost, 2, "Sanctum em inglês deve dobrar");
+    assert_eq!(s_en_item.category, "Antecedente (Custo 2:1)");
+}

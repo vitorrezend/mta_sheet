@@ -1,0 +1,3 @@
+When folks get broken, you know more or less how to fix them. One or two dots in this Ability reflect basic First Aid skills, whereas higher ratings represent advanced training and experience. (Note that said training and experience might not be formal and licensed training and experience…) With Medicine, you’ve learned enough about human and humanoid bodies to treat, harm, and potentially diagnose their injuries and illnesses. Healing magicks often depend upon such understanding, and an angry mage with this Trait can be extremely dangerous!
+
+For details about injury and healing, see Health and Injury in Chapter Nine, (pp. 406-409). For information about medicine as a magickal practice, see Medicine Work in Chapter Ten, (p. 581).

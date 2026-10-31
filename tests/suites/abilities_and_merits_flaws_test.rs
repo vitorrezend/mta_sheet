@@ -133,3 +133,105 @@ fn test_character_sheet_merits_flaws_cost_balance() {
 
     assert_eq!(costs.total_bonus_spent, 1, "Saldo líquido de bônus (3 da qualidade - 2 do defeito) deve ser 1");
 }
+
+
+#[test]
+fn test_abilities_unabridged_texts_and_links() {
+    use mta_sheet::compendium::abilities::find_ability_unabridged_text;
+    use mta_sheet::compendium::attributes::find_attribute;
+    use mta_sheet::compendium::backgrounds::find_background;
+    use mta_sheet::components::compendium::navigation::CompendiumTarget;
+
+    // Toda habilidade do M20 (pp. 275-300) tem texto integral em inglês; Style e Pilot não estão no livro
+    for ab in ALL_ABILITIES.iter().filter(|a| a.id != "style" && a.id != "pilot") {
+        let en = find_ability_unabridged_text(ab.id, Language::EnUs);
+        assert!(en.is_some_and(|t| !t.trim().is_empty()), "Texto integral EN ausente para {}", ab.id);
+        let pt = find_ability_unabridged_text(ab.id, Language::PtBr);
+        assert!(pt.is_some_and(|t| !t.trim().is_empty()), "Texto integral PT ausente para {}", ab.id);
+    }
+
+    let texts = ALL_ABILITIES
+        .iter()
+        .flat_map(|a| [
+            (a.id, find_ability_unabridged_text(a.id, Language::EnUs)),
+            (a.id, find_ability_unabridged_text(a.id, Language::PtBr)),
+        ])
+        .filter_map(|(id, opt)| opt.map(|t| (id, t)))
+        .chain(ABILITY_THEORY_RULES.iter().flat_map(|r| [(r.id, r.content(Language::EnUs)), (r.id, r.content(Language::PtBr))]));
+
+    for (owner, text) in texts {
+        let mut remaining = text;
+        while let Some(start) = remaining.find("mta://") {
+            let after = &remaining[start..];
+            let end = after.find(')').unwrap_or(after.len());
+            let uri = &after[..end];
+            let exists = match CompendiumTarget::from_uri(uri) {
+                Some(CompendiumTarget::Ability(id)) => find_ability(&id).is_some() || find_ability_theory_rule(&id).is_some(),
+                Some(CompendiumTarget::Background(id)) => find_background(&id).is_some(),
+                Some(CompendiumTarget::Attribute(id)) => find_attribute(&id).is_some(),
+                _ => false,
+            };
+            assert!(exists, "Link inválido em {}: {}", owner, uri);
+            remaining = &after[end..];
+        }
+    }
+}
+
+
+#[test]
+fn test_merits_flaws_unabridged_texts_and_links() {
+    use mta_sheet::compendium::abilities::find_ability;
+    use mta_sheet::compendium::attributes::find_attribute;
+    use mta_sheet::compendium::backgrounds::find_background;
+    use mta_sheet::compendium::merits_flaws::{
+        find_derangement_unabridged_text, find_merit_flaw_article, find_merit_flaw_unabridged_text, MERIT_FLAW_ARTICLES,
+    };
+    use mta_sheet::components::compendium::navigation::CompendiumTarget;
+
+    // Toda Qualidade, Defeito e Perturbação do Apêndice II tem texto integral bilíngue (EN e PT-BR)
+    for mf in ALL_MERITS_FLAWS.iter() {
+        let en = find_merit_flaw_unabridged_text(mf.id, Language::EnUs);
+        assert!(en.is_some_and(|t| !t.trim().is_empty()), "Texto integral EN ausente para {}", mf.id);
+        let pt = find_merit_flaw_unabridged_text(mf.id, Language::PtBr);
+        assert!(pt.is_some_and(|t| !t.trim().is_empty()), "Texto integral PT ausente para {}", mf.id);
+    }
+    for d in ALL_DERANGEMENTS.iter() {
+        let en = find_derangement_unabridged_text(d.id, Language::EnUs);
+        assert!(en.is_some_and(|t| !t.trim().is_empty()), "Texto integral EN ausente para {}", d.id);
+        let pt = find_derangement_unabridged_text(d.id, Language::PtBr);
+        assert!(pt.is_some_and(|t| !t.trim().is_empty()), "Texto integral PT ausente para {}", d.id);
+    }
+    assert_eq!(MERIT_FLAW_ARTICLES.len(), 4);
+    for art in MERIT_FLAW_ARTICLES.iter() {
+        assert!(!art.content.trim().is_empty(), "Conteúdo EN ausente para artigo {}", art.id);
+        assert!(!art.content_pt.trim().is_empty(), "Conteúdo PT ausente para artigo {}", art.id);
+    }
+
+    let texts = ALL_MERITS_FLAWS
+        .iter()
+        .filter_map(|m| find_merit_flaw_unabridged_text(m.id, Language::EnUs).map(|t| (m.id, t)))
+        .chain(ALL_MERITS_FLAWS.iter().filter_map(|m| find_merit_flaw_unabridged_text(m.id, Language::PtBr).map(|t| (m.id, t))))
+        .chain(ALL_DERANGEMENTS.iter().filter_map(|d| find_derangement_unabridged_text(d.id, Language::EnUs).map(|t| (d.id, t))))
+        .chain(ALL_DERANGEMENTS.iter().filter_map(|d| find_derangement_unabridged_text(d.id, Language::PtBr).map(|t| (d.id, t))))
+        .chain(MERIT_FLAW_ARTICLES.iter().map(|a| (a.id, a.content)))
+        .chain(MERIT_FLAW_ARTICLES.iter().map(|a| (a.id, a.content_pt)));
+
+    for (owner, text) in texts {
+        let mut remaining = text;
+        while let Some(start) = remaining.find("mta://") {
+            let after = &remaining[start..];
+            let end = after.find(')').unwrap_or(after.len());
+            let uri = &after[..end];
+            let exists = match CompendiumTarget::from_uri(uri) {
+                Some(CompendiumTarget::MeritFlaw(id)) => find_merit_flaw(&id).is_some() || find_merit_flaw_article(&id).is_some(),
+                Some(CompendiumTarget::Derangement(id)) => find_derangement(&id).is_some(),
+                Some(CompendiumTarget::Ability(id)) => find_ability(&id).is_some(),
+                Some(CompendiumTarget::Background(id)) => find_background(&id).is_some(),
+                Some(CompendiumTarget::Attribute(id)) => find_attribute(&id).is_some(),
+                _ => false,
+            };
+            assert!(exists, "Link inválido em {}: {}", owner, uri);
+            remaining = &after[end..];
+        }
+    }
+}

@@ -2,10 +2,10 @@
 *Art of the Otherworlds*
 
 > **Specialties:** Umbral Travel, Spirit Dealings, Gauntlet Manipulation, Primal Spirits, Tech Spirits, Celestials, Infernals, Possession  
-> **Source:** M20 Core Rulebook, pp. 527-529  
+> **Source:** M20 Core Rulebook, pp. 521-522  
 > **Technocratic Equivalent:** [Dimensional Science](mta://spheres/dimensional_science)
 
-Reaching into the essence beyond Earthly life and matter, the Spirit mage explores the Otherworlds and deals with creatures beyond mortal understanding. One of the most primal forms of the mystic Arts, Spirit Sphere magick traffics in the hidden side of the natural realm. As a result, its Effects typically use the **Gauntlet Ratings chart** to determine the difficulty of their associated rolls.
+Reaching into the essence beyond Earthly life and matter, the Spirit mage explores the Otherworlds and deals with creatures beyond mortal understanding. One of the most primal forms of the mystic Arts, Spirit Sphere magick traffics in the hidden side of the natural realm. As a result, its Effects typically use the Gauntlet Ratings chart to determine the difficulty of their associated rolls.
 
 Often affiliated with the shaman, Spirit magick is more eclectic than it often appears. A mage who specializes in this Sphere could be a primal devotee, a sophisticated theologian, a medicine-worker deeply versed in cultural traditions, an eclectic metaphysician, a modern Pagan, or anyone else who comprehends the rich world beyond material physics. Almost inevitably, he’ll look deeper than most modern people do, grasping for the spiritual forces behind apparently mundane events.
 
@@ -19,23 +19,25 @@ To most of humanity, the spirit world remains invisible. Not to a mage who knows
 Combined with other Spheres, that mage can spot forces, places, or items with unusual ties to the spirit world, such as Awakened objects, elemental spirits, possessed organisms, Shallowings, Nodes, and so forth.
 
 #### •• Touch Spirit / Manipulate Gauntlet
-Perception moves to contact. The Spirit-savvy mage can now reach through the Gauntlet for a turn or two; call across the Gauntlet; speak to spirit entities, or touch them for a brief moment; and thin or thicken the local Gauntlet. In the latter case, each success lowers or raises the Gauntlet rating by +1 for each success rolled. (A human mage cannot lower the Gauntlet to less than 4 within the mortal world.)
+Perception moves to contact. The Spirit-savvy mage can now reach through the Gauntlet for a turn or two; call across the Gauntlet; speak to spirit entities, or touch them for a brief moment; and thin or thicken the local Gauntlet. In the latter case, each success lowers or raises the Gauntlet rating by +1 for each success rolled. (Four successes would raise or lower it by four levels, for example.) That said, a human mage cannot lower the Gauntlet to less than 4 within the mortal world.
 
-By adding other Spheres, that mage could project thoughts across the barrier ([Mind 4](mta://spheres/mind) or [5](mta://spheres/mind)); stir up elemental disturbances within the Otherworlds ([Forces 2](mta://spheres/forces)); imbue material objects with ephemeral power ([Matter 2](mta://spheres/matter)); drain Essence from a spirit ([Prime 3](mta://spheres/prime)); or help other living creatures sense or contact the spirit realms ([Life 2](mta://spheres/life)).
+By adding other Spheres, that mage could project thoughts across the barrier ([Mind](mta://spheres/mind) 4 or 5); stir up elemental disturbances within the Otherworlds ([Forces](mta://spheres/forces) 2 or higher); imbue material objects with ephemeral power ([Matter](mta://spheres/matter) 2); drain Essence from a spirit ([Prime](mta://spheres/prime) 3); or help other living creatures sense or contact the spirit realms ([Life](mta://spheres/life) 2).
 
 #### ••• Pierce Gauntlet / Step Sideways / Rouse & Lull Spirit
-Now the mage can cross over, transmuting his living tissue to ephemera. He may carry a few material possessions, although transmuting them as well raises both the difficulty of the roll and the number of successes required for the trip. (Normal clothing and items raise both factors by +1; bulky clothing and items raise them by +2.) That traveler must step sideways on his own; bringing large items or other people across demands a higher Spirit Rank.
+Now the mage can cross over, transmuting his living tissue to ephemera. He may carry a few material possessions, although transmuting them as well raises both the difficulty of the roll and the number of successes required for the trip. (Normal clothing and items raise both factors by +1; bulky clothing and items raise them by +2.) That traveler must step sideways on his own; bringing large items or other people across demands a higher Spirit Rank. Meanwhile, a combined Spirit 3/ [Mind](mta://spheres/mind) 2 Effect allows the mage to read Resonance, Synergy, and other spiritual energies (Essence, a spirit’s place within a hierarchy, etc.).
 
-At this Rank, a mortal mage can also harm an Umbral entity as if he was using [Life 3](mta://spheres/life) against that entity. While Spirit 2 allows the mage to touch that entity, Spirit 3 lets him actually damage its ephemeral Pattern’s integrity.
+At this Rank, a mortal mage can also harm an Umbral entity as if he was using [Life](mta://spheres/life) 3 against that entity. While Spirit 2 allows the mage to touch that entity, Spirit 3 lets him actually damage its ephemeral Pattern’s integrity the way that Life 3 damages a physical creature’s form.
 
-By combining this Rank with [Matter 3](mta://spheres/matter) and [Prime 2](mta://spheres/prime), the mage can also create short-lived objects from ephemera. Finally, this Rank helps the mage rouse slumbering spirits within objects or places, or put active spirits to sleep.
+By combining this Rank with [Matter](mta://spheres/matter) 3 and [Prime](mta://spheres/prime) 2, the mage can also create short-lived objects from ephemera; such creations must be constructed as if they were material things, and they fade away at the end of the Effect’s duration.
+
+Finally, this Rank helps the mage rouse the slumbering spirits within objects or places, or else put active spirits to sleep. (See Awakening Substances in Chapter Nine, p. 443.)
 
 #### •••• Rend Gauntlet / Seal Breach / Bind Spirit
-As the mage approaches Mastery, he can tear Gateways in the Gauntlet, allowing groups or large objects to pass through... or close such breaches, too. Both applications, of course, are deeply vulgar.
+As the mage approaches Mastery, he can tear Gateways in the Gauntlet, allowing groups or large objects to pass through… or close such breaches, too. Both applications, of course, are deeply vulgar.
 
-At this Rank, the mage may also compel spirits to appear, bind them into Fetish objects, or tie them to certain spots or prisons. A brave or foolish Spirit mage can even turn himself into a temporary Fetish, channeling a spirit entity into his mortal body; in such cases, he loses his ability to use true magick, but he may employ the capabilities of the spirit inside him. On the flipside, he can also exorcise a spirit that has possessed a mortal host.
+At this Rank, the mage may also compel spirits to appear, bind them into Fetish objects, or tie them to certain spots or prisons. For obvious reasons, such bondage is risky, especially if the spirit is powerful. A brave or foolish Spirit mage can even turn himself into a temporary Fetish, channeling a spirit entity into his mortal body; in such cases, he loses his ability to use true magick, but he may employ the capabilities of the spirit inside him. On the flipside, he can also exorcise a spirit that has possessed a mortal host. In all cases, the mage enters a series of resisted rolls against the spirit, pitting his Willpower against that spirit’s own.
 
 #### ••••• Forge Ephemera / Gilgul / Break the Dreamshell
-The Spirit Master is now able to command ephemera itself, creating, challenging, and destroying spirit matter as he Wills. With such power, he may craft Realms, imbue or drain a spirit of Essence, instill a soul within an empty shell of Life or Matter, and bestow the awful sentence of **Gilgul** — the destruction of a mage’s Avatar. Such powers are always vulgar and feature devastating consequences even when the mage succeeds.
+The Spirit Master is now able to command ephemera itself, creating, challenging, and destroying spirit matter as he Wills. With such power, he may craft Realms, imbue or drain a spirit of Essence, instill a soul within an empty shell of [Life](mta://spheres/life) or [Matter](mta://spheres/matter), and bestow the awful sentence of Gilgul — the destruction of a mage’s Avatar. Such powers are always vulgar and feature devastating consequences even when the mage succeeds.
 
-This power also allows the mage to break the Dreamshell and venture beyond the Horizons, wandering into the Deep Umbra. Such tasks demand at least 10 successes, but a courageous Master can travel as far as his soul wants to go.
+This power also allows the mage to break the Dreamshell and venture beyond the Horizons, wandering into the Deepest of Umbrae. Such tasks demand at least 10 successes, but a courageous Master can travel as far as his soul wants to go.

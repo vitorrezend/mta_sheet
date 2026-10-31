@@ -162,3 +162,30 @@ impl DerangementDefinition {
         }
     }
 }
+
+/// Quadro ou regra geral do Apêndice II (texto integral em inglês e português).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub struct MeritFlawArticle {
+    pub id: &'static str,
+    pub title: &'static str,
+    pub title_pt: &'static str,
+    pub page_ref: &'static str,
+    pub content: &'static str,
+    pub content_pt: &'static str,
+}
+
+impl MeritFlawArticle {
+    pub fn title(&self, lang: Language) -> &'static str {
+        match lang {
+            Language::PtBr => self.title_pt,
+            Language::EnUs => self.title,
+        }
+    }
+
+    pub fn content(&self, lang: Language) -> &'static str {
+        match lang {
+            Language::PtBr => self.content_pt,
+            Language::EnUs => self.content,
+        }
+    }
+}

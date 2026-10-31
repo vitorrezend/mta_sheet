@@ -1,0 +1,9 @@
+One of the cornerstones of the world as we know it now, the computer was still a pretty strange device in 1993; by 2013, however, most industrial-world folks under 50 years old (and many people far older than that) know their way around basic home and office computer systems. Computers are also far easier to use in 2015 than they were in 1993, and so the degree to which your character understands and employs a computer — and the degree to which such understanding is common knowledge — will depend a lot on your Mage chronicle’s timeframe. Basic proficiency with computers is a lot more typical in 2015, after all, than it was in the early ’90s!
+
+This Knowledge reflects your understanding of Information Technology; a single dot involves basic computer use (whatever that looks like in your chronicle), whereas higher ratings show a deeper understanding of hardware, software, interface, the Internet, and IT culture in general. Certain tasks (like advanced programming or repair) and systems (especially the arcane tech employed by technomancers) demand at least three or four dots in this Trait before your character can even begin to understand them.
+
+As a general rule for mages who employ computers as instruments of focus, assume that a mage cannot channel a Sphere Effect through a computer unless he has at least as many dots in Computer as he has in that Sphere. If Max, for example, has only one dot in Computer Knowledge, then he cannot use Sphere Effects of Rank 2 or higher through a computer because he simply doesn’t understand computers well enough to do so. For details about Spheres, their Ranks, and their Effects, see Chapter Ten.
+
+For expanded game rules related to computer maintenance, hacking, and cracking, see The Book of Secrets.
+
+> **Related boxes:** [Optional Rule: Minimum Abilities](mta://abilities/rule_minimum_abilities)

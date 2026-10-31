@@ -3805,3 +3805,93 @@
     border-color: var(--color-primary, #6366f1);
     transform: translateY(-1px);
 }
+
+/* ─── Busca da Barra Lateral (Practices, Antecedentes, Habilidades...) ───── */
+.practice-search-box {
+    position: relative;
+    margin-bottom: 0.5rem;
+    flex-shrink: 0;
+}
+
+.practice-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.5rem 2rem 0.5rem 2rem;
+    font-size: 0.8rem;
+    color: #3b2c14;
+    background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c7853' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 0.65rem center;
+    border: 1px solid #c8beab;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.practice-search-input::placeholder {
+    color: #a3967d;
+}
+
+.practice-search-input:focus {
+    border-color: var(--gold-primary, #b89347);
+    box-shadow: 0 0 0 3px rgba(184, 147, 71, 0.2);
+}
+
+.practice-search-box .search-clear-btn {
+    position: absolute;
+    right: 0.45rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.3rem;
+    height: 1.3rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: #e6dac1;
+    color: #5c4723;
+    font-size: 0.9rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.practice-search-box .search-clear-btn:hover {
+    background: #d4c5a9;
+}
+
+/* Item ativo: barra dourada à esquerda para distinguir do hover */
+.practice-tab-btn.active {
+    box-shadow: inset 3px 0 0 var(--gold-primary, #b89347), 0 2px 5px rgba(184, 147, 71, 0.15);
+}
+
+.practice-tab-btn:not(.active):hover {
+    background: rgba(237, 227, 208, 0.7);
+}
+
+.practice-tab-btn .tab-sub {
+    color: #9a8a6c;
+    font-weight: 500;
+}
+
+/* Leitura confortável: linhas de até ~75 caracteres */
+.practice-detail-pane .practice-description-block .compendium-rich-text {
+    max-width: 75ch;
+}
+
+.practice-detail-pane .compendium-rich-text .compendium-rich-paragraph {
+    font-size: 0.95rem !important;
+    line-height: 1.7 !important;
+    text-align: left;
+}
+
+.practice-detail-pane .compendium-rich-text .compendium-rich-heading {
+    color: #634b1e !important;
+    border-bottom: 1px solid rgba(184, 147, 71, 0.3);
+    padding-bottom: 0.3rem;
+}
+
+.practice-detail-pane .compendium-rich-text .compendium-rich-heading:first-child {
+    margin-top: 0.2rem !important;
+}
+
+.practice-detail-pane .compendium-rich-list-item {
+    line-height: 1.65;
+    font-size: 0.93rem;
+}

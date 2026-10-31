@@ -1,0 +1,3 @@
+You’re badass enough to shrug off injuries. They still harm you, but they don’t stop you. Game-wise, this Merit allows your character to soak lethal damage — NOT aggravated damage. Story-wise, those gunshots, knife wounds, broken bones, and so forth still tear your character up — he’s not bouncing shotgun rounds off his chest. By soaking the associated health levels, however, your character can push on through wounds that would cripple or kill most folks.
+
+Lethal injuries require the usual amount of time to heal. Soaking is not healing. If the Storyteller decides to use the Cinematic Damage option (Chapter Nine, p. 412), this Merit has no purpose and does not apply.

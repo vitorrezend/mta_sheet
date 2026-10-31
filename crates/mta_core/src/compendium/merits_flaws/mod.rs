@@ -4,9 +4,14 @@
 
 pub mod models;
 pub mod data;
+pub mod unabridged;
 
 pub use models::*;
 pub use data::*;
+pub use unabridged::{
+    find_derangement_unabridged_text, find_merit_flaw_article, find_merit_flaw_unabridged_text,
+    MERIT_FLAW_ARTICLES,
+};
 
 use std::sync::LazyLock;
 

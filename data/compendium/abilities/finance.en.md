@@ -1,0 +1,3 @@
+Money is the ultimate human magic trick, and you know how it works. Trade, trends, investments, markets, and risks provide you with mental stimulation, Awakened/ Enlightened power, economic fortitude, and — most likely — plenty of money (in game terms, the [Resources Background](mta://backgrounds/resources)).
+
+An essential Trait for Syndicate Technocrats, this Knowledge enriches wizards, Adepts, mad scientists, and sharp-witted witches everywhere and provides a key component of the Ars Cupiditae — a venerable form magick based upon desire. (See The Art of Desire/ Hypereconomics in Chapter Ten, p.573.)

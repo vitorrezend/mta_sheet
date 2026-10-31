@@ -1,0 +1,3 @@
+In what might be seen as an advanced fugue state, a person with MPD consciously and/or subconsciously constructs several different identities. Each identity can become quite distinct, with its own speech patterns, memories, behaviors, and even physical appearance. Also called dissociative identity disorder (DID), MPD could manifest anywhere from two separate identities to a dozen or more… especially when it’s augmented with Life, Mind, Correspondence, or a mixture of the three. MPD can be extremely common among Marauders, but it’s frighteningly common among other mages too… especially if a mage and his Avatar begin to switch places or merge identities.
+
+> **Related box:** [Derangements](mta://merits_flaws/article_derangements)

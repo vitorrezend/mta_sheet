@@ -1,0 +1,1 @@
+You sense things coming long before anyone else does. A combination of keen instincts and sharp thinking, this Ability helps you size up situations and respond accordingly. Beast-folk, survivors, bright courtiers and battle-honed veterans have high Alertness ratings.

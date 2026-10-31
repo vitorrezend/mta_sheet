@@ -1,0 +1,1 @@
+Someone hates your guts and will do whatever he, she, it, or they can do in order to make your life unpleasant. Game-wise, the value of the Flaw determines the strength and hatred of that enemy; a single point reflects a minor grudge from some inconsequential party, and five points represent the deadly plans of some powerful entity or group.

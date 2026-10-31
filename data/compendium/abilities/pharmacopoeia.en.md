@@ -1,0 +1,5 @@
+Drugs are your specialty: street drugs, herbal compounds, experimental medications, psychoactives, hypertech concoctions, and the like. You understand the effects of various chemicals on the human animal and perhaps on other animals as well. A specialty of shamans, witches, Progenitors, Ecstatics, alchemists, and other mages who employ pharmaceutical compounds, this Knowledge allows you — with the proper tools, of course — to measure, recognize, analyze, counter, or dose someone with a range of chemicals. As usual, higher ratings reflect greater expertise. You’ll never know everything, of course, but you’re rarely flying blind.
+
+A venerable, if underhanded, magickal tool, the variation Knowledge of Poisons allows you to alter the natural chemistry of living things in… shall we say, unfortunate ways. Witches, alchemists, assassins, and other shady types are infamous for their expertise with such compounds, and though you might not want to advertise that information, you’re experienced with such compounds too.
+
+For rules dealing with poisons and intoxication, see Drugs, Poisons, and Disease in Chapter Nine, (pp. 441-444).

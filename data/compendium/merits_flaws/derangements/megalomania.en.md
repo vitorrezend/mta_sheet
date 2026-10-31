@@ -1,0 +1,3 @@
+The name commonly applied to narcissistic personality disorder, megalomania inspires grand delusions, power fantasies, intense feelings of superiority, and an inflated sense of self-esteem. For obvious reasons, it’s really common among mages, who truly are superior to most other people — the derangement simply makes that person even more self-absorbed than usual. Certain authorities distinguish megalomania from narcissism, however. As Bertrand Russell said, “The megalomaniac… wishes to be powerful rather than charming, and seeks to be feared rather than loved.”
+
+> **Related box:** [Derangements](mta://merits_flaws/article_derangements)

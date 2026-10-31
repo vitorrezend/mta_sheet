@@ -1,0 +1,1 @@
+Your physical senses are unusually sharp, capturing nuances that few people ever notice. In game terms, your character reduces the difficulty of her [Perception](mta://attributes/perception)-based rolls by -2. At the 1-point level, a single sense (vision, hearing, touch, taste, smell) is more acute than usual; at the 3-point level, all five physical senses are equally sharp.

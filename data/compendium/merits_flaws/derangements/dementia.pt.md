@@ -1,0 +1,3 @@
+Um termo abrangente para diversas enfermidades cognitivas correlatas, a demência manifesta alucinações vívidas, delírios paranoides, alterações perceptivas graves, desinibição patológica (ausência de pudor, filtros sociais e limites morais), lapsos de memória imprevisíveis, mutações bruscas de personalidade, perda progressiva da linguagem e da coordenação motora, além de outras aflições debilitantes. Conhecida popularmente (e de forma insensível) como loucura, a demência varia desde excentricidades perturbadoras até rupturas severas de personalidade e irracionalidade plena e caótica.
+
+> **Quadro relacionado:** [Perturbações](mta://merits_flaws/article_derangements)

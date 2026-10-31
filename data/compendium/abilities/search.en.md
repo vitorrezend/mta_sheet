@@ -1,0 +1,1 @@
+Given time and motivation, you know how to toss a room or comb the woods. You’ve honed an eye for clues, mastered the classic hiding spaces (and puzzled out some new ones), and learned how to follow your instincts. If there’s something to be found, you’re likely to find it… and if you combine this Talent with Sphere 1 Effects, there’s not much that can hide from you for long.

@@ -1,0 +1,3 @@
+Nome comumente atribuído a manifestações extremas do transtorno de personalidade narcisista, a megalomania desperta delírios grandiosos, fantasias de onipotência, sentimentos arrebatadores de superioridade e uma autoestima hipertrofiada. Por razões evidentes, é uma condição extremamente frequente entre magos, que de fato são seres muito mais poderosos que a humanidade mortal comum — o transtorno simplesmente eleva esse egocentrismo a patamares patológicos. Certos pensadores distinguem a megalomania do mero narcisismo; como observou Bertrand Russell: "O megalomaníaco… deseja ser poderoso em vez de charmoso, e anseia ser temido em vez de amado."
+
+> **Quadro relacionado:** [Perturbações](mta://merits_flaws/article_derangements)

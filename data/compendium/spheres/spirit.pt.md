@@ -2,40 +2,42 @@
 *Arte dos Outros Mundos*
 
 > **Especializações:** Viagem Umbral, Trato com Espíritos, Manipulação da Película, Espíritos Primordiais, Espíritos Tecnológicos, Celestiais, Infernais, Possessão  
-> **Fonte:** Livro Básico M20, pp. 527-529  
+> **Fonte:** Livro Básico M20, pp. 521-522  
 > **Equivalente Tecnocrático:** [Ciência Dimensional](mta://spheres/dimensional_science)
 
-Alcançando a essência além da vida e matéria terrenas, o mago do Espírito explora os Outros Mundos e lida com criaturas além do entendimento mortal. Sendo uma das formas mais primordiais das Artes místicas, a magia da Esfera do Espírito transita no lado oculto do reino natural. Como consequência, seus Efeitos utilizam tipicamente a **tabela de Classificação da Película** para determinar a dificuldade dos testes associados.
+Alcançando a essência além da vida e da matéria terrenas, o mago do Espírito explora os Outros Mundos e lida com criaturas além da compreensão mortal. Uma das formas mais primitivas das Artes místicas, a mágica da Esfera do Espírito transita no lado oculto do reino natural. Como resultado, seus Efeitos utilizam tipicamente a tabela de Classificações da Película para determinar a dificuldade de suas rolagens associadas.
 
-Frequentemente associada aos xamãs, a mágica do Espírito é muito mais eclética do que aparenta. Um mago versado nesta Esfera pode ser um devoto primal, um teólogo erudito, um curandeiro profundamente enraizado em tradições ancestrais, um metafísico eclético, um pagão moderno ou qualquer indivíduo capaz de compreender a profusão invisível além da física material. Quase inevitavelmente, ele enxerga mais fundo que as pessoas comuns, desvendando as forças espirituais por trás de eventos aparentemente corriqueiros.
+Frequentemente associada ao xamã, a mágica Espiritual é mais eclética do que aparenta. Um mago especializado nesta Esfera pode ser um devoto primordial, um teólogo sofisticado, um curandeiro profundamente versado em tradições culturais, um metafísico eclético, um pagão moderno ou qualquer outra pessoa que compreenda o mundo abundante além da física material. Quase inevitavelmente, ele olhará mais a fundo do que a maioria das pessoas modernas, buscando as forças espirituais por trás de eventos aparentemente mundanos.
 
-Para uma abordagem Tecnocrática opcional do Espírito, consulte [Ciência Dimensional](mta://spheres/dimensional_science) (pp. 525-526).
+Para uma abordagem Tecnocrática opcional ao Espírito, consulte [Ciência Dimensional](mta://spheres/dimensional_science) (pp. 525-526).
 
 ---
 
 #### • Visão Espiritual / Sentido Espiritual
-Para a vasta maioria da humanidade, o mundo espiritual permanece invisível. Não para um mago iniciado na Esfera do Espírito. Embora esteja mais sintonizado com entidades cuja Ressonância se assemelhe à sua, o mago pode aferir a espessura da Película local, discernir auras, pressentir espíritos de todas as naturezas, vislumbrar a Penumbra através do *Vidare* e determinar se um objeto material possui uma alma ou componente espiritual aprisionado (como ocorre com Fetiches).
+Para a maior parte da humanidade, o mundo espiritual permanece invisível. Não para um mago que conhece a Esfera do Espírito. Embora esteja mais sintonizado com espíritos de Ressonância semelhante à sua, o mago pode ler a espessura da Película local, discernir auras, pressentir espíritos de todos os tipos, espiar a Penumbra através do Vidare (consulte os Capítulos Três e Quatro) e determinar se um objeto material possui ou não um componente espiritual (como os Fetiches místicos possuem).
 
-Combinada com outras Esferas, o mago pode rastrear forças, locais ou itens com laços incomuns com o Além, tais como objetos Despertos, espíritos elementais, hospedeiros possuídos, Atenuações e Nodos.
+Combinada com outras Esferas, esse mago pode detectar forças, lugares ou itens com laços incomuns com o mundo espiritual, como objetos Despertos, espíritos elementais, organismos possuídos, Enfraquecimentos da Película, Nodos e assim por diante.
 
 #### •• Tocar Espírito / Manipular Película
-A percepção avança para o contato tátil. O mago do Espírito pode agora estender seus membros através da Película por um ou dois turnos; chamar entidades através do véu; falar com espíritos ou tocá-los fisicamente por breves instantes; além de afinar ou engrossar a Película local. Neste último caso, cada sucesso reduz ou eleva a dificuldade da Película em 1 ponto. (Contudo, um mago humano não consegue reduzir a Película para menos de 4 no mundo material).
+A percepção avança para o contato. O mago conhecedor do Espírito agora pode alcançar através da Película por um turno ou dois; clamar através da Película; falar com entidades espirituais ou tocá-las por um breve momento; e afinar ou espessar a Película local. Neste último caso, cada sucesso reduz ou eleva a classificação da Película em 1 nível por sucesso rolado. (Quatro sucessos a elevariam ou abaixariam em quatro níveis, por exemplo.) Dito isso, um mago humano não pode reduzir a Película para menos de 4 dentro do mundo mortal.
 
-Adicionando outras Esferas, o mago pode projetar pensamentos através da barreira ([Mente 4](mta://spheres/mind) ou [5](mta://spheres/mind)); provocar perturbações elementais nos Outros Mundos ([Forças 2](mta://spheres/forces)); imbuir objetos materiais com poder efêmero ([Matéria 2](mta://spheres/matter)); drenar Essência de um espírito ([Primórdio 3](mta://spheres/prime)); ou guiar outras criaturas vivas a sentirem o mundo espiritual ([Vida 2](mta://spheres/life)).
+Ao adicionar outras Esferas, esse mago pode projetar pensamentos através da barreira ([Mente](mta://spheres/mind) 4 ou 5); agitar perturbações elementais dentro dos Outros Mundos ([Forças](mta://spheres/forces) 2 ou superior); imbuir objetos materiais com poder efêmero ([Matéria](mta://spheres/matter) 2); drenar Essência de um espírito ([Primórdio](mta://spheres/prime) 3); ou ajudar outras criaturas vivas a pressentir ou contatar os reinos espirituais ([Vida](mta://spheres/life) 2).
 
-#### ••• Rasgar a Película / Passo Lateral / Despertar & Adormecer Espírito
-Agora o mago pode cruzar fisicamente a fronteira, transmutando seu tecido vivo em matéria efêmera. Ele pode carregar pertences materiais, embora transmutá-los eleve tanto a dificuldade do teste quanto os sucessos exigidos (roupas normais conferem +1 de dificuldade; itens pesados +2). O viajante deve dar o passo lateral por conta própria; transportar cargas massivas ou acompanhantes requer Postos mais elevados de Espírito.
+#### ••• Perfurar Película / Passo Lateral / Despertar & Adormecer Espírito
+Agora o mago pode fazer a travessia, transmutando seu tecido vivo em efêmera. Ele pode carregar algumas posses materiais, embora transmutá-las também eleve tanto a dificuldade da rolagem quanto o número de sucessos exigidos para a viagem. (Roupas e itens normais elevam ambos os fatores em +1; roupas e itens volumosos os elevam em +2.) O viajante deve dar o passo lateral por conta própria; levar itens grandes ou outras pessoas através da barreira exige um Posto mais alto de Espírito. Enquanto isso, um Efeito combinado de Espírito 3/ [Mente](mta://spheres/mind) 2 permite ao mago ler Ressonância, Sinergia e outras energias espirituais (Essência, a posição de um espírito em uma hierarquia, etc.).
 
-Neste Posto, o mago também pode ferir entidades umbrais como se usasse [Vida 3](mta://spheres/life) contra elas. Enquanto Espírito 2 permite apenas tocar o ser espiritual, Espírito 3 possibilita ferir a integridade de seu Padrão efêmero.
+Neste Posto, um mago mortal também pode ferir uma entidade Umbral como se estivesse usando [Vida](mta://spheres/life) 3 contra ela. Enquanto Espírito 2 permite ao mago tocar essa entidade, Espírito 3 permite-lhe realmente danificar a integridade de seu Padrão efêmero, da mesma forma que Vida 3 danifica a forma de uma criatura física.
 
-Combinando este Posto com [Matéria 3](mta://spheres/matter) e [Primórdio 2](mta://spheres/prime), ele pode criar objetos efêmeros temporários. Por fim, permite despertar espíritos adormecidos em objetos ou locais, ou acalmar entidades agitadas.
+Ao combinar este Posto com [Matéria](mta://spheres/matter) 3 e [Primórdio](mta://spheres/prime) 2, o mago também pode criar objetos efêmeros de curta duração; tais criações devem ser construídas como se fossem coisas materiais, e desaparecem ao final da duração do Efeito.
 
-#### •••• Dilacerar Película / Selar Ruptura / Aprisionar Espírito
-Aproximando-se do Mestrado, o mago consegue rasgar Portais na Película, permitindo a passagem de grupos ou veículos volumosos... ou selar tais fendas permanentemente. Ambas as manobras são profundamente vulgares.
+Por fim, este Posto ajuda o mago a despertar espíritos adormecidos dentro de objetos ou lugares, ou a colocar espíritos ativos para dormir. (Consulte *Despertando Substâncias* no Capítulo Nove, p. 443.)
 
-Neste Posto, o mago pode forçar espíritos a se manifestarem, aprisioná-los em Fetiches ou vinculá-los a santuários e prisões místicas. Um mago audacioso ou imprudente pode até mesmo se tornar um Fetiche vivo temporário, canalizando um espírito em seu corpo carnal (perdendo a mágica verdadeira temporariamente, mas absorvendo os poderes da entidade). Em contrapartida, ele pode exorcizar possessões malignas em mortais através de testes resistidos de Força de Vontade.
+#### •••• Rasgar Película / Selar Ruptura / Aprisionar Espírito
+À medida que o mago se aproxima do Mestrado, ele pode abrir Portais na Película, permitindo que grupos ou grandes objetos passem através dela... ou fechar tais rupturas também. Ambas as aplicações, é claro, são profundamente vulgares.
+
+Neste Posto, o mago também pode compelir espíritos a aparecerem, aprisioná-los em objetos Fetiches ou amarrá-los a determinados locais ou prisões. Por razões óbvias, tal servidão é arriscada, especialmente se o espírito for poderoso. Um mago corajoso ou tolo pode até transformar a si mesmo em um Fetiche temporário, canalizando uma entidade espiritual para dentro de seu corpo mortal; nesses casos, ele perde a capacidade de usar a verdadeira mágica, mas pode empregar as capacidades do espírito dentro de si. No sentido inverso, ele também pode exorcizar um espírito que tenha possuído um hospedeiro mortal. Em todos os casos, o mago entra em uma série de rolagens resistidas contra o espírito, opondo sua Força de Vontade à do próprio espírito.
 
 #### ••••• Forjar Efêmera / Gilgul / Romper a Concha Onírica
-O Mestre do Espírito comanda a própria substância efêmera, criando, desafiando e destruindo a matéria dos espíritos à sua Vontade. Com tal poder, ele pode criar Reinos Umbrais inteiros, conceder ou drenar Essência de espíritos, infundir almas em cascas vazias de Vida ou Matéria e proferir a terrível sentença do **Gilgul** — a aniquilação permanente do Avatar de um mago. Tais intervenções são sempre vulgares e cobram preços cósmicos devastadores.
+O Mestre do Espírito agora é capaz de comandar a própria efêmera, criando, desafiando e destruindo matéria espiritual conforme sua Vontade. Com tal poder, ele pode forjar Reinos, imbuir ou drenar a Essência de um espírito, instilar uma alma dentro de uma casca vazia de [Vida](mta://spheres/life) ou [Matéria](mta://spheres/matter), e infligir a terrível sentença do Gilgul — a destruição do Avatar de um mago. Tais poderes são sempre vulgares e trazem consequências devastadoras mesmo quando o mago é bem-sucedido.
 
-Esse nível permite romper a Concha Onírica (*Dreamshell*) e viajar além dos Horizontes, adentrando os abismos da Umbra Profunda.
+Esse poder também permite ao mago romper a Concha Onírica e aventurar-se além dos Horizontes, vagando nas partes mais Profundas da Umbra. Tais tarefas exigem pelo menos 10 sucessos, mas um Mestre corajoso pode viajar tão longe quanto sua alma desejar ir.

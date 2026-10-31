@@ -2,6 +2,7 @@ use leptos::*;
 use crate::compendium::archetypes::{
     find_archetype, ALL_ARCHETYPES, ARCHETYPE_THEORY_RULES, ArchetypeDefinition,
 };
+use crate::components::compendium::rich_text::RichTextView;
 use crate::components::Callback;
 use crate::i18n::Language;
 
@@ -198,8 +199,8 @@ pub fn ArchetypesView(
                                         </span>
                                         <span class="archetype-mech-desc">
                                             {match current_lang.get() {
-                                                Language::PtBr => "A máscara exterior voltada para as pessoas. Fácil de mudar conforme suas prioridades mudam.",
-                                                Language::EnUs => "The outer guise presented to other folks. Easy to change by shifting behaviors and priorities.",
+                                                Language::PtBr => "Comportamento é como você se apresenta aos outros. Traços de Comportamento são razoavelmente fáceis de mudar — você simplesmente começa a agir de maneira diferente e a escolher novas prioridades na vida. (p. 268)",
+                                                Language::EnUs => "Demeanor is how you present yourself to other folks. Demeanor Traits are easy enough to change – you just start acting differently and choosing new priorities in life. (p. 268)",
                                             }}
                                         </span>
                                     </div>
@@ -212,8 +213,8 @@ pub fn ArchetypesView(
                                         </span>
                                         <span class="archetype-mech-desc">
                                             {match current_lang.get() {
-                                                Language::PtBr => "Quem você é despido de todas as máscaras. Difícil de mudar; exige eventos de impacto profundo na vida.",
-                                                Language::EnUs => "Who you are when all masks come off. Difficult to change; requires a life-shifting circumstance.",
+                                                Language::PtBr => "Natureza é como você se enxerga quando todas as suas máscaras caem. A Natureza, por outro lado, é difícil de mudar. Exige uma circunstância transformadora de vida para causar tais transições. (p. 268)",
+                                                Language::EnUs => "Nature is how you see yourself when all your masks come off. Nature, on the other hand, is difficult to change. It takes a life-shifting circumstance to cause such transitions. (p. 268)",
                                             }}
                                         </span>
                                     </div>
@@ -226,8 +227,8 @@ pub fn ArchetypesView(
                                         </span>
                                         <span class="archetype-mech-desc">
                                             {match current_lang.get() {
-                                                Language::PtBr => "O Narrador concede de 1 a 3 pontos temporários gastos ao cumprir o propósito da sua Natureza.",
-                                                Language::EnUs => "Storyteller awards 1 to 3 spent Willpower points when you accomplish something in tune with your Nature.",
+                                                Language::PtBr => "Quando você realiza algo que está em sintonia com a sua Natureza, seu Narrador pode lhe conceder de um a três pontos de Força de Vontade para repor aqueles que você gastou ao longo da história. (p. 268)",
+                                                Language::EnUs => "When you accomplish something that’s in tune with your Nature, your Storyteller might give you one to three Willpower points to replace the ones you’ve spent over the course of the story. (p. 268)",
                                             }}
                                         </span>
                                     </div>
@@ -240,13 +241,8 @@ pub fn ArchetypesView(
                                             Language::EnUs => "COMPLETE M20 UNABRIDGED TEXT",
                                         }}
                                     </h4>
-                                    <div class="practice-description-text">
-                                        {
-                                            let desc = theory.content(current_lang.get());
-                                            desc.split("\n\n").map(|paragraph| {
-                                                view! { <p class="practice-para">{paragraph.to_string()}</p> }
-                                            }).collect_view()
-                                        }
+                                    <div class="practice-description-text compendium-rich-content">
+                                        <RichTextView text=Signal::derive(move || theory.content(current_lang.get()).to_string()) />
                                     </div>
                                 </div>
                             </div>
@@ -467,15 +463,15 @@ pub fn ArchetypesView(
                                 <div class="practice-description-wrap">
                                     <h4 class="practice-section-title">
                                         {match current_lang.get() {
-                                            Language::PtBr => "DINÂMICA DE INTERPRETAÇÃO: NATUREZA VS COMPORTAMENTO",
-                                            Language::EnUs => "ROLEPLAYING DYNAMICS: NATURE VS DEMEANOR",
+                                            Language::PtBr => "NATUREZA E FORÇA DE VONTADE (M20, p. 268)",
+                                            Language::EnUs => "NATURE AND WILLPOWER (M20, p. 268)",
                                         }}
                                     </h4>
                                     <div class="practice-description-text">
                                         <p class="practice-para">
                                             {match current_lang.get() {
-                                                Language::PtBr => format!("Se este arquétipo for a sua Natureza, sua verdadeira essência é regida por '{}'. Você recupera de 1 a 3 pontos de Força de Vontade toda vez que seus atos cumprirem o critério de '{}'. Se for adotado apenas como Comportamento, representa como você se projeta socialmente perante outros magos e adormecidos.", arch_item.name_pt, arch_item.willpower_regain_pt),
-                                                Language::EnUs => format!("If chosen as your Nature, your true self is driven by '{}'. You regain 1 to 3 points of Willpower whenever your actions satisfy '{}'. If used only as a Demeanor, this represents the mask and facade you wear when interacting with society and the Sleepers.", arch_item.name, arch_item.willpower_regain),
+                                                Language::PtBr => "Em termos de jogo, a Natureza também oferece a você uma oportunidade de renovar seu Traço de Força de Vontade. Quando você realiza algo que está em sintonia com a sua Natureza, seu Narrador pode lhe conceder de um a três pontos de Força de Vontade para repor aqueles que você gastou ao longo da história. Este benefício aplica-se apenas à reposição de um Traço de Força de Vontade esgotado — você não ganha novos círculos permanentes de Força de Vontade por agir de acordo com a sua Natureza. No entanto, ao comprar novos círculos de Força de Vontade com pontos de experiência, você pode ajudar a justificar essa Vontade aprimorada se tiver seguido sua Natureza com fidelidade.".to_string(),
+                                                Language::EnUs => "In game terms, the Nature also provides you with an opportunity to refresh your Willpower Trait. When you accomplish something that’s in tune with your Nature, your Storyteller might give you one to three Willpower points to replace the ones you’ve spent over the course of the story. This benefit applies only to refreshing a depleted Willpower Trait – you don’t get new Willpower dots for acting according to your Nature. When you purchase new Willpower dots, however, you can help justify that boosted Will if you’ve been successfully following your Nature.".to_string(),
                                             }}
                                         </p>
                                     </div>

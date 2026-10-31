@@ -1,0 +1,5 @@
+Despite the fury of the Avatar Storm, some people remain immune. With this Merit (known as Quantum Voyager for Technocratic characters), you possess that precious rare immunity — the ability to reach through and travel beyond the Gauntlet without suffering the effects of the Storm.
+
+For 3 points, your character can pass without harm through the Gauntlet. For 5 points, she can take everyone and everything she touches and desires to protect. Correspondence-based touching protects a warded character as well as a physical touch, but a person that the mage does not want to protect will suffer the usual Avatar Storm effects even if he happens to be touching her at the time.
+
+Obviously, this Merit doesn’t apply if the Avatar Storm never happened in your chronicle. This protection does not in any way protect against Disembodiment or other potential hazards of the Otherworlds. Under the Mage Revised metaplot, Stormwardens are incredibly rare — almost legendary — and fiercely hoarded by the Awakened groups.

@@ -1,0 +1,1 @@
+Life is your canvas, and you excel at making impressions upon it. Through theatrical flair and audience psychology, you can rouse emotions, shift opinions, and grab the spotlight in social situations. Although this Trait can be used to handle any social situation, it’s best used to make general impressions. For specific artistic endeavors, see Art, above.

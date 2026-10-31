@@ -1,0 +1,3 @@
+Cars? You know cars. Maybe trucks too, if you’re good enough. This Skill reflects the everyday complexities of automobile handling: the higher your rating, the better you are behind the wheel. A single dot represents basic operation of an automatic transmission car. Higher levels open up a wider range of vehicles at your command. Typical driving doesn’t demand a roll, but if you find yourself in a race, a chase, or some other challenging circumstance, you’d best hope that you have a few dots in this Skill. The results otherwise could be… messy.
+
+For game rules that deal with driving and so forth, see Vehicle Systems in Chapter Nine, (pp. 458-462).

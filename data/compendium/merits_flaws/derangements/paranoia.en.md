@@ -1,0 +1,5 @@
+In world full of enemies, paranoia seems like an appropriate response. At the point of derangement, however, those reasonable fears reach obsessive severity. A paranoid person sees plots and rivals everywhere, even among his friends. Trust becomes foolishness because no one can be trusted. And when someone really is out to get that character, the madness deepens to absurd proportions.
+
+Game-wise, a paranoid character adds +1 to the difficulties of all his social rolls… possibly more than that if the people he’s interacting with have given him any reason at all to be suspicious. He’ll use every available method to safeguard himself from treachery, and he’ll keep even his closest companions at what feels to him like a safe distance… typically through abrasive, possibly abusive, behavior. At extreme levels, a paranoid mage isolates himself in every manner possible… at which point, he’s alone with the terrors in his head, which never truly go away.
+
+> **Related box:** [Derangements](mta://merits_flaws/article_derangements)

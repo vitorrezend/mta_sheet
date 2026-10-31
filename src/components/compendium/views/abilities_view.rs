@@ -1,11 +1,23 @@
 use leptos::*;
 use crate::compendium::abilities::{
-    find_ability, find_ability_theory_rule, ALL_ABILITIES, ABILITY_THEORY_RULES, AbilityCategory,
-    AbilityDefinition, AbilityScope,
+    find_ability, find_ability_theory_rule, find_ability_unabridged_text, ALL_ABILITIES,
+    ABILITY_THEORY_RULES, AbilityCategory,
+    AbilityDefinition, AbilityScope, AbilityTheoryArticle,
 };
 use crate::components::compendium::rich_text::RichTextView;
 use crate::components::Callback;
 use crate::i18n::Language;
+
+/// Rótulo do artigo: "Regra Opcional" para regras opcionais, "Quadro" para os demais quadros do livro.
+fn rule_kind_label(rule: &AbilityTheoryArticle, lang: Language) -> &'static str {
+    let optional = rule.title.starts_with("Optional Rule");
+    match (optional, lang) {
+        (true, Language::PtBr) => "M20 • Regra Opcional",
+        (true, Language::EnUs) => "M20 • Optional Rule",
+        (false, Language::PtBr) => "M20 • Quadro",
+        (false, Language::EnUs) => "M20 • Sidebar",
+    }
+}
 
 fn get_ability_icon(cat: AbilityCategory) -> &'static str {
     match cat {
@@ -232,7 +244,7 @@ pub fn AbilitiesView(
                             class="compendium-filter-pill rules-pill"
                             class:active=move || is_rules_selected.get()
                             on:click=move |_| {
-                                selected_ability_id.set("rule_theory_body_control".to_string());
+                                selected_ability_id.set(ABILITY_THEORY_RULES[0].id.to_string());
                                 if let Some(m) = mobile_show_detail {
                                     m.set(true);
                                 }
@@ -285,7 +297,7 @@ pub fn AbilitiesView(
                                         <span class="tab-name">{move || rule.title(current_lang.get())}</span>
                                         <span class="compendium-sub-pill compendium-sub-pill-gold">{rule.page_ref}</span>
                                     </div>
-                                    <span class="tab-sub">"M20 • Regra Opcional"</span>
+                                    <span class="tab-sub">{move || rule_kind_label(rule, current_lang.get())}</span>
                                 </div>
                             </button>
                         }
@@ -388,7 +400,7 @@ pub fn AbilitiesView(
                                         <div class="compendium-article-title-wrap">
                                             <span class="compendium-article-icon">"⚖️"</span>
                                             <div>
-                                                <span class="compendium-badge-sup">"M20 • REGRA TEÓRICA"</span>
+                                                <span class="compendium-badge-sup">{rule_kind_label(&rule, lang).to_uppercase()}</span>
                                                 <h2 class="compendium-article-title">{rule.title(lang)}</h2>
                                                 <span class="compendium-article-page">{rule.page_ref}</span>
                                             </div>
@@ -518,7 +530,16 @@ pub fn AbilitiesView(
                                             Language::EnUs => "Description & Applications",
                                         }}
                                     </h4>
-                                    <p class="section-card-text">{ab.description(lang)}</p>
+                                    {match find_ability_unabridged_text(ab.id, lang) {
+                                        Some(full_text) => view! {
+                                            <div class="compendium-rich-content">
+                                                <RichTextView text=Signal::derive(move || full_text.to_string()) />
+                                            </div>
+                                        }.into_view(),
+                                        None => view! {
+                                            <p class="section-card-text">{ab.description(lang)}</p>
+                                        }.into_view(),
+                                    }}
                                 </div>
 
                                 // Linhas Informativas: Possuído por & Especialidades Sugeridas
