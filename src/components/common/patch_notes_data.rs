@@ -19,6 +19,55 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.24.0",
+        date: "2026-11-04",
+        tag: "v0.24.0",
+        title: "Livro dos Segredos no Compêndio, Facções da Ascensão, Aliados & Antagonistas e Mini Fichas de NPC",
+        highlight: "O compêndio ganha o Livro dos Segredos (14 arquétipos e 224 Qualidades e Defeitos, em inglês e português), as Tradições, Convenções e Disparates, as 61 fichas prontas do Apêndice I e mini fichas de NPC para o Narrador; a lista de Qualidades e Defeitos fica organizada por categoria, com busca melhor, filtros e links entre os verbetes.",
+        sections: &[
+            PatchSection {
+                category: "📕 Livro dos Segredos",
+                icon: "📕",
+                items: &[
+                    "🎭 14 Arquétipos Novos (BoS, pp. 14-18): Arquiteto, Artista, Bon Vivant, Cuidador, Conformista, Diretor, Animador, Guardião, Herege, Mentor, Romântico, Magnata, Vigilante e Fanático, com força, fraqueza e recuperação de Força de Vontade.",
+                    "⚖️ 224 Qualidades e Defeitos Novos (BoS, pp. 34-96): Físicos, Mentais, Sociais e Sobrenaturais, com o texto completo do livro em inglês e português.",
+                    "📋 Quadros do Capítulo: Limites Maiores para Defeitos, Antecedentes Adversários, Tempo, Clareza e Revisões, Neurodiversidade e Magos, o Laço de Sangue e os Efeitos da Vitae.",
+                    "🔀 Qualidade ou Defeito: Estéril, Magia Cíclica e Ímã Espiritual podem ser comprados das duas formas, como no livro.",
+                    "📄 Páginas do Livro: cada verbete mostra a página com a sigla BoS (ex.: BoS, p. 45).",
+                ],
+            },
+            PatchSection {
+                category: "🔎 Compêndio de Qualidades e Defeitos",
+                icon: "✨",
+                items: &[
+                    "🔍 Busca Melhor: quem tem o termo no nome aparece primeiro, e quem só o cita no texto fica em \"Mencionado no texto de\"; acentos não importam (\"esteril\" encontra Estéril).",
+                    "🗂️ Blocos por Categoria: Qualidades e Defeitos Físicos, Mentais, Sociais e Sobrenaturais, cada bloco com a contagem e a opção de recolher.",
+                    "🎚️ Filtros Novos: livro (M20 ou BoS), ordenação (ordem do livro, nome ou custo) e custo (1 a 6 ou 7+).",
+                    "📜 Regras e Quadros num bloco recolhido no topo, sem empurrar a lista para baixo.",
+                    "🔗 Links Entre Verbetes: citações como \"Defeito: Ecos\" ou \"Antecedente: Maravilha\" levam direto ao verbete, em inglês e português.",
+                    "🔢 Contagens Certas: os números de cada seção do compêndio agora são calculados (Habilidades mostra 60, e Armas, 44 manobras).",
+                ],
+            },
+            PatchSection {
+                category: "🏛️ Facções da Ascensão",
+                icon: "🏛️",
+                items: &[
+                    "📖 Nova Seção: as 9 Tradições, as 5 Convenções da União Tecnocrática e as 11 seitas Disparates (M20, pp. 149-224), com o texto do livro em inglês e português.",
+                    "🔮 Esferas de Afinidade e páginas do livro em cada facção.",
+                ],
+            },
+            PatchSection {
+                category: "🐺 Aliados & Antagonistas e Mini Fichas de NPC",
+                icon: "🐺",
+                items: &[
+                    "📖 Nova Seção: as 61 fichas prontas do Apêndice I (M20, pp. 618-641), de animais e mortais a Tecnocratas, magos e espíritos, com Atributos em bolinhas, Força de Vontade, vitalidade e iniciativa.",
+                    "🧾 Mini Fichas de NPC: painel lateral para o Narrador, criado a partir do compêndio ou em branco, com dano, cura, penalidade de ferimentos, iniciativa e anotações da cena.",
+                    "🗺️ Nas Salas: o Narrador coloca o NPC no mapa tático ou na iniciativa com um clique.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.23.0",
         date: "2026-10-31",
         tag: "v0.23.0",
