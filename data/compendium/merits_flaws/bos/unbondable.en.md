@@ -1,0 +1,3 @@
+Your soul remains free from the vampiric blood bond, and resistant to other forms of metaphysical fealty. Although you may still be compelled into service through Sphere magick, or impressed by dominating powers like vampiric Presence or changeling Chicanery, your Willpower is considered to be two dots higher with regards to resisting such domination. (See Mage 20, p. 519, and Influence-Magick Difficulties and Resistance, Recognition, and Duration in How Do You DO That?, pp. 116-117.)
+
+A rare and potent Merit, this gift may cost double its usual cost in a chronicle that’s filled with vampires, especially if the mages in that chronicle make a habit of guzzling vampire blood…

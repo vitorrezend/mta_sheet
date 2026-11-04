@@ -6,6 +6,8 @@ pub mod backgrounds_view;
 pub mod spheres_view;
 pub mod abilities_view;
 pub mod merits_flaws_view;
+pub mod merits_flaws_list;
+pub mod merits_flaws_row;
 pub mod traditions_view;
 pub mod bestiary_view;
 pub mod weapons;

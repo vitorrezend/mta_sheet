@@ -40,3 +40,24 @@ The entries below offer a sample of the potential range of Awakened Archetypes. 
 - [Traditionalist](mta://archetypes/traditionalist), p. 272 — strength: Consistency; weakness: Rigidity
 - [Trickster](mta://archetypes/trickster), pp. 272-273 — strength: Cleverness; weakness: Untrustworthiness
 - [Visionary](mta://archetypes/visionary), p. 273 — strength: Inspiration; weakness: Pride
+
+#### Book of Secrets Archetypes (BoS, pp. 14-18)
+
+> **Source:** M20 Book of Secrets, Chapter One: Heroic Traits, “Archetypes,” pp. 14-18
+
+We humans are mutable little monkeys. We can act like one sort of person while secretly nurturing an entirely different personality. That’s especially true of mages, whose secretive dealings and unorthodox beliefs turn even the most honest Awakened folks into psychological halls of mirrors. And so, the modest selection of Archetype Traits provided in Mage 20 (pp. 250 and 267-273) can easily be expanded to include the following options as well:
+
+- [Architect](mta://archetypes/architect), p. 14 — strength: Dedicated Purpose; weakness: Obsession
+- [Artist](mta://archetypes/artist), p. 14 — strength: Expression; weakness: Stuck in Your Own Head
+- [Bon Vivant](mta://archetypes/bon_vivant), pp. 14-15 — strength: Joie de vivre; weakness: Superficiality
+- [Caregiver](mta://archetypes/caregiver), p. 15 — strength: Kindness; weakness: Insecurity
+- [Conformist](mta://archetypes/conformist), p. 15 — strength: Cooperation; weakness: Compliance
+- [Director](mta://archetypes/director), p. 15 — strength: Leadership; weakness: Intolerance
+- [Entertainer](mta://archetypes/entertainer), p. 15 — strength: Fun and Entertaining; weakness: Ego
+- [Guardian](mta://archetypes/guardian), p. 16 — strength: Courage; weakness: Self-Sacrifice
+- [Heretic](mta://archetypes/heretic), p. 16 — strength: Integrity; weakness: Iconoclasm
+- [Mentor](mta://archetypes/mentor), p. 17 — strength: Dedication; weakness: Pedantic
+- [Romantic](mta://archetypes/romantic), p. 17 — strength: Passion; weakness: Careless
+- [Tycoon](mta://archetypes/tycoon), p. 17 — strength: Savvy; weakness: Greedy
+- [Vigilante](mta://archetypes/vigilante), p. 17 — strength: Retribution; weakness: Ruthlessness
+- [Zealot](mta://archetypes/zealot), pp. 17-18 — strength: Conviction; weakness: Extremity

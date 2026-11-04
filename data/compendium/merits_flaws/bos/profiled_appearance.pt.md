@@ -1,0 +1,3 @@
+Sua aparência física atrai suspeitas, preconceitos e vigilância institucional constante por parte de autoridades mundanas, forças policiais ou agentes da Tecnocracia. Seja devido à sua etnia, subcultura visual ostensiva (tatuagens faciais, roupas de gangue, piercings extremos), histórico em cartazes de procurados ou mera semelhança com um criminoso notório, os olhos da lei e da segurança corporativa sempre se voltam para você primeiro.
+
+Em qualquer cena em que guardas, policiais, seguranças de aeroporto ou agentes federais estejam patrulhando ou revistando pessoas, seu personagem é invariavelmente selecionado para interrogatórios, revistas minuciosas e inspeções de bagagem. Testes sociais para convencer autoridades a liberá-lo sofrem um acréscimo de +2 na dificuldade.

@@ -1,0 +1,5 @@
+You’ve been initiated and trained in two different Awakened groups. Perhaps you were a Verbena who gravitated toward the Virtual Adepts, or a Man in Black who sought refuge among the Templars. Whatever your history and affiliations might be, you’re intimately familiar with both groups, have connections (not necessarily friends) in both groups, and may use and understand the practices, tools and beliefs (in short, the focus) of either group.
+
+Rules-wise, your mage enjoys the benefits of each affiliation. If he’s a former Technocrat who went over to the mystic side, he can still use technomagick while transcending the usual Technocratic bans regarding Arete and focus. When raising a Sphere, your character gets to use the Affinity Sphere rate for one Sphere per group. His former associates probably don’t view him very favorably, though, unless he “cross-trained” within friendly groups, like a Dreamspeaker who went Ecstatic or a Hermetic who joined the Children of Knowledge.
+
+For additional details about this subject, see Chapter Three’s Focus FAQ, p. 174.

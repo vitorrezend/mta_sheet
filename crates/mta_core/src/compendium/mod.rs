@@ -8,6 +8,7 @@ pub mod instruments;
 pub mod attributes;
 pub mod weapons;
 pub mod archetypes;
+pub mod archetypes_bos;
 pub mod backgrounds;
 pub mod spheres;
 pub mod abilities;

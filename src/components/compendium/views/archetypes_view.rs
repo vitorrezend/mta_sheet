@@ -74,8 +74,8 @@ pub fn ArchetypesView(
                         type="text"
                         class="compendium-search-input"
                         placeholder=move || match current_lang.get() {
-                            Language::PtBr => "🔍 Filtrar 20 arquétipos...",
-                            Language::EnUs => "🔍 Filter 20 archetypes...",
+                            Language::PtBr => format!("🔍 Filtrar {} arquétipos...", ALL_ARCHETYPES.len()),
+                            Language::EnUs => format!("🔍 Filter {} archetypes...", ALL_ARCHETYPES.len()),
                         }
                         prop:value=move || archetype_search.get()
                         on:input=move |ev| archetype_search.set(event_target_value(&ev))
@@ -85,8 +85,8 @@ pub fn ArchetypesView(
                 // Título da Lista
                 <div class="practice-sidebar-title" style="margin-top: 0.5rem;">
                     {move || match current_lang.get() {
-                        Language::PtBr => "TODOS OS ARQUÉTIPOS (20)",
-                        Language::EnUs => "ALL ARCHETYPES (20)",
+                        Language::PtBr => format!("TODOS OS ARQUÉTIPOS ({})", ALL_ARCHETYPES.len()),
+                        Language::EnUs => format!("ALL ARCHETYPES ({})", ALL_ARCHETYPES.len()),
                     }}
                 </div>
 

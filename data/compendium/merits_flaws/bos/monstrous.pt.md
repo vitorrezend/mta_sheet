@@ -1,0 +1,3 @@
+Uma aparência física aterrorizante e deformada o afasta irremediavelmente do convívio com a humanidade convencional. Cicatrizes atrozes, mutações cósmicas, pele escamosa ou ossos proeminentes fazem com que mortais e animais fujam apavorados ao cruzar com você.
+
+Em termos de regras, seu [Atributo Aparência](mta://attributes/appearance) é fixado permanentemente em 0 círculos. Você falha automaticamente em qualquer teste social que dependa de atratividade física, charme ou simpatia. Em contrapartida, você reduz em -2 a dificuldade de testes destinados a aterrorizar, coagir ou intimidar fisicamente qualquer um que possa enxergar suas feições horrendas.

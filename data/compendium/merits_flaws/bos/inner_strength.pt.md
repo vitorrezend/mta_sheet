@@ -1,0 +1,3 @@
+Mesmo quando o mundo inteiro ao redor desmorona e a esperança parece morta, você encontra dentro de si uma reserva inextinguível de coragem e determinação.
+
+Uma vez por história (ou cena climática, a critério do Narrador), quando sua reserva de Força de Vontade temporária estiver completamente esgotada e você enfrentar uma adversidade crítica, você pode recuperar imediatamente dois pontos de Força de Vontade sem custo de experiência. Além disso, quando seu personagem estiver agindo diretamente em defesa de algo ou alguém profundamente ligado à sua Natureza ou convicção suprema, você reduz em -1 a dificuldade de testes de Força de Vontade para perseverar contra adversidades avassaladoras.

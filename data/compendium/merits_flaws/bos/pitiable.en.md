@@ -1,0 +1,1 @@
+Oh, you poor thing! People want to help you, and you’re willing to let them do so. Although this Merit lowers the difficulty of your social rolls by -2 when you’re trying to get someone to take care of you, it adds +2 to the difficulty of rolls that attempt to intimidate people or otherwise impress folks into taking you seriously.

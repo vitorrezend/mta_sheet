@@ -1,0 +1,3 @@
+Anger management is not your strong suit. When something or someone pisses you off (which happens with distressing regularity), you must make a Willpower roll (difficulty 6) or else deal with that shit gloves-off style. You probably won’t use deadly (or vulgar) force too recklessly, as you’re not long for this world if you do. Your infamous temper, however, can have severe long-term effects on your popularity, health, and status among your peers and superiors… which is itself a lethal proposition among members of the Technocratic Union and other groups that pride themselves on self-control.
+
+For a more extreme version of this Trait, see the Supernatural Flaw: Beast Within.

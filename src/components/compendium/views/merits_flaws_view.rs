@@ -1,14 +1,18 @@
 use leptos::*;
 use crate::compendium::merits_flaws::{
     find_derangement, find_derangement_unabridged_text, find_merit_flaw, find_merit_flaw_article,
-    find_merit_flaw_unabridged_text, ALL_DERANGEMENTS, ALL_FLAWS, ALL_MERITS, ALL_MERITS_FLAWS,
+    find_merit_flaw_unabridged_text, merit_flaw_article_content, ALL_DERANGEMENTS, ALL_FLAWS, ALL_MERITS, ALL_MERITS_FLAWS,
     DerangementDefinition, MeritFlawDefinition, TraitCategory, TraitType, MERIT_FLAW_ARTICLES,
 };
 use crate::components::compendium::rich_text::RichTextView;
+use crate::components::compendium::views::merits_flaws_list::{
+    build_list, twin, CostFilter, ListFilters, MainTab, SortMode, SourceFilter,
+};
+use crate::components::compendium::views::merits_flaws_row::merit_flaw_row;
 use crate::components::Callback;
 use crate::i18n::Language;
 
-fn get_category_icon(cat: TraitCategory) -> &'static str {
+pub(super) fn get_category_icon(cat: TraitCategory) -> &'static str {
     match cat {
         TraitCategory::Physical => "💪",
         TraitCategory::Mental => "🧠",
@@ -28,14 +32,6 @@ fn get_dots_visual(dots: i32) -> &'static str {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum MainTab {
-    All,
-    Merits,
-    Flaws,
-    Derangements,
-}
-
 #[component]
 pub fn MeritsFlawsView(
     selected_item_id: RwSignal<String>,
@@ -50,6 +46,12 @@ pub fn MeritsFlawsView(
     let (selected_category_filter, set_selected_category_filter) = create_signal(Option::<TraitCategory>::None);
     let (selected_cost, set_selected_cost) = create_signal(1);
     let (custom_spec, set_custom_spec) = create_signal(String::new());
+    let (source_filter, set_source_filter) = create_signal(SourceFilter::All);
+    let (sort_mode, set_sort_mode) = create_signal(SortMode::Book);
+    let (cost_filter, set_cost_filter) = create_signal(CostFilter::Any);
+    let (rules_open, set_rules_open) = create_signal(false);
+    // Blocos de categoria recolhidos (chaves de ListGroup::key)
+    let collapsed_groups = create_rw_signal(Vec::<String>::new());
 
     // Sincroniza custo padrão ao trocar de item
     create_effect(move |_| {
@@ -82,40 +84,16 @@ pub fn MeritsFlawsView(
         find_merit_flaw(&cur_id).copied().unwrap_or(ALL_MERITS[0])
     });
 
-    let filtered_items = Signal::derive(move || {
-        let q = search_filter.get().trim().to_lowercase();
-        let tab = active_tab.get();
-        let cat_filter = selected_category_filter.get();
-
-        if tab == MainTab::Derangements {
-            return Vec::new();
-        }
-
-        ALL_MERITS_FLAWS
-            .iter()
-            .copied()
-            .filter(|mf| {
-                match tab {
-                    MainTab::Merits => if mf.trait_type != TraitType::Merit { return false; },
-                    MainTab::Flaws => if mf.trait_type != TraitType::Flaw { return false; },
-                    _ => {}
-                }
-                if let Some(cat) = cat_filter {
-                    if mf.category != cat {
-                        return false;
-                    }
-                }
-                if q.is_empty() {
-                    return true;
-                }
-                mf.name.to_lowercase().contains(&q)
-                    || mf.name_pt.to_lowercase().contains(&q)
-                    || mf.technocracy_name.map(|t| t.to_lowercase().contains(&q)).unwrap_or(false)
-                    || mf.technocracy_name_pt.map(|t| t.to_lowercase().contains(&q)).unwrap_or(false)
-                    || mf.description.to_lowercase().contains(&q)
-                    || mf.description_pt.to_lowercase().contains(&q)
-            })
-            .collect::<Vec<_>>()
+    let list_result = Signal::derive(move || {
+        build_list(&ListFilters {
+            query: search_filter.get(),
+            tab: active_tab.get(),
+            category: selected_category_filter.get(),
+            cost: cost_filter.get(),
+            source: source_filter.get(),
+            sort: sort_mode.get(),
+            lang: current_lang.get(),
+        })
     });
 
     let filtered_derangements = Signal::derive(move || {
@@ -240,6 +218,7 @@ pub fn MeritsFlawsView(
                     // Sub-filtros por Categoria (quando em Todas, Qualidades ou Defeitos)
                     {move || if active_tab.get() != MainTab::Derangements {
                         view! {
+                          <div class="mf-filters">
                             <div class="compendium-filter-pills-row" style="margin-top: 0.35rem;">
                                 <button
                                     type="button"
@@ -297,6 +276,74 @@ pub fn MeritsFlawsView(
                                     }}
                                 </button>
                             </div>
+                            // Livro, ordenação e custo
+                            <div class="mf-controls-row">
+                                <div class="mf-segmented" role="group">
+                                    {[(SourceFilter::All, "Todos os livros", "All books"), (SourceFilter::M20, "M20", "M20"), (SourceFilter::BoS, "BoS", "BoS")]
+                                        .into_iter()
+                                        .map(|(val, pt, en)| view! {
+                                            <button
+                                                type="button"
+                                                class="mf-seg-btn"
+                                                class:active=move || source_filter.get() == val
+                                                on:click=move |_| set_source_filter.set(val)
+                                                title=move || match current_lang.get() {
+                                                    Language::PtBr => "Filtrar pelo livro de origem",
+                                                    Language::EnUs => "Filter by source book",
+                                                }
+                                            >
+                                                {move || match current_lang.get() { Language::PtBr => pt, Language::EnUs => en }}
+                                            </button>
+                                        })
+                                        .collect_view()}
+                                </div>
+                                <label class="mf-sort-label">
+                                    <span>{move || match current_lang.get() { Language::PtBr => "Ordenar:", Language::EnUs => "Sort:" }}</span>
+                                    <select
+                                        class="mf-sort-select"
+                                        on:change=move |ev| set_sort_mode.set(match event_target_value(&ev).as_str() {
+                                            "name" => SortMode::Name,
+                                            "cost" => SortMode::Cost,
+                                            _ => SortMode::Book,
+                                        })
+                                    >
+                                        <option value="book" selected=move || sort_mode.get() == SortMode::Book>
+                                            {move || match current_lang.get() { Language::PtBr => "Ordem do livro", Language::EnUs => "Book order" }}
+                                        </option>
+                                        <option value="name" selected=move || sort_mode.get() == SortMode::Name>
+                                            {move || match current_lang.get() { Language::PtBr => "Nome (A-Z)", Language::EnUs => "Name (A-Z)" }}
+                                        </option>
+                                        <option value="cost" selected=move || sort_mode.get() == SortMode::Cost>
+                                            {move || match current_lang.get() { Language::PtBr => "Custo", Language::EnUs => "Cost" }}
+                                        </option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="mf-controls-row mf-cost-row">
+                                <span class="mf-cost-label">{move || match current_lang.get() { Language::PtBr => "Custo:", Language::EnUs => "Cost:" }}</span>
+                                {[CostFilter::Any, CostFilter::Exactly(1), CostFilter::Exactly(2), CostFilter::Exactly(3), CostFilter::Exactly(4), CostFilter::Exactly(5), CostFilter::Exactly(6), CostFilter::SevenPlus]
+                                    .into_iter()
+                                    .map(|val| {
+                                        let text = move || match (val, current_lang.get()) {
+                                            (CostFilter::Any, Language::PtBr) => "Qualquer".to_string(),
+                                            (CostFilter::Any, Language::EnUs) => "Any".to_string(),
+                                            (CostFilter::Exactly(n), _) => n.to_string(),
+                                            (CostFilter::SevenPlus, _) => "7+".to_string(),
+                                        };
+                                        view! {
+                                            <button
+                                                type="button"
+                                                class="mf-cost-chip"
+                                                class:active=move || cost_filter.get() == val
+                                                on:click=move |_| set_cost_filter.set(val)
+                                            >
+                                                {text}
+                                            </button>
+                                        }
+                                    })
+                                    .collect_view()}
+                            </div>
+                          </div>
                         }.into_view()
                     } else {
                         view! { <span></span> }.into_view()
@@ -307,7 +354,9 @@ pub fn MeritsFlawsView(
                 <div class="practice-list">
                     // Seção de Qualidades e Defeitos
                     {move || {
-                        let list = filtered_items.get();
+                        let result = list_result.get();
+                        let result_total = result.total();
+                        let tab = active_tab.get();
                         let d_list = filtered_derangements.get();
                         let lang = current_lang.get();
 
@@ -319,15 +368,21 @@ pub fn MeritsFlawsView(
                                 {if show_articles {
                                     view! {
                                         <div style="margin-bottom: 0.75rem;">
-                                            <div class="compendium-rules-category-header">
-                                                <span class="rules-category-title">
+                                            <button
+                                                type="button"
+                                                class="mf-group-header mf-rules-header"
+                                                on:click=move |_| set_rules_open.update(|o| *o = !*o)
+                                            >
+                                                <span class="mf-group-chevron">{if rules_open.get() { "▾" } else { "▸" }}</span>
+                                                <span class="mf-group-title">
                                                     {match lang {
-                                                        Language::PtBr => "REGRAS E QUADROS DO APÊNDICE II",
-                                                        Language::EnUs => "APPENDIX II RULES & SIDEBARS",
+                                                        Language::PtBr => "📜 Regras e Quadros (M20 & BoS)",
+                                                        Language::EnUs => "📜 Rules & Sidebars (M20 & BoS)",
                                                     }}
                                                 </span>
-                                            </div>
-                                            <div class="practice-tab-list">
+                                                <span class="mf-group-count">{MERIT_FLAW_ARTICLES.len()}</span>
+                                            </button>
+                                            <div class="practice-tab-list" style:display=move || if rules_open.get() { "" } else { "none" }>
                                                 {MERIT_FLAW_ARTICLES.iter().map(|art| {
                                                     let a_id = art.id.to_string();
                                                     let a_id_click = a_id.clone();
@@ -353,8 +408,8 @@ pub fn MeritsFlawsView(
                                                                     <span class="compendium-sub-pill compendium-sub-pill-gold">{art.page_ref}</span>
                                                                 </div>
                                                                 <span class="tab-sub">{match lang {
-                                                                    Language::PtBr => "M20 • Quadro",
-                                                                    Language::EnUs => "M20 • Sidebar",
+                                                                    Language::PtBr => format!("{} • Quadro", art.source_book()),
+                                                                    Language::EnUs => format!("{} • Sidebar", art.source_book()),
                                                                 }}</span>
                                                             </div>
                                                         </button>
@@ -367,48 +422,61 @@ pub fn MeritsFlawsView(
                                     view! { <span></span> }.into_view()
                                 }}
 
-                                {if !list.is_empty() {
-                                    view! {
-                                        <div class="practice-tab-list">
-                                            {list.iter().copied().map(|mf| {
-                                                let item_id = mf.id.to_string();
-                                                let item_id_click = item_id.clone();
-                                                let is_active = Signal::derive({
-                                                    let id = item_id.clone();
-                                                    move || selected_item_id.get() == id
-                                                });
-                                                let is_merit = mf.trait_type == TraitType::Merit;
-                                                let cat_icon = get_category_icon(mf.category);
-                                                view! {
-                                                    <button
-                                                        type="button"
-                                                        class=move || if is_active.get() { "practice-tab-btn active" } else { "practice-tab-btn" }
-                                                        on:click={
-                                                            let id = item_id_click.clone();
-                                                            move |_| {
-                                                                selected_item_id.set(id.clone());
-                                                                if let Some(m) = mobile_show_detail {
-                                                                    m.set(true);
-                                                                }
-                                                            }
+                                // Qualidades e Defeitos em blocos por categoria (recolhíveis)
+                                {
+                                    let searching = !search_filter.get().trim().is_empty();
+                                    result.groups.into_iter().map(|group| {
+                                        let key = group.key();
+                                        let key_toggle = key.clone();
+                                        let is_open = move || searching || !collapsed_groups.get().contains(&key);
+                                        let is_open_list = is_open.clone();
+                                        let count = group.items.len();
+                                        let label = group.label(lang);
+                                        let rows = group.items.iter().copied()
+                                            .map(|mf| merit_flaw_row(mf, lang, selected_item_id, mobile_show_detail, tab))
+                                            .collect_view();
+                                        view! {
+                                            <div class="mf-group">
+                                                <button
+                                                    type="button"
+                                                    class="mf-group-header"
+                                                    on:click=move |_| collapsed_groups.update(|c| {
+                                                        if let Some(pos) = c.iter().position(|k| *k == key_toggle) {
+                                                            c.remove(pos);
+                                                        } else {
+                                                            c.push(key_toggle.clone());
                                                         }
-                                                    >
-                                                        <span class="tab-indicator">{cat_icon}</span>
-                                                        <div class="tab-text-wrap">
-                                                            <div class="tab-name-row">
-                                                                <span class="tab-name">{move || mf.name(lang)}</span>
-                                                                <span class=format!("compendium-sub-pill trait-pill-{}", if is_merit { "merit" } else { "flaw" })>
-                                                                    {mf.trait_type.name(lang)}
-                                                                </span>
-                                                            </div>
-                                                            <div class="tab-name-row" style="margin-top: 2px;">
-                                                                <span class="tab-sub">{move || mf.secondary_name(lang)}</span>
-                                                                <span class="points-badge-pill">{mf.points_display(lang)}</span>
-                                                            </div>
-                                                        </div>
-                                                    </button>
-                                                }
-                                            }).collect_view()}
+                                                    })
+                                                >
+                                                    <span class="mf-group-chevron">{move || if is_open() { "▾" } else { "▸" }}</span>
+                                                    <span class="mf-group-title">{label}</span>
+                                                    <span class="mf-group-count">{count}</span>
+                                                </button>
+                                                <div class="practice-tab-list" style:display=move || if is_open_list() { "" } else { "none" }>
+                                                    {rows}
+                                                </div>
+                                            </div>
+                                        }
+                                    }).collect_view()
+                                }
+
+                                // Itens que só citam o termo buscado no texto
+                                {if !result.mentions.is_empty() {
+                                    let rows = result.mentions.iter().copied()
+                                        .map(|mf| merit_flaw_row(mf, lang, selected_item_id, mobile_show_detail, tab))
+                                        .collect_view();
+                                    view! {
+                                        <div class="mf-group mf-mentions">
+                                            <div class="mf-group-header mf-mentions-header">
+                                                <span class="mf-group-title">
+                                                    {match lang {
+                                                        Language::PtBr => "🔎 Mencionado no texto de",
+                                                        Language::EnUs => "🔎 Mentioned in the text of",
+                                                    }}
+                                                </span>
+                                                <span class="mf-group-count">{result.mentions.len()}</span>
+                                            </div>
+                                            <div class="practice-tab-list">{rows}</div>
                                         </div>
                                     }.into_view()
                                 } else {
@@ -467,7 +535,7 @@ pub fn MeritsFlawsView(
                                     view! { <span></span> }.into_view()
                                 }}
 
-                                {if list.is_empty() && d_list.is_empty() {
+                                {if result_total == 0 && d_list.is_empty() {
                                     view! {
                                         <div class="practice-empty-state">
                                             <span class="empty-icon">"🔍"</span>
@@ -517,6 +585,8 @@ pub fn MeritsFlawsView(
                                         <span class="compendium-article-icon">"⚖️"</span>
                                         <div>
                                             <span class="compendium-badge-sup">{match lang {
+                                                Language::PtBr if art.source_book() == "BoS" => "BoS • QUADRO DO CAPÍTULO UM",
+                                                Language::EnUs if art.source_book() == "BoS" => "BoS • CHAPTER ONE SIDEBAR",
                                                 Language::PtBr => "M20 • QUADRO DO APÊNDICE II",
                                                 Language::EnUs => "M20 • APPENDIX II SIDEBAR",
                                             }}</span>
@@ -527,7 +597,7 @@ pub fn MeritsFlawsView(
                                 </div>
 
                                 <div class="compendium-rich-content">
-                                    <RichTextView text=Signal::derive(move || art.content(lang).to_string()) />
+                                    <RichTextView text=Signal::derive(move || merit_flaw_article_content(&art, lang).to_string()) />
                                 </div>
                             </div>
                         }.into_view()
@@ -643,6 +713,38 @@ pub fn MeritsFlawsView(
                                             </div>
                                             <h2 class="practice-hero-title">{mf.name(lang)}</h2>
                                             <span class="practice-hero-sub">{mf.secondary_name(lang)}</span>
+                                            {match twin(&mf) {
+                                                Some(other) => {
+                                                    let (merit_id, flaw_id) = if is_merit { (mf.id, other.id) } else { (other.id, mf.id) };
+                                                    view! {
+                                                        <div class="mf-twin-toggle">
+                                                            <span class="mf-twin-hint">
+                                                                {match lang {
+                                                                    Language::PtBr => "Este Traço pode ser Qualidade ou Defeito:",
+                                                                    Language::EnUs => "This Trait can be a Merit or a Flaw:",
+                                                                }}
+                                                            </span>
+                                                            <button
+                                                                type="button"
+                                                                class="mf-seg-btn"
+                                                                class:active=is_merit
+                                                                on:click=move |_| selected_item_id.set(merit_id.to_string())
+                                                            >
+                                                                "✨ " {TraitType::Merit.name(lang)}
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                class="mf-seg-btn"
+                                                                class:active=!is_merit
+                                                                on:click=move |_| selected_item_id.set(flaw_id.to_string())
+                                                            >
+                                                                "⚠️ " {TraitType::Flaw.name(lang)}
+                                                            </button>
+                                                        </div>
+                                                    }.into_view()
+                                                }
+                                                None => view! { <span></span> }.into_view(),
+                                            }}
                                             {if let Some(tech_name) = mf.technocracy_name(lang) {
                                                 view! {
                                                     <span class="technocracy-name-tag" style="display: inline-block; margin-top: 0.25rem; font-size: 0.8rem; font-weight: 600; color: #3b82f6;">
@@ -776,7 +878,10 @@ pub fn MeritsFlawsView(
                                 {match find_merit_flaw_unabridged_text(mf.id, lang) {
                                     Some(full_text) => view! {
                                         <div class="compendium-section-card">
-                                            <h4 class="section-card-title">"📖 " {match lang { Language::PtBr => "Texto Integral (M20)", Language::EnUs => "Full Text (M20)" }}</h4>
+                                            <h4 class="section-card-title">"📖 " {match lang {
+                                                Language::PtBr => format!("Texto Integral ({})", mf.source_book()),
+                                                Language::EnUs => format!("Full Text ({})", mf.source_book()),
+                                            }}</h4>
                                             <div class="compendium-rich-content">
                                                 <RichTextView text=Signal::derive(move || full_text.to_string()) />
                                             </div>

@@ -1,0 +1,3 @@
+Parte da sua psique regrediu a um estado primordial, predatório e animalesco — talvez por exposição prolongada à Umbra profunda, possessão por espíritos xamânicos bestiais ou manipulações desastrosas na mente e no cérebro.
+
+Sob estresse de combate ou medo intenso, seus instintos de fera assumem o controle: você ruge, sibila, ataca com dentes e unhas ou busca abrigo em cantos escuros. Você sofre penalidades severas em testes de raciocínio tecnológico abstrato durante esses episódios e pode precisar de testes de Força de Vontade para não devorar presas ou atacar aliados que se aproximem de forma ameaçadora.

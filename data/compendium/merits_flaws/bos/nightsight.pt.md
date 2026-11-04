@@ -1,0 +1,3 @@
+Ao contrário da maioria das pessoas, você enxerga perfeitamente na escuridão quase total. Apenas a ausência absoluta de qualquer fóton de luz anula essa capacidade. Sob a penumbra mais tênue, sua visão funciona de forma praticamente desimpedida.
+
+Esta Qualidade não expande o alcance visual do personagem — para isso, veja Sentidos Aguçados; contudo, ambientes de pouca luz não impõem qualquer penalidade de dificuldade ou visão às suas jogadas de percepção visual. Outros obstáculos à visão, como fumaça densa ou neblina, bloqueiam seus olhos normalmente, e escuridão gerada por mágica (como o desvio ou dispersão de luz pela Esfera de Forças) neutraliza esta Qualidade quando suprime a luz em si.

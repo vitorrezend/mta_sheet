@@ -1,0 +1,3 @@
+Popularmente conhecida como memória fotográfica, sua mente retém detalhes sensoriais e informações factuais com fidelidade quase cinematográfica.
+
+Textos lidos uma única vez, rostos vislumbrados na multidão, sequências numéricas complexas, conversas ouvidas anos atrás e mapas examinados rapidamente permanecem gravados em sua memória e podem ser resgatados à vontade. Em situações de estresse extremo ou para recordar detalhes minúsculos e periféricos, um simples teste de [Inteligência](mta://attributes/intelligence) (dificuldade 6) basta para trazer a lembrança com clareza impecável. O Narrador pode simplesmente descrever ao jogador os fatos ou pistas que o personagem testemunhou no passado sem exigir testes adicionais.

@@ -1,11 +1,18 @@
 //! Canonical Personality Archetypes: Nature and Demeanor from M20 (pp. 267-273).
 //!
 //! Provides comprehensive, unabridged bilingual data (English and Brazilian Portuguese)
-//! for all 20 canonical personality archetypes, along with the foundational rules
-//! regarding Nature, Demeanor, and Willpower recovery mechanics.
+//! for the 20 canonical personality archetypes, along with the foundational rules
+//! regarding Nature, Demeanor, and Willpower recovery mechanics. The 14 optional
+//! archetypes from the Book of Secrets (BoS, pp. 14-18) live in `archetypes_bos`.
 
 use serde::Serialize;
 use crate::i18n::Language;
+use super::archetypes_bos::*;
+
+/// Portuguese text when present, English otherwise (the BoS entries are English only).
+fn pt_or_en(pt: &'static str, en: &'static str) -> &'static str {
+    if pt.is_empty() { en } else { pt }
+}
 
 /// Canonical Theory Article regarding Nature and Demeanor
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -59,49 +66,49 @@ pub struct ArchetypeDefinition {
 impl ArchetypeDefinition {
     pub fn name(&self, lang: Language) -> &'static str {
         match lang {
-            Language::PtBr => self.name_pt,
+            Language::PtBr => pt_or_en(self.name_pt, self.name),
             Language::EnUs => self.name,
         }
     }
 
     pub fn description(&self, lang: Language) -> &'static str {
         match lang {
-            Language::PtBr => self.description_pt,
+            Language::PtBr => pt_or_en(self.description_pt, self.description),
             Language::EnUs => self.description,
         }
     }
 
     pub fn strength_name(&self, lang: Language) -> &'static str {
         match lang {
-            Language::PtBr => self.strength_name_pt,
+            Language::PtBr => pt_or_en(self.strength_name_pt, self.strength_name),
             Language::EnUs => self.strength_name,
         }
     }
 
     pub fn strength(&self, lang: Language) -> &'static str {
         match lang {
-            Language::PtBr => self.strength_pt,
+            Language::PtBr => pt_or_en(self.strength_pt, self.strength),
             Language::EnUs => self.strength,
         }
     }
 
     pub fn weakness_name(&self, lang: Language) -> &'static str {
         match lang {
-            Language::PtBr => self.weakness_name_pt,
+            Language::PtBr => pt_or_en(self.weakness_name_pt, self.weakness_name),
             Language::EnUs => self.weakness_name,
         }
     }
 
     pub fn weakness(&self, lang: Language) -> &'static str {
         match lang {
-            Language::PtBr => self.weakness_pt,
+            Language::PtBr => pt_or_en(self.weakness_pt, self.weakness),
             Language::EnUs => self.weakness,
         }
     }
 
     pub fn willpower_regain(&self, lang: Language) -> &'static str {
         match lang {
-            Language::PtBr => self.willpower_regain_pt,
+            Language::PtBr => pt_or_en(self.willpower_regain_pt, self.willpower_regain),
             Language::EnUs => self.willpower_regain,
         }
     }
@@ -420,7 +427,7 @@ pub const ARCHETYPE_SENSUALIST: ArchetypeDefinition = ArchetypeDefinition {
     id: "sensualist",
     name: "Sensualist",
     name_pt: "Sensualista",
-    aliases: &["sensualist", "sensualista", "bon vivant", "hedonista"],
+    aliases: &["sensualist", "sensualista", "hedonista"],
     page_ref: "M20, p. 272",
     description: r#"Sensation is a drug to you. The jittery rush of adrenaline, the caress of this week’s lover on your skin, the raspy pull of a brush through messy hair, even the dull burn of a broken heart – you chase those dragons with bright abandon. The obvious choice for an Ecstatic mage, this compulsion finds new expressions in the Art of magick. The first thing you learn in each Sphere, after all, is perception. For someone like you, that’s all the reason in the world you need in order to learn each Sphere and savor its sensations."#,
     description_pt: r#"Sensação é uma droga para você. A descarga frenética de adrenalina, a carícia do amante da semana na sua pele, a puxada áspera de uma escova pelo cabelo desgrenhado, até a dor surda de um coração partido — você persegue essas sensações com entrega desenfreada. Escolha óbvia para um mago Estático (Culto do Êxtase), essa compulsão encontra novas expressões na Arte da mágica. Afinal, a primeira coisa que você aprende em cada Esfera é percepção. Para alguém como você, esse é todo o motivo de que precisa para aprender cada Esfera e saborear suas sensações."#,
@@ -517,7 +524,7 @@ pub const ARCHETYPE_VISIONARY: ArchetypeDefinition = ArchetypeDefinition {
 };
 
 /// All 20 canonical Personality Archetypes from M20 (pp. 267-273)
-pub const ALL_ARCHETYPES: &[ArchetypeDefinition; 20] = &[
+pub const ALL_ARCHETYPES: &[ArchetypeDefinition; 34] = &[
     ARCHETYPE_ACTIVIST,
     ARCHETYPE_BENEFACTOR,
     ARCHETYPE_CONTRARY,
@@ -538,6 +545,21 @@ pub const ALL_ARCHETYPES: &[ArchetypeDefinition; 20] = &[
     ARCHETYPE_TRADITIONALIST,
     ARCHETYPE_TRICKSTER,
     ARCHETYPE_VISIONARY,
+    // Book of Secrets (BoS, pp. 14-18)
+    ARCHETYPE_ARCHITECT,
+    ARCHETYPE_ARTIST,
+    ARCHETYPE_BON_VIVANT,
+    ARCHETYPE_CAREGIVER,
+    ARCHETYPE_CONFORMIST,
+    ARCHETYPE_DIRECTOR,
+    ARCHETYPE_ENTERTAINER,
+    ARCHETYPE_GUARDIAN,
+    ARCHETYPE_HERETIC,
+    ARCHETYPE_MENTOR,
+    ARCHETYPE_ROMANTIC,
+    ARCHETYPE_TYCOON,
+    ARCHETYPE_VIGILANTE,
+    ARCHETYPE_ZEALOT,
 ];
 
 /// Helper function to normalize query strings for case-insensitive and accent-insensitive matching
@@ -568,7 +590,7 @@ pub fn find_archetype(query: &str) -> Option<&'static ArchetypeDefinition> {
     for arch in ALL_ARCHETYPES.iter() {
         if normalize_query(arch.id) == q
             || normalize_query(arch.name) == q
-            || normalize_query(arch.name_pt) == q
+            || normalize_query(arch.name(Language::PtBr)) == q
         {
             return Some(arch);
         }
@@ -582,7 +604,7 @@ pub fn find_archetype(query: &str) -> Option<&'static ArchetypeDefinition> {
     // Substring / partial match fallback
     for arch in ALL_ARCHETYPES.iter() {
         let norm_name = normalize_query(arch.name);
-        let norm_pt = normalize_query(arch.name_pt);
+        let norm_pt = normalize_query(arch.name(Language::PtBr));
         if norm_name.contains(&q) || norm_pt.contains(&q) || q.contains(&norm_name) || q.contains(&norm_pt) {
             return Some(arch);
         }
@@ -602,20 +624,28 @@ mod tests {
 
     #[test]
     fn test_all_archetypes_count_and_uniqueness() {
-        assert_eq!(ALL_ARCHETYPES.len(), 20);
+        assert_eq!(ALL_ARCHETYPES.len(), 34);
         let mut ids = std::collections::HashSet::new();
         for arch in ALL_ARCHETYPES.iter() {
+            let is_bos = arch.page_ref.starts_with("BoS");
+            assert!(is_bos || arch.page_ref.starts_with("M20"), "Unknown source: {}", arch.page_ref);
             assert!(!arch.id.is_empty());
             assert!(!arch.name.is_empty());
             assert!(!arch.name_pt.is_empty());
             assert!(!arch.description.is_empty());
             assert!(!arch.description_pt.is_empty());
             assert!(!arch.strength_name.is_empty());
+            assert!(!arch.strength_name_pt.is_empty());
             assert!(!arch.strength.is_empty());
+            assert!(!arch.strength_pt.is_empty());
             assert!(!arch.weakness_name.is_empty());
+            assert!(!arch.weakness_name_pt.is_empty());
             assert!(!arch.weakness.is_empty());
+            assert!(!arch.weakness_pt.is_empty());
             assert!(!arch.willpower_regain.is_empty());
             assert!(!arch.willpower_regain_pt.is_empty());
+            assert!(arch.willpower_regain.starts_with("Regain Willpower"));
+            assert!(arch.willpower_regain_pt.starts_with("Recupere Força de Vontade"));
             assert!(ids.insert(arch.id), "Duplicate ID detected: {}", arch.id);
         }
     }
@@ -631,6 +661,35 @@ mod tests {
         assert_eq!(find_archetype("rogue").unwrap().id, "rogue");
         assert_eq!(find_archetype("rebelde").unwrap().id, "rogue");
         assert_eq!(find_archetype("malandro").unwrap().id, "rogue");
+    }
+
+    #[test]
+    fn test_book_of_secrets_archetypes() {
+        assert_eq!(ALL_ARCHETYPES.iter().filter(|a| a.page_ref.starts_with("BoS")).count(), 14);
+        assert_eq!(find_archetype("Bon Vivant").unwrap().id, "bon_vivant");
+        assert_eq!(find_archetype("zealot").unwrap().page_ref, "BoS, pp. 17-18");
+        assert_eq!(find_archetype("fanatico").unwrap().id, "zealot");
+        assert_eq!(find_archetype("Fanático").unwrap().id, "zealot");
+        assert_eq!(find_archetype("Magnata").unwrap().id, "tycoon");
+        assert_eq!(find_archetype("Arquiteto").unwrap().id, "architect");
+        assert_eq!(find_archetype("Cuidador").unwrap().id, "caregiver");
+        assert_eq!(find_archetype("Herege").unwrap().id, "heretic");
+        assert_eq!(find_archetype("Animador").unwrap().id, "entertainer");
+
+        let tycoon = find_archetype("Tycoon").unwrap();
+        assert_eq!(tycoon.name(Language::PtBr), "Magnata");
+        assert_eq!(tycoon.strength_name(Language::PtBr), "Sagacidade");
+        assert_eq!(tycoon.weakness_name(Language::PtBr), "Ganância");
+        assert!(tycoon.weakness(Language::PtBr).contains("Ganancioso"));
+        assert!(tycoon.willpower_regain(Language::PtBr).starts_with("Recupere Força de Vontade"));
+
+        let zealot = find_archetype("Zealot").unwrap();
+        assert_eq!(zealot.name(Language::PtBr), "Fanático");
+        assert_eq!(zealot.strength_name(Language::PtBr), "Convicção");
+        assert_eq!(zealot.weakness_name(Language::PtBr), "Extremismo");
+        assert!(zealot.willpower_regain(Language::PtBr).starts_with("Recupere Força de Vontade"));
+
+        assert!(find_archetype("xyzzy").is_none());
     }
 
     #[test]

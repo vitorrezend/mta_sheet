@@ -1,0 +1,3 @@
+Você sofre de Transtorno de Personalidade Obsessivo-Compulsiva severo: uma necessidade compulsiva de manter controle, ordem estrita, organização milimétrica e perfeccionismo intransigente em tudo o que faz.
+
+Seus rituais mágikos demandam preparação exaustiva, seus tomos e ferramentas devem estar impecavelmente organizados por ordem alfabética ou cronológica, e ver alguém bagunçar o seu laboratório ou alterar a rotina da sua cabala o desestabiliza profundamente. Quando seus rituais ou rotinas de controle forem perturbados, faça um teste de Força de Vontade (dificuldade 7) para conseguir agir sem penalidades de distração.

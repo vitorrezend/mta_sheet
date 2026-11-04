@@ -1,0 +1,3 @@
+Por algum motivo histórico ou biológico, seu aprendizado e desenvolvimento ficaram aquém do potencial esperado. Talvez você seja jovem demais para ter adquirido vivência prática (ótima justificativa para crianças-magos), tenha sido criado em uma redoma isolada ou seja um construto cibernético recém-saído do tanque biológico de replicação.
+
+Em termos de regras, este Defeito subtrai cinco pontos (-5) da quantidade inicial de pontos de criação destinada a uma das suas três categorias de Habilidades (Talentos, Perícias ou Conhecimentos). Além disso, você não pode iniciar a crônica com nenhuma Habilidade dessa categoria com mais de 3 círculos, mesmo que gaste pontos de bônus. Para detalhes sobre crianças-magos, veja o Capítulo Dois de *Book of Secrets*, pp. 115-116.

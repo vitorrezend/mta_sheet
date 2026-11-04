@@ -1,0 +1,10 @@
+Thanks to some uncanny gift, you age slowly (if at all) and are extremely hard to kill. This gift comes not from Sphere magick but from a metaphysical legacy or curse that transcends the fleeting nature of the flesh. You’re not truly immortal, as death will probably claim you eventually; by normal standards, though, you exist outside of the usual range of human mortality.
+
+This Merit features two levels:
+
+- (5 points) You age very slowly – perhaps one year for every passing decade – and eventually recover (at the usual speed) from any injuries and illnesses that do not immediately kill you outright. A wasting disease or infection, for instance, won’t kill you (though you might wish it would), but a bullet in the heart would do so.
+- (7 points) In addition to the slow-aging process, you’re also immune to death itself unless you meet your special doom (as described below) or have your body completely obliterated. Shooting won’t kill you, poison won’t kill you, starvation won’t kill you, but being incinerated or dissolved in acid would end your life for good. Otherwise, your wounds heal at the usual rate, eventually bringing you back from the dead… which, if you’ve been buried, embalmed, entombed, or otherwise trapped could be a very bad thing for you!
+
+Regardless of the level of this Merit, you must have at least one special doom: an event that will kill your ass dead for good. This doom could involve decapitation, burning of your body, immersion in salt water, removal of the eternal revivification unit installed within your heart, and so forth. This doom must be determined before the chronicle begins, and if it ever befalls you… well, life was fun while it lasted, right?
+
+This Merit goes well with Traits like the Background: Legend, the Supernatural Merits: Mark of Favor, Nephilim, Spark of Life, and Twin Souls, or the Supernatural Flaws: Phylactery and Primal Marks. (See the appropriate entries throughout this section.) It cannot be taken in addition to the Merit: Nine Lives (also in this section) and, for obvious reasons, this Merit might not be available to player characters within your chronicle at all.

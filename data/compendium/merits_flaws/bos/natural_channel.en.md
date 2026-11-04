@@ -1,0 +1,1 @@
+You’ve got an innate affinity with the Otherworlds. Sliding through from the mortal realm to the Three Worlds is easier for you than it is for other Awakened folk. System-wise, you subtract -2 from the difficulty of your rolls to penetrate the Gauntlet. Story-wise, crossing over feels, to you, like a primal sort of homecoming, as if you exist between worlds on an elemental level.

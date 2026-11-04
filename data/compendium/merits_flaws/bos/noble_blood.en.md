@@ -1,0 +1,7 @@
+Although the modern world resists the old traditions of lineage as a mark of quality, your features link you to a powerful family; you’re a Kennedy, a Windsor, a Saud, a Rothschild – someone whose pedigree is obvious in your physical form and presence.
+
+In story terms, this Merit grants you the obvious physical features of a well-known “royal” family: the Kennedy smile, the Windsor ears, and so forth. The family in question doesn’t have to belong to a formal aristocracy, either; you might be a Kardashian, a Murdoch, or a Clinton, and may the gods have mercy on your soul. On the flipside, your distinct features might not be especially attractive (royal families are notoriously inbred), and will mark you out for enemies of the clan in question.
+
+In social situations, this Merit might be worth a -2 reduction for the difficulty of social rolls that involve people who care about things like aristocracy, but would also increase your difficulty by +2 if you’re dealing with folks who hate that noble family’s guts! In all cases, this Merit reflects an actual genetic connection, not simply a cosmetic resemblance… which could provide all kinds of complications when magick and its secret histories are involved.
+
+While it might be worth some social currency, this Merit does not in any way provide material wealth or other perks. For such goodies, see Backgrounds like Influence, Rank, Resources, and so forth in the Mage 20 rulebook, Chapter Six. For the social benefits of regal presence, see the Social Merit Regal Bearing, elsewhere in this chapter.

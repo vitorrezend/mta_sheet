@@ -1,0 +1,3 @@
+Unlike most people, you can see in near-total darkness. Only the complete absence of visible light will negate this ability. In even the dimmest light, your visual abilities remain essentially unimpaired.
+
+This Merit does not increase your character’s visual capacity – for that gift, see Acute Senses, above; it does, however, mean that low light does not impose any sort of penalty on her visual perception rolls. Other visual impediments, like smoke or fog, block her sight as usual, and magickally-imposed darkness (for instance, the sort caused by deflecting light with the Forces Sphere) negates this Merit if and when it involves the dispersal of light itself.

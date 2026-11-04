@@ -1,0 +1,3 @@
+Você e a sua boca grande! Logo após se juntar ao seu grupo atual, você deu um passo à frente e assumiu um dever para com esse grupo. Fazer isso lhe rendeu alguns pontos com a liderança, mas esse dever cobra um preço altíssimo de você. Esta responsabilidade pesa sobre você em grau significativo, consumindo tempo, energia e recursos sociais, emocionais e talvez monetários que você preferiria dedicar a outras coisas.
+
+Obviamente, você precisa definir o que está fazendo para quem, e o que precisa fazer ao longo do cumprimento disso. Embora (provavelmente) não seja perigoso a ponto de ameaçar a vida, este Defeito exige atenção constante. Até que você compre este Defeito de volta, você realmente não pode fugir das suas responsabilidades.

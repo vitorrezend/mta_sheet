@@ -1,0 +1,3 @@
+You and your big mouth! Shortly after you joined your current group, you stepped up and assumed a duty to that group. Doing so earned you some points with the leadership, but that duty comes at great cost to you. This responsibility weighs on you to a significant degree, consuming time, energy, and social, emotional and perhaps monetary resources you’d rather devote to other things.
+
+Obviously, you need to define what you’re doing for whom, and what you need to do in the course of doing it. Although it’s (probably) not dangerous in life-threatening ways, this Flaw demands constant attention. Until you buy off the Flaw, you really can’t skip out on your responsibilities.

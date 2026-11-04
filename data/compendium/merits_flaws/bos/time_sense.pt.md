@@ -1,0 +1,3 @@
+Você possui um relógio biológico interno de precisão atômica. Sem precisar consultar celulares, relógios de pulso ou a posição do sol no horizonte, você sempre sabe a hora exata com margem de poucos minutos.
+
+Além disso, você é capaz de cronometrar intervalos com exatidão implacável em combate ou perseguições, sabe intuitivamente quanto tempo decorreu desde determinado acontecimento e acorda espontaneamente no horário exato que estipulou na noite anterior. Em termos de jogo, você recebe -2 na dificuldade de qualquer teste voltado a sincronizar eventos temporais com precisão absoluta ou antecipar o momento exato de detonadores, alarmes e ciclos astronômicos.

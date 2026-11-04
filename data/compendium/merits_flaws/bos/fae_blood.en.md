@@ -1,0 +1,3 @@
+Your veins pulse with the enigmatic blood of the fae. Although not a full changeling, you possess a distant tie to the Dreaming by way of your strange heritage. In Changeling: The Dreaming terms, you’re kinain: a mortal human related to their kind. Your Banality rating is low (no higher than 4, and often lower than that), and you remain permanently enchanted in the sense that you perceive, and are affected by, the changeling world. As a default member of that eldritch fellowship, you also tend to get swept up in their odd intrigues, and know an uncomfortable amount about their hidden world.
+
+As with the Merit: Faerie Affinity, this Merit is forbidden to technomancers of all kinds. Their Banality is too high to sustain this gift of the blood.

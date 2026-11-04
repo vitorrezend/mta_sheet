@@ -1,0 +1,1 @@
+Whether you’re the next Harry Potter or a budding Tyrion Lannister, you’re shorter than five feet tall… possibly a lot shorter than that. In game terms, your character runs at half the normal speed, has problems reaching certain things, lacks the physical leverage for certain feats, and probably gets a lot of shit from people who refuse to take him seriously.

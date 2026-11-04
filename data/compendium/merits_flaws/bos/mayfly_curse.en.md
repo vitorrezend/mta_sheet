@@ -1,0 +1,5 @@
+Your lifespan burns bright and fast. Due, perhaps, to biotech, cloning, or some other inhuman heritage or modification, you age far more quickly than normal human beings do. While this means that you reach(ed) maturity in record time, it ushers in premature decrepitude. When you live this fast, kid, one way or another, you’re dying young!
+
+At the five-point level of this Flaw, your character ages one year for every two months of earthly time (six years of age for each passing year). At the 10-point level, he ages one year per week (or 52 years of age in a single 12-month period). Such a character had best watch out for Time-savvy mages; the Accelerated Youth or Decay feat described in How Do You DO That? (pp. 111-112) has horrific effects on a mayfly, who suffers six to 52 years of aging for each year of time inflicted upon him.
+
+As the years rush in, other Flaws like Aging, Impediment, Absent-Minded, and so forth may pile up on this character as well. Life-Sphere magick cannot negate this Flaw, which could be interpreted as a manifestation of the Unbelief form of Paradox, unless the player buys off the Flaw… and perhaps not even then.

@@ -1,0 +1,3 @@
+Em um universo de magos excêntricos, rituais herméticos extravagantes e cibernéticos hipermodernos, você é o cúmulo da banalidade mundana. Suas roupas são comuns, seu vocabulário é simplório, seu gosto musical é o pop das paradas e sua visão de mundo não tem uma gota de misticismo poético.
+
+Metáforas arcanas passam batidas por você, piadas do submundo não fazem sentido e conceitos esotéricos profundos soam apenas como delírios incompreensíveis. Você sofre +2 de dificuldade em testes de [Enigmas](mta://abilities/enigmas) ou [Ocultismo](mta://abilities/occult) para decifrar simbolismos poéticos tradicionais da magia.

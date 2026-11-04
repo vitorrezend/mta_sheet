@@ -5,6 +5,11 @@
 use serde::Serialize;
 use crate::i18n::Language;
 
+/// Texto em português quando houver; senão o inglês (as entradas do Book of Secrets são só em inglês).
+fn pt_or_en(pt: &'static str, en: &'static str) -> &'static str {
+    if pt.is_empty() { en } else { pt }
+}
+
 /// Tipo de Trait: Qualidade (Merit) ou Defeito (Flaw).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum TraitType {
@@ -86,13 +91,14 @@ pub struct MeritFlawDefinition {
 impl MeritFlawDefinition {
     pub fn name(&self, lang: Language) -> &'static str {
         match lang {
-            Language::PtBr => self.name_pt,
+            Language::PtBr => pt_or_en(self.name_pt, self.name),
             Language::EnUs => self.name,
         }
     }
 
     pub fn secondary_name(&self, lang: Language) -> &'static str {
         match lang {
+            Language::PtBr if self.name_pt.is_empty() => "",
             Language::PtBr => self.name,
             Language::EnUs => self.name_pt,
         }
@@ -107,23 +113,28 @@ impl MeritFlawDefinition {
 
     pub fn points_display(&self, lang: Language) -> &'static str {
         match lang {
-            Language::PtBr => self.points_str_pt,
+            Language::PtBr => pt_or_en(self.points_str_pt, self.points_str),
             Language::EnUs => self.points_str,
         }
     }
 
     pub fn description(&self, lang: Language) -> &'static str {
         match lang {
-            Language::PtBr => self.description_pt,
+            Language::PtBr => pt_or_en(self.description_pt, self.description),
             Language::EnUs => self.description,
         }
     }
 
     pub fn system(&self, lang: Language) -> &'static str {
         match lang {
-            Language::PtBr => self.system_pt,
+            Language::PtBr => pt_or_en(self.system_pt, self.system),
             Language::EnUs => self.system,
         }
+    }
+
+    /// Livro de origem pela referência de página: "BoS" (Book of Secrets) ou "M20".
+    pub fn source_book(&self) -> &'static str {
+        if self.page_ref.starts_with("BoS") { "BoS" } else { "M20" }
     }
 }
 
@@ -175,16 +186,21 @@ pub struct MeritFlawArticle {
 }
 
 impl MeritFlawArticle {
+    /// Livro de origem pela referência de página: "BoS" (Book of Secrets) ou "M20".
+    pub fn source_book(&self) -> &'static str {
+        if self.page_ref.starts_with("BoS") { "BoS" } else { "M20" }
+    }
+
     pub fn title(&self, lang: Language) -> &'static str {
         match lang {
-            Language::PtBr => self.title_pt,
+            Language::PtBr => pt_or_en(self.title_pt, self.title),
             Language::EnUs => self.title,
         }
     }
 
     pub fn content(&self, lang: Language) -> &'static str {
         match lang {
-            Language::PtBr => self.content_pt,
+            Language::PtBr => pt_or_en(self.content_pt, self.content),
             Language::EnUs => self.content,
         }
     }

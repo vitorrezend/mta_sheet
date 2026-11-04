@@ -1,0 +1,3 @@
+Sua presença física exala força, saúde, atletismo e imponência natural. Mesmo em trajes civis comuns, sua postura, simetria muscular e equilíbrio transmitem a impressão clara de alguém capaz de lidar com qualquer desafio físico sem pestanejar.
+
+Em termos de jogo, você reduz em -1 a dificuldade em todos os testes sociais voltados a inspirar confiança física, causar uma primeira impressão impressionante ou intimidar rivais sem recorrer a violência explícita. Além disso, ao realizar testes de esforço físico atlético ou resistir a fadiga em cenas de tensão prolongada, o Narrador pode conceder um bônus de um dado ou reduzir a dificuldade das rolagens.

@@ -1,0 +1,3 @@
+A vida para você é um dom sagrado e inestimável. Você acredita com fervor absoluto na santidade de cada sopro de existência e se recusa veementemente a tirar a vida de outro ser humano, não importando quão vil, corrupto ou perverso ele seja.
+
+Mesmo contra Nefandi, agentes implacáveis ou assassinos cruéis, você recorre unicamente a força não-letal, contenções mágikas ou atordoamento. Se for forçado pelas circunstâncias a tirar uma vida involuntariamente, você é consumido por uma crise devastadora de culpa, sofrendo penalidades morais e perda temporária de Força de Vontade até expiar o ocorrido.

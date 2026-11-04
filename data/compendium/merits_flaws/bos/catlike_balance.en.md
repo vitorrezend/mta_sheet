@@ -1,0 +1,1 @@
+Your sense of balance has been honed – either through practice, magick, or other means – to uncanny acuity. System-wise, you reduce the difficulty by -2 when your character performs some physical act (rolling with a fall, walking a tightrope, etc.) that requires her to keep her feet.

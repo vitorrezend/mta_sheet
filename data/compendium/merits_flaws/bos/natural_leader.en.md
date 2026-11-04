@@ -1,0 +1,1 @@
+Inspiring by nature, you’re the sort of person other people look to for guidance. As a result, your Leadership-based dice pools receive a two-die bonus. Obviously, you need a certain level of presence to inspire such loyalty, and so you must have three dots or more in your Charisma Attribute before you can hope to be such a commanding individual.

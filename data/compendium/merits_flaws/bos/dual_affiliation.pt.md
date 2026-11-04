@@ -1,0 +1,5 @@
+Você foi iniciado e treinado em dois grupos Despertos diferentes. Talvez você fosse um Verbena que se aproximou dos Adeptos Virtuais, ou um Homem de Preto que buscou refúgio entre os Templários. Quaisquer que sejam a sua história e as suas afiliações, você conhece intimamente ambos os grupos, tem conexões (não necessariamente amigos) em ambos e pode usar e compreender as práticas, as ferramentas e as crenças (em resumo, o foco) de qualquer um deles.
+
+Em termos de regras, o seu mago desfruta dos benefícios de cada afiliação. Se ele for um ex-Tecnocrata que passou para o lado místico, ainda pode usar a tecnomagia enquanto transcende as proibições Tecnocráticas habituais quanto a Arete e foco. Ao aumentar uma Esfera, o seu personagem usa o custo de Esfera de Afinidade para uma Esfera de cada grupo. Os seus antigos colegas provavelmente não o veem com bons olhos, porém, a menos que ele tenha feito um “treinamento cruzado” entre grupos amigos, como um Sonhador que virou Extático ou um Hermético que se juntou aos Filhos do Conhecimento.
+
+Para mais detalhes sobre este assunto, veja as Perguntas Frequentes sobre o Foco do Capítulo Três, p. 174.

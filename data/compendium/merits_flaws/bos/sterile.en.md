@@ -1,0 +1,1 @@
+For some physical reason, you’re unable to sire or conceive children. Whether this is a Merit or a Flaw depends upon whether or not you want to sire or conceive children. Generally, this sort of condition can be easily cured with a little Life-Sphere magick; in your case, though, it can’t be rectified until and unless you, the player, discard the Merit or pay off this Flaw.

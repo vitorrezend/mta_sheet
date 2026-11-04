@@ -94,6 +94,85 @@ fn test_merits_flaws_data_integrity() {
 }
 
 #[test]
+fn test_book_of_secrets_physical_and_mental_merits_flaws() {
+    use mta_sheet::compendium::merits_flaws::{find_merit_flaw_unabridged_text, BOS_FLAWS, BOS_MERITS};
+
+    // BoS pp. 35-96: Físicos, Mentais, Sociais e Sobrenaturais
+    // (Sterile, Cyclic Magick e Spirit Magnet contam como Qualidade e como Defeito)
+    assert_eq!(BOS_MERITS.len(), 101);
+    assert_eq!(BOS_FLAWS.len(), 126);
+    let mut ids = std::collections::HashSet::new();
+    for mf in ALL_MERITS_FLAWS.iter() {
+        assert!(ids.insert(mf.id), "ID repetido: {}", mf.id);
+    }
+    for mf in BOS_MERITS.iter().chain(BOS_FLAWS.iter()) {
+        assert!(mf.page_ref.starts_with("BoS, p"), "Página sem BoS em {}", mf.id);
+        // Texto integral = descrição do livro com os links automáticos entre verbetes
+        let base = mf.id.strip_suffix("_flaw").unwrap_or(mf.id);
+        let paired = format!("{base}_flaw");
+        let self_ids = [mf.id, base, paired.as_str()];
+        for lang in [Language::PtBr, Language::EnUs] {
+            let expected = mta_sheet::compendium::merits_flaws::autolink::autolink(mf.description(lang), &self_ids);
+            assert_eq!(find_merit_flaw_unabridged_text(mf.id, lang), Some(expected.as_str()), "Texto integral de {}", mf.id);
+        }
+        assert!(!mf.name(Language::PtBr).trim().is_empty(), "Nome PT ausente em {}", mf.id);
+        assert_ne!(mf.name(Language::PtBr), "", "Nome PT vazio em {}", mf.id);
+        assert!(!mf.description(Language::PtBr).trim().is_empty(), "Descrição PT ausente em {}", mf.id);
+        assert!(!mf.points_display(Language::PtBr).trim().is_empty(), "Pontos PT ausente em {}", mf.id);
+    }
+    // Os que o livro só remete ao M20 não se repetem
+    assert_eq!(find_merit_flaw("acute_senses").unwrap().page_ref, "M20, pp. 642-643");
+    assert_eq!(find_merit_flaw("Iron Will").unwrap().available_costs, &[3]);
+    assert_eq!(find_merit_flaw("Vontade de Ferro").unwrap().available_costs, &[3]);
+    assert_eq!(find_merit_flaw("aging").unwrap().available_costs, &[2, 4, 6, 8, 10]);
+    assert_eq!(find_merit_flaw("Envelhecimento").unwrap().available_costs, &[2, 4, 6, 8, 10]);
+    assert_eq!(find_merit_flaw("sterile").unwrap().trait_type, TraitType::Merit);
+    assert_eq!(find_merit_flaw("sterile_flaw").unwrap().trait_type, TraitType::Flaw);
+    // O Defeito Amnesia não colide com a Perturbação de mesmo nome
+    assert_eq!(find_merit_flaw("amnesia_flaw").unwrap().page_ref, "BoS, p. 48");
+    assert!(find_derangement("amnesia").is_some());
+    // Sociais: os que remetem ao M20 (Dark Triad, Ties, Enemy) continuam com a página do M20
+    assert_eq!(find_merit_flaw("enemy").unwrap().page_ref, "M20, p. 647");
+    assert_eq!(find_merit_flaw("hideaway_safehouse").unwrap().available_costs, &[2, 4, 6]);
+    assert_eq!(find_merit_flaw("infamy").unwrap().page_ref, "BoS, pp. 62-63");
+    assert_eq!(find_merit_flaw("ward").unwrap().page_ref, "BoS, p. 66");
+    assert_eq!(find_merit_flaw("naive").unwrap().name, "Naïve");
+    assert_eq!(find_merit_flaw("Lealdade").unwrap().id, "loyalty");
+    assert_eq!(find_merit_flaw("Amor Verdadeiro").unwrap().id, "true_love");
+    assert_eq!(find_merit_flaw("Na Lista Negra").unwrap().id, "blacklisted");
+    assert_eq!(find_merit_flaw("Mago Renegado").unwrap().id, "rogue");
+    // Sobrenaturais: os que remetem ao M20 continuam com a página do M20
+    assert_eq!(find_merit_flaw("true_faith").unwrap().page_ref, "M20, pp. 644-646");
+    assert_eq!(find_merit_flaw("spirit_magnet").unwrap().available_costs, &[3, 4, 5, 6, 7]);
+    assert_eq!(find_merit_flaw("spirit_magnet_flaw").unwrap().trait_type, TraitType::Flaw);
+    assert_eq!(find_merit_flaw("cyclic_magick_flaw").unwrap().page_ref, "BoS, p. 70");
+    assert_eq!(find_merit_flaw("immortal").unwrap().available_costs, &[5, 7]);
+    assert_eq!(find_merit_flaw("clear_sighted").unwrap().page_ref, "BoS, pp. 75-76");
+    // Defeitos Sobrenaturais (os que remetem ao M20 continuam com a página do M20)
+    assert_eq!(find_merit_flaw("cursed").unwrap().page_ref, "M20, p. 646");
+    assert_eq!(find_merit_flaw("jinx_infernal_contraption").unwrap().available_costs, &[2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    assert_eq!(find_merit_flaw("dark_fate").unwrap().trait_type, TraitType::Flaw);
+    assert_eq!(find_merit_flaw("phylactery").unwrap().page_ref, "BoS, pp. 94-96");
+    assert_eq!(find_merit_flaw("Filactério").unwrap().id, "phylactery");
+    assert_eq!(find_merit_flaw("Fera Interior").unwrap().id, "beast_within");
+    // Links automáticos entre verbetes (o livro cita "the Flaw: Echoes", "Antecedente: Maravilha"…)
+    let bound = find_merit_flaw_unabridged_text("beast_within", Language::EnUs).unwrap();
+    assert!(bound.contains("[Feral Mind](mta://merits_flaws/feral_mind)"));
+    let jinx_pt = find_merit_flaw_unabridged_text("jinx_infernal_contraption", Language::PtBr).unwrap();
+    assert!(jinx_pt.contains("[Maravilha](mta://backgrounds/wonder)"));
+    // Sobrenaturais traduzidos: nome, custo e texto integral em português
+    assert_eq!(find_merit_flaw("Esfera Natural").unwrap().id, "sphere_natural");
+    assert_eq!(find_merit_flaw("Magia Cíclica").unwrap().trait_type, TraitType::Merit);
+    assert_eq!(find_merit_flaw("cyclic_magick_flaw").unwrap().name(Language::PtBr), "Magia Cíclica");
+    assert_eq!(find_merit_flaw("spirit_magnet").unwrap().points_display(Language::PtBr), "3 a 7 pts.");
+    for mf in BOS_MERITS.iter().chain(BOS_FLAWS.iter()).filter(|m| m.category == TraitCategory::Supernatural) {
+        assert!(!mf.name_pt.is_empty(), "Nome PT ausente em {}", mf.id);
+        assert!(!mf.description_pt.trim().is_empty(), "Texto PT ausente em {}", mf.id);
+        assert_ne!(mf.description_pt, mf.description, "Texto PT igual ao inglês em {}", mf.id);
+    }
+}
+
+#[test]
 fn test_derangements_data_integrity() {
     assert!(!ALL_DERANGEMENTS.is_empty(), "ALL_DERANGEMENTS não pode ser vazio");
     assert_eq!(ALL_DERANGEMENTS.len(), 10, "Devem existir exatamente 10 perturbações mentais canônicas de M20");
@@ -201,10 +280,16 @@ fn test_merits_flaws_unabridged_texts_and_links() {
         let pt = find_derangement_unabridged_text(d.id, Language::PtBr);
         assert!(pt.is_some_and(|t| !t.trim().is_empty()), "Texto integral PT ausente para {}", d.id);
     }
-    assert_eq!(MERIT_FLAW_ARTICLES.len(), 4);
+    // 4 quadros do M20 (Apêndice II) + 6 do Book of Secrets
+    assert_eq!(MERIT_FLAW_ARTICLES.len(), 10);
     for art in MERIT_FLAW_ARTICLES.iter() {
         assert!(!art.content.trim().is_empty(), "Conteúdo EN ausente para artigo {}", art.id);
-        assert!(!art.content_pt.trim().is_empty(), "Conteúdo PT ausente para artigo {}", art.id);
+        // Quadros ainda sem tradução (title_pt vazio) caem no inglês
+        if !art.title_pt.is_empty() {
+            assert!(!art.content_pt.trim().is_empty(), "Conteúdo PT ausente para artigo {}", art.id);
+        }
+        assert!(!art.title(Language::PtBr).trim().is_empty(), "Título PT ausente para artigo {}", art.id);
+        assert!(!art.title(Language::EnUs).trim().is_empty(), "Título EN ausente para artigo {}", art.id);
     }
 
     let texts = ALL_MERITS_FLAWS
