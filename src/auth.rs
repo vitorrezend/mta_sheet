@@ -30,6 +30,39 @@ pub fn validate_password_strength(pwd: &str) -> Result<(), &'static str> {
 /// bcrypt é intencionalmente lento (~100–250 ms de CPU). Rodar direto numa tarefa async
 /// trava uma thread do runtime e atrasa todas as outras requisições; por isso vai para
 /// o pool de threads de bloqueio do tokio.
+pub const USERNAME_MIN_CHARS: usize = 3;
+pub const USERNAME_MAX_CHARS: usize = 32;
+
+/// Regras de um nome de usuário novo (o login aceita os nomes antigos como estão).
+///
+/// Só letras e números ASCII, `_`, `-` e `.`: sem espaços nem letras de outros alfabetos,
+/// que permitiriam nomes visualmente iguais a outro (ex.: "vítor", "vіtor" com і cirílico).
+pub fn validate_username(username: &str) -> Result<(), &'static str> {
+    let count = username.chars().count();
+    if count < USERNAME_MIN_CHARS {
+        return Err("Nome de usuário deve ter no mínimo 3 caracteres");
+    }
+    if count > USERNAME_MAX_CHARS {
+        return Err("Nome de usuário deve ter no máximo 32 caracteres");
+    }
+    if !username.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '.')) {
+        return Err("Nome de usuário só pode ter letras sem acento, números, _, - e .");
+    }
+    Ok(())
+}
+
+/// Existe uma conta com este nome, sem diferenciar maiúsculas de minúsculas?
+/// O índice único `idx_users_username_nocase` garante o mesmo no banco; esta checagem
+/// só permite responder com uma mensagem clara antes de calcular o hash da senha.
+#[cfg(feature = "ssr")]
+pub async fn username_taken(pool: &sqlx::SqlitePool, username: &str) -> Result<bool, sqlx::Error> {
+    let found: Option<i64> = sqlx::query_scalar("SELECT 1 FROM users WHERE username = ? COLLATE NOCASE LIMIT 1")
+        .bind(username)
+        .fetch_optional(pool)
+        .await?;
+    Ok(found.is_some())
+}
+
 #[cfg(feature = "ssr")]
 pub async fn hash_password(password: &str, cost: u32) -> Result<String, String> {
     let password = password.to_string();
@@ -369,8 +402,8 @@ pub async fn get_current_user() -> Result<Option<UserInfo>, ServerFnError> {
 #[server(endpoint = "register")]
 pub async fn register(username: String, password: String) -> Result<UserInfo, ServerFnError> {
     let clean_user = username.trim().to_string();
-    if clean_user.len() < 3 {
-        return Err(ServerFnError::new("Nome de usuário deve ter no mínimo 3 caracteres"));
+    if let Err(err_msg) = validate_username(&clean_user) {
+        return Err(ServerFnError::new(err_msg));
     }
     if let Err(err_msg) = validate_password_strength(&password) {
         return Err(ServerFnError::new(err_msg));
@@ -393,6 +426,10 @@ pub async fn register(username: String, password: String) -> Result<UserInfo, Se
 
     // Admin só pela lista ADMIN_USERNAMES: "o primeiro cadastro vira admin" deixava qualquer
     // pessoa assumir um servidor recém-instalado antes do dono criar a conta
+    if username_taken(&pool, &clean_user).await.map_err(|e| ServerFnError::new(e.to_string()))? {
+        return Err(ServerFnError::new("Este nome de usuário já está em uso"));
+    }
+
     let is_admin = is_username_in_admin_env(&clean_user);
 
     let password_hash = crate::auth::hash_password(&password, bcrypt::DEFAULT_COST).await

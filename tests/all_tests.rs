@@ -139,3 +139,5 @@ mod room_notes_acl_test;
 mod realtime_and_versioning_test;
 #[path = "suites/migrations_test.rs"]
 mod migrations_test;
+#[path = "suites/username_case_test.rs"]
+mod username_case_test;

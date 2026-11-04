@@ -46,6 +46,25 @@ fn build_session_cookie(session_token: &str, headers: &http::HeaderMap) -> Strin
     crate::auth::session_cookie(session_token, 30 * 24 * 60 * 60, crate::auth::request_is_secure(headers))
 }
 
+/// Volta para a aba de cadastro mostrando `message`.
+fn register_error_redirect(message: &str) -> axum::response::Response {
+    let location = format!("/login?tab=register&error={}", form_url_encode(message));
+    ([(http::header::LOCATION, location)], http::StatusCode::SEE_OTHER).into_response()
+}
+
+/// Codifica um texto como valor de query string (`application/x-www-form-urlencoded`).
+pub fn form_url_encode(text: &str) -> String {
+    let mut out = String::with_capacity(text.len() * 3);
+    for byte in text.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => out.push(byte as char),
+            b' ' => out.push('+'),
+            _ => out.push_str(&format!("%{:02X}", byte)),
+        }
+    }
+    out
+}
+
 #[derive(serde::Deserialize)]
 pub struct FormAuthPayload {
     pub username: String,
@@ -136,12 +155,8 @@ pub async fn form_register_handler(
     }
 
     let clean_user = payload.username.trim().to_string();
-    if clean_user.len() < 3 {
-        return (
-            [(http::header::LOCATION, "/login?tab=register&error=Nome+de+usu%C3%A1rio+deve+ter+no+m%C3%ADnimo+3+caracteres".to_string())],
-            http::StatusCode::SEE_OTHER,
-        )
-            .into_response();
+    if let Err(err) = crate::auth::validate_username(&clean_user) {
+        return register_error_redirect(err);
     }
 
     if let Err(err) = crate::auth::validate_password_strength(&payload.password) {
@@ -169,6 +184,15 @@ pub async fn form_register_handler(
     }
 
     let pool = crate::database::get_db().await;
+
+    match crate::auth::username_taken(&pool, &clean_user).await {
+        Ok(false) => {}
+        Ok(true) => return register_error_redirect("Este nome de usuário já está em uso"),
+        Err(e) => {
+            log::error!("Erro ao verificar nome de usuário no registro: {}", e);
+            return register_error_redirect("Erro interno ao verificar o nome de usuário");
+        }
+    }
 
     // Admin só pela lista ADMIN_USERNAMES (nunca "o primeiro cadastro")
     let is_admin = crate::auth::is_username_in_admin_env(&clean_user);
