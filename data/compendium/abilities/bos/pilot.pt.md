@@ -1,0 +1,1 @@
+A maioria das pessoas, diante dos painéis de controle complexos de aeronaves convencionais, não faz a menor ideia de por onde começar. Você faz. O treinamento e a experiência permitem que você voe, pouse e controle a maioria dos tipos de máquinas voadoras da tecnologia Adormecida; quanto maior a sua pontuação, mais sofisticada a aeronave.

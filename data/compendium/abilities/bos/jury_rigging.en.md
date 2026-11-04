@@ -1,0 +1,5 @@
+With a bit of luck and a lot of skill, you can rig a gadget, make temporary repairs, or cobble together something vaguely workable from a pile of spare parts. Naturally, you’ll need the appropriate Traits as well – stuff like Hypertech, Computers, Energy Weapons, and so forth. You can’t rig something you don’t understand. A brilliant technician, though, can make gear jump through hoops long enough to get through an immediate crisis.
+
+Clever technomancers can also use Jury-Rigging as part of their focus if they’ve got something to work with and enough time to make things happen. (See Mundane Skills and Magickal Effects in Mage 20, pp. 532-534.) That said, this is a Skill, not a Sphere; it can’t do something blatantly impossible on its own. Whether or not a Jury-Rigged device is vulgar magick depends on just how outlandish it seems. An armored suit made out of forged steel and weapon-parts? Okay. A flying car composed of Frisbees and dog treats? Um, no.
+
+For game-system details about this sort of thing, see Inventing, Modifying, and Improving Technology in Mage 20, pp. 463-464.

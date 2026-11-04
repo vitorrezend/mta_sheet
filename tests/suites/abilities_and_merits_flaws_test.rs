@@ -173,6 +173,41 @@ fn test_book_of_secrets_physical_and_mental_merits_flaws() {
 }
 
 #[test]
+fn test_book_of_secrets_secondary_abilities() {
+    use mta_sheet::compendium::abilities::{find_ability_unabridged_text, BOS_SECONDARY_ABILITIES};
+
+    // BoS pp. 18-34: 11 Talentos, 23 Perícias e 11 Conhecimentos
+    assert_eq!(BOS_SECONDARY_ABILITIES.len(), 45);
+    let count = |c: AbilityCategory| BOS_SECONDARY_ABILITIES.iter().filter(|a| a.category == c).count();
+    assert_eq!(count(AbilityCategory::Talents), 11);
+    assert_eq!(count(AbilityCategory::Skills), 23);
+    assert_eq!(count(AbilityCategory::Knowledges), 11);
+
+    let mut ids = std::collections::HashSet::new();
+    for a in ALL_ABILITIES.iter() {
+        assert!(ids.insert(a.id), "ID de Habilidade repetido: {}", a.id);
+    }
+    for a in BOS_SECONDARY_ABILITIES.iter() {
+        assert_eq!(a.scope, AbilityScope::Secondary);
+        assert!(a.page_ref.starts_with("BoS, p"), "Página sem BoS em {}", a.id);
+        assert_eq!(a.ratings.len(), 5, "{} deve ter 5 níveis", a.id);
+        assert!(!a.name_pt.is_empty() && !a.possessed_by_pt.is_empty(), "Tradução ausente em {}", a.id);
+        assert_eq!(a.suggested_specialties.len(), a.suggested_specialties_pt.len(), "Especializações EN/PT de {}", a.id);
+        for lang in [Language::EnUs, Language::PtBr] {
+            let text = find_ability_unabridged_text(a.id, lang).expect("texto integral");
+            assert!(!text.trim().is_empty(), "Texto vazio em {}", a.id);
+        }
+        assert_ne!(a.description(Language::PtBr), a.description(Language::EnUs), "PT igual ao EN em {}", a.id);
+    }
+    // Estilo e Pilotagem agora vêm do livro, com a página certa
+    assert_eq!(find_ability("style").unwrap().page_ref, "BoS, p. 22");
+    assert_eq!(find_ability("Pilotagem").unwrap().page_ref, "BoS, p. 28");
+    assert_eq!(find_ability("Culinária").unwrap().id, "cooking");
+    assert_eq!(find_ability("fortune_telling_assessment_analysis").unwrap().ratings[4].title, "Master");
+    assert_eq!(find_ability("history").unwrap().ratings[0].title_pt, "Curioso");
+}
+
+#[test]
 fn test_derangements_data_integrity() {
     assert!(!ALL_DERANGEMENTS.is_empty(), "ALL_DERANGEMENTS não pode ser vazio");
     assert_eq!(ALL_DERANGEMENTS.len(), 10, "Devem existir exatamente 10 perturbações mentais canônicas de M20");

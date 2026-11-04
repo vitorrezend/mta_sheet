@@ -1,0 +1,3 @@
+Por meio de uma combinação de truques, distração, controle muscular e articulações bem flexíveis, você consegue se livrar da maioria das formas de contenção física. Cordas, correntes, imobilizações e armadilhas mortais o atrasam, mas… com tempo e talvez uma ou duas gazuas escondidas… você descobriu como frustrar a maioria delas. Esta Perícia não confere nenhuma capacidade sobrenatural, embora você possa usá-la para justificar fugas mágikas se a sua “plateia” souber que você estudou técnicas de escapismo.
+
+Para o dom mal denominado de ser “desconjuntado”, veja a Qualidade: Hiperflexível, p. 36.

@@ -1,0 +1,1 @@
+A expressão “parede lisa” significa menos para você do que para a maioria das pessoas. Você consegue escalar muros, árvores, montanhas e outras superfícies, desde que tenha algo em que se segurar. Embora esta Perícia não conceda capacidades sobre-humanas, é realmente impressionante o que um escalador habilidoso consegue fazer, mesmo sem equipamento.

@@ -1,0 +1,1 @@
+Most folks, when confronted with the complex control panels of conventional aircraft, don’t have the slightest idea where to start. You do. Training and experience allow you to fly, land, and control most types of Sleepertech flying machines; the higher your rating, the more sophisticated the craft.
