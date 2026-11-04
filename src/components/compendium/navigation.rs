@@ -7,7 +7,8 @@ use crate::compendium::archetypes::find_archetype;
 use crate::compendium::attributes::find_attribute;
 use crate::compendium::backgrounds::find_background;
 use crate::compendium::instruments::{find_instrument, find_theory_article};
-use crate::compendium::practices::find_practice;
+use crate::compendium::paradigms::{find_paradigm, find_paradigm_article};
+use crate::compendium::practices::{find_practice, find_practice_box};
 use crate::compendium::spheres::find_sphere;
 use crate::compendium::bestiary::find_bestiary_entry;
 use crate::compendium::traditions::{find_faction, TRADITION_DESCRIPTIONS};
@@ -34,6 +35,7 @@ pub enum CompendiumTarget {
     Derangement(String),
     Tradition(String),
     Bestiary(String),
+    Paradigm(String),
 }
 
 impl CompendiumTarget {
@@ -140,6 +142,10 @@ impl CompendiumTarget {
                 let id = parts.get(1)?;
                 Some(CompendiumTarget::Tradition(id.to_string()))
             }
+            "paradigms" | "paradigm" | "paradigmas" | "paradigma" => {
+                let id = parts.get(1)?;
+                Some(CompendiumTarget::Paradigm(id.to_string()))
+            }
             "bestiary" | "bestiario" | "allies" | "antagonists" | "antagonistas" => {
                 let id = parts.get(1)?;
                 Some(CompendiumTarget::Bestiary(id.to_string()))
@@ -162,6 +168,7 @@ impl CompendiumTarget {
             CompendiumTarget::MeritFlaw(_) | CompendiumTarget::Derangement(_) => CompendiumSection::MeritsFlaws,
             CompendiumTarget::Tradition(_) => CompendiumSection::Traditions,
             CompendiumTarget::Bestiary(_) => CompendiumSection::Bestiary,
+            CompendiumTarget::Paradigm(_) => CompendiumSection::Paradigms,
         }
     }
 
@@ -181,6 +188,7 @@ impl CompendiumTarget {
             CompendiumTarget::Derangement(id) => id,
             CompendiumTarget::Tradition(id) => id,
             CompendiumTarget::Bestiary(id) => id,
+            CompendiumTarget::Paradigm(id) => id,
         }
     }
 
@@ -241,7 +249,9 @@ impl CompendiumTarget {
                 }
             }
             CompendiumTarget::Practice(id) => {
-                if let Some(p) = find_practice(id) {
+                if let Some(b) = find_practice_box(id) {
+                    b.title(lang).to_string()
+                } else if let Some(p) = find_practice(id) {
                     p.name(lang).to_string()
                 } else {
                     id.clone()
@@ -317,6 +327,15 @@ impl CompendiumTarget {
             CompendiumTarget::Bestiary(id) => find_bestiary_entry(id)
                 .map(|e| e.name(lang).to_string())
                 .unwrap_or_else(|| id.clone()),
+            CompendiumTarget::Paradigm(id) => {
+                if let Some(art) = find_paradigm_article(id) {
+                    art.title(lang).to_string()
+                } else if let Some(p) = find_paradigm(id) {
+                    p.name(lang).to_string()
+                } else {
+                    id.clone()
+                }
+            }
         }
     }
 }
