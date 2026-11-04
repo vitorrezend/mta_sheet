@@ -521,7 +521,14 @@ pub fn CompendiumModal(
                                         }}
                                     </span>
                                     <div class="practice-modal-title-content">
-                                        <span class="practice-modal-badge-sup">"M20 • COMPÊNDIO"</span>
+                                        <span class="practice-modal-badge-sup">
+                                            {move || match (active_section.get(), current_lang.get()) {
+                                                (CompendiumSection::Archetypes | CompendiumSection::MeritsFlaws, Language::PtBr) => "M20 + LIVRO DOS SEGREDOS • COMPÊNDIO",
+                                                (CompendiumSection::Archetypes | CompendiumSection::MeritsFlaws, Language::EnUs) => "M20 + BOOK OF SECRETS • COMPENDIUM",
+                                                (_, Language::PtBr) => "M20 • COMPÊNDIO",
+                                                (_, Language::EnUs) => "M20 • COMPENDIUM",
+                                            }}
+                                        </span>
                                         <h3 class="practice-modal-title">
                                             {move || match (active_section.get(), current_lang.get()) {
                                                 (CompendiumSection::Practices, Language::PtBr) => "Práticas Mágicas",
@@ -554,8 +561,8 @@ pub fn CompendiumModal(
                                                 (CompendiumSection::Practices, Language::EnUs) => "M20, pp. 573-586 • Chapter 10: Focus and Arts (Canonical Practices)",
                                                 (CompendiumSection::Instruments, Language::PtBr) => "M20, pp. 586-608 • Capítulo 10: Foco e Artes (Instrumentos & Teoria Canônica)",
                                                 (CompendiumSection::Instruments, Language::EnUs) => "M20, pp. 586-608 • Chapter 10: Focus and Arts (Instruments & Canonical Theory)",
-                                                (CompendiumSection::Archetypes, Language::PtBr) => "M20, pp. 267-273 • Capítulo 6: Criação do Personagem (Natureza & Comportamento)",
-                                                (CompendiumSection::Archetypes, Language::EnUs) => "M20, pp. 267-273 • Chapter 6: Creating the Character (Nature & Demeanor)",
+                                                (CompendiumSection::Archetypes, Language::PtBr) => "M20, pp. 267-273; BoS, pp. 14-18 • M20 Cap. 6 e Livro dos Segredos Cap. 1 (Natureza & Comportamento)",
+                                                (CompendiumSection::Archetypes, Language::EnUs) => "M20, pp. 267-273; BoS, pp. 14-18 • M20 Ch. 6 and Book of Secrets Ch. 1 (Nature & Demeanor)",
                                                 (CompendiumSection::Attributes, Language::PtBr) => "M20, pp. 273-275 • Capítulo 6: Atributos & Regra Canônica de Especialidades",
                                                 (CompendiumSection::Attributes, Language::EnUs) => "M20, pp. 273-275 • Chapter 6: Attributes & Canonical Specialties Rule",
                                                 (CompendiumSection::Backgrounds, Language::PtBr) => "M20, pp. 301-311 • Capítulo 6: Criação do Personagem (Antecedentes Canônicos)",
@@ -566,8 +573,8 @@ pub fn CompendiumModal(
                                                 (CompendiumSection::Weapons, Language::EnUs) => "M20, pp. 450-453 • Chapter 9: Combat & Weaponry (Melee, Ranged, Thrown)",
                                                 (CompendiumSection::Abilities, Language::PtBr) => "M20, pp. 275-301 • Capítulo 6: Habilidades (Talentos, Perícias, Conhecimentos & Secundárias)",
                                                 (CompendiumSection::Abilities, Language::EnUs) => "M20, pp. 275-301 • Chapter 6: Abilities (Talents, Skills, Knowledges & Secondary)",
-                                                (CompendiumSection::MeritsFlaws, Language::PtBr) => "M20, pp. 642-650 • Apêndice II: Qualidades, Defeitos & Perturbações Mentais",
-                                                (CompendiumSection::MeritsFlaws, Language::EnUs) => "M20, pp. 642-650 • Appendix II: Merits, Flaws & Derangements",
+                                                (CompendiumSection::MeritsFlaws, Language::PtBr) => "M20, pp. 642-650; BoS, pp. 34-96 • Apêndice II e Livro dos Segredos, Cap. 1: Qualidades, Defeitos & Perturbações",
+                                                (CompendiumSection::MeritsFlaws, Language::EnUs) => "M20, pp. 642-650; BoS, pp. 34-96 • Appendix II and Book of Secrets, Ch. 1: Merits, Flaws & Derangements",
                                                 (CompendiumSection::Traditions, Language::PtBr) => "M20, pp. 147-223 • Capítulo 5: Guerreiros da Ascensão (Tradições, União Tecnocrática e Disparates)",
                                                 (CompendiumSection::Traditions, Language::EnUs) => "M20, pp. 147-223 • Chapter Five: Ascension Warriors (Traditions, Technocratic Union, and Disparates)",
                                                 (CompendiumSection::Bestiary, Language::PtBr) => "M20, pp. 618-641 • Apêndice I: Aliados e Antagonistas (fichas prontas)",
@@ -810,29 +817,41 @@ pub fn CompendiumModal(
                             // Rodapé Unificado do Modal
                             <div class="practice-modal-footer">
                                 <span class="practice-footer-hint">
-                                    {move || match (active_section.get(), current_lang.get()) {
-                                        (CompendiumSection::Practices, Language::PtBr) => "M20, pp. 573-586 • Catálogo Oficial de 20 Práticas e Boxes Canônicos".to_string(),
-                                        (CompendiumSection::Practices, Language::EnUs) => "M20, pp. 573-586 • Official 20 Magickal Practices and Sidebars".to_string(),
-                                        (CompendiumSection::Instruments, Language::PtBr) => "M20, pp. 586-608 • Catálogo Oficial de 54 Instrumentos e Artigos Teóricos".to_string(),
-                                        (CompendiumSection::Instruments, Language::EnUs) => "M20, pp. 586-608 • Official 54 Instruments and Theory Articles".to_string(),
-                                        (CompendiumSection::Archetypes, Language::PtBr) => "M20, pp. 267-273 • Catálogo Oficial de 20 Arquétipos (Natureza & Comportamento)".to_string(),
-                                        (CompendiumSection::Archetypes, Language::EnUs) => "M20, pp. 267-273 • Official 20 Personality Archetypes (Nature & Demeanor)".to_string(),
+                                    {move || {
+                                    use crate::compendium as c;
+                                    let n_practices = c::practices::ALL_PRACTICES.len();
+                                    let n_instruments = c::instruments::ALL_INSTRUMENTS.len();
+                                    let n_archetypes = c::archetypes::ALL_ARCHETYPES.len();
+                                    let n_weapons = c::weapons::ALL_WEAPONS.len();
+                                    let n_maneuvers = c::weapons::ALL_COMBAT_MANEUVERS.len();
+                                    let n_spheres = c::spheres::ALL_SPHERES.len();
+                                    let n_abilities = c::abilities::ALL_ABILITIES.len();
+                                    let n_merits = c::merits_flaws::ALL_MERITS_FLAWS.len() + c::merits_flaws::ALL_DERANGEMENTS.len();
+                                    let n_bestiary = c::bestiary::ALL_BESTIARY.iter().filter(|e| !e.is_article).count();
+                                    match (active_section.get(), current_lang.get()) {
+                                        (CompendiumSection::Practices, Language::PtBr) => format!("M20, pp. 573-586 • Catálogo Oficial de {} Práticas e Boxes Canônicos", n_practices),
+                                        (CompendiumSection::Practices, Language::EnUs) => format!("M20, pp. 573-586 • Official {} Magickal Practices and Sidebars", n_practices),
+                                        (CompendiumSection::Instruments, Language::PtBr) => format!("M20, pp. 586-608 • Catálogo Oficial de {} Instrumentos e Artigos Teóricos", n_instruments),
+                                        (CompendiumSection::Instruments, Language::EnUs) => format!("M20, pp. 586-608 • Official {} Instruments and Theory Articles", n_instruments),
+                                        (CompendiumSection::Archetypes, Language::PtBr) => format!("M20, pp. 267-273; BoS, pp. 14-18 • Catálogo Oficial de {} Arquétipos (Natureza & Comportamento)", n_archetypes),
+                                        (CompendiumSection::Archetypes, Language::EnUs) => format!("M20, pp. 267-273; BoS, pp. 14-18 • Official {} Personality Archetypes (Nature & Demeanor)", n_archetypes),
                                         (CompendiumSection::Attributes, Language::PtBr) => "M20, pp. 273-275 • Atributos Físicos, Sociais, Mentais & Regra de Especialidades".to_string(),
                                         (CompendiumSection::Attributes, Language::EnUs) => "M20, pp. 273-275 • Physical, Social, Mental Attributes & Specialties Rule".to_string(),
-                                        (CompendiumSection::Weapons, Language::PtBr) => "M20, pp. 423-426, 448-453 • Catálogo Oficial de 82 Armas e 35 Manobras & Artes Marciais".to_string(),
-                                        (CompendiumSection::Weapons, Language::EnUs) => "M20, pp. 423-426, 448-453 • Official 82 Weapons & 35 Maneuvers / Martial Arts Catalog".to_string(),
+                                        (CompendiumSection::Weapons, Language::PtBr) => format!("M20, pp. 423-426, 448-453 • Catálogo Oficial de {} Armas e {} Manobras & Artes Marciais", n_weapons, n_maneuvers),
+                                        (CompendiumSection::Weapons, Language::EnUs) => format!("M20, pp. 423-426, 448-453 • Official {} Weapons & {} Maneuvers / Martial Arts Catalog", n_weapons, n_maneuvers),
                                         (CompendiumSection::Backgrounds, Language::PtBr) => format!("M20, pp. 301-311 • Catálogo Canônico Oficial de {} Antecedentes", crate::compendium::backgrounds::ALL_BACKGROUNDS.len()),
                                         (CompendiumSection::Backgrounds, Language::EnUs) => format!("M20, pp. 301-311 • Official {} Backgrounds & Trait Ratings Catalog", crate::compendium::backgrounds::ALL_BACKGROUNDS.len()),
-                                        (CompendiumSection::Spheres, Language::PtBr) => "M20, pp. 504-534 • Catálogo Canônico Oficial de 13 Esferas e Variantes".to_string(),
-                                        (CompendiumSection::Spheres, Language::EnUs) => "M20, pp. 504-534 • Official 13 Spheres & Variants Catalog".to_string(),
-                                        (CompendiumSection::Abilities, Language::PtBr) => "M20, pp. 275-301 • Catálogo Oficial de 48 Habilidades e Regras Opcionais".to_string(),
-                                        (CompendiumSection::Abilities, Language::EnUs) => "M20, pp. 275-301 • Official 48 Abilities and Optional Rules Catalog".to_string(),
-                                        (CompendiumSection::MeritsFlaws, Language::PtBr) => "M20, pp. 642-650 • Catálogo Oficial de Qualidades, Defeitos e Perturbações".to_string(),
-                                        (CompendiumSection::MeritsFlaws, Language::EnUs) => "M20, pp. 642-650 • Official Merits, Flaws, and Derangements Catalog".to_string(),
+                                        (CompendiumSection::Spheres, Language::PtBr) => format!("M20, pp. 504-534 • Catálogo Canônico Oficial de {} Esferas e Variantes", n_spheres),
+                                        (CompendiumSection::Spheres, Language::EnUs) => format!("M20, pp. 504-534 • Official {} Spheres & Variants Catalog", n_spheres),
+                                        (CompendiumSection::Abilities, Language::PtBr) => format!("M20, pp. 275-301 • Catálogo Oficial de {} Habilidades e Regras Opcionais", n_abilities),
+                                        (CompendiumSection::Abilities, Language::EnUs) => format!("M20, pp. 275-301 • Official {} Abilities and Optional Rules Catalog", n_abilities),
+                                        (CompendiumSection::MeritsFlaws, Language::PtBr) => format!("M20, pp. 642-650; BoS, pp. 34-96 • Catálogo Oficial de {} Qualidades, Defeitos e Perturbações", n_merits),
+                                        (CompendiumSection::MeritsFlaws, Language::EnUs) => format!("M20, pp. 642-650; BoS, pp. 34-96 • Official {} Merits, Flaws, and Derangements Catalog", n_merits),
                                         (CompendiumSection::Traditions, Language::PtBr) => "M20, pp. 147-223 • 9 Tradições, 5 Convenções da União Tecnocrática e 11 seitas Disparates".to_string(),
                                         (CompendiumSection::Traditions, Language::EnUs) => "M20, pp. 147-223 • 9 Traditions, 5 Technocratic Conventions, and 11 Disparate sects (full text)".to_string(),
-                                        (CompendiumSection::Bestiary, Language::PtBr) => "M20, pp. 618-641 • 61 fichas prontas de animais, mortais, Tecnocratas, magos e espíritos".to_string(),
-                                        (CompendiumSection::Bestiary, Language::EnUs) => "M20, pp. 618-641 • 61 ready-made templates: animals, mortals, Technocrats, mages, and spirits".to_string(),
+                                        (CompendiumSection::Bestiary, Language::PtBr) => format!("M20, pp. 618-641 • {} fichas prontas de animais, mortais, Tecnocratas, magos e espíritos", n_bestiary),
+                                        (CompendiumSection::Bestiary, Language::EnUs) => format!("M20, pp. 618-641 • {} ready-made templates: animals, mortals, Technocrats, mages, and spirits", n_bestiary),
+                                    }
                                     }}
                                 </span>
 

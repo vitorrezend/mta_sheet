@@ -1,0 +1,3 @@
+Você é muito maior do que a média humana — possivelmente ultrapassando dois metros e dez de altura e pesando mais de 180 quilos. Indivíduos desse porte chamam a atenção em qualquer multidão e enfrentam dificuldades literais para “caber” em um mundo projetado para estaturas convencionais.
+
+Ainda assim, sua constituição maciça concede ao personagem um nível de vitalidade adicional, que conta como um nível extra de Escoriado no que diz respeito ao cálculo de penalidades por ferimentos. Se você mudar de forma para uma criatura menor através da mágica de Vida, esse nível de vitalidade extra desaparece temporariamente. Em sua forma normal, no entanto, seu personagem é imponente, sólido e muito difícil de derrubar.

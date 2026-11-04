@@ -1,0 +1,3 @@
+You exude an aura of unshakable authority. Nothing seems to rattle you. Folks defer to you by default, and you expect nothing less. Even when you’re making things up off the top of your head, or lying your ass off about your true feelings or intentions, your self-confidence inspires an unusual degree of trust. Cool is your middle name, and the few people who try to get one over on you have a very hard time doing so.
+
+When dice start falling, subtract -2 from the difficulty of all social rolls based upon impressing other characters with your capabilities. Other players, however – the Storyteller included – add +2 to the difficulty of social rolls for characters who try to shake your confidence or shatter your calm.

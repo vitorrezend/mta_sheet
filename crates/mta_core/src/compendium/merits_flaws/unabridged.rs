@@ -1,11 +1,13 @@
 //! Textos Integrais M20 do Apêndice II: Qualidades, Defeitos, Perturbações e quadros.
 //!
-//! M20 pp. 642-651. Textos carregados de data/compendium/merits_flaws/**/*.en.md e *.pt.md.
+//! M20 pp. 642-651 e Book of Secrets pp. 34-96. Textos carregados de data/compendium/merits_flaws/**/*.en.md e *.pt.md.
 
+use super::data::{BOS_FLAWS, BOS_MERITS};
+use super::autolink::autolink_static;
 use super::models::MeritFlawArticle;
 use crate::i18n::Language;
 
-/// Quadros e regras gerais do Apêndice II, na ordem do livro.
+/// Quadros e regras gerais do Apêndice II e Book of Secrets, na ordem do livro.
 pub const MERIT_FLAW_ARTICLES: &[MeritFlawArticle] = &[
     MeritFlawArticle {
         id: "article_merits_flaws",
@@ -39,6 +41,55 @@ pub const MERIT_FLAW_ARTICLES: &[MeritFlawArticle] = &[
         content: include_str!("../../../../../data/compendium/merits_flaws/articles/article_derangements.en.md"),
         content_pt: include_str!("../../../../../data/compendium/merits_flaws/articles/article_derangements.pt.md"),
     },
+    // Book of Secrets, Capítulo Um: quadros e regras de Merits and Flaws
+    MeritFlawArticle {
+        id: "article_bos_merits_flaws",
+        title: "Merits and Flaws (Book of Secrets)",
+        title_pt: "Qualidades e Defeitos (Book of Secrets)",
+        page_ref: "BoS, pp. 34-81",
+        content: include_str!("../../../../../data/compendium/merits_flaws/bos/articles/article_bos_merits_flaws.en.md"),
+        content_pt: include_str!("../../../../../data/compendium/merits_flaws/bos/articles/article_bos_merits_flaws.pt.md"),
+    },
+    MeritFlawArticle {
+        id: "article_bos_higher_limits_on_flaws",
+        title: "Optional Rule: Higher Limits on Flaws",
+        title_pt: "Regra Opcional: Limites Mais Altos para Defeitos",
+        page_ref: "BoS, p. 35",
+        content: include_str!("../../../../../data/compendium/merits_flaws/bos/articles/article_bos_higher_limits_on_flaws.en.md"),
+        content_pt: include_str!("../../../../../data/compendium/merits_flaws/bos/articles/article_bos_higher_limits_on_flaws.pt.md"),
+    },
+    MeritFlawArticle {
+        id: "article_bos_adversarial_backgrounds",
+        title: "Adversarial Backgrounds",
+        title_pt: "Antecedentes Adversariais",
+        page_ref: "BoS, p. 35",
+        content: include_str!("../../../../../data/compendium/merits_flaws/bos/articles/article_bos_adversarial_backgrounds.en.md"),
+        content_pt: include_str!("../../../../../data/compendium/merits_flaws/bos/articles/article_bos_adversarial_backgrounds.pt.md"),
+    },
+    MeritFlawArticle {
+        id: "article_bos_time_clarity_revisions",
+        title: "Time, Clarity, and Revisions",
+        title_pt: "Tempo, Clareza e Revisões",
+        page_ref: "BoS, p. 35",
+        content: include_str!("../../../../../data/compendium/merits_flaws/bos/articles/article_bos_time_clarity_revisions.en.md"),
+        content_pt: include_str!("../../../../../data/compendium/merits_flaws/bos/articles/article_bos_time_clarity_revisions.pt.md"),
+    },
+    MeritFlawArticle {
+        id: "article_bos_neurodiversity",
+        title: "Neurodiversity and Mental Traits",
+        title_pt: "Neurodiversidade e Características Mentais",
+        page_ref: "BoS, p. 42",
+        content: include_str!("../../../../../data/compendium/merits_flaws/bos/articles/article_bos_neurodiversity.en.md"),
+        content_pt: include_str!("../../../../../data/compendium/merits_flaws/bos/articles/article_bos_neurodiversity.pt.md"),
+    },
+    MeritFlawArticle {
+        id: "article_bos_blood_bond",
+        title: "Mages, the Blood Bond, and the Effects of Vitae",
+        title_pt: "Magos, o Laço de Sangue e os Efeitos da Vitae",
+        page_ref: "BoS, p. 76",
+        content: include_str!("../../../../../data/compendium/merits_flaws/bos/articles/article_bos_blood_bond.en.md"),
+        content_pt: include_str!("../../../../../data/compendium/merits_flaws/bos/articles/article_bos_blood_bond.pt.md"),
+    },
 ];
 
 /// Busca um quadro do Apêndice II por ID.
@@ -48,6 +99,18 @@ pub fn find_merit_flaw_article(id: &str) -> Option<&'static MeritFlawArticle> {
 
 /// Texto integral de uma Qualidade ou Defeito, se disponível no idioma.
 pub fn find_merit_flaw_unabridged_text(id: &str, lang: Language) -> Option<&'static str> {
+    let base = id.strip_suffix("_flaw").unwrap_or(id);
+    let paired = format!("{base}_flaw");
+    // O verbete (e a outra metade do par Qualidade/Defeito) não aponta para si mesmo
+    raw_merit_flaw_text(id, lang).map(|t| autolink_static(t, &[id, base, paired.as_str()]))
+}
+
+/// Conteúdo de um quadro do Apêndice II ou do Book of Secrets, com links entre verbetes.
+pub fn merit_flaw_article_content(article: &MeritFlawArticle, lang: Language) -> &'static str {
+    autolink_static(article.content(lang), &[])
+}
+
+fn raw_merit_flaw_text(id: &str, lang: Language) -> Option<&'static str> {
     match lang {
         Language::EnUs => match id {
             "acute_senses" => Some(include_str!("../../../../../data/compendium/merits_flaws/acute_senses.en.md")),
@@ -67,7 +130,7 @@ pub fn find_merit_flaw_unabridged_text(id: &str, lang: Language) -> Option<&'sta
             "enemy" => Some(include_str!("../../../../../data/compendium/merits_flaws/enemy.en.md")),
             "ptsd" => Some(include_str!("../../../../../data/compendium/merits_flaws/ptsd.en.md")),
             "stress_atavism" => Some(include_str!("../../../../../data/compendium/merits_flaws/berserker.en.md")),
-            _ => None,
+            _ => bos_text(id, Language::EnUs),
         },
         Language::PtBr => match id {
             "acute_senses" => Some(include_str!("../../../../../data/compendium/merits_flaws/acute_senses.pt.md")),
@@ -87,13 +150,22 @@ pub fn find_merit_flaw_unabridged_text(id: &str, lang: Language) -> Option<&'sta
             "enemy" => Some(include_str!("../../../../../data/compendium/merits_flaws/enemy.pt.md")),
             "ptsd" => Some(include_str!("../../../../../data/compendium/merits_flaws/ptsd.pt.md")),
             "stress_atavism" => Some(include_str!("../../../../../data/compendium/merits_flaws/berserker.pt.md")),
-            _ => None,
+            _ => bos_text(id, Language::PtBr),
         },
     }
 }
 
+/// Texto do Book of Secrets.
+fn bos_text(id: &str, lang: Language) -> Option<&'static str> {
+    BOS_MERITS.iter().chain(BOS_FLAWS.iter()).find(|mf| mf.id == id).map(|mf| mf.description(lang))
+}
+
 /// Texto integral de uma Perturbação, se disponível no idioma.
 pub fn find_derangement_unabridged_text(id: &str, lang: Language) -> Option<&'static str> {
+    raw_derangement_text(id, lang).map(|t| autolink_static(t, &[id]))
+}
+
+fn raw_derangement_text(id: &str, lang: Language) -> Option<&'static str> {
     match lang {
         Language::EnUs => match id {
             "amnesia" => Some(include_str!("../../../../../data/compendium/merits_flaws/derangements/amnesia.en.md")),

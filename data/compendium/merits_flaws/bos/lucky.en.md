@@ -1,0 +1,1 @@
+Lady Fortune has a thing for you. As a result, you may re-roll a failed die roll (botches included) up to three times per story (not per session). Each do-over may be rerolled only once, so don’t push your luck too far.

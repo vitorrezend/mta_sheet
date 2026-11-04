@@ -1,0 +1,3 @@
+Uma sombra escura e pesada de desesperança cobre a sua mente. A depressão clínica crônica drena suas energias vitais, fazendo com que até mesmo levantar da cama ou realizar tarefas simples pareça um esforço hercúleo intransponível.
+
+Em dias ruins (determinados pelo Narrador ou no início de cada capítulo), faça um teste de Força de Vontade (dificuldade 6 a 8). Se falhar, você é dominado pela apatia e pelo desânimo: não consegue recuperar pontos de Força de Vontade temporária, sofre -1 dado em ações proativas e precisa de um esforço colossal de vontade apenas para se importar com a sobrevivência da cabala.

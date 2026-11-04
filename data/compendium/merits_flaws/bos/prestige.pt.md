@@ -1,0 +1,5 @@
+Também conhecida como Reputação, esta Qualidade revela você como uma personalidade honrada dentro da sua Tradição, Convenção, Ofício ou outro tipo de seita. Entre os seus pares, você adiciona três dados extras a todas as jogadas sociais usadas para influenciar membros desse grupo. Em termos narrativos, aliados do seu grupo tenderão a gostar de você, e rivais ou inimigos tenderão a... não gostar.
+
+Quando escolher esta Qualidade pela primeira vez, decida a origem desse prestígio. Talvez você o tenha conquistado através de feitos heroicos antes do início da crônica, ou tenha recebido a Qualidade no lugar de pontos de experiência. Ela pode representar uma linhagem honorável à qual você pertence, ou refletir um mentor glorioso cuja reputação brilhante respinga em você. De qualquer forma, as pessoas esperam grandes realizações de você e geralmente lhe prestam reverência enquanto você estiver à altura da reputação que desfruta no momento.
+
+Para o reverso desta Qualidade, veja o Defeito Social: Infâmia, pp. 62-63.

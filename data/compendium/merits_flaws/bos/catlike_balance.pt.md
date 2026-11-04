@@ -1,0 +1,1 @@
+Seu senso de equilíbrio foi aprimorado — seja através de treinamento árduo, mágica ou outros meios — a um nível impressionante de acuidade. Em termos de regras, você reduz a dificuldade em -2 sempre que seu personagem realiza algum feito físico (rolar com uma queda, caminhar sobre uma corda bamba, etc.) que exija manter-se de pé.

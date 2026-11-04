@@ -1,0 +1,3 @@
+A sua alma permanece livre do laço de sangue vampírico, e resistente a outras formas de vassalagem metafísica. Embora você ainda possa ser compelido a servir por meio de magia das Esferas, ou impressionado por poderes de dominação como a Presença vampírica ou a Chicana dos changelings, a sua Força de Vontade é considerada dois pontos mais alta no que diz respeito a resistir a essa dominação. (Veja Mago 20, p. 519, e Dificuldades da Magia de Influência e Resistência, Reconhecimento e Duração em How Do You DO That?, pp. 116-117.)
+
+Qualidade rara e poderosa, este dom pode custar o dobro do seu custo normal numa crônica repleta de vampiros, especialmente se os magos dessa crônica tiverem o hábito de entornar sangue de vampiro…

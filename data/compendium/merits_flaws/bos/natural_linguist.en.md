@@ -1,0 +1,3 @@
+You’re especially good at understanding how people communicate. Every purchase of the Language Merit (see above, and Mage 20, Appendix II) secures two languages for you, not just one. You also get three bonus dice when making rolls based upon clear communications, typically ones employing Art, Expression, Etiquette, Leadership, and other Traits that involve “speaking their language” to impress someone else.
+
+This Merit does not add three dice to magickal casting rolls when using language as an instrument. It may, however, apply the bonus to a mundane roll that could enhance a magick-casting attempt – see Abilities Enhancing Magick, Mage 20, p. 533.

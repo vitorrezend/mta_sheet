@@ -1,0 +1,3 @@
+Você ri do perigo na cara da morte. Mesmo ao desafiar o destino com impulsividade quase suicida, você possui um talento inato para não se arrebentar.
+
+Adicione três dados (+3) a testes físicos não mágikos e fora de combate que envolvam feitos de audácia incompreensível (saltar de um telhado para outro a dezenas de andares de altura, mergulhar de cabeça em uma catarata turbulenta, saltar com uma motocicleta para a traseira de um trem em alta velocidade, etc.) que normalmente transformariam um mortal comum em purê. Se a ação falhar, contudo, seu personagem enfrentará as consequências integrais de sua audácia insana.

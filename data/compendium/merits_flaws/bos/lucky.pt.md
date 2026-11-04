@@ -1,0 +1,1 @@
+A Dama Fortuna tem uma queda por você. Como resultado, você pode rolar novamente um teste fracassado (falhas críticas incluídas) até três vezes por história (não por sessão). Cada nova tentativa só pode ser rolada novamente uma vez, então não abuse da sorte.

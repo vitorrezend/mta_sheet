@@ -1,0 +1,3 @@
+You are what’s commonly but erroneously known as “double-jointed” (as per the old Merit of that name). In reality, your joints are exceedingly flexible, perhaps due to intense training, magickal augmentation, or the medical condition known as Ehlers-Danlos Syndrome (EDS – see above, as well as the Impediment Flaw, below). Whatever the reason, you can stretch and flex in ways most people cannot.
+
+In game terms, this Merit allows you a -2 reduction in difficulty for rolls that involve physical flexibility – escape attempts, contortions, etc. Your character can also perform uncanny acts of hyperflexibility, as seen in Cirque Du Soleil, butoh dance, and extreme yoga postures.

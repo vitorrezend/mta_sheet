@@ -1,0 +1,5 @@
+For whatever reason, you have fallen short of your potential. Maybe you’re too young to have learned a lot about life (an excellent reason for a child-mage to have this Flaw); or you’ve led a sheltered existence, honing your Knowledges but lacking in Talents. You could be a construct who only recently left the lab, or too physically frail to have mastered much in the way of Talents or Skills. There’s certainly some story-based reason for your deficient Traits, and that cause will have other effects on the chronicle as well.
+
+In game terms, this Flaw subtracts five points from one of your Ability categories (Talents, Skills, or Knowledges), and limits your starting Traits in that category to three dots or fewer even if/when you spend freebie points to raise them. (You may, of course, raise them after the chronicle has begun.) As noted above, this makes a good Flaw for Awakened kids, constructs, and other folks who haven’t been able to “be all that you can be” just yet.
+
+For details about young mages, see Child-Mages in Chapter Two, pp. 115-116.

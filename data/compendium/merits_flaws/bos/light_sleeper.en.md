@@ -1,0 +1,1 @@
+Four hours of sleep a night works just fine for you. And unlike most folks, you can wake up out of an apparently dead slumber more or less ready for action. You can, of course, enjoy longer periods of sleep too. But when deadlines, intruders, and end-of-the-world emergencies shake you out of bed, you get by with cat-naps and the occasional light snooze.

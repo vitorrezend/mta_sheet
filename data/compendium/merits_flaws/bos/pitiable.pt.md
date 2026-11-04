@@ -1,0 +1,1 @@
+Ah, coitadinho de você! As pessoas querem ajudar você, e você está mais do que disposto a deixá-las fazer isso. Embora esta Qualidade reduza a dificuldade de suas jogadas sociais em -2 quando você estiver tentando convencer alguém a cuidar de você, ela adiciona +2 à dificuldade de jogadas que tentem intimidar pessoas ou impressioná-las de outra forma com a sua autoridade.

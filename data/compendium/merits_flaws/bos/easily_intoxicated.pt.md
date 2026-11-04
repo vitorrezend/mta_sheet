@@ -1,0 +1,3 @@
+Seu metabolismo processa álcool, narcóticos e substâncias recreativas com extrema lentidão ou sensibilidade exagerada. Um único copo de cerveja o deixa alegre; dois o fazem cambalear, e três o deixam completamente embriagado ou inconsciente.
+
+Em termos de regras, você sofre um aumento de +2 na dificuldade em todas as jogadas de [Vigor](mta://attributes/stamina) para resistir aos efeitos inebriantes de bebidas alcoólicas, sedativos, analgésicos e entorpecentes em geral. Seus testes sofrem o dobro das penalidades normais de embriaguez, e a ressaca no dia seguinte dura o dobro do tempo habitual, reduzindo sua reserva de dados em um dado adicional pela dor de cabeça lancinante.

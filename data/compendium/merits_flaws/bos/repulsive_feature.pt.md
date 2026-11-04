@@ -1,0 +1,3 @@
+Você possui um traço físico grotesco, perturbador ou bizarro que causa repulsa e desconforto imediato em quem o observa. Pode ser uma erupção cutânea constante, olhos injetados de pus, dentes pontiagudos e podres, tiques faciais bizarros, mau cheiro corporal inexterminável, dedos extras disformes ou uma textura de pele que lembra couro de réptil.
+
+Em termos de jogo, este traço impõe um aumento de +2 na dificuldade em todos os testes sociais que dependam de [Carisma](mta://attributes/charisma), sedução, simpatia ou causar uma boa primeira impressão. Disfarçar essa característica exige vestimentas pesadas, maquiagem teatral elaborada ou o uso contínuo de mágica da Vida/Forças para desviar a atenção visual dos outros.

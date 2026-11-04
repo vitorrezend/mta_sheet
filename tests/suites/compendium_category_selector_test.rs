@@ -1,4 +1,4 @@
-use mta_sheet::components::compendium::{ALL_SECTIONS, get_section_meta, CompendiumSection};
+use mta_sheet::components::compendium::{ALL_SECTIONS, get_section_meta, section_count, CompendiumSection};
 use mta_sheet::i18n::Language;
 
 #[test]
@@ -24,7 +24,7 @@ fn test_compendium_all_sections_count_and_metadata() {
         assert!(!ALL_SECTIONS[idx].icon.is_empty(), "Cada seção deve ter um ícone");
         assert!(!ALL_SECTIONS[idx].name_pt.is_empty(), "Cada seção deve ter um nome em PT");
         assert!(!ALL_SECTIONS[idx].name_en.is_empty(), "Cada seção deve ter um nome em EN");
-        assert!(!ALL_SECTIONS[idx].count.is_empty(), "Cada seção deve ter a contagem");
+        assert!(section_count(ALL_SECTIONS[idx].section) > 0, "Cada seção deve ter a contagem");
     }
 }
 
@@ -34,19 +34,23 @@ fn test_get_section_meta_lookup() {
     assert_eq!(bg_meta.icon, "👥");
     assert_eq!(bg_meta.name_pt, "Antecedentes");
     assert_eq!(bg_meta.name_en, "Backgrounds");
-    assert_eq!(bg_meta.count, "33");
+    assert_eq!(section_count(bg_meta.section), 33);
 
     let sphere_meta = get_section_meta(CompendiumSection::Spheres);
     assert_eq!(sphere_meta.icon, "🔮");
     assert_eq!(sphere_meta.name_pt, "Esferas da Mágika");
     assert_eq!(sphere_meta.name_en, "Spheres of Magick");
-    assert_eq!(sphere_meta.count, "13");
+    assert_eq!(section_count(sphere_meta.section), 13);
 
     let weapon_meta = get_section_meta(CompendiumSection::Weapons);
     assert_eq!(weapon_meta.icon, "⚔️");
     assert_eq!(weapon_meta.name_pt, "Armas & Manobras");
     assert_eq!(weapon_meta.name_en, "Weapons & Maneuvers");
-    assert_eq!(weapon_meta.count, "126");
+    assert_eq!(section_count(weapon_meta.section), 126);
+    // Contagens calculadas a partir dos dados (Qualidades & Defeitos inclui as Perturbações)
+    assert_eq!(section_count(CompendiumSection::MeritsFlaws), 254);
+    assert_eq!(section_count(CompendiumSection::Bestiary), 61);
+    assert_eq!(section_count(CompendiumSection::Traditions), 25);
 }
 
 #[test]

@@ -39,4 +39,24 @@ As entradas abaixo oferecem uma amostra do leque potencial de Arquétipos dos De
 - [Sobrevivente](mta://archetypes/survivor), p. 272 — força: Perseverança; fraqueza: Insensibilidade
 - [Tradicionalista](mta://archetypes/traditionalist), p. 272 — força: Consistência; fraqueza: Rigidez
 - [Trapaceiro](mta://archetypes/trickster), pp. 272-273 — força: Esperteza; fraqueza: Não Confiável
-- [Visionário](mta://archetypes/visionary), p. 273 — força: Inspiração; fraqueza: Orgulho
+- [Visionário](mta://archetypes/visionary), p. 273 — força: Inspiração; fraqueza: Orgulho
+#### Arquétipos do Livro dos Segredos (BoS, pp. 14-18)
+
+> **Fonte:** Livro dos Segredos M20, Capítulo Um: Traços Heroicos, “Arquétipos,” pp. 14-18
+
+Nós, humanos, somos macaquinhos mutáveis. Conseguimos agir como um tipo de pessoa enquanto secretamente cultivamos uma personalidade inteiramente diferente. Isso é especialmente verdadeiro para os magos, cujas tratativas secretas e crenças heterodoxas transformam até as pessoas Despertas mais honestas em labirintos de espelhos psicológicos. Sendo assim, a modesta seleção de Traços de Arquétipo fornecida em Mago 20 (pp. 250 e 267-273) pode facilmente ser expandida para incluir as seguintes opções adicionais:
+
+- [Arquiteto](mta://archetypes/architect), p. 14 — força: Propósito Dedicado; fraqueza: Obsessão
+- [Artista](mta://archetypes/artist), p. 14 — força: Expressão; fraqueza: Preso na Própria Cabeça
+- [Bon Vivant](mta://archetypes/bon_vivant), pp. 14-15 — força: Joie de vivre; fraqueza: Superficialidade
+- [Cuidador](mta://archetypes/caregiver), p. 15 — força: Gentileza; fraqueza: Insegurança
+- [Conformista](mta://archetypes/conformist), p. 15 — força: Cooperação; fraqueza: Complacência
+- [Diretor](mta://archetypes/director), p. 15 — força: Liderança; fraqueza: Intolerância
+- [Animador](mta://archetypes/entertainer), p. 15 — força: Divertido e Cativante; fraqueza: Ego
+- [Guardião](mta://archetypes/guardian), p. 16 — força: Coragem; fraqueza: Autossacrifício
+- [Herege](mta://archetypes/heretic), p. 16 — força: Integridade; fraqueza: Iconoclastia
+- [Mentor](mta://archetypes/mentor), p. 17 — força: Dedicação; fraqueza: Pedantismo
+- [Romântico](mta://archetypes/romantic), p. 17 — força: Paixão; fraqueza: Imprudência
+- [Magnata](mta://archetypes/tycoon), p. 17 — força: Sagacidade; fraqueza: Ganância
+- [Vigilante](mta://archetypes/vigilante), p. 17 — força: Retribuição; fraqueza: Implacabilidade
+- [Fanático](mta://archetypes/zealot), pp. 17-18 — força: Convicção; fraqueza: Extremismo

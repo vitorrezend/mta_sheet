@@ -1,0 +1,3 @@
+You hate to witness suffering. Sadly, the World of Darkness is filled with pain, and so you often find yourself either avoiding potentially traumatic situations or trying to ease suffering even when that puts you in the line of fire too.
+
+When confronted with someone else’s physical or emotional pain, make a Willpower roll (difficulty 8). If you fail, your character either withdraws from the situation or possibly (if his beliefs/faith/paradigm/Nature demands action) does something reckless in order to prevent further suffering. A successful roll means that you can act normally… which could still involve withdrawal or recklessness, but displaying a bit more self-control.

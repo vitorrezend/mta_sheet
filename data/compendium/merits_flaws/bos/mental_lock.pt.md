@@ -1,0 +1,3 @@
+Sob forte estresse cognitivo, choque emocional ou sobrecarga sensorial, seus processos de raciocínio sofrem um travamento temporário conhecido como perseveração ou bloqueio mental.
+
+Em situações críticas onde um plano falha catastroficamente ou você é surpreendido por revelações traumáticas, faça um teste de [Raciocínio](mta://attributes/wits) (dificuldade 6). Se falhar, você fica fixado na última ideia ou ação que estava executando, repetindo a mesma ordem, digitando a mesma linha de comando ou encarando o vazio por um a três turnos sem conseguir adaptar sua estratégia às mudanças repentinas do ambiente.

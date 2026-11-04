@@ -1,0 +1,3 @@
+Você idolatra cegamente outro personagem, a ponto de acreditar piamente que ele é incapaz de cometer erros ou atos reprováveis. Qualquer crítica, denúncia ou evidência contra o seu ídolo desperta em você indignação feroz, recusa obstinada em ouvir ou justificativas estapafúrdias para defender as ações dele.
+
+Se o seu herói pedir que você faça algo, sua inclinação natural é obedecer sem questionar; para recusar uma ordem direta dele, você deve ser bem-sucedido em um teste de Força de Vontade (dificuldade variando de 5 para pedidos triviais até 9 ou 10 caso a ordem viole diretamente sua segurança ou seus princípios vitais). Testes sociais de terceiros para fazê-lo desconfiar do seu herói sofrem um acréscimo de +2 na dificuldade.

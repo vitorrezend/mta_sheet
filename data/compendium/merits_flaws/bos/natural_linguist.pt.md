@@ -1,0 +1,3 @@
+Você possui um dom inato e prodigioso para a linguagem humana e sistemas semióticos. Aprender novas línguas é para você tão natural quanto respirar.
+
+Em termos de jogo, qualquer compra do Antecedente ou Habilidade [Línguas](mta://merits_flaws/language) rende o dobro de idiomas usuais: cada ponto concede fluência em duas línguas em vez de apenas uma. Além disso, você reduz em -2 a dificuldade de quaisquer testes de [Inteligência](mta://attributes/intelligence) ou [Raciocínio](mta://attributes/wits) voltados a compreender dialetos desconhecidos, sotaques cerrados, gírias locais ou decifrar mensagens encriptadas e códigos linguísticos arcaicos em tempo real.

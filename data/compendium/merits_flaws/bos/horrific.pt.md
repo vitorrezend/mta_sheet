@@ -1,0 +1,5 @@
+Muito além de Monstruoso, sua forma física é grotesca ao ponto de inspirar pesadelos cósmicos e horror existencial puro. A menos que você masque sua aparência por meio de ilusões poderosas das Esferas de Forças, Vida ou Mente, humanos e animais comuns fogem em pânico histérico ou vomitam de repulsa visceral à sua simples aproximação.
+
+Fisicamente, seu aspecto não é apenas disforme, mas uma afronta à própria sanidade — o tipo de visão blasfema que levou os protagonistas de H.P. Lovecraft ao colapso mental. Você pode nem mesmo ser um Nefando ou Desaurido, mas qualquer um que conheça essas palavras presumirá imediatamente que você é um deles.
+
+Em termos de regras, você sofre uma penalidade de +3 na dificuldade de qualquer teste social que não seja voltado a apavorar os outros (e reduz em -3 a dificuldade quando seu objetivo for aterrorizar). Seu Atributo [Aparência](mta://attributes/appearance) é fixado abaixo de zero, e mortais de mente fraca precisam fazer testes de Força de Vontade para não entrar em choque ou colapso histérico ao passar tempo ao seu lado.

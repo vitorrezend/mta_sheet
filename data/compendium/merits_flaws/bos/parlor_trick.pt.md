@@ -1,0 +1,11 @@
+Você aperfeiçoou um truque especial – uma aplicação simples, específica e não combativa das suas Artes – que consegue realizar sem fazer um teste de conjuração. Entre esses truques estão coisas como fazer surgir um cartão de visitas, mexer uma panela sem tocar na colher (nem na panela), acender o seu cigarro sem isqueiro ou fósforo, produzir uma pequena quantidade de luz sem nenhum artifício mecânico, mudar a cor do cabelo com uma sacudida de cabeça, e assim por diante. Para um Adormecido, esses truques parecem algo que uma pessoa normal poderia fazer com um pouco de habilidade misteriosa. Você, é claro, sabe que a habilidade em questão não é bem o que eles pensam.
+
+Três regras importantes regem esta Qualidade:
+
+- Não pode ser uma proeza com aplicações de combate que causem dano direto (embora um truque de “acender o cigarro” também possa funcionar com um fluxo de gasolina escorrendo). Nada de garras saltando ou de armas de fogo surgindo do nada!
+- Deve ser uma ação rápida e simples, que uma testemunha Adormecida possa explicar como um truque de mãos bem ensaiado.
+- Esses truques se limitam a coisas que você poderia fazer com Níveis de Esfera de 1 a 3, valem para apenas um truque específico (fazer surgir uma rosa, digamos, e não fazer surgir qualquer coisa mais ou menos do tamanho de uma rosa), e você precisa ter as Esferas necessárias para realizar a proeza, para começo de conversa. Esta Qualidade não permite que você lance Efeitos acima das suas capacidades normais!
+
+Cada truque custa três pontos e deve condizer com o foco metafísico do seu personagem. Você pode adquirir esta Qualidade até três vezes, no total. Proezas obviamente vulgares (fazer-se desaparecer em plena luz do dia) são proibidas, embora um uso esperto das circunstâncias (o velho truque de desaparecimento do Batman – veja How Do You DO That?, p. 77) possa ser incluído no seu repertório de truques.
+
+Esta Qualidade tem a intenção de dar ao seu personagem e à sua crônica um pouco mais de estilo. Ela não deve ser permitida como um atalho para contornar as regras, nem como uma arma secreta que ele possa usar sem consequências como o Paradoxo. Em circunstâncias desconhecidas e/ou hostis, como mexer a panela de outra pessoa na cozinha de outra pessoa, este Truque de Salão pode simplesmente não funcionar.

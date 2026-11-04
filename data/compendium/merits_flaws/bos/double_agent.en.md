@@ -1,0 +1,3 @@
+You work both sides of a very spiky fence; one of these days, you’re gonna get stuck on it. Perhaps you’re a Syndicate spy in the Ecstatic Cult, or an Etherite working with Iteration X. In the days of the Disparate Alliance, you might belong to a Tradition while ferreting data to your true Craft. Eventually, this dangerous game will catch up with you. Make plans, establish contingencies, and try not to get yourself perished!
+
+Obviously, this Flaw must be kept secret from the other characters in your group. For extra drama, try to keep it hidden from the other players, too…

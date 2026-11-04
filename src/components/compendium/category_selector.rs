@@ -2,13 +2,12 @@ use leptos::*;
 use crate::components::compendium::CompendiumSection;
 use crate::i18n::Language;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug)]
 pub struct SectionMeta {
     pub section: CompendiumSection,
     pub icon: &'static str,
     pub name_pt: &'static str,
     pub name_en: &'static str,
-    pub count: &'static str,
 }
 
 pub const ALL_SECTIONS: &[SectionMeta] = &[
@@ -17,79 +16,88 @@ pub const ALL_SECTIONS: &[SectionMeta] = &[
         icon: "📜",
         name_pt: "Práticas Mágicas",
         name_en: "Magickal Practices",
-        count: "20",
     },
     SectionMeta {
         section: CompendiumSection::Instruments,
         icon: "🛠️",
         name_pt: "Instrumentos & Focos",
         name_en: "Instruments & Focus",
-        count: "54",
     },
     SectionMeta {
         section: CompendiumSection::Archetypes,
         icon: "🎭",
         name_pt: "Arquétipos",
         name_en: "Archetypes",
-        count: "20",
     },
     SectionMeta {
         section: CompendiumSection::Attributes,
         icon: "🧠",
         name_pt: "Atributos & Regras",
         name_en: "Attributes & Rules",
-        count: "9",
     },
     SectionMeta {
         section: CompendiumSection::Backgrounds,
         icon: "👥",
         name_pt: "Antecedentes",
         name_en: "Backgrounds",
-        count: "33",
     },
     SectionMeta {
         section: CompendiumSection::Spheres,
         icon: "🔮",
         name_pt: "Esferas da Mágika",
         name_en: "Spheres of Magick",
-        count: "13",
     },
     SectionMeta {
         section: CompendiumSection::Weapons,
         icon: "⚔️",
         name_pt: "Armas & Manobras",
         name_en: "Weapons & Maneuvers",
-        count: "126",
     },
     SectionMeta {
         section: CompendiumSection::Abilities,
         icon: "🎯",
         name_pt: "Habilidades",
         name_en: "Abilities",
-        count: "48",
     },
     SectionMeta {
         section: CompendiumSection::MeritsFlaws,
         icon: "✨",
         name_pt: "Qualidades & Defeitos",
         name_en: "Merits & Flaws",
-        count: "26",
     },
     SectionMeta {
         section: CompendiumSection::Traditions,
         icon: "🏛️",
         name_pt: "Facções da Ascensão",
         name_en: "Ascension Factions",
-        count: "25",
     },
     SectionMeta {
         section: CompendiumSection::Bestiary,
         icon: "🐺",
         name_pt: "Aliados & Antagonistas",
         name_en: "Allies & Antagonists",
-        count: "61",
     },
 ];
+
+/// Número de verbetes de uma seção, calculado a partir dos dados (nunca escrito à mão).
+pub fn section_count(section: CompendiumSection) -> usize {
+    use crate::compendium as c;
+    match section {
+        CompendiumSection::Practices => c::practices::ALL_PRACTICES.len(),
+        CompendiumSection::Instruments => c::instruments::ALL_INSTRUMENTS.len(),
+        CompendiumSection::Archetypes => c::archetypes::ALL_ARCHETYPES.len(),
+        CompendiumSection::Attributes => c::attributes::ALL_ATTRIBUTES.len(),
+        CompendiumSection::Backgrounds => c::backgrounds::ALL_BACKGROUNDS.len(),
+        CompendiumSection::Spheres => c::spheres::ALL_SPHERES.len(),
+        CompendiumSection::Weapons => c::weapons::ALL_WEAPONS.len() + c::weapons::ALL_COMBAT_MANEUVERS.len(),
+        CompendiumSection::Abilities => c::abilities::ALL_ABILITIES.len(),
+        CompendiumSection::MeritsFlaws => c::merits_flaws::ALL_MERITS_FLAWS.len() + c::merits_flaws::ALL_DERANGEMENTS.len(),
+        CompendiumSection::Traditions => {
+            c::traditions::ALL_TRADITIONS.len() + c::traditions::ALL_CONVENTIONS.len() + c::traditions::ALL_DISPARATES.len()
+        }
+        CompendiumSection::Bestiary => c::bestiary::ALL_BESTIARY.iter().filter(|e| !e.is_article).count(),
+    }
+}
 
 pub fn get_section_meta(section: CompendiumSection) -> &'static SectionMeta {
     ALL_SECTIONS
@@ -183,7 +191,7 @@ pub fn CategorySelector(
                                 Language::EnUs => current_meta.get().name_en,
                             }}
                         </span>
-                        <span class="selector-badge">{move || current_meta.get().count}</span>
+                        <span class="selector-badge">{move || section_count(current_meta.get().section)}</span>
                         <span class="selector-chevron">{move || if show_popover.get() { "▴" } else { "▾" }}</span>
                     </button>
 
@@ -213,7 +221,7 @@ pub fn CategorySelector(
                                             Language::PtBr => meta.name_pt,
                                             Language::EnUs => meta.name_en,
                                         };
-                                        let count = meta.count;
+                                        let count = section_count(meta.section);
                                         view! {
                                             <button
                                                 type="button"

@@ -1,0 +1,3 @@
+As Massas querem você morto. Você foi exposto pelo que realmente é e pelo que é capaz de fazer, e assim várias partes Adormecidas decidiram aniquilar você como a abominação na qual você se transformou.
+
+Esses caçadores podem ser autoridades policiais, grupos religiosos, seitas fanáticas, multidões enfurecidas, caçadores imbuídos, peões do Povo da Noite... sejam quem forem, essas pessoas representam uma ameaça significativa à sua existência, possuindo o poder de acabar com você e a dedicação necessária para cumprir isso. As suas Artes sozinhas não conseguem detê-los, e um confronto doloroso (ou três) é infelizmente inevitável.

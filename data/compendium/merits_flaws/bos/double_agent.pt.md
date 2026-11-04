@@ -1,0 +1,3 @@
+Você trabalha em ambos os lados de uma cerca muito pontiaguda; um dia desses, você vai acabar empalado nela. Talvez você seja um espião do Sindicato no Culto do Êxtase, ou um Eterita trabalhando com a Iteração X. Nos dias da Aliança Disparate, você pode pertencer a uma Tradição enquanto garimpa dados para o seu verdadeiro Ofício. No fim das contas, esse jogo perigoso vai alcançar você. Faça planos, estabeleça contingências e tente não ser aniquilado!
+
+Obviamente, este Defeito deve ser mantido em segredo dos outros personagens do seu grupo. Para drama adicional, tente mantê-lo oculto dos outros jogadores também...

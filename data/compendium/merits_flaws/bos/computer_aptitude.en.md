@@ -1,0 +1,3 @@
+A true child of the twenty-first century, you’re especially adept with computerized infotech. Reduce all difficulties involving computer-based rolls by -2, up to the usual modifier limit. This last caveat is especially important when dealing with computer-based magickal Effects, whose difficulties cannot be reduced by this Merit beyond the usual magick-roll modifier of -3, or below the minimum difficulty for magick-casting rolls. Even so, this Merit provides an edge for mages whose Arts include the guiding technology of our age.
+
+For detailed optional rules regarding computer usage, see Computer Systems in Chapter Two, pp. 116-127.

@@ -1,16 +1,18 @@
 //! Compêndio de Qualidades, Defeitos e Perturbações (M20).
 //!
-//! Apêndice II: Qualidades e Defeitos (pp. 642-650).
+//! Apêndice II: Qualidades e Defeitos (pp. 642-650), mais os Físicos, Mentais,
+//! Sociais e Sobrenaturais do Book of Secrets (BoS, pp. 34-96).
 
 pub mod models;
 pub mod data;
 pub mod unabridged;
+pub mod autolink;
 
 pub use models::*;
 pub use data::*;
 pub use unabridged::{
     find_derangement_unabridged_text, find_merit_flaw_article, find_merit_flaw_unabridged_text,
-    MERIT_FLAW_ARTICLES,
+    merit_flaw_article_content, MERIT_FLAW_ARTICLES,
 };
 
 use std::sync::LazyLock;
@@ -19,7 +21,9 @@ use std::sync::LazyLock;
 pub static ALL_MERITS_FLAWS: LazyLock<Vec<MeritFlawDefinition>> = LazyLock::new(|| {
     let mut list = Vec::new();
     list.extend_from_slice(ALL_MERITS);
+    list.extend_from_slice(BOS_MERITS);
     list.extend_from_slice(ALL_FLAWS);
+    list.extend_from_slice(BOS_FLAWS);
     list
 });
 

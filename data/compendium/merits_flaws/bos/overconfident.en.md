@@ -1,0 +1,1 @@
+You’re the best there is at what you do. If other folks disagree, then that’s their problem, not yours! Nothing is beyond your reach, and so you almost never back down from a challenge, no matter how absurdly outmatched you appear to be at the time. If things go poorly, of course, you can always blame someone else. After all, it’s clearly not your fault!

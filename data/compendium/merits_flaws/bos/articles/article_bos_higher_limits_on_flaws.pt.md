@@ -1,0 +1,5 @@
+> **Fonte:** Livro dos Segredos M20, Capítulo Um: Traços Heroicos, “Regra Opcional: Limites Mais Altos para Defeitos,” p. 35
+
+Oficialmente, personagens de Mago estão limitados a sete pontos em Defeitos. Dito isso, certos Defeitos (Envelhecimento, Degeneração, Maldição Efêmera e Azar/Geringonça Infernal) podem levar o personagem além desse limite. Além disso, certos personagens podem ser especialmente amaldiçoados, “carregados de um grande propósito”, ou ambos. Nesses casos, o Narrador pode permitir que o personagem do jogador exceda o limite habitual de sete pontos, mesmo que possua mais de dois Defeitos (veja Mago 20, p. 642).
+
+Se você optar por permitir tais exceções, recomendamos um limite superior estrito de 13 pontos em Defeitos — um limite permissível apenas para os personagens mais magnificamente desafortunados. Não permita que seus jogadores abusem dessa exceção em benefício próprio — faça com que doa. Como Narrador, explore esses Defeitos em jogo constantemente; ora, se um jogador quer interpretar Loki, lembre-o do que costuma acontecer com Loki ao final da história.

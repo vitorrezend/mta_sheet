@@ -1,0 +1,3 @@
+Abençoado pelos deuses das máquinas, você possui um dom intuitivo para compreender e consertar mecanismos físicos, engrenagens e motores.
+
+Como a maioria das Qualidades deste tipo, esta aptidão permite reduzir as dificuldades em -2 quando você realizar testes envolvendo o conserto, modificação, montagem ou operação de engenhocas mecânicas (utilizando a Habilidade [Ofícios](mta://abilities/crafts) ou [Tecnologia](mta://abilities/technology)). Você não precisa ser um tecnomante para usar este dom, muito menos pertencer à Tecnocracia; contudo, esta afinidade indica que a tecnologia mecânica ocupa um lugar de destaque em sua vida e, por extensão, no seu paradigma mágiko, suas práticas e seus instrumentos.
