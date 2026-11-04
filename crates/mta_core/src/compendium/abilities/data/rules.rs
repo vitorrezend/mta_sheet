@@ -68,6 +68,15 @@ pub const SIDEBAR_SCIENTIFIC_SPECIALTIES: AbilityTheoryArticle = AbilityTheoryAr
     content_pt: include_str!("../../../../../../data/compendium/abilities/rules/sidebar_scientific_specialties.pt.md"),
 };
 
+pub const RULE_BOS_SECONDARY_ABILITIES: AbilityTheoryArticle = AbilityTheoryArticle {
+    id: "rule_bos_secondary_abilities",
+    title: "Secondary Abilities (Book of Secrets)",
+    title_pt: "Habilidades Secundárias (Livro dos Segredos)",
+    page_ref: "BoS, pp. 18-30",
+    content: include_str!("../../../../../../data/compendium/abilities/rules/rule_bos_secondary_abilities.en.md"),
+    content_pt: include_str!("../../../../../../data/compendium/abilities/rules/rule_bos_secondary_abilities.pt.md"),
+};
+
 pub const ABILITY_THEORY_RULES: &[AbilityTheoryArticle] = &[
     RULE_MINIMUM_ABILITIES,
     RULE_PROFESSIONAL_EXPERT,
@@ -76,4 +85,5 @@ pub const ABILITY_THEORY_RULES: &[AbilityTheoryArticle] = &[
     RULE_BODY_CONTROL,
     SIDEBAR_SCIENTIFIC_SPECIALTIES,
     RULE_SCIENCE_THEORY,
+    RULE_BOS_SECONDARY_ABILITIES,
 ];

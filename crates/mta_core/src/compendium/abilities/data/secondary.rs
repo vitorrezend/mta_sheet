@@ -1,6 +1,7 @@
 //! Habilidades Secundárias Canônicas de M20 (Secondary Abilities).
 //!
 //! M20 pp. 296-301: Talentos Secundários, Perícias Secundárias e Conhecimentos Secundários.
+//! Estilo e Pilotagem vêm do Book of Secrets (ver `bos.rs`).
 
 use super::super::models::{AbilityCategory, AbilityDefinition, AbilityRating, AbilityScope};
 
@@ -118,28 +119,6 @@ pub const SEDUCTION: AbilityDefinition = AbilityDefinition {
     suggested_specialties_pt: &["Sexo Explícito", "Apelo a Fetiches", "Falsa Inocência", "Dominar por Baixo", "Movimentos Sutis", "“Vamos Ser Vilões”", "Cru Porém Eficaz"],
 };
 
-pub const STYLE: AbilityDefinition = AbilityDefinition {
-    id: "style",
-    name: "Style",
-    name_pt: "Estilo",
-    category: AbilityCategory::Talents,
-    scope: AbilityScope::Secondary,
-    page_ref: "M20, p. 298",
-    description: "You project an unforgettable persona. Through couture, grooming, aesthetics, posture, and striking panache, your presence defines coolness and command.",
-    description_pt: "Você projeta uma personalidade inesquecível. Por meio de moda, postura, elegância e atitude marcante, sua presença define o ápice do bom gosto e charme.",
-    ratings: &[
-        AbilityRating { dots: 1, title: "Novice", title_pt: "Novato", description: "Dresses neatly and avoids fashion faux pas.", description_pt: "Veste-se bem e evita mancadas de moda." },
-        AbilityRating { dots: 2, title: "Practiced", title_pt: "Praticante", description: "Distinct personal aesthetic that stands out in a crowd.", description_pt: "Possui identidade visual marcante e bom gosto." },
-        AbilityRating { dots: 3, title: "Skillful", title_pt: "Competente", description: "Trendsetter followed by friends and colleagues.", description_pt: "Dita moda entre amigos e colegas; sempre impecável." },
-        AbilityRating { dots: 4, title: "Expert", title_pt: "Especialista", description: "Fashion icon; photographers and influencers emulate your look.", description_pt: "Ícone estético; fotógrafos e influencers copiam seu visual." },
-        AbilityRating { dots: 5, title: "Master", title_pt: "Mestre", description: "Living masterpiece of aesthetic perfection.", description_pt: "Obra de arte viva de refinamento e presença estética." },
-    ],
-    possessed_by: "Designers, Syndicate Dappermen, Hollow Ones, Rockers, Celebrities.",
-    possessed_by_pt: "Estilistas, Homens de Terno do Sindicato, Vazios, Celebridades.",
-    suggested_specialties: &["High Fashion", "Goth / Cyberpunk", "Corporate Chic", "Retro Vintage", "Hairstyling"],
-    suggested_specialties_pt: &["Alta Costura", "Gótico / Cyberpunk", "Chique Corporativo", "Retro Vintage", "Cabelo e Acessórios"],
-};
-
 // ============================================================================
 // PERÍCIAS SECUNDÁRIAS
 // ============================================================================
@@ -230,28 +209,6 @@ pub const ENERGY_WEAPONS: AbilityDefinition = AbilityDefinition {
     possessed_by_pt: "Ciborgues, Fuzileiros Espaciais, Ternos Pretos, Agentes Secretos, Heróis Eteritas.",
     suggested_specialties: &["Heavy Weapons", "Experimental Tech", "Repair", "Small Arms", "Field Modifications", "Cybernetic Weaponry", "Micro-Gravitational Operations", "Sniper", "Pulp-Tech"],
     suggested_specialties_pt: &["Armas Pesadas", "Tecnologia Experimental", "Reparo", "Armas Leves", "Modificações de Campo", "Armamento Cibernético", "Operações em Microgravidade", "Atirador de Elite", "Tecnologia Pulp"],
-};
-
-pub const PILOT: AbilityDefinition = AbilityDefinition {
-    id: "pilot",
-    name: "Pilot",
-    name_pt: "Pilotagem",
-    category: AbilityCategory::Skills,
-    scope: AbilityScope::Secondary,
-    page_ref: "M20, p. 300",
-    description: "Flying aircraft, helicopters, drones, jets, submersibles, and experimental Void Engineer Void-craft through terrestrial skies or deep space.",
-    description_pt: "Pilotar aviões, helicópteros, caças a jato, drones, submarinos e naves espaciais dos Engenheiros do Vazio na atmosfera ou no espaço profundo.",
-    ratings: &[
-        AbilityRating { dots: 1, title: "Novice", title_pt: "Novato", description: "Small single-prop Cessna pilot in clear daylight.", description_pt: "Piloto de monomotor Cessna em pistas civis de dia." },
-        AbilityRating { dots: 2, title: "Practiced", title_pt: "Praticante", description: "Commercial twin-engine pilot flying through storms.", description_pt: "Piloto comercial bimotor enfrentando turbulência." },
-        AbilityRating { dots: 3, title: "Skillful", title_pt: "Competente", description: "Helicopter combat pilot or acrobatic flyer.", description_pt: "Piloto militar de helicóptero ou acrobata aéreo." },
-        AbilityRating { dots: 4, title: "Expert", title_pt: "Especialista", description: "Fighter jet ace maneuvering in high-G dogfights.", description_pt: "Ás da aviação a jato executando manobras extremas." },
-        AbilityRating { dots: 5, title: "Master", title_pt: "Mestre", description: "Voidcraft commander steering through black holes and nebula storms.", description_pt: "Comandante estelar navegando por anomalias cósmicas." },
-    ],
-    possessed_by: "Void Engineers, Aviators, Military Pilots, Drone Operators, Smugglers.",
-    possessed_by_pt: "Engenheiros do Vazio, Aviadores, Pilotos de Caça, Contrabandistas.",
-    suggested_specialties: &["Jets", "Helicopters", "Void-craft", "Combat Maneuvers", "Bad Weather"],
-    suggested_specialties_pt: &["Caças a Jato", "Helicópteros", "Naves do Vazio", "Dogfights", "Tempestades"],
 };
 
 // ============================================================================
@@ -624,14 +581,12 @@ pub const SECONDARY_ABILITIES: &[AbilityDefinition] = &[
     LUCID_DREAMING,
     SEARCH,
     SEDUCTION,
-    STYLE,
     ACROBATICS,
     ARCHERY,
     BIOTECH,
     ENERGY_WEAPONS,
     HYPERTECH,
     JETPACK,
-    PILOT,
     RIDING,
     TORTURE,
     AREA_KNOWLEDGE,

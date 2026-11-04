@@ -1,0 +1,3 @@
+Either through training, meditation or grim necessity, you can get around without sight even under extreme conditions. Each dot in Blind Fighting reduces, by -1 per dot, your penalty for performing actions while visually blinded. (It does not, of course, give you a bonus for fighting in the dark, although it certainly gives you an edge if your opponents are blind as well.) This Skill does not give you the ability to see in darkness, nor does it add to Correspondence Effects; it does, however, reflect an extraordinary perception of your body and immediate surroundings even when you cannot see.
+
+For the Flaw related to visual impairment, see Impediment, pp. 39-40.

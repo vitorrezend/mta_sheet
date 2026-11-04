@@ -1,6 +1,7 @@
 //! M20 Compêndio de Habilidades (Abilities).
 //!
-//! Capítulo 6: Criação do Personagem (pp. 275-301).
+//! Capítulo 6: Criação do Personagem (pp. 275-301), mais as Habilidades Secundárias
+//! do Book of Secrets (BoS, pp. 18-34).
 
 pub mod models;
 pub mod data;
@@ -19,6 +20,7 @@ pub static ALL_ABILITIES: LazyLock<Vec<AbilityDefinition>> = LazyLock::new(|| {
     list.extend_from_slice(CORE_SKILLS);
     list.extend_from_slice(CORE_KNOWLEDGES);
     list.extend_from_slice(SECONDARY_ABILITIES);
+    list.extend_from_slice(BOS_SECONDARY_ABILITIES);
     list
 });
 

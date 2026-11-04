@@ -523,8 +523,8 @@ pub fn CompendiumModal(
                                     <div class="practice-modal-title-content">
                                         <span class="practice-modal-badge-sup">
                                             {move || match (active_section.get(), current_lang.get()) {
-                                                (CompendiumSection::Archetypes | CompendiumSection::MeritsFlaws, Language::PtBr) => "M20 + LIVRO DOS SEGREDOS • COMPÊNDIO",
-                                                (CompendiumSection::Archetypes | CompendiumSection::MeritsFlaws, Language::EnUs) => "M20 + BOOK OF SECRETS • COMPENDIUM",
+                                                (CompendiumSection::Archetypes | CompendiumSection::MeritsFlaws | CompendiumSection::Abilities, Language::PtBr) => "M20 + LIVRO DOS SEGREDOS • COMPÊNDIO",
+                                                (CompendiumSection::Archetypes | CompendiumSection::MeritsFlaws | CompendiumSection::Abilities, Language::EnUs) => "M20 + BOOK OF SECRETS • COMPENDIUM",
                                                 (_, Language::PtBr) => "M20 • COMPÊNDIO",
                                                 (_, Language::EnUs) => "M20 • COMPENDIUM",
                                             }}
@@ -571,8 +571,8 @@ pub fn CompendiumModal(
                                                 (CompendiumSection::Spheres, Language::EnUs) => "M20, pp. 504-534 • Chapter 10: The Book of Common Magick (Canonical Spheres & Rules)",
                                                 (CompendiumSection::Weapons, Language::PtBr) => "M20, pp. 450-453 • Capítulo 9: Combate & Armamento (Brancas, Fogo, Arremesso)",
                                                 (CompendiumSection::Weapons, Language::EnUs) => "M20, pp. 450-453 • Chapter 9: Combat & Weaponry (Melee, Ranged, Thrown)",
-                                                (CompendiumSection::Abilities, Language::PtBr) => "M20, pp. 275-301 • Capítulo 6: Habilidades (Talentos, Perícias, Conhecimentos & Secundárias)",
-                                                (CompendiumSection::Abilities, Language::EnUs) => "M20, pp. 275-301 • Chapter 6: Abilities (Talents, Skills, Knowledges & Secondary)",
+                                                (CompendiumSection::Abilities, Language::PtBr) => "M20, pp. 275-301; BoS, pp. 18-34 • Capítulo 6: Habilidades (Talentos, Perícias, Conhecimentos & Secundárias)",
+                                                (CompendiumSection::Abilities, Language::EnUs) => "M20, pp. 275-301; BoS, pp. 18-34 • Chapter 6: Abilities (Talents, Skills, Knowledges & Secondary)",
                                                 (CompendiumSection::MeritsFlaws, Language::PtBr) => "M20, pp. 642-650; BoS, pp. 34-96 • Apêndice II e Livro dos Segredos, Cap. 1: Qualidades, Defeitos & Perturbações",
                                                 (CompendiumSection::MeritsFlaws, Language::EnUs) => "M20, pp. 642-650; BoS, pp. 34-96 • Appendix II and Book of Secrets, Ch. 1: Merits, Flaws & Derangements",
                                                 (CompendiumSection::Traditions, Language::PtBr) => "M20, pp. 147-223 • Capítulo 5: Guerreiros da Ascensão (Tradições, União Tecnocrática e Disparates)",
@@ -843,8 +843,8 @@ pub fn CompendiumModal(
                                         (CompendiumSection::Backgrounds, Language::EnUs) => format!("M20, pp. 301-311 • Official {} Backgrounds & Trait Ratings Catalog", crate::compendium::backgrounds::ALL_BACKGROUNDS.len()),
                                         (CompendiumSection::Spheres, Language::PtBr) => format!("M20, pp. 504-534 • Catálogo Canônico Oficial de {} Esferas e Variantes", n_spheres),
                                         (CompendiumSection::Spheres, Language::EnUs) => format!("M20, pp. 504-534 • Official {} Spheres & Variants Catalog", n_spheres),
-                                        (CompendiumSection::Abilities, Language::PtBr) => format!("M20, pp. 275-301 • Catálogo Oficial de {} Habilidades e Regras Opcionais", n_abilities),
-                                        (CompendiumSection::Abilities, Language::EnUs) => format!("M20, pp. 275-301 • Official {} Abilities and Optional Rules Catalog", n_abilities),
+                                        (CompendiumSection::Abilities, Language::PtBr) => format!("M20, pp. 275-301; BoS, pp. 18-34 • Catálogo Oficial de {} Habilidades e Regras Opcionais", n_abilities),
+                                        (CompendiumSection::Abilities, Language::EnUs) => format!("M20, pp. 275-301; BoS, pp. 18-34 • Official {} Abilities and Optional Rules Catalog", n_abilities),
                                         (CompendiumSection::MeritsFlaws, Language::PtBr) => format!("M20, pp. 642-650; BoS, pp. 34-96 • Catálogo Oficial de {} Qualidades, Defeitos e Perturbações", n_merits),
                                         (CompendiumSection::MeritsFlaws, Language::EnUs) => format!("M20, pp. 642-650; BoS, pp. 34-96 • Official {} Merits, Flaws, and Derangements Catalog", n_merits),
                                         (CompendiumSection::Traditions, Language::PtBr) => "M20, pp. 147-223 • 9 Tradições, 5 Convenções da União Tecnocrática e 11 seitas Disparates".to_string(),

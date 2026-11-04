@@ -1,0 +1,1 @@
+An acute perception for what people want makes you a master wheeler-dealer. Combined with social savvy and the ability to say “No” when you need to do so, this perception lets you bring other folks around to your point of view, helps them strike bargains, and puzzle out the potential agendas that drive them to – and away from – the bargaining table.

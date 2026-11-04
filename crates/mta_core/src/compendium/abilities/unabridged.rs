@@ -1,8 +1,15 @@
 //! Textos Integrais M20 das Habilidades (Talentos, Perícias e Conhecimentos).
 //!
-//! M20 pp. 275-300. Textos carregados de data/compendium/abilities/*.en.md e *.pt.md.
+//! M20 pp. 275-300 e Book of Secrets pp. 18-34. Textos carregados de
+//! data/compendium/abilities/*.en.md e *.pt.md (e da subpasta bos/).
 
+use super::data::BOS_SECONDARY_ABILITIES;
 use crate::i18n::Language;
+
+/// Texto integral das Habilidades Secundárias do Book of Secrets (EN e PT).
+fn bos_text(id: &str, lang: Language) -> Option<&'static str> {
+    BOS_SECONDARY_ABILITIES.iter().find(|a| a.id == id).map(|a| a.description(lang))
+}
 
 /// Retorna o texto integral da habilidade M20 no idioma especificado, se disponível.
 pub fn find_ability_unabridged_text(id: &str, lang: Language) -> Option<&'static str> {
@@ -66,7 +73,7 @@ pub fn find_ability_unabridged_text(id: &str, lang: Language) -> Option<&'static
             "survival" => Some(include_str!("../../../../../data/compendium/abilities/survival.en.md")),
             "technology" => Some(include_str!("../../../../../data/compendium/abilities/technology.en.md")),
             "torture" => Some(include_str!("../../../../../data/compendium/abilities/torture.en.md")),
-            _ => None,
+            _ => bos_text(id, lang),
         },
         Language::PtBr => match id {
             "academics" => Some(include_str!("../../../../../data/compendium/abilities/academics.pt.md")),
@@ -127,7 +134,7 @@ pub fn find_ability_unabridged_text(id: &str, lang: Language) -> Option<&'static
             "survival" => Some(include_str!("../../../../../data/compendium/abilities/survival.pt.md")),
             "technology" => Some(include_str!("../../../../../data/compendium/abilities/technology.pt.md")),
             "torture" => Some(include_str!("../../../../../data/compendium/abilities/torture.pt.md")),
-            _ => None,
+            _ => bos_text(id, lang),
         },
     }
 }
