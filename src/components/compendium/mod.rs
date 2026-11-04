@@ -35,6 +35,7 @@ pub enum CompendiumSection {
     MeritsFlaws,
     Traditions,
     Bestiary,
+    Paradigms,
 }
 
 #[component]
@@ -70,6 +71,9 @@ pub fn CompendiumModal(
 
     // ID do verbete do Apêndice I (Aliados & Antagonistas) atualmente selecionado
     let selected_bestiary_id = create_rw_signal("article_supporting_cast".to_string());
+
+    // ID do paradigma (ou do artigo introdutório) atualmente selecionado
+    let selected_paradigm_id = create_rw_signal("article_expanded_paradigms".to_string());
 
     // ID da esfera atualmente selecionada
     let selected_sphere_id = create_rw_signal("correspondence".to_string());
@@ -197,6 +201,7 @@ pub fn CompendiumModal(
                         CompendiumSection::Archetypes => selected_archetype_id.set(loc.item_id),
                         CompendiumSection::Traditions => selected_tradition_id.set(loc.item_id),
                         CompendiumSection::Bestiary => selected_bestiary_id.set(loc.item_id),
+                        CompendiumSection::Paradigms => selected_paradigm_id.set(loc.item_id),
                     }
                     mobile_show_detail.set(true);
                 } else {
@@ -250,6 +255,7 @@ pub fn CompendiumModal(
         let selected_merit_flaw_id = selected_merit_flaw_id.clone();
         let selected_tradition_id = selected_tradition_id.clone();
         let selected_bestiary_id = selected_bestiary_id.clone();
+        let selected_paradigm_id = selected_paradigm_id.clone();
         let combat_subtab = combat_subtab.clone();
         move |lang: Language| -> String {
             match active_section.get() {
@@ -290,6 +296,9 @@ pub fn CompendiumModal(
                 CompendiumSection::Bestiary => {
                     CompendiumTarget::Bestiary(selected_bestiary_id.get()).label(lang)
                 }
+                CompendiumSection::Paradigms => {
+                    CompendiumTarget::Paradigm(selected_paradigm_id.get()).label(lang)
+                }
             }
         }
     };
@@ -308,6 +317,7 @@ pub fn CompendiumModal(
         let selected_merit_flaw_id = selected_merit_flaw_id.clone();
         let selected_tradition_id = selected_tradition_id.clone();
         let selected_bestiary_id = selected_bestiary_id.clone();
+        let selected_paradigm_id = selected_paradigm_id.clone();
         let combat_subtab = combat_subtab.clone();
         let mobile_show_detail = mobile_show_detail.clone();
         let compendium_history = compendium_history.clone();
@@ -336,6 +346,7 @@ pub fn CompendiumModal(
                 CompendiumSection::MeritsFlaws => selected_merit_flaw_id.get(),
                 CompendiumSection::Traditions => selected_tradition_id.get(),
                 CompendiumSection::Bestiary => selected_bestiary_id.get(),
+                CompendiumSection::Paradigms => selected_paradigm_id.get(),
             };
             let cur_combat_subtab = if cur_section == CompendiumSection::Weapons {
                 Some(combat_subtab.get())
@@ -374,6 +385,7 @@ pub fn CompendiumModal(
                 CompendiumTarget::MeritFlaw(id) | CompendiumTarget::Derangement(id) => selected_merit_flaw_id.set(id.clone()),
                 CompendiumTarget::Tradition(id) => selected_tradition_id.set(id.clone()),
                 CompendiumTarget::Bestiary(id) => selected_bestiary_id.set(id.clone()),
+                CompendiumTarget::Paradigm(id) => selected_paradigm_id.set(id.clone()),
             }
             mobile_show_detail.set(true);
         }
@@ -393,6 +405,7 @@ pub fn CompendiumModal(
         let selected_merit_flaw_id = selected_merit_flaw_id.clone();
         let selected_tradition_id = selected_tradition_id.clone();
         let selected_bestiary_id = selected_bestiary_id.clone();
+        let selected_paradigm_id = selected_paradigm_id.clone();
         let combat_subtab = combat_subtab.clone();
         let mobile_show_detail = mobile_show_detail.clone();
         let compendium_history = compendium_history.clone();
@@ -427,6 +440,7 @@ pub fn CompendiumModal(
                     CompendiumSection::MeritsFlaws => selected_merit_flaw_id.set(entry.item_id),
                     CompendiumSection::Traditions => selected_tradition_id.set(entry.item_id),
                     CompendiumSection::Bestiary => selected_bestiary_id.set(entry.item_id),
+                    CompendiumSection::Paradigms => selected_paradigm_id.set(entry.item_id),
                 }
                 mobile_show_detail.set(true);
             }
@@ -518,13 +532,16 @@ pub fn CompendiumModal(
                                             CompendiumSection::MeritsFlaws => "✨",
                                             CompendiumSection::Traditions => "🏛️",
                                             CompendiumSection::Bestiary => "🐺",
+                                            CompendiumSection::Paradigms => "☯️",
                                         }}
                                     </span>
                                     <div class="practice-modal-title-content">
                                         <span class="practice-modal-badge-sup">
                                             {move || match (active_section.get(), current_lang.get()) {
-                                                (CompendiumSection::Archetypes | CompendiumSection::MeritsFlaws | CompendiumSection::Abilities, Language::PtBr) => "M20 + LIVRO DOS SEGREDOS • COMPÊNDIO",
-                                                (CompendiumSection::Archetypes | CompendiumSection::MeritsFlaws | CompendiumSection::Abilities, Language::EnUs) => "M20 + BOOK OF SECRETS • COMPENDIUM",
+                                                (CompendiumSection::Paradigms, Language::PtBr) => "LIVRO DOS SEGREDOS • COMPÊNDIO",
+                                                (CompendiumSection::Paradigms, Language::EnUs) => "BOOK OF SECRETS • COMPENDIUM",
+                                                (CompendiumSection::Archetypes | CompendiumSection::MeritsFlaws | CompendiumSection::Abilities | CompendiumSection::Practices | CompendiumSection::Instruments, Language::PtBr) => "M20 + LIVRO DOS SEGREDOS • COMPÊNDIO",
+                                                (CompendiumSection::Archetypes | CompendiumSection::MeritsFlaws | CompendiumSection::Abilities | CompendiumSection::Practices | CompendiumSection::Instruments, Language::EnUs) => "M20 + BOOK OF SECRETS • COMPENDIUM",
                                                 (_, Language::PtBr) => "M20 • COMPÊNDIO",
                                                 (_, Language::EnUs) => "M20 • COMPENDIUM",
                                             }}
@@ -553,14 +570,16 @@ pub fn CompendiumModal(
                                                 (CompendiumSection::Traditions, Language::EnUs) => "Traditions, Technocratic Union & Disparates",
                                                 (CompendiumSection::Bestiary, Language::PtBr) => "Aliados & Antagonistas",
                                                 (CompendiumSection::Bestiary, Language::EnUs) => "Allies & Antagonists",
+                                                (CompendiumSection::Paradigms, Language::PtBr) => "Paradigmas Expandidos",
+                                                (CompendiumSection::Paradigms, Language::EnUs) => "Expanded Paradigms",
                                             }}
                                         </h3>
                                         <span class="practice-modal-subtitle">
                                             {move || match (active_section.get(), current_lang.get()) {
-                                                (CompendiumSection::Practices, Language::PtBr) => "M20, pp. 573-586 • Capítulo 10: Foco e Artes (Práticas Canônicas)",
-                                                (CompendiumSection::Practices, Language::EnUs) => "M20, pp. 573-586 • Chapter 10: Focus and Arts (Canonical Practices)",
-                                                (CompendiumSection::Instruments, Language::PtBr) => "M20, pp. 586-608 • Capítulo 10: Foco e Artes (Instrumentos & Teoria Canônica)",
-                                                (CompendiumSection::Instruments, Language::EnUs) => "M20, pp. 586-608 • Chapter 10: Focus and Arts (Instruments & Canonical Theory)",
+                                                (CompendiumSection::Practices, Language::PtBr) => "M20, pp. 573-586; BoS, pp. 196-205 • M20 Cap. 10: Foco e Artes e Livro dos Segredos Cap. 3 (Práticas)",
+                                                (CompendiumSection::Practices, Language::EnUs) => "M20, pp. 573-586; BoS, pp. 196-205 • M20 Ch. 10: Focus and Arts and Book of Secrets Ch. 3 (Practices)",
+                                                (CompendiumSection::Instruments, Language::PtBr) => "M20, pp. 586-608; BoS, pp. 205-209 • M20 Cap. 10: Foco e Artes e Livro dos Segredos Cap. 3 (Instrumentos & Teoria)",
+                                                (CompendiumSection::Instruments, Language::EnUs) => "M20, pp. 586-608; BoS, pp. 205-209 • M20 Ch. 10: Focus and Arts and Book of Secrets Ch. 3 (Instruments & Theory)",
                                                 (CompendiumSection::Archetypes, Language::PtBr) => "M20, pp. 267-273; BoS, pp. 14-18 • M20 Cap. 6 e Livro dos Segredos Cap. 1 (Natureza & Comportamento)",
                                                 (CompendiumSection::Archetypes, Language::EnUs) => "M20, pp. 267-273; BoS, pp. 14-18 • M20 Ch. 6 and Book of Secrets Ch. 1 (Nature & Demeanor)",
                                                 (CompendiumSection::Attributes, Language::PtBr) => "M20, pp. 273-275 • Capítulo 6: Atributos & Regra Canônica de Especialidades",
@@ -579,6 +598,8 @@ pub fn CompendiumModal(
                                                 (CompendiumSection::Traditions, Language::EnUs) => "M20, pp. 147-223 • Chapter Five: Ascension Warriors (Traditions, Technocratic Union, and Disparates)",
                                                 (CompendiumSection::Bestiary, Language::PtBr) => "M20, pp. 618-641 • Apêndice I: Aliados e Antagonistas (fichas prontas)",
                                                 (CompendiumSection::Bestiary, Language::EnUs) => "M20, pp. 618-641 • Appendix I: Allies and Antagonists (ready-made templates)",
+                                                (CompendiumSection::Paradigms, Language::PtBr) => "BoS, pp. 188-196 • Livro dos Segredos, Cap. 3: Questões de Foco (Paradigmas Expandidos)",
+                                                (CompendiumSection::Paradigms, Language::EnUs) => "BoS, pp. 188-196 • Book of Secrets, Ch. 3: Matters of Focus (Expanded Paradigms)",
                                             }}
                                         </span>
                                     </div>
@@ -778,6 +799,15 @@ pub fn CompendiumModal(
                                             />
                                         }.into_view()
                                     }
+                                    CompendiumSection::Paradigms => {
+                                        view! {
+                                            <ParadigmsView
+                                                selected_paradigm_id=selected_paradigm_id
+                                                current_lang=current_lang
+                                                mobile_show_detail=Some(mobile_show_detail)
+                                            />
+                                        }.into_view()
+                                    }
                                     CompendiumSection::Bestiary => {
                                         view! {
                                             <BestiaryView
@@ -829,10 +859,10 @@ pub fn CompendiumModal(
                                     let n_merits = c::merits_flaws::ALL_MERITS_FLAWS.len() + c::merits_flaws::ALL_DERANGEMENTS.len();
                                     let n_bestiary = c::bestiary::ALL_BESTIARY.iter().filter(|e| !e.is_article).count();
                                     match (active_section.get(), current_lang.get()) {
-                                        (CompendiumSection::Practices, Language::PtBr) => format!("M20, pp. 573-586 • Catálogo Oficial de {} Práticas e Boxes Canônicos", n_practices),
-                                        (CompendiumSection::Practices, Language::EnUs) => format!("M20, pp. 573-586 • Official {} Magickal Practices and Sidebars", n_practices),
-                                        (CompendiumSection::Instruments, Language::PtBr) => format!("M20, pp. 586-608 • Catálogo Oficial de {} Instrumentos e Artigos Teóricos", n_instruments),
-                                        (CompendiumSection::Instruments, Language::EnUs) => format!("M20, pp. 586-608 • Official {} Instruments and Theory Articles", n_instruments),
+                                        (CompendiumSection::Practices, Language::PtBr) => format!("M20, pp. 573-586; BoS, pp. 196-205 • Catálogo Oficial de {} Práticas e Quadros", n_practices),
+                                        (CompendiumSection::Practices, Language::EnUs) => format!("M20, pp. 573-586; BoS, pp. 196-205 • Official {} Magickal Practices and Sidebars", n_practices),
+                                        (CompendiumSection::Instruments, Language::PtBr) => format!("M20, pp. 586-608; BoS, pp. 205-209 • Catálogo Oficial de {} Instrumentos e Artigos Teóricos", n_instruments),
+                                        (CompendiumSection::Instruments, Language::EnUs) => format!("M20, pp. 586-608; BoS, pp. 205-209 • Official {} Instruments and Theory Articles", n_instruments),
                                         (CompendiumSection::Archetypes, Language::PtBr) => format!("M20, pp. 267-273; BoS, pp. 14-18 • Catálogo Oficial de {} Arquétipos (Natureza & Comportamento)", n_archetypes),
                                         (CompendiumSection::Archetypes, Language::EnUs) => format!("M20, pp. 267-273; BoS, pp. 14-18 • Official {} Personality Archetypes (Nature & Demeanor)", n_archetypes),
                                         (CompendiumSection::Attributes, Language::PtBr) => "M20, pp. 273-275 • Atributos Físicos, Sociais, Mentais & Regra de Especialidades".to_string(),
@@ -851,6 +881,8 @@ pub fn CompendiumModal(
                                         (CompendiumSection::Traditions, Language::EnUs) => "M20, pp. 147-223 • 9 Traditions, 5 Technocratic Conventions, and 11 Disparate sects (full text)".to_string(),
                                         (CompendiumSection::Bestiary, Language::PtBr) => format!("M20, pp. 618-641 • {} fichas prontas de animais, mortais, Tecnocratas, magos e espíritos", n_bestiary),
                                         (CompendiumSection::Bestiary, Language::EnUs) => format!("M20, pp. 618-641 • {} ready-made templates: animals, mortals, Technocrats, mages, and spirits", n_bestiary),
+                                        (CompendiumSection::Paradigms, Language::PtBr) => format!("BoS, pp. 188-196 • {} paradigmas com Práticas Associadas (texto integral)", c::paradigms::ALL_PARADIGMS.len()),
+                                        (CompendiumSection::Paradigms, Language::EnUs) => format!("BoS, pp. 188-196 • {} paradigms with Associated Practices (full text)", c::paradigms::ALL_PARADIGMS.len()),
                                     }
                                     }}
                                 </span>

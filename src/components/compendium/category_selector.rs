@@ -12,6 +12,12 @@ pub struct SectionMeta {
 
 pub const ALL_SECTIONS: &[SectionMeta] = &[
     SectionMeta {
+        section: CompendiumSection::Paradigms,
+        icon: "☯️",
+        name_pt: "Paradigmas",
+        name_en: "Paradigms",
+    },
+    SectionMeta {
         section: CompendiumSection::Practices,
         icon: "📜",
         name_pt: "Práticas Mágicas",
@@ -83,6 +89,7 @@ pub const ALL_SECTIONS: &[SectionMeta] = &[
 pub fn section_count(section: CompendiumSection) -> usize {
     use crate::compendium as c;
     match section {
+        CompendiumSection::Paradigms => c::paradigms::ALL_PARADIGMS.len(),
         CompendiumSection::Practices => c::practices::ALL_PRACTICES.len(),
         CompendiumSection::Instruments => c::instruments::ALL_INSTRUMENTS.len(),
         CompendiumSection::Archetypes => c::archetypes::ALL_ARCHETYPES.len(),

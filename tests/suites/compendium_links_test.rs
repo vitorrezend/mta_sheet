@@ -10,6 +10,18 @@ use mta_sheet::compendium::weapons::find_combat_entity;
 use mta_sheet::i18n::Language;
 
 #[test]
+fn test_paradigm_uri_parser_and_labels() {
+    let t = CompendiumTarget::from_uri("mta://paradigms/we_are_not_men").expect("Deveria parsear paradigmas");
+    assert_eq!(t, CompendiumTarget::Paradigm("we_are_not_men".to_string()));
+    assert_eq!(t.label(Language::PtBr), "Nós NÃO Somos Homens!");
+    assert_eq!(t.label(Language::EnUs), "We Are NOT Men!");
+    let art = CompendiumTarget::from_uri("mta://paradigmas/article_expanded_paradigms").expect("alias PT");
+    assert_eq!(art.label(Language::PtBr), "Paradigmas Expandidos");
+    let bx = CompendiumTarget::from_uri("mta://practices/box_theosophy").expect("quadro");
+    assert_eq!(bx.label(Language::PtBr), "Teosofia");
+}
+
+#[test]
 fn test_compendium_target_uri_parser() {
     // 1. Antecedentes
     let bg_target = CompendiumTarget::from_uri("mta://backgrounds/allies").expect("Deveria parsear antecedentes");
@@ -135,6 +147,11 @@ fn test_compendium_cross_links_integrity() {
                         CompendiumTarget::Bestiary(id) => {
                             let exists = mta_sheet::compendium::bestiary::find_bestiary_entry(id).is_some();
                             assert!(exists, "Link para verbete do bestiário inexistente em {} ({:?}): {}", bg.id, lang, id);
+                        }
+                        CompendiumTarget::Paradigm(id) => {
+                            let exists = mta_sheet::compendium::paradigms::find_paradigm(id).is_some()
+                                || mta_sheet::compendium::paradigms::find_paradigm_article(id).is_some();
+                            assert!(exists, "Link para paradigma inexistente em {} ({:?}): {}", bg.id, lang, id);
                         }
                     }
 

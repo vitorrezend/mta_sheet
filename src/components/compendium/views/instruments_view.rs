@@ -51,8 +51,8 @@ pub fn InstrumentsView(
                         type="text"
                         class="compendium-search-input"
                         placeholder=move || match current_lang.get() {
-                            Language::PtBr => "🔍 Filtrar 54 instrumentos...",
-                            Language::EnUs => "🔍 Filter 54 instruments...",
+                            Language::PtBr => format!("🔍 Filtrar {} instrumentos...", ALL_INSTRUMENTS.len()),
+                            Language::EnUs => format!("🔍 Filter {} instruments...", ALL_INSTRUMENTS.len()),
                         }
                         prop:value=move || instrument_search.get()
                         on:input=move |ev| instrument_search.set(event_target_value(&ev))
@@ -62,8 +62,8 @@ pub fn InstrumentsView(
                 // Artigos Teóricos e Regras Canônicas
                 <div class="practice-sidebar-title">
                     {move || match current_lang.get() {
-                        Language::PtBr => "TEORIA & REGRAS M20 (pp. 586-588)",
-                        Language::EnUs => "THEORY & RULES M20 (pp. 586-588)",
+                        Language::PtBr => "TEORIA & REGRAS (M20, pp. 586-588; BoS, pp. 205-206)",
+                        Language::EnUs => "THEORY & RULES (M20, pp. 586-588; BoS, pp. 205-206)",
                     }}
                 </div>
                 <div class="practice-tab-list theory-articles-list">
@@ -98,11 +98,11 @@ pub fn InstrumentsView(
                     }).collect_view()}
                 </div>
 
-                // Lista de 54 Instrumentos Comuns
+                // Lista de Instrumentos (M20 e, ao final, os Instrumentos Expandidos do BoS)
                 <div class="practice-sidebar-title" style="margin-top: 0.6rem;">
                     {move || match current_lang.get() {
-                        Language::PtBr => "TODOS OS 54 INSTRUMENTOS (M20, pp. 588-608)",
-                        Language::EnUs => "ALL 54 INSTRUMENTS (M20, pp. 588-608)",
+                        Language::PtBr => format!("TODOS OS {} INSTRUMENTOS (M20, pp. 588-608; BoS, pp. 205-209)", ALL_INSTRUMENTS.len()),
+                        Language::EnUs => format!("ALL {} INSTRUMENTS (M20, pp. 588-608; BoS, pp. 205-209)", ALL_INSTRUMENTS.len()),
                     }}
                 </div>
                 <div class="practice-tab-list">
@@ -217,14 +217,16 @@ pub fn InstrumentsView(
                                     <div class="practice-aliases">
                                         <span class="practice-aliases-label">
                                             {move || match current_lang.get() {
-                                                Language::PtBr => "Classificação M20: ",
-                                                Language::EnUs => "M20 Classification: ",
+                                                Language::PtBr => "Classificação: ",
+                                                Language::EnUs => "Classification: ",
                                             }}
                                         </span>
                                         <span class="practice-aliases-val">
-                                            {move || match current_lang.get() {
-                                                Language::PtBr => "Regras Canônicas de Foco e Instrumentos (Capítulo 10)",
-                                                Language::EnUs => "Canonical Focus and Instrument Rules (Chapter 10)",
+                                            {move || match (current_lang.get(), theory_item.page_ref.starts_with("BoS")) {
+                                                (Language::PtBr, false) => "Regras Canônicas de Foco e Instrumentos (M20, Capítulo 10)",
+                                                (Language::EnUs, false) => "Canonical Focus and Instrument Rules (M20, Chapter 10)",
+                                                (Language::PtBr, true) => "Instrumentos Expandidos (Livro dos Segredos, Capítulo 3)",
+                                                (Language::EnUs, true) => "Expanded Instruments (Book of Secrets, Chapter 3)",
                                             }}
                                         </span>
                                     </div>
@@ -312,9 +314,11 @@ pub fn InstrumentsView(
 
                                 <div class="practice-description-wrap">
                                     <h4 class="practice-section-title">
-                                        {move || match current_lang.get() {
-                                            Language::PtBr => "TEXTO INTEGRAL M20 (ORIGINAL DO LIVRO)",
-                                            Language::EnUs => "COMPLETE M20 UNABRIDGED TEXT",
+                                        {move || match (current_lang.get(), inst_item.page_ref.starts_with("BoS")) {
+                                            (Language::PtBr, false) => "TEXTO INTEGRAL M20 (ORIGINAL DO LIVRO)",
+                                            (Language::EnUs, false) => "COMPLETE M20 UNABRIDGED TEXT",
+                                            (Language::PtBr, true) => "TEXTO INTEGRAL (LIVRO DOS SEGREDOS)",
+                                            (Language::EnUs, true) => "COMPLETE UNABRIDGED TEXT (BOOK OF SECRETS)",
                                         }}
                                     </h4>
                                     <div class="practice-description-text">
