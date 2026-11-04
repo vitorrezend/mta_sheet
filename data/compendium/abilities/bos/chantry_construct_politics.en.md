@@ -1,0 +1,5 @@
+In the corridors of Awakened and Enlightened power, you know your way around. Alliances, rivalries, histories, influential players, status and weaknesses… they’re your bread and butter. With such expertise, you’re able to accomplish things that leave lesser mages scratching their heads.
+
+This Knowledge comes in two forms: Chantry Politics covers the internal workings of a mystic stronghold, while Construct Politics reveals the inner workings of Technocratic installations. The higher your rating, the more you know. Certain levels of this Knowledge, however, are off-limits to characters under a certain rank. Low-level mages or Technocrats won’t have the security clearance necessary to access high-level secrets (that is, C-Politics higher than 3), and members of rival factions probably won’t be able to find out much about the other guys at all unless they’re skilled infiltrators walking a very dangerous line.
+
+Regardless of the character’s rank or affiliation, C-Politics just gives you data and rumors, not the ability to act on what you think you know. Putting that knowledge to good use requires Traits like Diplomacy, Subterfuge, Allies, Patron, and Spies.

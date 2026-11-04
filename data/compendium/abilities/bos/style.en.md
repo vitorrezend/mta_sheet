@@ -1,0 +1,1 @@
+You know how to look good. And although you’ve got an eye for fashion, this Talent’s not so much about what you wear as how you wear it. Style helps you make good impressions based on clothes, bearing, behavior, and appearance… and while it’s most obvious on pretty people, it can have striking effects on those who otherwise look plain.

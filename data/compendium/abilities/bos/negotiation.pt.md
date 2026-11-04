@@ -1,0 +1,1 @@
+Uma percepção aguçada do que as pessoas querem faz de você um mestre negociador. Combinada com traquejo social e com a capacidade de dizer “Não” quando é preciso, essa percepção permite que você traga outras pessoas para o seu ponto de vista, ajuda-as a fechar acordos e a desvendar os possíveis objetivos que as levam à mesa de negociação – e para longe dela.

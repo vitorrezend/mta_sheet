@@ -1,0 +1,1 @@
+Games of nerve and chance are your specialties. Even without the aid of Entropy Arts (which can add a devastating edge to this Skill), you’re good at gauging odds, bluffing rivals, spotting cheats, hedging bets, faking people out, and employing the mind-games and slight-of-hand essential to card games, betting, and apparently random luck.

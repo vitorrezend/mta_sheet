@@ -1,0 +1,1 @@
+The phrase “sheer surface” means less to you than it means to most folks. You can scale walls, trees, mountains, and other surfaces so long as you’ve got something to hold onto. Although this Skill does not grant superhuman abilities, it’s really amazing what a skilled climber can do, even without gear.

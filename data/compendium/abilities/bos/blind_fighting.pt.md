@@ -1,0 +1,3 @@
+Seja por treinamento, meditação ou pura necessidade, você consegue se virar sem enxergar, mesmo em condições extremas. Cada ponto em Luta às Cegas reduz em -1 a sua penalidade para realizar ações enquanto está sem visão. (Ela não lhe dá, é claro, um bônus para lutar no escuro, embora certamente lhe dê uma vantagem se os seus adversários também estiverem cegos.) Esta Perícia não lhe dá a capacidade de enxergar no escuro, nem se soma a Efeitos de Correspondência; ela reflete, porém, uma percepção extraordinária do seu corpo e dos arredores imediatos mesmo quando você não consegue ver.
+
+Para o Defeito relacionado à deficiência visual, veja Impedimento, pp. 39-40.

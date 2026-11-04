@@ -1,0 +1,1 @@
+Você sabe como ficar bem. E, embora tenha olho para a moda, este Talento não tem tanto a ver com o que você veste, e sim com como você veste. Estilo o ajuda a causar boas impressões com base em roupas, porte, comportamento e aparência… e, embora seja mais evidente em pessoas bonitas, pode ter efeitos marcantes naquelas que, de outra forma, pareceriam comuns.

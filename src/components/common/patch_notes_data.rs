@@ -19,6 +19,27 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.24.1",
+        date: "2026-11-04",
+        tag: "v0.24.1",
+        title: "Habilidades Secundárias do Livro dos Segredos no Compêndio",
+        highlight: "As 45 Habilidades Secundárias do Livro dos Segredos (Talentos, Perícias e Conhecimentos) entram no compêndio com o texto completo do livro em inglês e português, os 5 níveis, quem possui e especializações sugeridas.",
+        sections: &[
+            PatchSection {
+                category: "🎓 Habilidades Secundárias",
+                icon: "📘",
+                items: &[
+                    "📖 45 Habilidades Novas (BoS, pp. 18-34), com o texto do livro em inglês e português, os níveis de 1 a 5, quem possui e especializações sugeridas.",
+                    "✨ 11 Talentos: Culinária, Diplomacia, Instrução, Intriga, Intuição, Imitação, Negociação, Novafala, Varredura, Garimpagem e Estilo.",
+                    "🛠️ 23 Perícias: de Luta às Cegas, Escalada e Disfarce a Hipnotismo, Gambiarra, Operações em Microgravidade, Psicologia/Psicanálise, Leitura Dinâmica e Natação.",
+                    "📚 11 Conhecimentos: Teoria da Conspiração, Política de Capela/Constructo, Cultura Clandestina, Traquejo Cultural, Timoneiro, História, Tráfico de Influência, Propaganda, Teologia, Guerra Não Convencional e Vícios.",
+                    "📋 Quadro Novo: Habilidades Secundárias (Livro dos Segredos), com as introduções de Talentos, Perícias e Conhecimentos e links para cada Habilidade.",
+                    "✅ Estilo e Pilotagem Corrigidos: agora trazem o texto e a página do Livro dos Segredos, no lugar de resumos que apontavam para páginas erradas do M20.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.24.0",
         date: "2026-11-04",
         tag: "v0.24.0",
