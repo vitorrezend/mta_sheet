@@ -4,6 +4,7 @@ use crate::compendium::archetypes::find_archetype;
 use crate::compendium::attributes::find_attribute;
 use crate::compendium::backgrounds::find_background;
 use crate::compendium::instruments::{find_instrument, find_theory_article};
+use crate::compendium::paradigms::find_paradigm;
 use crate::compendium::practices::find_practice;
 use crate::compendium::spheres::find_sphere;
 use crate::compendium::bestiary::find_bestiary_entry;
@@ -48,6 +49,7 @@ pub fn resolve_compendium_query(
         CompendiumSection::Archetypes,
         CompendiumSection::Traditions,
         CompendiumSection::Bestiary,
+        CompendiumSection::Paradigms,
     ];
 
     for &sec in ALL_SECTIONS {
@@ -205,6 +207,11 @@ fn match_section(section: CompendiumSection, query: &str) -> Option<ResolvedComp
                 None
             }
         }
+        CompendiumSection::Paradigms => find_paradigm(query).map(|p| ResolvedCompendiumLocation {
+            section: CompendiumSection::Paradigms,
+            item_id: p.id.to_string(),
+            combat_subtab: None,
+        }),
         CompendiumSection::Bestiary => find_bestiary_entry(query).map(|e| ResolvedCompendiumLocation {
             section: CompendiumSection::Bestiary,
             item_id: e.id.to_string(),

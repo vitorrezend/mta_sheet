@@ -6,6 +6,7 @@
 
 use serde::Serialize;
 use crate::i18n::Language;
+use super::instruments_bos::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct InstrumentTheoryArticle {
@@ -96,6 +97,8 @@ pub const ALL_THEORY_ARTICLES: &[InstrumentTheoryArticle] = &[
     THEORY_TOOLS_OF_FOCUS,
     THEORY_CLASSIFICATIONS,
     THEORY_SIGNIFICANT_RULE,
+    THEORY_EXPANDED_INSTRUMENTS,
+    THEORY_PREPPED_AND_READY,
 ];
 
 // ============================================================================
@@ -751,6 +754,13 @@ pub const ALL_INSTRUMENTS: &[InstrumentDefinition] = &[
     WANDS_STAVES,
     WEAPONS,
     WRITINGS_RUNES,
+    BOS_BODY_MODIFICATION,
+    BOS_CANNIBALISM,
+    BOS_CYBERNETIC_IMPLANTS,
+    BOS_GENETIC_MANIPULATION,
+    BOS_INTERNET_ACTIVITY,
+    BOS_MEDICAL_PROCEDURES,
+    BOS_TRANSGRESSION,
 ];
 
 /// Busca um instrumento de forma resiliente por id, nome EN, nome PT, aliases ou substrings.
@@ -809,11 +819,12 @@ mod tests {
 
     #[test]
     fn test_all_instruments_count_and_uniqueness() {
-        assert_eq!(ALL_INSTRUMENTS.len(), 54);
+        assert_eq!(ALL_INSTRUMENTS.len(), 61);
         let mut ids = std::collections::HashSet::new();
         for inst in ALL_INSTRUMENTS {
             assert!(ids.insert(inst.id), "Duplicate instrument ID: {}", inst.id);
-            assert!(inst.page_ref.starts_with("M20, p"), "Invalid page_ref for {}: {}", inst.name, inst.page_ref);
+            assert!(inst.page_ref.starts_with("M20, p") || inst.page_ref.starts_with("BoS, p"), "Invalid page_ref for {}: {}", inst.name, inst.page_ref);
+            assert_eq!(inst.category == "bos", inst.page_ref.starts_with("BoS"), "Category mismatch for {}", inst.name);
             assert!(!inst.description.is_empty(), "Missing EN description for {}", inst.name);
             assert!(!inst.description_pt.is_empty(), "Missing PT description for {}", inst.name_pt);
             assert!(!inst.aliases.is_empty(), "Missing aliases for {}", inst.name);
@@ -822,9 +833,9 @@ mod tests {
 
     #[test]
     fn test_all_theory_articles_integrity() {
-        assert_eq!(ALL_THEORY_ARTICLES.len(), 3);
+        assert_eq!(ALL_THEORY_ARTICLES.len(), 5);
         for art in ALL_THEORY_ARTICLES {
-            assert!(art.page_ref.starts_with("M20, p"), "Invalid theory page_ref: {}", art.page_ref);
+            assert!(art.page_ref.starts_with("M20, p") || art.page_ref.starts_with("BoS, p"), "Invalid theory page_ref: {}", art.page_ref);
             assert!(!art.content.is_empty());
             assert!(!art.content_pt.is_empty());
         }
@@ -842,6 +853,9 @@ mod tests {
         assert_eq!(find_instrument("Varinhas").unwrap().id, "wands_staves");
         assert_eq!(find_instrument("Nanotech").unwrap().id, "nanotech");
         assert_eq!(find_instrument("Nanotecnologia").unwrap().id, "nanotech");
+        assert_eq!(find_instrument("Modificação Corporal").unwrap().id, "body_modification");
+        assert_eq!(find_instrument("Bodywork").unwrap().id, "bodywork");
+        assert_eq!(find_instrument("Transgression").unwrap().id, "transgression");
     }
 
     #[test]

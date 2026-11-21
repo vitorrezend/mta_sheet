@@ -19,6 +19,27 @@ pub struct PatchSection {
 
 pub static PATCH_RELEASES: &[PatchRelease] = &[
     PatchRelease {
+        version: "v0.24.2",
+        date: "2026-11-04",
+        tag: "v0.24.2",
+        title: "Paradigmas, Práticas e Instrumentos Expandidos do Livro dos Segredos",
+        highlight: "O compêndio ganha a seção Paradigmas, com os 13 paradigmas do Livro dos Segredos, além de 7 práticas e 7 instrumentos novos, todos com o texto completo do livro em inglês e português.",
+        sections: &[
+            PatchSection {
+                category: "☯️ Foco Expandido",
+                icon: "☯️",
+                items: &[
+                    "☯️ Seção Nova: Paradigmas (BoS, pp. 188-196), com 13 paradigmas, de Os Alienígenas Nos Fazem o Que Somos a Somos Todos Deus(es) Disfarçados, mais a introdução do capítulo.",
+                    "🔗 Práticas Associadas: cada paradigma lista as práticas sugeridas pelo livro, e um clique abre a prática no compêndio.",
+                    "📜 7 Práticas Novas (BoS, pp. 196-205): Animalismo, Bardismo, Elementalismo, Vínculo Divino, Revigoramento, Mediunidade e Psiônica, com paradigmas, Habilidades e instrumentos associados; já podem ser usadas na ficha.",
+                    "🛠️ 7 Instrumentos Novos (BoS, pp. 205-209): Modificação Corporal, Canibalismo, Implantes Cibernéticos, Manipulação Genética, Atividade na Internet, Procedimentos Médicos e Transgressão.",
+                    "📋 Quadros do Capítulo: Práticas Expandidas, Teosofia, Instrumentos Expandidos e Operações Instrumentais “Preparadas e Prontas”.",
+                    "🗂️ Lista de Práticas Organizada: as práticas do M20 e as do Livro dos Segredos aparecem em grupos separados.",
+                ],
+            },
+        ],
+    },
+    PatchRelease {
         version: "v0.24.1",
         date: "2026-11-04",
         tag: "v0.24.1",

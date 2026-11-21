@@ -1,0 +1,1 @@
+Embora Mago 20 apresente uma ampla variedade de práticas comuns, a abordagem da humanidade às disciplinas metafísicas é quase tão vasta quanto a nossa abordagem da vida em geral. E assim, as práticas a seguir podem ser acrescentadas às práticas descritas na seção Foco e Artes daquele livro, e combinadas com elas.

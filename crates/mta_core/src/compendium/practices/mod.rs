@@ -3,9 +3,11 @@
 //! Capítulo 10: Foco e Artes (pp. 573-586).
 //! Dividido em submódulos conforme a Clean Architecture (< 1.000 linhas por arquivo).
 
+pub mod bos;
 pub mod callouts;
 pub mod data;
 
+pub use bos::*;
 pub use callouts::*;
 pub use data::*;
 
@@ -76,7 +78,7 @@ impl PracticeDefinition {
     }
 }
 
-/// All registered canonical M20 practices in the compendium.
+/// All registered practices: the 20 from M20 followed by the 7 from the Book of Secrets.
 pub const ALL_PRACTICES: &[PracticeDefinition] = &[
     ALCHEMY,
     ART_OF_DESIRE,
@@ -98,7 +100,26 @@ pub const ALL_PRACTICES: &[PracticeDefinition] = &[
     WEIRD_SCIENCE,
     WITCHCRAFT,
     YOGA,
+    ANIMALISM,
+    BARDISM,
+    ELEMENTALISM,
+    GOD_BONDING,
+    INVIGORATION,
+    MEDIUMSHIP,
+    PSIONICS,
 ];
+
+/// Quadros de texto (sidebars) da seção de Práticas, endereçáveis por id.
+pub const PRACTICE_BOXES: &[(&str, &CalloutBox)] = &[
+    ("box_left_right", &BOX_LEFT_AND_RIGHT_HAND_PATHS),
+    ("box_expanded_practices", &BOX_EXPANDED_PRACTICES),
+    ("box_theosophy", &BOX_THEOSOPHY),
+];
+
+/// Busca um quadro (sidebar) da seção de Práticas pelo id.
+pub fn find_practice_box(id: &str) -> Option<&'static CalloutBox> {
+    PRACTICE_BOXES.iter().find(|(k, _)| *k == id).map(|(_, b)| *b)
+}
 
 /// Returns a slice of practice names for quick selection / autocomplete in the requested language.
 pub fn get_practice_names(lang: Language) -> Vec<&'static str> {
@@ -149,14 +170,17 @@ mod tests {
 
     #[test]
     fn test_all_practices_count_and_uniqueness() {
-        assert_eq!(ALL_PRACTICES.len(), 20);
+        assert_eq!(ALL_PRACTICES.len(), 27);
         let mut ids = std::collections::HashSet::new();
         for p in ALL_PRACTICES {
             assert!(ids.insert(p.id), "Duplicate practice ID: {}", p.id);
             assert!(!p.page_ref.is_empty(), "Missing page_ref for {}", p.name);
             assert!(!p.description.is_empty(), "Missing EN description for {}", p.name);
             assert!(!p.description_pt.is_empty(), "Missing PT description for {}", p.name_pt);
-            assert!(!p.quote_pt.is_empty(), "Missing PT quote for {}", p.name_pt);
+            assert_eq!(p.quote.is_empty(), p.quote_pt.is_empty(), "Quote EN/PT mismatch for {}", p.name_pt);
+            assert_eq!(p.paradigm_affinity.len(), p.paradigm_affinity_pt.len(), "{}", p.id);
+            assert_eq!(p.common_instruments.len(), p.common_instruments_pt.len(), "{}", p.id);
+            assert_eq!(p.associated_abilities.len(), p.associated_abilities_pt.len(), "{}", p.id);
         }
     }
 
@@ -179,6 +203,16 @@ mod tests {
         assert_eq!(find_practice("Alquimia").unwrap().id, "alchemy");
         assert_eq!(find_practice("Yoga").unwrap().id, "yoga");
         assert_eq!(find_practice("Ioga").unwrap().id, "yoga");
+    }
+
+    #[test]
+    fn test_bos_practices_lookup() {
+        assert_eq!(find_practice("Psionics").map(|p| p.id), Some("psionics"));
+        assert_eq!(find_practice("Mediunidade").map(|p| p.id), Some("mediumship"));
+        assert_eq!(find_practice("God-Bonding").map(|p| p.id), Some("god_bonding"));
+        assert_eq!(PSIONICS.callouts.first().map(|c| c.title), Some("Theosophy"));
+        assert!(find_practice_box("box_expanded_practices").is_some());
+        assert!(ALL_PRACTICES.iter().filter(|p| p.page_ref.starts_with("BoS")).count() == 7);
     }
 
     #[test]

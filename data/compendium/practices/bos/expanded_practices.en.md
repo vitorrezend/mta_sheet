@@ -1,0 +1,1 @@
+Although Mage 20 features a wide array of common practices, humanity’s approach to metaphysical disciplines is almost as broad as our approach to life in general. And so, the following practices can be added to, and combined with, the practices described in the Focus and the Arts section of that book.

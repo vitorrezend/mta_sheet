@@ -1,10 +1,95 @@
 use leptos::*;
 use crate::compendium::instruments::find_instrument;
+use crate::compendium::paradigms::find_paradigm;
 use crate::compendium::practices::{
-    find_practice, ALL_PRACTICES, BOX_LEFT_AND_RIGHT_HAND_PATHS, PracticeDefinition,
+    find_practice, find_practice_box, ALL_PRACTICES, BOX_EXPANDED_PRACTICES,
+    BOX_LEFT_AND_RIGHT_HAND_PATHS, PracticeDefinition,
 };
 use crate::components::Callback;
 use crate::i18n::Language;
+
+/// Botão de quadro (sidebar) na coluna da lista de práticas.
+fn box_tab(
+    box_id: &'static str,
+    label_pt: &'static str,
+    label_en: &'static str,
+    page_ref: &'static str,
+    selected_practice_id: RwSignal<String>,
+    current_lang: Signal<Language>,
+    mobile_show_detail: Option<RwSignal<bool>>,
+) -> impl IntoView {
+    view! {
+        <div class="special-box-tab-wrap" style="margin-bottom: 0.6rem;">
+            <button
+                type="button"
+                class=move || {
+                    if selected_practice_id.get() == box_id {
+                        "practice-tab-btn special-box-tab active"
+                    } else {
+                        "practice-tab-btn special-box-tab"
+                    }
+                }
+                on:click=move |_| {
+                    selected_practice_id.set(box_id.to_string());
+                    if let Some(msd) = mobile_show_detail {
+                        msd.set(true);
+                    }
+                }
+            >
+                <span class="tab-indicator">"📜"</span>
+                <div class="tab-text-wrap">
+                    <span class="tab-name">
+                        {move || match current_lang.get() {
+                            Language::PtBr => label_pt,
+                            Language::EnUs => label_en,
+                        }}
+                    </span>
+                    <span class="tab-sub">{page_ref}</span>
+                </div>
+            </button>
+        </div>
+    }
+}
+
+/// Lista de botões de práticas filtrada pela fonte (M20 ou Book of Secrets).
+fn practice_tabs(
+    from_bos: bool,
+    selected_practice_id: RwSignal<String>,
+    current_lang: Signal<Language>,
+    mobile_show_detail: Option<RwSignal<bool>>,
+) -> impl IntoView {
+    view! {
+        <div class="practice-tab-list">
+            {ALL_PRACTICES.iter().filter(move |p| p.page_ref.starts_with("BoS") == from_bos).map(|p: &'static PracticeDefinition| {
+                let p_id = p.id;
+                let p_page = p.page_ref;
+                let is_active = Signal::derive(move || selected_practice_id.get() == p_id);
+                view! {
+                    <button
+                        type="button"
+                        class=move || {
+                            if is_active.get() {
+                                "practice-tab-btn active"
+                            } else {
+                                "practice-tab-btn"
+                            }
+                        }
+                        on:click=move |_| {
+                            selected_practice_id.set(p_id.to_string());
+                            if let Some(msd) = mobile_show_detail {
+                                msd.set(true);
+                            }
+                        }
+                    >
+                        <span class="practice-tab-bullet">"✦"</span>
+                        <span class="practice-tab-label">{move || p.name(current_lang.get())}</span>
+                        <span class="practice-tab-page">{p_page}</span>
+                    </button>
+                }
+            }).collect_view()}
+        </div>
+    }
+}
 
 #[component]
 pub fn PracticesView(
@@ -15,7 +100,9 @@ pub fn PracticesView(
     on_navigate_to_instrument: Option<Callback<(String, String)>>,
     on_close: Option<Callback<()>>,
 ) -> impl IntoView {
-    let is_practice_box = Signal::derive(move || selected_practice_id.get() == "box_left_right");
+    let active_box = Signal::derive(move || find_practice_box(&selected_practice_id.get()));
+    let n_m20 = ALL_PRACTICES.iter().filter(|p| !p.page_ref.starts_with("BoS")).count();
+    let n_bos = ALL_PRACTICES.len() - n_m20;
     let active_practice = Signal::derive(move || {
         let cur_id = selected_practice_id.get();
         find_practice(&cur_id).unwrap_or(&ALL_PRACTICES[0])
@@ -32,72 +119,25 @@ pub fn PracticesView(
         >
             // ================= PRÁTICAS: Coluna Esquerda =================
             <div class="practice-sidebar-pane">
-                // Box Especial
-                <div class="special-box-tab-wrap" style="margin-bottom: 0.6rem;">
-                    <button
-                        type="button"
-                        class=move || {
-                            if is_practice_box.get() {
-                                "practice-tab-btn special-box-tab active"
-                            } else {
-                                "practice-tab-btn special-box-tab"
-                            }
-                        }
-                        on:click=move |_| {
-                            selected_practice_id.set("box_left_right".to_string());
-                            if let Some(msd) = mobile_show_detail {
-                                msd.set(true);
-                            }
-                        }
-                    >
-                        <span class="tab-indicator">"📜"</span>
-                        <div class="tab-text-wrap">
-                            <span class="tab-name">
-                                {move || match current_lang.get() {
-                                    Language::PtBr => "Mão Esquerda & Direita",
-                                    Language::EnUs => "Left- & Right-Hand",
-                                }}
-                            </span>
-                            <span class="tab-sub">{BOX_LEFT_AND_RIGHT_HAND_PATHS.page_ref}</span>
-                        </div>
-                    </button>
-                </div>
+                // Quadro especial do M20
+                {box_tab("box_left_right", "Mão Esquerda & Direita", "Left- & Right-Hand", BOX_LEFT_AND_RIGHT_HAND_PATHS.page_ref, selected_practice_id, current_lang, mobile_show_detail)}
 
                 <div class="practice-sidebar-title">
                     {move || match current_lang.get() {
-                        Language::PtBr => "TODAS AS 20 PRÁTICAS (M20, pp. 573-586)",
-                        Language::EnUs => "ALL 20 PRACTICES (M20, pp. 573-586)",
+                        Language::PtBr => format!("{} PRÁTICAS DO M20 (pp. 573-586)", n_m20),
+                        Language::EnUs => format!("{} M20 PRACTICES (pp. 573-586)", n_m20),
                     }}
                 </div>
-                <div class="practice-tab-list">
-                    {ALL_PRACTICES.iter().map(|p: &'static PracticeDefinition| {
-                        let p_id = p.id;
-                        let p_page = p.page_ref;
-                        let is_active = Signal::derive(move || selected_practice_id.get() == p_id);
-                        view! {
-                            <button
-                                type="button"
-                                class=move || {
-                                    if is_active.get() {
-                                        "practice-tab-btn active"
-                                    } else {
-                                        "practice-tab-btn"
-                                    }
-                                }
-                                on:click=move |_| {
-                                    selected_practice_id.set(p_id.to_string());
-                                    if let Some(msd) = mobile_show_detail {
-                                        msd.set(true);
-                                    }
-                                }
-                            >
-                                <span class="practice-tab-bullet">"✦"</span>
-                                <span class="practice-tab-label">{move || p.name(current_lang.get())}</span>
-                                <span class="practice-tab-page">{p_page}</span>
-                            </button>
-                        }
-                    }).collect_view()}
+                {practice_tabs(false, selected_practice_id, current_lang, mobile_show_detail)}
+
+                <div class="practice-sidebar-title" style="margin-top: 0.6rem;">
+                    {move || match current_lang.get() {
+                        Language::PtBr => format!("{} PRÁTICAS EXPANDIDAS (BoS, pp. 196-205)", n_bos),
+                        Language::EnUs => format!("{} EXPANDED PRACTICES (BoS, pp. 196-205)", n_bos),
+                    }}
                 </div>
+                {box_tab("box_expanded_practices", "Práticas Expandidas", "Expanded Practices", BOX_EXPANDED_PRACTICES.page_ref, selected_practice_id, current_lang, mobile_show_detail)}
+                {practice_tabs(true, selected_practice_id, current_lang, mobile_show_detail)}
             </div>
 
             // ================= PRÁTICAS: Coluna Direita (Detalhe) =================
@@ -120,17 +160,17 @@ pub fn PracticesView(
                 })}
 
                 {move || {
-                    if is_practice_box.get() {
-                        // Visualização Dedicada do Box "Left- and Right-Hand Paths"
+                    if let Some(bx) = active_box.get() {
+                        // Visualização dedicada de um quadro (sidebar) da seção
                         view! {
                             <div class="box-reading-view">
                                 <div class="practice-detail-header">
                                     <div class="practice-title-row">
                                         <div class="practice-main-name">
-                                            "📜 " {move || BOX_LEFT_AND_RIGHT_HAND_PATHS.title(current_lang.get())}
+                                            "📜 " {move || bx.title(current_lang.get())}
                                         </div>
                                         <span class="practice-page-badge">
-                                            "📖 " {BOX_LEFT_AND_RIGHT_HAND_PATHS.page_ref}
+                                            "📖 " {bx.page_ref}
                                         </span>
                                     </div>
                                     <div class="practice-aliases">
@@ -141,9 +181,11 @@ pub fn PracticesView(
                                             }}
                                         </span>
                                         <span class="practice-aliases-val">
-                                            {move || match current_lang.get() {
-                                                Language::PtBr => "Sidebar / Box de Regras M20 (Caminhos da Mão Esquerda e da Mão Direita)",
-                                                Language::EnUs => "M20 Rules Sidebar / Feature Box (Left- and Right-Hand Paths)",
+                                            {move || match (current_lang.get(), bx.page_ref.starts_with("BoS")) {
+                                                (Language::PtBr, true) => "Texto do Livro dos Segredos",
+                                                (Language::EnUs, true) => "Book of Secrets text",
+                                                (Language::PtBr, false) => "Quadro de Regras do M20",
+                                                (Language::EnUs, false) => "M20 Rules Sidebar",
                                             }}
                                         </span>
                                     </div>
@@ -152,12 +194,12 @@ pub fn PracticesView(
                                 <aside class="compendium-callout-box standalone">
                                     <div class="callout-header">
                                         <span class="callout-icon">"⚖️"</span>
-                                        <span class="callout-title">{move || BOX_LEFT_AND_RIGHT_HAND_PATHS.title(current_lang.get())}</span>
-                                        <span class="callout-page-ref">{BOX_LEFT_AND_RIGHT_HAND_PATHS.page_ref}</span>
+                                        <span class="callout-title">{move || bx.title(current_lang.get())}</span>
+                                        <span class="callout-page-ref">{bx.page_ref}</span>
                                     </div>
                                     <div class="callout-content">
                                         {move || {
-                                            let c = BOX_LEFT_AND_RIGHT_HAND_PATHS.content(current_lang.get());
+                                            let c = bx.content(current_lang.get());
                                             c.split("\n\n").map(|paragraph| {
                                                 view! { <p class="callout-para">{paragraph.to_string()}</p> }
                                             }).collect_view()
@@ -229,11 +271,13 @@ pub fn PracticesView(
                                 </div>
 
                                 // Citação / Filosofia da Prática
-                                <blockquote class="practice-quote">
-                                    <span class="quote-mark">"“"</span>
-                                    {move || practice.quote(current_lang.get())}
-                                    <span class="quote-mark">"”"</span>
-                                </blockquote>
+                                {(!practice.quote.is_empty()).then(|| view! {
+                                    <blockquote class="practice-quote">
+                                        <span class="quote-mark">"“"</span>
+                                        {move || practice.quote(current_lang.get())}
+                                        <span class="quote-mark">"”"</span>
+                                    </blockquote>
+                                })}
 
                                 // Callout Boxes Associados à Prática (se houver)
                                 {practice.callouts.iter().map(|box_item| {
@@ -266,8 +310,20 @@ pub fn PracticesView(
                                     </h4>
                                     <div class="practice-pills-wrap">
                                         {move || {
-                                            practice.paradigm_affinity(current_lang.get()).iter().map(|para| {
-                                                view! { <span class="practice-pill pill-paradigm">{*para}</span> }
+                                            let lang = current_lang.get();
+                                            practice.paradigm_affinity(lang).iter().enumerate().map(|(i, para)| {
+                                                // Paradigmas do Livro dos Segredos viram links para a seção Paradigmas
+                                                let en = practice.paradigm_affinity.get(i).copied().unwrap_or(para);
+                                                let base = en.split('(').next().unwrap_or(en).trim();
+                                                match find_paradigm(base).filter(|p| p.name.eq_ignore_ascii_case(base)) {
+                                                    Some(p) => view! {
+                                                        <a class="practice-pill pill-paradigm pill-clickable" href=format!("mta://paradigms/{}", p.id)>
+                                                            {*para}
+                                                            <span class="pill-nav-icon">" ↗"</span>
+                                                        </a>
+                                                    }.into_view(),
+                                                    None => view! { <span class="practice-pill pill-paradigm">{*para}</span> }.into_view(),
+                                                }
                                             }).collect_view()
                                         }}
                                     </div>
@@ -276,9 +332,11 @@ pub fn PracticesView(
                                 // Texto Descritivo Completo e Integral do M20
                                 <div class="practice-description-wrap">
                                     <h4 class="practice-section-title">
-                                        {move || match current_lang.get() {
-                                            Language::PtBr => "TEXTO INTEGRAL M20 (ORIGINAL DO LIVRO)",
-                                            Language::EnUs => "COMPLETE M20 UNABRIDGED TEXT",
+                                        {move || match (current_lang.get(), practice.page_ref.starts_with("BoS")) {
+                                            (Language::PtBr, false) => "TEXTO INTEGRAL M20 (ORIGINAL DO LIVRO)",
+                                            (Language::EnUs, false) => "COMPLETE M20 UNABRIDGED TEXT",
+                                            (Language::PtBr, true) => "TEXTO INTEGRAL (LIVRO DOS SEGREDOS)",
+                                            (Language::EnUs, true) => "COMPLETE UNABRIDGED TEXT (BOOK OF SECRETS)",
                                         }}
                                     </h4>
                                     <div class="practice-description-text">
@@ -317,7 +375,8 @@ pub fn PracticesView(
                                                             Language::EnUs => format!("View entry for '{}' in Compendium", inst_title),
                                                         }
                                                         on:click=move |_| {
-                                                            if let Some(found) = find_instrument(&inst_click) {
+                                                            let base = inst_click.split('(').next().unwrap_or("").trim().to_string();
+                                                            if let Some(found) = find_instrument(&inst_click).or_else(|| find_instrument(&base)) {
                                                                 if let Some(n) = on_n_item.clone() {
                                                                     n.call((p_id_hist.clone(), found.id.to_string()));
                                                                 }

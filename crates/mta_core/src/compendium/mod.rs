@@ -5,6 +5,8 @@
 
 pub mod practices;
 pub mod instruments;
+pub mod instruments_bos;
+pub mod paradigms;
 pub mod attributes;
 pub mod weapons;
 pub mod archetypes;
@@ -18,6 +20,11 @@ pub mod bestiary;
 
 pub use practices::*;
 pub use instruments::*;
+pub use instruments_bos::*;
+pub use paradigms::{
+    find_paradigm, find_paradigm_article, ParadigmArticle, ParadigmDefinition, ALL_PARADIGMS,
+    ARTICLE_EXPANDED_PARADIGMS,
+};
 pub use attributes::*;
 pub use weapons::*;
 pub use archetypes::*;

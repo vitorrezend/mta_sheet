@@ -33,8 +33,8 @@ pub fn AuthPage() -> impl IntoView {
         }
 
         if is_register.get() {
-            if user_val.len() < 3 {
-                set_error_msg.set(Some("Nome de usuário deve ter no mínimo 3 caracteres".to_string()));
+            if let Err(err) = crate::auth::validate_username(user_val.trim()) {
+                set_error_msg.set(Some(err.to_string()));
                 return;
             }
 
@@ -179,6 +179,7 @@ pub fn AuthPage() -> impl IntoView {
                             prop:value=username
                             on:input=move |ev| set_username.set(event_target_value(&ev))
                             disabled=move || is_submitting.get()
+                            maxlength="64"
                             required
                         />
                     </div>
